@@ -1,7 +1,9 @@
+import Router from '@/routes';
+
 function App() {
   return (
     <>
-      <h1>BDL</h1>
+      <Router />
     </>
   );
 }
