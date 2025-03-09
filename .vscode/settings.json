@@ -1,0 +1,22 @@
+{
+    // ESLint 자동 수정 설정
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+    // 파일 저장 시 자동 포매팅 활성화
+    "editor.formatOnSave": true,
+    // 기본 포매터로 Prettier 설정
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    // JavaScript 파일의 import 경로를 절대 경로로 설정
+    "javascript.preferences.importModuleSpecifier": "non-relative",
+    // TypeScript 파일의 import 경로를 절대 경로로 설정
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "cSpell.words": [
+        "Excalidraw",
+        "grimtalk",
+        "jaemoon",
+        "livekit",
+        "Openvidu",
+        "Vidu"
+    ]
+}
