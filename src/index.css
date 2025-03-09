@@ -1,10 +1,10 @@
+@import url('https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://spoqa.github.io/spoqa-han-sans/css/SpoqaHanSansNeo.css');
-
 body {
-  font-family: 'Spoqa Han Sans Neo'
+  font-family: 'Spoqa Han Sans Neo';
 }
 
