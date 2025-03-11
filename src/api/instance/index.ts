@@ -33,7 +33,7 @@ const _kyAuth = _ky.extend({
       (request: ExtendedKyRequest) => {
         const token = localStorage.getItem('accessToken');
         if (token) {
-          request.headers.set('X-Access-Token', `Bearer ${token}`);
+          request.headers.set('Authorization', `Bearer ${token}`);
         }
       },
     ],
@@ -51,12 +51,12 @@ const _kyAuth = _ky.extend({
               const tokenResponse = await _ky.post('auth/token');
               const BEARER_PREFIX = 'Bearer ';
               const newAccessToken = tokenResponse.headers
-                .get('X-Access-Token')
+                .get('Authorization')
                 ?.substring(BEARER_PREFIX.length);
 
               if (newAccessToken) {
                 useAuthStore.getState().loginAuth(newAccessToken);
-                request.headers.set('X-Access-Token', `Bearer ${newAccessToken}`);
+                request.headers.set('Authorization', `Bearer ${newAccessToken}`);
               }
 
               return _kyAuth(request);
