@@ -40,7 +40,10 @@ export const NavBar = () => {
           </button>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
-          <button className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color">
+          <button
+            className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
+            onClick={() => navigate('/search')}
+          >
             <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
           </button>
           <input
@@ -49,6 +52,11 @@ export const NavBar = () => {
             name="search"
             id="search"
             placeholder="기업을 검색하세요."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                navigate('/search');
+              }
+            }}
           />
         </div>
       </div>
