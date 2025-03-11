@@ -1,8 +1,8 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 
-import { BlueButton } from '@/components/common/blue-button';
 import { MainLogoIcon } from '@/components/common/icons';
+import { Button } from '@/components/ui/button';
 
 export const NavBar = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ export const NavBar = () => {
             모의교육
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
+        <div className="focus-within:outline-primary-color flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2">
           <button
             className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
             onClick={() => navigate('/search')}
@@ -60,7 +60,9 @@ export const NavBar = () => {
           />
         </div>
       </div>
-      <BlueButton onClick={() => navigate('/login')}>로그인</BlueButton>
+      <Button variant="blue" onClick={() => navigate('/login')}>
+        로그인
+      </Button>
     </nav>
   );
 };

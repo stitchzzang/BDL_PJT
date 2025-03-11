@@ -16,6 +16,12 @@ const buttonVariants = cva(
         secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
+        blue: 'bg-primary-color text-text-main-color hover:bg-primary-color/20 hover:text-primary-color active:bg-primary-color/20 active:text-primary-color border-none',
+        green:
+          'bg-btn-green-color text-text-main-color hover:bg-btn-green-color/20 hover:text-btn-green-color active:bg-btn-green-color/20 active:text-btn-green-color border-none',
+        yellow:
+          'bg-btn-yellow-color text-text-main-color hover:bg-btn-yellow-color/20 hover:text-btn-yellow-color active:bg-btn-yellow-color/20 active:text-btn-yellow-color border-none',
+        red: 'bg-btn-red-color text-text-main-color hover:bg-btn-red-color/20 hover:text-btn-red-color active:bg-btn-red-color/20 active:text-btn-red-color border-none',
       },
       size: {
         default: 'h-9 px-4 py-2',
