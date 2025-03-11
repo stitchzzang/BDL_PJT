@@ -39,7 +39,7 @@ export const NavBar = () => {
             모의교육
           </button>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
+        <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
           <button
             className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
             onClick={() => navigate('/search')}
@@ -47,7 +47,7 @@ export const NavBar = () => {
             <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
           </button>
           <input
-            className="bg-transparent text-[#718096]"
+            className="bg-transparent text-[#718096] focus:outline-none"
             type="text"
             name="search"
             id="search"
