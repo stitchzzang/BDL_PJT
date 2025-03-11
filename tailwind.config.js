@@ -18,7 +18,7 @@ export default {
         'btn-yellow-color': '#FFBA2F',
         'btn-blue-color': '#076BFD',
         'text-main-color': '#FFFFFF',
-        'text-inactive-color': '#E2E8F1',
+        'text-inactive-color': '#B4B4B4',
         'text-inactive-2-color': '#5E6D84',
         'border-color': '#718096',
         background: 'hsl(var(--background))',
