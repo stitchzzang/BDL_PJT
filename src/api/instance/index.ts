@@ -1,8 +1,8 @@
 import ky, { KyRequest } from 'ky';
 
+import { ERROR_CODES } from '@/api/instance/errorHandler';
 import { navigate } from '@/lib/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
-import { ERROR_CODES } from '@/utils/errorHandler';
 
 interface ExtendedKyRequest extends KyRequest {
   _retry?: boolean;
