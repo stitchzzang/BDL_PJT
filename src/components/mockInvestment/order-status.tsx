@@ -6,7 +6,6 @@ export const OrderStatus = () => {
         <hr />
         <h3>구매하기</h3>
         <div>
-          {' '}
           {/* 구매하기 컴포넌트 -> div 2개로 일단 진행 */}
           <div>
             <div>
