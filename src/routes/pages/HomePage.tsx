@@ -1,4 +1,4 @@
-import { OrderStatus } from '@/components/mockInvestment/order-status';
+import { OrderStatus } from '@/components/mockInvestment/orderStatus/order-status';
 
 export const HomePage = () => {
   return (
