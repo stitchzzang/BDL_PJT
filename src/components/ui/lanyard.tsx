@@ -2,25 +2,24 @@
 	Installed from https://reactbits.dev/ts/tailwind/
 */
 
-/* eslint-disable react/no-unknown-property */
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { Environment, Lightformer, useGLTF, useTexture } from '@react-three/drei';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
-import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei';
 import {
   BallCollider,
   CuboidCollider,
   Physics,
   RigidBody,
+  RigidBodyProps,
   useRopeJoint,
   useSphericalJoint,
-  RigidBodyProps,
 } from '@react-three/rapier';
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-import cardGLB from './card.glb';
-import lanyard from './lanyard.png';
+import cardGLB from '@/assets/card.glb';
+import lanyard from '@/assets/lanyard.png';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -38,7 +37,7 @@ export default function Lanyard({
   transparent = true,
 }: LanyardProps) {
   return (
-    <div className="relative z-0 w-full h-screen flex justify-center items-center transform scale-100 origin-center">
+    <div className="relative z-0 flex h-screen w-full origin-center scale-100 transform items-center justify-center">
       <Canvas
         camera={{ position, fov }}
         gl={{ alpha: transparent }}
