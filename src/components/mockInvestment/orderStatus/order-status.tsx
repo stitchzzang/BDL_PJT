@@ -1,8 +1,12 @@
+import { OrderStatusCategory } from '@/components/mockInvestment/orderStatus/order-status-category';
+
 export const OrderStatus = () => {
   return (
     <div>
       <div className="rounded-md bg-modal-background-color p-5">
-        <div>{/* 구매,판매,대기구역 버튼 */}</div>
+        <div>
+          <OrderStatusCategory />
+        </div>
         <hr />
         <h3>구매하기</h3>
         <div>
