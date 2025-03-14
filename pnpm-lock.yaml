@@ -47,6 +47,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.67.2
         version: 5.67.2(react@19.0.0)
+      '@types/three':
+        specifier: ^0.174.0
+        version: 0.174.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
