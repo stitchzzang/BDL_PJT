@@ -81,10 +81,20 @@ export const OrderStatusBuy = () => {
               <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
               <div className="absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
                 <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button className="text-[22px]">+</button>
+                  <button
+                    className="text-[22px]"
+                    onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
+                  >
+                    -
+                  </button>
                 </div>
                 <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button className="text-[22px]">-</button>
+                  <button
+                    className="text-[22px]"
+                    onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             </div>
@@ -103,17 +113,17 @@ export const OrderStatusBuy = () => {
                 <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
                   >
-                    +
+                    -
                   </button>
                 </div>
                 <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
                   >
-                    -
+                    +
                   </button>
                 </div>
               </div>
