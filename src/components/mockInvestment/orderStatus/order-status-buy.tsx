@@ -14,6 +14,18 @@ export const OrderStatusBuy = () => {
   useEffect(() => {
     setPrintCost(buyCost + ' 원');
   }, [buyCost]);
+  // +,- 기능 (구매가격)
+  const CostButtonHandler = (
+    check: string,
+    value: number,
+    setValue: React.Dispatch<React.SetStateAction<number>>,
+  ) => {
+    if (check === '+') {
+      setValue(value + 100);
+    } else if (check === '-') {
+      setValue(value - 100);
+    }
+  };
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
   // 총 주문 금액
@@ -54,20 +66,36 @@ export const OrderStatusBuy = () => {
           <div className="flex items-center justify-between gap-4">
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
-            <div className="flex w-full max-w-[80%] flex-col gap-2">
+            <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
+              <div className="absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                  <button className="text-[22px]">+</button>
+                </div>
+                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                  <button className="text-[22px]">-</button>
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>수량</h3>
             </div>
-            <div className="flex w-full max-w-[80%] flex-col gap-2">
+            <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <NumberInput
                 value={stockCount}
                 setValue={setStockCount}
                 placeholder="수량을 입력하세요."
               />
+              <div className="absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                  <button className="text-[22px]">+</button>
+                </div>
+                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                  <button className="text-[22px]">-</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
