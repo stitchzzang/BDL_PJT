@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 
 export const OrderStatusBuy = () => {
   // 폰트 동일 스타일링 함수
@@ -44,19 +44,7 @@ export const OrderStatusBuy = () => {
             <div className="min-w-[74px]" />
             {buyCost}
             <div className="flex w-full max-w-[80%] flex-col gap-2">
-              <Input
-                type="text"
-                placeholder="값을 입력하세요."
-                value={buyCost === 0 ? '' : buyCost.toString()} // 상태값을 string으로 변환해서 value에 전달
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // 숫자만 허용하는 정규식
-                  if (/^\d*$/.test(value)) {
-                    const numValue = value === '' ? 0 : parseInt(value, 10); // 빈 값은 0으로 처리
-                    setBuyCost(numValue); // number 타입으로 상태를 업데이트
-                  }
-                }}
-              />
+              <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
             </div>
           </div>
         </div>
