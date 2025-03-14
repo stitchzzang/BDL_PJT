@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { OrderStatusBuy } from '@/components/mockInvestment/orderStatus/order-status-buy';
 import { OrderStatusCategory } from '@/components/mockInvestment/orderStatus/order-status-category';
 import { OrderStatusShell } from '@/components/mockInvestment/orderStatus/order-status-shell';
+import { OrderStatusWait } from '@/components/mockInvestment/orderStatus/order-status-wait';
 
 export const OrderStatus = () => {
   // 허용된 탭 타입을 정의
@@ -14,7 +15,7 @@ export const OrderStatus = () => {
   const Components: Record<TabType, React.ReactNode> = {
     구매: <OrderStatusBuy />,
     판매: <OrderStatusShell />,
-    대기: <OrderStatusBuy />,
+    대기: <OrderStatusWait />,
   };
   return (
     <div>
