@@ -4,10 +4,11 @@ export const OrderStatus = () => {
   return (
     <div>
       <div className="rounded-md bg-modal-background-color p-5">
-        <div>
+        <div className="mb-[25px]">
           <OrderStatusCategory />
         </div>
-        <hr />
+        <hr className="border border-border-color border-opacity-20" />
+        <div></div>
         <h3>구매하기</h3>
         <div>
           {/* 구매하기 컴포넌트 -> div 2개로 일단 진행 */}
