@@ -2,10 +2,10 @@ import { useState } from 'react';
 
 export const OrderStatusCategory = () => {
   const orderButtonStyle =
-    'w-[30%] cursor-pointer text-center rounded-md py-[10px]  transition-all duration-300';
+    'w-[30%] cursor-pointer text-center rounded-xl py-[10px]  transition-all duration-300';
   const [isActive, setIsActive] = useState<string>('구매');
   return (
-    <div className="rounded-md border border-border-color p-3">
+    <div className=" rounded-xl border border-border-color p-3 ">
       <div className="flex w-full justify-between gap-1">
         <div
           className={`${orderButtonStyle} ${isActive === '구매' ? 'bg-btn-red-color bg-opacity-20' : ''} hover:bg-btn-red-color hover:bg-opacity-20`}
