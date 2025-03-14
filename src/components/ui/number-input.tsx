@@ -6,12 +6,12 @@ interface InputProps {
   placeholder: string;
 }
 
-export const numberInput: React.FC<InputProps> = ({ value, setValue, placeholder }) => {
+export const NumberInput: React.FC<InputProps> = ({ value, setValue, placeholder }) => {
   return (
     <Input
       type="text"
       placeholder={placeholder}
-      value={value === 0 ? '' : setValue.toString()} // 상태값을 string으로 변환해서 value에 전달
+      value={value === 0 ? '' : value.toString()} // 상태값을 string으로 변환해서 value에 전달
       onChange={(e) => {
         const value = e.target.value;
         // 숫자만 허용하는 정규식
