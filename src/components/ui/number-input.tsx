@@ -9,6 +9,7 @@ interface InputProps {
 export const NumberInput: React.FC<InputProps> = ({ value, setValue, placeholder }) => {
   return (
     <Input
+      className="rounded-xl px-[20px] py-[15px]"
       type="text"
       placeholder={placeholder}
       value={value === 0 ? '' : value.toString()} // 상태값을 string으로 변환해서 value에 전달
