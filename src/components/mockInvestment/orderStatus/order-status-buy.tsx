@@ -79,8 +79,8 @@ export const OrderStatusBuy = () => {
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
-              <div className="absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
                     onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
@@ -88,7 +88,7 @@ export const OrderStatusBuy = () => {
                     -
                   </button>
                 </div>
-                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
                     onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
@@ -109,8 +109,8 @@ export const OrderStatusBuy = () => {
                 setValue={setStockCount}
                 placeholder="수량을 입력하세요."
               />
-              <div className="absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
                     className="text-[22px]"
                     onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
@@ -118,7 +118,7 @@ export const OrderStatusBuy = () => {
                     -
                   </button>
                 </div>
-                <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
                     className="text-[22px]"
                     onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
@@ -141,10 +141,13 @@ export const OrderStatusBuy = () => {
             <h3 className={h3Style}>{totalPrice()} 원</h3>
           </div>
         </div>
-        <div className="mt-[25px]">
+        <div className="mt-[25px] flex flex-col items-center gap-2">
           <Button variant="red" className="w-full" size="lg">
             <p className=" text-[22px] font-medium text-white">구매하기</p>
           </Button>
+          <p className="text-[14px] font-light text-[#718096]">
+            결제 수수료는 결제 금액의 0.004% 입니다.
+          </p>
         </div>
       </div>
     </div>
