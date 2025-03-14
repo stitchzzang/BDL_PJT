@@ -8,7 +8,7 @@ export const OrderStatus = () => {
         <div className="mb-[25px]">
           <OrderStatusCategory />
         </div>
-        <hr className="border border-border-color border-opacity-20" />
+        <hr className="mb-[25px] border border-border-color border-opacity-20" />
         <div>
           <OrderStatusBuy />
         </div>
