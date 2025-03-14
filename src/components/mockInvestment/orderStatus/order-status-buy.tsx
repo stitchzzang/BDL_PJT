@@ -1,26 +1,37 @@
+import { useState } from 'react';
+
 export const OrderStatusBuy = () => {
   // 폰트 동일 스타일링 함수
-  const h3Style = 'text-[18px] font-bold';
+  const h3Style = 'text-[18px] font-bold text-white';
+  const [isActive, setIsActive] = useState<string>('지정가');
+  const isActiveHandler = (active: string) => {
+    setIsActive(active);
+  };
   return (
     <div>
       <h3 className={h3Style}>구매하기</h3>
       <div>
-        <div className="flex w-full gap-4">
-          <div className="min-w-[74px]">
-            <h3 className={h3Style}>주문 유형</h3>
-          </div>
-          <div className="flex w-full flex-col gap-2">
-            {/* 지정가 */}
-            <div className="flex w-full justify-between gap-3 rounded-md bg-btn-primary-active-color px-[10px] py-[7px]">
-              <div className="w-full text-center">
-                <p>지정가</p>
-              </div>
-              <div className="w-full text-center">
-                <p>시장가</p>
-              </div>
+        <div className="flex w-full flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-[74px]">
+              <h3 className={h3Style}>주문 유형</h3>
             </div>
-            <div className="w-full">
-              <input type="text" className="w-full" />
+            <div className="flex w-full max-w-[80%] flex-col gap-2">
+              {/* 지정가 */}
+              <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-[10px] py-[7px]">
+                <div
+                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-[8px] text-center text-[18px] text-border-color transition-all duration-300`}
+                  onClick={() => isActiveHandler('지정가')}
+                >
+                  <p>지정가</p>
+                </div>
+                <div
+                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-[8px] text-center text-[18px] text-border-color transition-all duration-300`}
+                  onClick={() => isActiveHandler('시장가')}
+                >
+                  <p>시장가</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
