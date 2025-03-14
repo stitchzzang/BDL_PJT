@@ -1,3 +1,4 @@
+import { OrderStatusBuy } from '@/components/mockInvestment/orderStatus/order-status-buy';
 import { OrderStatusCategory } from '@/components/mockInvestment/orderStatus/order-status-category';
 
 export const OrderStatus = () => {
@@ -8,7 +9,9 @@ export const OrderStatus = () => {
           <OrderStatusCategory />
         </div>
         <hr className="border border-border-color border-opacity-20" />
-        <div></div>
+        <div>
+          <OrderStatusBuy />
+        </div>
       </div>
     </div>
   );
