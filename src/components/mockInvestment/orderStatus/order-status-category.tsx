@@ -18,7 +18,7 @@ export const OrderStatusCategory = () => {
           </button>
         </div>
         <div
-          className={`${orderButtonStyle} ${isActive === '판매' ? 'bg-btn-blue-color bg-opacity-20' : ''}`}
+          className={`${orderButtonStyle} ${isActive === '판매' ? 'bg-btn-blue-color bg-opacity-20' : ''} hover:bg-btn-blue-color hover:bg-opacity-20`}
           onClick={() => setIsActive('판매')}
         >
           <button
@@ -28,7 +28,7 @@ export const OrderStatusCategory = () => {
           </button>
         </div>
         <div
-          className={`${orderButtonStyle} ${isActive === '대기' ? 'bg-btn-green-color bg-opacity-20' : ''}`}
+          className={`${orderButtonStyle} ${isActive === '대기' ? 'bg-btn-green-color bg-opacity-20' : ''} hover:bg-btn-green-color hover:bg-opacity-20`}
           onClick={() => setIsActive('대기')}
         >
           <button
