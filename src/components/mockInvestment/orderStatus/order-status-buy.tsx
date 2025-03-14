@@ -8,7 +8,7 @@ export const OrderStatusBuy = () => {
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 구매가격
-  const [buyCost, setBuyCost] = useState<string>('0');
+  const [buyCost, setBuyCost] = useState<number>(0);
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -47,13 +47,13 @@ export const OrderStatusBuy = () => {
               <Input
                 type="text"
                 placeholder="값을 입력하세요."
-                value={buyCost}
+                value={buyCost === 0 ? '' : buyCost.toString()} // 상태값을 string으로 변환해서 value에 전달
                 onChange={(e) => {
                   const value = e.target.value;
-
                   // 숫자만 허용하는 정규식
                   if (/^\d*$/.test(value)) {
-                    setBuyCost(value); // 숫자만 상태에 저장
+                    const numValue = value === '' ? 0 : parseInt(value, 10); // 빈 값은 0으로 처리
+                    setBuyCost(numValue); // number 타입으로 상태를 업데이트
                   }
                 }}
               />
