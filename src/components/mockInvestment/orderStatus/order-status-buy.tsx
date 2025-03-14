@@ -22,8 +22,18 @@ export const OrderStatusBuy = () => {
     chagneValue: number,
   ) => {
     if (check === '+') {
+      const checkValue = value + chagneValue;
+      if (checkValue < 0) {
+        setValue(0);
+        return;
+      }
       setValue(value + chagneValue);
     } else if (check === '-') {
+      const checkValue = value - chagneValue;
+      if (checkValue < 0) {
+        setValue(0);
+        return;
+      }
       setValue(value - chagneValue);
     }
   };
