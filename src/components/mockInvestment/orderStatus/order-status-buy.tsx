@@ -1,9 +1,14 @@
 import { useState } from 'react';
 
+import { Input } from '@/components/ui/input';
+
 export const OrderStatusBuy = () => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[18px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
+
+  // 구매가격
+  const [buyCost, setBuyCost] = useState<string>('0');
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -32,6 +37,26 @@ export const OrderStatusBuy = () => {
                   <p>시장가</p>
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            {/* 값 입력 구역 */}
+            <div className="min-w-[74px]" />
+            {buyCost}
+            <div className="flex w-full max-w-[80%] flex-col gap-2">
+              <Input
+                type="text"
+                placeholder="값을 입력하세요."
+                value={buyCost}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  // 숫자만 허용하는 정규식
+                  if (/^\d*$/.test(value)) {
+                    setBuyCost(value); // 숫자만 상태에 저장
+                  }
+                }}
+              />
             </div>
           </div>
         </div>
