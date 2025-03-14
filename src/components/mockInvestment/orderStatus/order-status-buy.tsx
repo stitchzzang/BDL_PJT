@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 
 export const OrderStatusBuy = () => {
@@ -9,6 +10,17 @@ export const OrderStatusBuy = () => {
 
   // 구매가격
   const [buyCost, setBuyCost] = useState<number>(0);
+  const [printCost, setPrintCost] = useState<string>(buyCost + ' 원');
+  useEffect(() => {
+    setPrintCost(buyCost + ' 원');
+  }, [buyCost]);
+  // 수량
+  const [stockCount, setStockCount] = useState<number>(0);
+  // 총 주문 금액
+  const totalPrice = () => {
+    const printTotalPrice: number = buyCost * stockCount;
+    return printTotalPrice;
+  };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -16,22 +28,22 @@ export const OrderStatusBuy = () => {
     <div>
       <h3 className={h3Style}>구매하기</h3>
       <div>
-        <div className="flex w-full flex-col gap-4">
+        <div className="mb-[25px] flex w-full flex-col gap-4">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
             </div>
             <div className="flex w-full max-w-[80%] flex-col gap-2">
               {/* 지정가 */}
-              <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-[10px] py-[7px]">
+              <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-1 py-1">
                 <div
-                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-[8px] text-center text-[18px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[18px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
                   <p>지정가</p>
                 </div>
                 <div
-                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-[8px] text-center text-[18px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[18px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('시장가')}
                 >
                   <p>시장가</p>
@@ -46,31 +58,34 @@ export const OrderStatusBuy = () => {
               <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
             </div>
           </div>
-        </div>
-        <div>
-          <div>
-            <h3>수량</h3>
-          </div>
-          <div>
-            <div>
-              <input type="text" />
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-[74px]">
+              <h3 className={h3Style}>수량</h3>
+            </div>
+            <div className="flex w-full max-w-[80%] flex-col gap-2">
+              <NumberInput
+                value={stockCount}
+                setValue={setStockCount}
+                placeholder="수량을 입력하세요."
+              />
             </div>
           </div>
         </div>
-        <hr />
-        <div>
-          <div>
-            <h3>구매가능 금액</h3>
-            <h3>41,323,323원</h3>
+        <hr className="border border-border-color border-opacity-20" />
+        <div className="mt-[20px] flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h3 className={h3Style}>구매가능 금액</h3>
+            <h3 className={h3Style}>{printCost}</h3>
           </div>
-          <div>
-            <h3>총 주문 금액</h3>
-            <h3>0원</h3>
+          <div className="flex items-center justify-between">
+            <h3 className={h3Style}>충 주문 금액</h3>
+            <h3 className={h3Style}>{totalPrice()} 원</h3>
           </div>
         </div>
-        <div>
-          <button>구매하기</button>
-          <p>결제 수수료는 결제 금액의 0.004% 입니다.</p>
+        <div className="mt-[25px]">
+          <Button variant="red" className="w-full" size="lg">
+            <p className=" text-[22px] font-medium text-white">구매하기</p>
+          </Button>
         </div>
       </div>
     </div>
