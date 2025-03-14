@@ -13,6 +13,7 @@ export const OrderStatusWait = () => {
   const testList: TestItem[] = [
     { name: '삼성전자', price: 12321, quantity: 3, status: '판매' },
     { name: '삼성전자', price: 12321, quantity: 3, status: '판매' },
+    { name: '삼성전자', price: 12321, quantity: 3, status: '구매' },
   ];
   return (
     <div>
