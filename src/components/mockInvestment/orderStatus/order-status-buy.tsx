@@ -42,7 +42,6 @@ export const OrderStatusBuy = () => {
           <div className="flex items-center justify-between gap-4">
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
-            {buyCost}
             <div className="flex w-full max-w-[80%] flex-col gap-2">
               <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
             </div>
