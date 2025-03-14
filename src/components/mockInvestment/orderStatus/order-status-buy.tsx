@@ -19,11 +19,12 @@ export const OrderStatusBuy = () => {
     check: string,
     value: number,
     setValue: React.Dispatch<React.SetStateAction<number>>,
+    chagneValue: number,
   ) => {
     if (check === '+') {
-      setValue(value + 100);
+      setValue(value + chagneValue);
     } else if (check === '-') {
-      setValue(value - 100);
+      setValue(value - chagneValue);
     }
   };
   // 수량
@@ -90,10 +91,20 @@ export const OrderStatusBuy = () => {
               />
               <div className="absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
                 <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button className="text-[22px]">+</button>
+                  <button
+                    className="text-[22px]"
+                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                  >
+                    +
+                  </button>
                 </div>
                 <div className="flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button className="text-[22px]">-</button>
+                  <button
+                    className="text-[22px]"
+                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                  >
+                    -
+                  </button>
                 </div>
               </div>
             </div>
