@@ -156,7 +156,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   const ScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
     (d: DataPoint) => new Date(d.date),
   );
-  const margin = { left: 80, right: 80, top: 30, bottom: 50 };
+  const margin = { left: 80, right: 80, top: 30, bottom: 100 };
 
   const ema5 = ema()
     .id(1)
@@ -182,7 +182,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   const xExtents = [min, max + 5];
 
   const gridHeight = height - margin.top - margin.bottom;
-  const barChartHeight = gridHeight / 4;
+  const barChartHeight = gridHeight / 5;
   const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
   const chartHeight = gridHeight - barChartHeight;
 
@@ -251,7 +251,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   };
 
   const volumeColor = (data: DataPoint) => {
-    return data.changeType === 'RISE' ? `${RISE_COLOR}33` : `${FALL_COLOR}33`;
+    return data.changeType === 'RISE' ? `${RISE_COLOR}` : `${FALL_COLOR}`;
   };
 
   const volumeSeries = (data: DataPoint) => {
@@ -313,7 +313,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           height={height}
           ratio={ratio}
           width={width}
-          margin={{ left: 80, right: 80, top: 30, bottom: 50 }}
+          margin={{ left: 80, right: 80, top: 30, bottom: 100 }}
           data={scaleData}
           displayXAccessor={displayXAccessor}
           seriesName="Data"
@@ -326,10 +326,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           disableZoom={false}
         >
           <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
-            <text x={5} y={15} fontSize={11} fill="#CCCCCC">
+            <text x={5} y={10} fontSize={11} fill="#CCCCCC">
               거래량
             </text>
-            <XAxis showGridLines={false} showTickLabel={false} />
             <YAxis
               showGridLines={false}
               tickFormat={(v: number) => formatVolumeNumber(v)}
@@ -345,23 +344,30 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               opacity={0.8}
               textFill="#FFFFFF"
             />
+            <XAxis
+              showGridLines={false}
+              tickFormat={xAxisTickFormat}
+              tickLabelFill="#FFFFFF"
+              strokeStyle="#555555"
+              tickStrokeStyle="#555555"
+              ticks={period === 'MONTH' ? 12 : 10}
+              tickPadding={25}
+              axisAt="bottom"
+              orient="bottom"
+              strokeWidth={1}
+              fontFamily="Helvetica"
+              fontSize={13}
+            />
           </Chart>
           <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
             <XAxis
               showGridLines
               gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
               gridLinesStrokeWidth={1}
-              tickFormat={xAxisTickFormat}
-              tickLabelFill="#CCCCCC"
-              strokeStyle="#555555"
-              tickStrokeStyle="#555555"
-              ticks={period === 'MONTH' ? 12 : 10}
-              tickPadding={10}
+              showTickLabel={false}
               axisAt="bottom"
               orient="bottom"
               strokeWidth={1}
-              fontFamily="Helvetica"
-              fontSize={11}
             />
             <YAxis
               showGridLines
