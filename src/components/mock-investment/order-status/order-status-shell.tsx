@@ -132,7 +132,7 @@ export const OrderStatusShell = () => {
         <hr className="border border-border-color border-opacity-20" />
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h3 className={h3Style}>충 주문 금액</h3>
+            <h3 className={h3Style}>총 주문 금액</h3>
             <h3 className={h3Style}>{totalPrice()} 원</h3>
           </div>
         </div>
