@@ -230,7 +230,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   );
 
   const barChartExtents = (data: DataPoint) => {
-    return data.volume;
+    return [0, data.volume * 1.1];
   };
 
   const candleChartExtents = (data: DataPoint) => {
@@ -321,7 +321,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             height={volumeChartHeight}
             origin={volumeOrigin}
             yExtents={barChartExtents}
-            padding={{ top: 20, bottom: 80 }}
+            padding={{ top: 10, bottom: 0 }}
           >
             <text x={5} y={15} fontSize={11} fill="#CCCCCC" style={{ fontWeight: 'bold' }}>
               거래량
@@ -331,12 +331,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               showGridLines={false}
               tickFormat={(v: number) => formatVolumeNumber(v)}
               tickLabelFill="#CCCCCC"
+              showTicks={true}
+              showTickLabel={true}
+              showDomain={true}
+              domainClassName="stroke-gray-600"
+              innerTickSize={5}
+              tickStrokeWidth={1}
+              tickStrokeStyle="#555555"
             />
             <BarSeries
               fillStyle={volumeColor}
               yAccessor={volumeSeries}
               widthRatio={0.6}
-              clip={false}
+              clip={true}
             />
             <MouseCoordinateY
               at="right"
@@ -354,12 +361,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               strokeStyle="#555555"
               tickStrokeStyle="#555555"
               ticks={15}
-              tickPadding={10}
+              tickPadding={2}
               axisAt="bottom"
               orient="bottom"
               strokeWidth={1}
               fontFamily="Helvetica"
-              fontSize={14}
+              fontSize={10}
               showTicks={true}
               showTickLabel={true}
               outerTickSize={0}
