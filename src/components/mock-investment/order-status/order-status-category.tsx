@@ -14,7 +14,7 @@ export const OrderStatusCategory: React.FC<OrderStatusCategoryProps> = ({
 }) => {
   const orderButtonStyle =
     'w-[30%] cursor-pointer text-center rounded-xl py-2  transition-all duration-300';
-  const [isActive, setIsActive] = useState<string>('구매');
+  const [isActive, setIsActive] = useState<string>(isActiveCategory);
   const changeCategory = (isActiveCategory: TabType) => {
     setIsActiveCategory(isActiveCategory);
   };
