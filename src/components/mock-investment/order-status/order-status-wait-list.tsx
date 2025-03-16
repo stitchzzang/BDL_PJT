@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { TestItem } from '@/components/mockInvestment/orderStatus/order-status-wait'; // TestItem 타입을 임포트
+import { TestItem } from '@/components/mock-investment/order-status/order-status-wait'; // TestItem 타입을 임포트
 
 interface OrderStatusWaitListProps {
   test: TestItem; // test 객체를 prop으로 받기

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { OrderStatusWaitList } from '@/components/mockInvestment/orderStatus/order-status-wait-list';
+import { OrderStatusWaitList } from '@/components/mock-investment/order-status/order-status-wait-list';
 
 // test 객체의 타입 정의
 export interface TestItem {

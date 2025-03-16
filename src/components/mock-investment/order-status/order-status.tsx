@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 
-import { OrderStatusBuy } from '@/components/mockInvestment/orderStatus/order-status-buy';
-import { OrderStatusCategory } from '@/components/mockInvestment/orderStatus/order-status-category';
-import { OrderStatusShell } from '@/components/mockInvestment/orderStatus/order-status-shell';
-import { OrderStatusWait } from '@/components/mockInvestment/orderStatus/order-status-wait';
+import { OrderStatusBuy } from '@/components/mock-investment/order-status/order-status-buy';
+import { OrderStatusCategory } from '@/components/mock-investment/order-status/order-status-category';
+import { OrderStatusShell } from '@/components/mock-investment/order-status/order-status-shell';
+import { OrderStatusWait } from '@/components/mock-investment/order-status/order-status-wait';
 
 export const OrderStatus = () => {
   // 허용된 탭 타입을 정의
