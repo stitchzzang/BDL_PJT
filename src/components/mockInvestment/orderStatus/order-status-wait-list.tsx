@@ -6,7 +6,7 @@ interface OrderStatusWaitListProps {
   test: TestItem; // test 객체를 prop으로 받기
 }
 
-export const OrderStatusWaitList: React.FC<OrderStatusWaitListProps> = ({ test }) => {
+export const OrderStatusWaitList = ({ test }: OrderStatusWaitListProps) => {
   const h3Style = 'text-[18px] font-medium text-white';
   return (
     <div
