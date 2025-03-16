@@ -182,14 +182,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   const xExtents = [min, max + 5];
 
   const gridHeight = height - margin.top - margin.bottom;
-  const barChartHeight = gridHeight / 5;
-  const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
-  const chartHeight = gridHeight - barChartHeight;
 
-  // 거래량 그래프 높이 조정
-  const volumeChartHeight = gridHeight / 4;
+  // 캔들차트와 거래량 차트의 비율 설정 (캔들차트 75%, 거래량 차트 25%)
+  const mainChartHeight = gridHeight * 0.75;
+  const volumeChartHeight = gridHeight * 0.25;
+
+  // 거래량 차트의 위치 설정
   const volumeOrigin = (_: number, h: number) => [0, h - volumeChartHeight];
-  const mainChartHeight = gridHeight - volumeChartHeight;
 
   const dateTimeFormat = useCallback(() => {
     switch (period) {
@@ -251,6 +250,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
   const openCloseColor = (data: DataPoint) => {
     return data.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+  };
+
+  // 공통 그리드 스타일
+  const gridStyle = {
+    strokeStyle: 'rgba(100, 100, 100, 0.4)',
+    strokeWidth: 1,
   };
 
   return (
@@ -316,76 +321,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           disablePan={false}
           disableZoom={false}
         >
-          <Chart
-            id={2}
-            height={volumeChartHeight}
-            origin={volumeOrigin}
-            yExtents={barChartExtents}
-            padding={{ top: 10, bottom: 0 }}
-          >
-            <text x={5} y={15} fontSize={11} fill="#CCCCCC" style={{ fontWeight: 'bold' }}>
-              거래량
-            </text>
-            <rect x={0} y={20} width="100%" height={5} fill="transparent" />
-            <YAxis
-              showGridLines={false}
-              tickFormat={(v: number) => formatVolumeNumber(v)}
-              tickLabelFill="#CCCCCC"
-              showTicks={true}
-              showTickLabel={true}
-              showDomain={true}
-              domainClassName="stroke-gray-600"
-              innerTickSize={5}
-              tickStrokeWidth={1}
-              tickStrokeStyle="#555555"
-            />
-            <BarSeries
-              fillStyle={volumeColor}
-              yAccessor={volumeSeries}
-              widthRatio={0.6}
-              clip={true}
-            />
-            <MouseCoordinateY
-              at="right"
-              orient="right"
-              displayFormat={(v: number) => formatVolumeNumber(v)}
-              rectWidth={margin.right}
-              fill="#131722"
-              opacity={0.8}
-              textFill="#FFFFFF"
-            />
-            <XAxis
-              showGridLines={false}
-              tickFormat={xAxisTickFormat}
-              tickLabelFill="#FFFFFF"
-              strokeStyle="#555555"
-              tickStrokeStyle="#555555"
-              ticks={15}
-              tickPadding={2}
-              axisAt="bottom"
-              orient="bottom"
-              strokeWidth={1}
-              fontFamily="Helvetica"
-              fontSize={10}
-              showTicks={true}
-              showTickLabel={true}
-              outerTickSize={0}
-            />
-          </Chart>
-          <Chart id={3} height={mainChartHeight} yExtents={candleChartExtents}>
-            <XAxis
-              showGridLines
-              gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
-              gridLinesStrokeWidth={1}
-              showTickLabel={false}
-              axisAt="bottom"
-              orient="bottom"
-              strokeWidth={1}
-            />
+          {/* 캔들 차트 */}
+          <Chart id={1} height={mainChartHeight} yExtents={candleChartExtents}>
             <YAxis
               showGridLines
-              gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
-              gridLinesStrokeWidth={1}
+              gridLinesStrokeStyle={gridStyle.strokeStyle}
+              gridLinesStrokeWidth={gridStyle.strokeWidth}
               tickFormat={(v: number) => formatKoreanNumber(v)}
               tickLabelFill="#CCCCCC"
             />
@@ -393,20 +334,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               wickStroke={(d) => (d.close >= d.open ? RISE_COLOR : FALL_COLOR)}
               fill={(d) => (d.close >= d.open ? RISE_COLOR : FALL_COLOR)}
               stroke={(d) => (d.close >= d.open ? RISE_COLOR : FALL_COLOR)}
+              widthRatio={0.6}
             />
             <LineSeries yAccessor={ema5.accessor()} strokeStyle={FALL_COLOR} strokeWidth={1} />
             <CurrentCoordinate yAccessor={ema5.accessor()} fillStyle={FALL_COLOR} />
             <LineSeries yAccessor={ema20.accessor()} strokeStyle={RISE_COLOR} strokeWidth={1} />
             <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={RISE_COLOR} />
-            <MouseCoordinateX
-              at="bottom"
-              orient="bottom"
-              displayFormat={timeDisplayFormat}
-              rectWidth={margin.right}
-              fill="#131722"
-              opacity={0.8}
-              textFill="#FFFFFF"
-            />
             <MouseCoordinateY
               at="right"
               orient="right"
@@ -415,20 +348,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               fill="#131722"
               opacity={0.8}
               textFill="#FFFFFF"
-            />
-            <MouseCoordinateX
-              at="top"
-              orient="top"
-              displayFormat={() => ''}
-              rectWidth={0}
-              fill="transparent"
-            />
-            <MouseCoordinateY
-              at="left"
-              orient="left"
-              displayFormat={() => ''}
-              rectWidth={0}
-              fill="transparent"
             />
             <EdgeIndicator
               itemType="last"
@@ -476,6 +395,71 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             />
             <ZoomButtons />
           </Chart>
+
+          {/* 거래량 차트 */}
+          <Chart id={2} height={volumeChartHeight} origin={volumeOrigin} yExtents={barChartExtents}>
+            <XAxis
+              showGridLines
+              gridLinesStrokeStyle={gridStyle.strokeStyle}
+              gridLinesStrokeWidth={gridStyle.strokeWidth}
+              tickFormat={xAxisTickFormat}
+              tickLabelFill="#FFFFFF"
+              strokeStyle="#555555"
+              tickStrokeStyle="#555555"
+              ticks={15}
+              tickPadding={2}
+              axisAt="bottom"
+              orient="bottom"
+              strokeWidth={1}
+              fontFamily="Helvetica"
+              fontSize={10}
+              showTicks={true}
+              showTickLabel={true}
+              outerTickSize={0}
+            />
+            <YAxis
+              showGridLines
+              gridLinesStrokeStyle={gridStyle.strokeStyle}
+              gridLinesStrokeWidth={gridStyle.strokeWidth}
+              tickFormat={(v: number) => formatVolumeNumber(v)}
+              tickLabelFill="#CCCCCC"
+              showTicks={true}
+              showTickLabel={true}
+              showDomain={true}
+              domainClassName="stroke-gray-600"
+              innerTickSize={5}
+              tickStrokeWidth={1}
+              tickStrokeStyle="#555555"
+            />
+            <MouseCoordinateX
+              at="bottom"
+              orient="bottom"
+              displayFormat={timeDisplayFormat}
+              rectWidth={margin.right}
+              fill="#131722"
+              opacity={0.8}
+              textFill="#FFFFFF"
+            />
+            <MouseCoordinateY
+              at="right"
+              orient="right"
+              displayFormat={(v: number) => formatVolumeNumber(v)}
+              rectWidth={margin.right}
+              fill="#131722"
+              opacity={0.8}
+              textFill="#FFFFFF"
+            />
+            <text x={5} y={15} fontSize={11} fill="#CCCCCC" style={{ fontWeight: 'bold' }}>
+              거래량
+            </text>
+            <BarSeries
+              fillStyle={volumeColor}
+              yAccessor={volumeSeries}
+              widthRatio={0.6}
+              clip={true}
+            />
+          </Chart>
+
           <CrossHairCursor snapX={true} strokeDasharray="Dot" strokeWidth={1} />
         </ChartCanvas>
       </div>
