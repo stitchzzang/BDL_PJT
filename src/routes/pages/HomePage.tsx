@@ -1,3 +1,10 @@
+import { OrderStatus } from '@/components/mockInvestment/orderStatus/order-status';
+
 export const HomePage = () => {
-  return <div>HomePage</div>;
+  return (
+    <div>
+      <div>HomePage</div>
+      <OrderStatus />
+    </div>
+  );
 };
