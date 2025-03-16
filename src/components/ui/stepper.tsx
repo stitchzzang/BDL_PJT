@@ -2,15 +2,15 @@
 	Installed from https://reactbits.dev/ts/tailwind/
 */
 
+import { AnimatePresence, motion, Variants } from 'framer-motion';
 import React, {
-  useState,
   Children,
-  useRef,
-  useLayoutEffect,
   HTMLAttributes,
   ReactNode,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from 'react';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -91,7 +91,7 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`mx-auto w-full max-w-md rounded-4xl shadow-xl ${stepCircleContainerClassName}`}
+        className={`rounded-4xl mx-auto w-full max-w-md shadow-xl ${stepCircleContainerClassName}`}
         style={{ border: '1px solid #222' }}
       >
         <div className={`${stepContainerClassName} flex w-full items-center p-8`}>
@@ -143,7 +143,7 @@ export default function Stepper({
                   onClick={handleBack}
                   className={`duration-350 rounded px-2 py-1 transition ${
                     currentStep === 1
-                      ? 'pointer-events-none opacity-50 text-neutral-400'
+                      ? 'pointer-events-none text-neutral-400 opacity-50'
                       : 'text-neutral-400 hover:text-neutral-700'
                   }`}
                   {...backButtonProps}
@@ -153,7 +153,7 @@ export default function Stepper({
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-green-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700"
+                className="duration-350 flex items-center justify-center rounded-full bg-green-500 px-3.5 py-1.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700"
                 {...nextButtonProps}
               >
                 {isLastStep ? 'Complete' : nextButtonText}
