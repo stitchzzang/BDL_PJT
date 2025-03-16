@@ -5,18 +5,18 @@ type TabType = '구매' | '판매' | '대기';
 
 interface OrderStatusCategoryProps {
   isActiveCategory: TabType;
-  setIsactiveCategory: React.Dispatch<React.SetStateAction<TabType>>;
+  setIsActiveCategory: React.Dispatch<React.SetStateAction<TabType>>;
 }
 
 export const OrderStatusCategory: React.FC<OrderStatusCategoryProps> = ({
   isActiveCategory,
-  setIsactiveCategory,
+  setIsActiveCategory,
 }) => {
   const orderButtonStyle =
     'w-[30%] cursor-pointer text-center rounded-xl py-2  transition-all duration-300';
   const [isActive, setIsActive] = useState<string>('구매');
   const changeCategory = (isActiveCategory: TabType) => {
-    setIsactiveCategory(isActiveCategory);
+    setIsActiveCategory(isActiveCategory);
   };
   return (
     <div className=" rounded-xl border border-border-color p-2 ">

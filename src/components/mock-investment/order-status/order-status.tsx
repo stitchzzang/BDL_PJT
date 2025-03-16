@@ -9,7 +9,7 @@ export const OrderStatus = () => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '대기';
   // 랜더링 유무
-  const [isActiveCategory, setIsactiveCategory] = useState<TabType>('구매');
+  const [isActiveCategory, setIsActiveCategory] = useState<TabType>('구매');
 
   // React.ReactElement 타입 사용
   const Components: Record<TabType, React.ReactNode> = {
@@ -23,7 +23,7 @@ export const OrderStatus = () => {
         <div className="mb-[25px]">
           <OrderStatusCategory
             isActiveCategory={isActiveCategory}
-            setIsactiveCategory={setIsactiveCategory}
+            setIsActiveCategory={setIsActiveCategory}
           />
         </div>
         <hr className="mb-[25px] border border-border-color border-opacity-20" />
