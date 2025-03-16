@@ -220,7 +220,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           return `${month}월`;
         case 'MINUTE':
           const hours = d.getHours();
-          return `${hours}시`;
+          const minutes = d.getMinutes();
+          return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
         default:
           return `${month}월`;
       }
