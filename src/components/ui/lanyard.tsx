@@ -1,8 +1,3 @@
-/*
-	Installed from https://reactbits.dev/ts/tailwind/
-*/
-
-'use client';
 import { Environment, Lightformer, useGLTF, useTexture } from '@react-three/drei';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
 import {
@@ -18,8 +13,8 @@ import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-import cardGLB from '@/assets/card.glb';
-import lanyard from '@/assets/lanyard.png';
+import cardGLB from '@/assets/lanyard/card.glb';
+import lanyard from '@/assets/lanyard/lanyard.png';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
