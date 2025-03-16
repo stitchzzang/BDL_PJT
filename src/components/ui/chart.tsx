@@ -156,7 +156,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   const ScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
     (d: DataPoint) => new Date(d.date),
   );
-  const margin = { left: 80, right: 80, top: 30, bottom: 100 };
+  const margin = { left: 80, right: 80, top: 30, bottom: 150 };
 
   const ema5 = ema()
     .id(1)
@@ -186,6 +186,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   const barChartOrigin = (_: number, h: number) => [0, h - barChartHeight];
   const chartHeight = gridHeight - barChartHeight;
 
+  // 거래량 그래프 높이 조정
+  const volumeChartHeight = gridHeight / 4;
+  const volumeOrigin = (_: number, h: number) => [0, h - volumeChartHeight];
+  const mainChartHeight = gridHeight - volumeChartHeight;
+
   const dateTimeFormat = useCallback(() => {
     switch (period) {
       case 'MINUTE':
@@ -206,36 +211,22 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     (date: Date) => {
       const d = new Date(date);
       const month = d.getMonth() + 1;
-      const day = d.getDate();
-      const year = d.getFullYear();
-
-      console.log('X축 레이블 포맷:', { date: d.toISOString(), year, month, day, period });
 
       switch (period) {
         case 'MONTH':
-          // 1월에만 년도 표시, 나머지 월은 "월"만 표시
-          if (month === 1) {
-            return `${year}년`;
-          } else {
-            return `${month}월`;
-          }
+          return `${month}월`;
         case 'WEEK':
-          if (day <= 7) {
-            return `${month}월`;
-          }
-          return `${day}`;
+          return `${month}월`;
         case 'DAY':
-          if (day === 1) {
-            return `${month}월`;
-          }
-          return `${day}`;
+          return `${month}월`;
         case 'MINUTE':
-          return timeDisplayFormat(date);
+          const hours = d.getHours();
+          return `${hours}시`;
         default:
-          return `${month}월 ${day}일`;
+          return `${month}월`;
       }
     },
-    [period, timeDisplayFormat],
+    [period],
   );
 
   const barChartExtents = (data: DataPoint) => {
@@ -313,7 +304,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           height={height}
           ratio={ratio}
           width={width}
-          margin={{ left: 80, right: 80, top: 30, bottom: 100 }}
+          margin={{ left: 80, right: 80, top: 30, bottom: 150 }}
           data={scaleData}
           displayXAccessor={displayXAccessor}
           seriesName="Data"
@@ -327,10 +318,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         >
           <Chart
             id={2}
-            height={barChartHeight}
-            origin={barChartOrigin}
+            height={volumeChartHeight}
+            origin={volumeOrigin}
             yExtents={barChartExtents}
-            padding={{ top: 20, bottom: 20 }}
+            padding={{ top: 20, bottom: 80 }}
           >
             <text x={5} y={15} fontSize={11} fill="#CCCCCC" style={{ fontWeight: 'bold' }}>
               거래량
@@ -341,7 +332,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               tickFormat={(v: number) => formatVolumeNumber(v)}
               tickLabelFill="#CCCCCC"
             />
-            <BarSeries fillStyle={volumeColor} yAccessor={volumeSeries} />
+            <BarSeries
+              fillStyle={volumeColor}
+              yAccessor={volumeSeries}
+              widthRatio={0.6}
+              clip={false}
+            />
             <MouseCoordinateY
               at="right"
               orient="right"
@@ -357,16 +353,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               tickLabelFill="#FFFFFF"
               strokeStyle="#555555"
               tickStrokeStyle="#555555"
-              ticks={period === 'MONTH' ? 12 : 10}
-              tickPadding={25}
+              ticks={15}
+              tickPadding={10}
               axisAt="bottom"
               orient="bottom"
               strokeWidth={1}
               fontFamily="Helvetica"
-              fontSize={13}
+              fontSize={14}
+              showTicks={true}
+              showTickLabel={true}
+              outerTickSize={0}
             />
           </Chart>
-          <Chart id={3} height={chartHeight} yExtents={candleChartExtents}>
+          <Chart id={3} height={mainChartHeight} yExtents={candleChartExtents}>
             <XAxis
               showGridLines
               gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
