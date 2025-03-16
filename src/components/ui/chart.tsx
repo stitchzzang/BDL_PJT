@@ -258,6 +258,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     strokeWidth: 1,
   };
 
+  // 전체 차트 높이 계산
+  const totalChartHeight = height - margin.top - margin.bottom;
+
   return (
     <div className="flex flex-col w-full h-full bg-modal-background-color">
       <div className="flex items-center gap-4 mb-4 text-sm text-white p-4">
@@ -321,12 +324,37 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           disablePan={false}
           disableZoom={false}
         >
+          {/* 전체 차트에 적용되는 그리드 라인 */}
+          <Chart id={3} height={totalChartHeight} yExtents={[0, 1]}>
+            <XAxis
+              showGridLines
+              gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
+              gridLinesStrokeWidth={1}
+              axisAt="bottom"
+              orient="bottom"
+              showTicks={false}
+              showTickLabel={false}
+              outerTickSize={0}
+              ticks={15}
+              tickFormat={xAxisTickFormat}
+            />
+            <YAxis
+              showGridLines
+              gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
+              gridLinesStrokeWidth={1}
+              axisAt="right"
+              orient="right"
+              showTicks={false}
+              showTickLabel={false}
+              outerTickSize={0}
+              ticks={10}
+            />
+          </Chart>
+
           {/* 캔들 차트 */}
           <Chart id={1} height={mainChartHeight} yExtents={candleChartExtents}>
             <YAxis
-              showGridLines
-              gridLinesStrokeStyle={gridStyle.strokeStyle}
-              gridLinesStrokeWidth={gridStyle.strokeWidth}
+              showGridLines={false}
               tickFormat={(v: number) => formatKoreanNumber(v)}
               tickLabelFill="#CCCCCC"
             />
@@ -399,9 +427,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           {/* 거래량 차트 */}
           <Chart id={2} height={volumeChartHeight} origin={volumeOrigin} yExtents={barChartExtents}>
             <XAxis
-              showGridLines
-              gridLinesStrokeStyle={gridStyle.strokeStyle}
-              gridLinesStrokeWidth={gridStyle.strokeWidth}
+              showGridLines={false}
               tickFormat={xAxisTickFormat}
               tickLabelFill="#FFFFFF"
               strokeStyle="#555555"
@@ -418,9 +444,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               outerTickSize={0}
             />
             <YAxis
-              showGridLines
-              gridLinesStrokeStyle={gridStyle.strokeStyle}
-              gridLinesStrokeWidth={gridStyle.strokeWidth}
+              showGridLines={false}
               tickFormat={(v: number) => formatVolumeNumber(v)}
               tickLabelFill="#CCCCCC"
               showTicks={true}
