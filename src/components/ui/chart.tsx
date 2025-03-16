@@ -325,10 +325,17 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           disablePan={false}
           disableZoom={false}
         >
-          <Chart id={2} height={barChartHeight} origin={barChartOrigin} yExtents={barChartExtents}>
-            <text x={5} y={10} fontSize={11} fill="#CCCCCC">
+          <Chart
+            id={2}
+            height={barChartHeight}
+            origin={barChartOrigin}
+            yExtents={barChartExtents}
+            padding={{ top: 20, bottom: 20 }}
+          >
+            <text x={5} y={15} fontSize={11} fill="#CCCCCC" style={{ fontWeight: 'bold' }}>
               거래량
             </text>
+            <rect x={0} y={20} width="100%" height={5} fill="transparent" />
             <YAxis
               showGridLines={false}
               tickFormat={(v: number) => formatVolumeNumber(v)}
