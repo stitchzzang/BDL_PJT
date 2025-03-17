@@ -1,4 +1,4 @@
-export const CompanyIdentifier = () => {
+export const CompanyInfo = () => {
   return (
     <div className="flex flex-row items-center gap-2">
       <img
