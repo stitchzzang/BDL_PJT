@@ -215,13 +215,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       trigger: 'axis',
       axisPointer: {
         type: 'cross',
+        crossStyle: {
+          color: 'rgba(255, 255, 255, 0.3)',
+        },
         label: {
-          formatter: (params: any) => {
-            if (params.axisDimension === 'y' && typeof params.value === 'number') {
-              return formatKoreanNumber(Math.floor(params.value));
-            }
-            return params.value;
-          },
+          show: false,
         },
       },
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
@@ -266,14 +264,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     },
     axisPointer: {
       link: [{ xAxisIndex: [0, 1] }],
+      show: true,
+      snap: true,
       label: {
-        formatter: (params: any) => {
-          // 축 포인터 라벨 값의 소수점 절삭
-          if (params.axisDimension === 'y' && typeof params.value === 'number') {
-            return formatKoreanNumber(Math.floor(params.value));
-          }
-          return params.value;
-        },
+        show: false,
       },
     },
     grid: [
@@ -282,7 +276,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         right: '5%',
         top: 40,
         bottom: '25%',
-        height: '60%',
+        height: '65%',
         show: true,
         borderColor: '#2e3947',
         backgroundColor: 'transparent',
@@ -291,9 +285,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         left: '5%',
         right: '5%',
-        top: '75%',
+        top: '80%',
         bottom: 30,
-        height: '20%',
+        height: '15%',
         show: true,
         borderColor: '#2e3947',
         backgroundColor: 'transparent',
@@ -313,11 +307,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: true,
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
-        axisPointer: {
-          label: {
-            show: false,
-          },
+        axisTick: {
+          show: false,
         },
+        axisPointer: {
+          show: false,
+        },
+        boundaryGap: true,
       },
       {
         type: 'category' as const,
@@ -343,13 +339,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: true,
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
-        axisPointer: {
-          label: {
-            formatter: (params: any) => {
-              return params.value;
-            },
-          },
+        axisTick: {
+          show: true,
+          alignWithLabel: true,
         },
+        axisPointer: {
+          show: true,
+        },
+        boundaryGap: true,
       },
     ],
     yAxis: [
@@ -369,13 +366,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             return formatKoreanNumber(floorValue);
           },
         },
-        axisPointer: {
-          label: {
-            formatter: (params: any) => {
-              return formatKoreanNumber(Math.floor(params.value));
-            },
-          },
-        },
       },
       {
         position: 'right',
@@ -389,13 +379,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             // 소수점 절삭
             const floorValue = Math.floor(value);
             return formatVolumeNumber(floorValue);
-          },
-        },
-        axisPointer: {
-          label: {
-            formatter: (params: any) => {
-              return formatVolumeNumber(Math.floor(params.value));
-            },
           },
         },
         splitLine: {
@@ -413,6 +396,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
+        filterMode: 'filter',
+      },
+      {
+        type: 'slider' as const,
+        xAxisIndex: [0, 1],
+        show: true,
+        height: 20,
+        bottom: 0,
+        start: 0,
+        end: 100,
+        borderColor: '#2e3947',
+        fillerColor: 'rgba(38, 43, 54, 0.5)',
+        textStyle: {
+          color: '#CCCCCC',
+        },
+        handleStyle: {
+          color: '#8392a5',
+        },
+        filterMode: 'filter',
       },
     ],
     series: [
@@ -431,6 +433,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
         },
+        barWidth: '30%',
       },
       {
         name: '5일 이평선',
@@ -468,6 +471,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             return item.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
           },
         },
+        barWidth: '30%',
       },
     ],
   };
