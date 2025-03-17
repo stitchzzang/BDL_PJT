@@ -273,8 +273,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     },
     grid: [
       {
-        left: '5%',
-        right: '5%',
+        left: 60,
+        right: 120,
         top: 40,
         bottom: '25%',
         height: '65%',
@@ -284,8 +284,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         containLabel: true,
       },
       {
-        left: '5%',
-        right: '5%',
+        left: 60,
+        right: 120,
         top: '80%',
         bottom: 30,
         height: '15%',
@@ -372,6 +372,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             const floorValue = Math.floor(value);
             return formatKoreanNumber(floorValue);
           },
+          inside: false,
+          margin: 8,
+          width: 60,
+          overflow: 'truncate',
         },
         axisPointer: {
           show: true,
@@ -393,6 +397,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             const floorValue = Math.floor(value);
             return formatVolumeNumber(floorValue);
           },
+          inside: false,
+          margin: 8,
+          width: 60,
+          overflow: 'truncate',
         },
         splitLine: {
           show: true,
@@ -415,7 +423,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
-        filterMode: 'filter',
+        filterMode: 'none',
       },
       {
         type: 'slider' as const,
@@ -433,7 +441,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         handleStyle: {
           color: '#8392a5',
         },
-        filterMode: 'filter',
+        filterMode: 'none',
       },
     ],
     series: [
@@ -452,7 +460,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
         },
-        barWidth: '30%',
+        barWidth: '60%',
       },
       {
         name: '5일 이평선',
@@ -490,7 +498,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             return item.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
           },
         },
-        barWidth: '30%',
+        barWidth: '60%',
       },
     ],
   };
