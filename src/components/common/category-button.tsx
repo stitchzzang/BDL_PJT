@@ -38,13 +38,15 @@ export const CategoryButton = () => {
           const IconComponent = data.icon;
           return (
             <div
-              className="flex items-center justify-center gap-2 rounded-xl bg-modal-background-color px-[14px] py-[12px]"
+              className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-modal-background-color px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color"
               key={index}
             >
               <div className="min-h-[25px] min-w-[25px]">
                 <IconComponent /> {/* 이제 정상적으로 렌더링됨 */}
               </div>
-              <p className="text-[16px] text-border-color">{data.name}</p>
+              <p className=" text-[16px] text-border-color transition-all duration-200 group-hover:text-white">
+                {data.name}
+              </p>
             </div>
           );
         })}
