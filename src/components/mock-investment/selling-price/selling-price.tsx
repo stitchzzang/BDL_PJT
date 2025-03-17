@@ -1,3 +1,5 @@
+import { SellingPriceSell } from '@/components/mock-investment/selling-price/selling-price-sell';
+
 export interface orderBook {
   price: number;
   quantity: number;
@@ -36,7 +38,9 @@ export const SellingPrice = () => {
         <p className="text-[18px] text-btn-blue-color">매도잔량</p>
         <p className="text-[18px] text-btn-red-color">매수잔량</p>
       </div>
-      <div>{/* 매도,매수 정리  */}</div>
+      <div>
+        <SellingPriceSell orderBookDummy={orderBookDummy} />
+      </div>
     </div>
   );
 };
