@@ -207,6 +207,37 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   const currentData = chartData[chartData.length - 1];
   const changePercent = ((currentData.change || 0) / (currentData.prevClose || 1)) * 100;
 
+  // 현재 가격 변화 방향에 따른 색상 설정
+  const currentPriceColor = currentData.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+
+  // 마우스 이동에 따른 Y축 레이블 배경색 변경 이벤트 핸들러
+  const onChartEvents = {
+    updateAxisPointer: (params: any) => {
+      // 현재 마우스 위치의 데이터 인덱스
+      const xIndex = params.currents?.[0]?.dataIndex;
+      if (xIndex !== undefined && chartData[xIndex]) {
+        const item = chartData[xIndex];
+        const color = item.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+
+        // 차트 인스턴스 가져오기
+        const chartInstance = params.chart as any;
+        if (chartInstance && chartInstance.setOption) {
+          // Y축 레이블 배경색 변경
+          chartInstance.setOption(
+            {
+              axisPointer: {
+                label: {
+                  backgroundColor: color,
+                },
+              },
+            },
+            false,
+          );
+        }
+      }
+    },
+  };
+
   // ECharts 옵션 설정
   const option: EChartsOption = {
     animation: false,
@@ -269,6 +300,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       snap: true,
       label: {
         show: true,
+        precision: 0,
+        formatter: (params: any) => {
+          if (params.axisDimension === 'y') {
+            return formatKoreanNumber(Math.floor(params.value));
+          }
+          return params.value;
+        },
+        padding: [4, 8],
+        margin: 4,
+        color: '#FFFFFF',
+        fontSize: 12,
+        backgroundColor: currentPriceColor,
       },
     },
     grid: [
@@ -376,6 +419,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           margin: 8,
           width: 60,
           overflow: 'truncate',
+          fontSize: 12,
         },
         axisPointer: {
           show: true,
@@ -386,6 +430,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               const floorValue = Math.floor(params.value);
               return formatKoreanNumber(floorValue);
             },
+            backgroundColor: currentPriceColor,
+            color: '#FFFFFF',
+            padding: [4, 8],
+            fontSize: 12,
           },
         },
       },
@@ -471,6 +519,32 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           borderColor0: FALL_COLOR,
         },
         barWidth: '60%',
+        markLine: {
+          symbol: 'none',
+          lineStyle: {
+            color: currentPriceColor,
+            width: 1,
+            type: 'dashed',
+          },
+          label: {
+            show: true,
+            position: 'end',
+            formatter: formatKoreanNumber(Math.floor(currentData.close)),
+            backgroundColor: currentPriceColor,
+            padding: [4, 8],
+            borderRadius: 2,
+            color: '#FFFFFF',
+            fontSize: 12,
+          },
+          data: [
+            {
+              yAxis: Math.floor(currentData.close),
+              lineStyle: {
+                color: currentPriceColor,
+              },
+            },
+          ],
+        },
       },
       {
         name: '5일 이평선',
@@ -552,6 +626,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         notMerge={true}
         lazyUpdate={true}
         opts={{ renderer: 'canvas' }}
+        onEvents={onChartEvents}
       />
     </div>
   );
