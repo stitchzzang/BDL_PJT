@@ -192,14 +192,32 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     }
   };
 
-  const calculateEMA = (data: number[], period: number): number[] => {
+  const calculateEMA = (data: (number | null | string)[], period: number): (number | null)[] => {
     const k = 2 / (period + 1);
-    const emaData: number[] = [];
-    let prevEma = data[0];
+    const emaData: (number | null)[] = [];
+    // 첫 번째 유효한 값 찾기
+    let firstValidIndex = 0;
+    while (
+      firstValidIndex < data.length &&
+      (data[firstValidIndex] === null ||
+        data[firstValidIndex] === undefined ||
+        data[firstValidIndex] === '-')
+    ) {
+      firstValidIndex++;
+    }
+
+    let prevEma = typeof data[firstValidIndex] === 'number' ? (data[firstValidIndex] as number) : 0;
 
     for (let i = 0; i < data.length; i++) {
       const currentPrice = data[i];
-      const currentEma = i === 0 ? currentPrice : Math.floor(currentPrice * k + prevEma * (1 - k));
+      if (currentPrice === null || currentPrice === undefined || currentPrice === '-') {
+        emaData.push(null);
+        continue;
+      }
+
+      const numericPrice = Number(currentPrice);
+      const currentEma =
+        i === firstValidIndex ? numericPrice : Math.floor(numericPrice * k + prevEma * (1 - k));
       emaData.push(currentEma);
       prevEma = currentEma;
     }
@@ -208,9 +226,33 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   };
 
   const chartData = getData();
-  const closePrices = chartData.map((item) => Math.floor(item.close));
-  const ema5Data = calculateEMA(closePrices, 5);
-  const ema20Data = calculateEMA(closePrices, 20);
+  // 앞쪽에 10개의 빈 데이터 추가
+  const extendedChartData = [
+    ...Array(10)
+      .fill({})
+      .map(() => ({
+        date: '',
+        open: 0,
+        high: 0,
+        low: 0,
+        close: 0,
+        volume: 0,
+        changeType: 'NONE' as const,
+      })),
+    ...chartData,
+  ];
+
+  const closePrices = extendedChartData.map((item, index) =>
+    index < 10 ? '-' : Math.floor(item.close),
+  );
+  const ema5Data = calculateEMA(
+    closePrices.map((p) => (p === '-' ? null : p)),
+    5,
+  );
+  const ema20Data = calculateEMA(
+    closePrices.map((p) => (p === '-' ? null : p)),
+    20,
+  );
   const currentData = chartData[chartData.length - 1];
   const changePercent = ((currentData.change || 0) / (currentData.prevClose || 1)) * 100;
 
@@ -219,7 +261,124 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
 
   // X축 레이블 데이터 생성 (실제 데이터 + 빈 공간용 레이블)
   const xAxisLabels = useMemo(() => {
-    const labels = chartData.map((item) => item.date);
+    // 앞쪽 빈 데이터에 대한 레이블 생성
+    const labels = extendedChartData.map((item, index) => {
+      if (index < 10) {
+        // 앞쪽 빈 데이터에 대한 레이블 생성
+        if (chartData.length > 0) {
+          const firstLabel = chartData[0].date;
+          let newLabel = '';
+
+          switch (period) {
+            case 'MINUTE': {
+              // 분 단위: 첫 시간에서 (10-index)분 빼기
+              const timeParts = firstLabel.split(':');
+              if (timeParts.length === 2) {
+                const hour = parseInt(timeParts[0]);
+                const minute = parseInt(timeParts[1]) - (10 - index);
+                let adjustedHour = hour;
+                let adjustedMinute = minute;
+
+                if (minute < 0) {
+                  adjustedHour = hour - 1 - Math.floor(Math.abs(minute) / 60);
+                  adjustedMinute = 60 - (Math.abs(minute) % 60);
+                  if (adjustedMinute === 60) {
+                    adjustedMinute = 0;
+                    adjustedHour += 1;
+                  }
+                }
+
+                if (adjustedHour >= 0) {
+                  newLabel = `${String(adjustedHour).padStart(2, '0')}:${String(adjustedMinute).padStart(2, '0')}`;
+                }
+              }
+              break;
+            }
+            case 'DAY': {
+              // 일 단위: 첫 날짜에서 (10-index)일 빼기
+              const dayMatch = firstLabel.match(/(\d+)일/);
+              const monthMatch = firstLabel.match(/(\d+)월/);
+
+              if (dayMatch) {
+                let day = parseInt(dayMatch[1]) - (10 - index);
+                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+
+                // 월별 일수 계산
+                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+                // 월을 넘어가는 경우 처리
+                while (day <= 0) {
+                  month--;
+                  if (month <= 0) month = 12;
+                  day += daysInMonth[month];
+                }
+
+                if (day === 1) {
+                  newLabel = `${month}월`;
+                } else {
+                  newLabel = `${day}일`;
+                }
+              }
+              break;
+            }
+            case 'WEEK': {
+              // 주 단위: 첫 날짜에서 (10-index)*7일 빼기
+              const dayMatch = firstLabel.match(/(\d+)일/);
+              const monthMatch = firstLabel.match(/(\d+)월/);
+
+              if (dayMatch) {
+                let day = parseInt(dayMatch[1]) - (10 - index) * 7;
+                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+
+                // 월별 일수 계산
+                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+                // 월을 넘어가는 경우 처리
+                while (day <= 0) {
+                  month--;
+                  if (month <= 0) month = 12;
+                  day += daysInMonth[month];
+                }
+
+                if (day <= 7) {
+                  newLabel = `${month}월`;
+                } else {
+                  newLabel = `${day}일`;
+                }
+              }
+              break;
+            }
+            case 'MONTH': {
+              // 월 단위: 첫 월에서 (10-index)월 빼기
+              const monthMatch = firstLabel.match(/(\d+)월/);
+              const yearMatch = firstLabel.match(/(\d+)년/);
+
+              if (monthMatch) {
+                let month = parseInt(monthMatch[1]) - (10 - index);
+                let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+
+                // 연도를 넘어가는 경우 처리
+                while (month <= 0) {
+                  year--;
+                  month += 12;
+                }
+
+                if (month === 1) {
+                  newLabel = `${year}년`;
+                } else {
+                  newLabel = `${month}월`;
+                }
+              }
+              break;
+            }
+          }
+
+          return newLabel;
+        }
+        return '';
+      }
+      return item.date;
+    });
 
     // 마지막 데이터 이후에 10개의 빈 레이블 추가
     if (labels.length > 0) {
@@ -327,14 +486,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     }
 
     return labels;
-  }, [chartData, period]);
+  }, [extendedChartData, period, chartData]);
 
   // 마우스 이동에 따른 Y축 레이블 배경색 변경 이벤트 핸들러
   const onChartEvents = {
     updateAxisPointer: (params: any) => {
       // 현재 마우스 위치의 데이터 인덱스
       const xIndex = params.currents?.[0]?.dataIndex;
-      if (xIndex !== undefined && chartData[xIndex]) {
+      if (xIndex !== undefined && extendedChartData[xIndex]) {
         // Y축 레이블 배경색을 파란색으로 고정
         const chartInstance = params.chart as any;
         if (chartInstance && chartInstance.setOption) {
@@ -431,7 +590,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     },
     grid: [
       {
-        left: 60,
+        left: 120,
         right: 120,
         top: 40,
         bottom: '25%',
@@ -442,7 +601,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         containLabel: true,
       },
       {
-        left: 60,
+        left: 120,
         right: 120,
         top: '80%',
         bottom: 30,
@@ -592,12 +751,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         type: 'inside' as const,
         xAxisIndex: [0, 1],
-        start: 0,
+        start: 10,
         end: 100,
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
         filterMode: 'none',
+        rangeMode: ['value', 'value'],
+        minValueSpan: 5,
+        maxValueSpan: extendedChartData.length,
       },
       {
         type: 'slider' as const,
@@ -605,7 +767,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         show: false,
         height: 20,
         bottom: 0,
-        start: 0,
+        start: 10,
         end: 100,
         borderColor: '#2e3947',
         fillerColor: 'rgba(38, 43, 54, 0.5)',
@@ -616,18 +778,23 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           color: '#8392a5',
         },
         filterMode: 'none',
+        rangeMode: ['value', 'value'],
       },
     ],
     series: [
       {
         name: '캔들차트',
         type: 'candlestick' as const,
-        data: chartData.map((item) => [
-          Math.floor(item.open),
-          Math.floor(item.close),
-          Math.floor(item.low),
-          Math.floor(item.high),
-        ]),
+        data: extendedChartData.map((item, index) =>
+          index < 10
+            ? ['-', '-', '-', '-']
+            : [
+                Math.floor(item.open),
+                Math.floor(item.close),
+                Math.floor(item.low),
+                Math.floor(item.high),
+              ],
+        ),
         itemStyle: {
           color: RISE_COLOR,
           color0: FALL_COLOR,
@@ -673,6 +840,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           width: 1,
         },
         symbol: 'none',
+        connectNulls: true,
       },
       {
         name: '20일 이평선',
@@ -685,17 +853,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           width: 1,
         },
         symbol: 'none',
+        connectNulls: true,
       },
       {
         name: '거래량',
         type: 'bar' as const,
         xAxisIndex: 1,
         yAxisIndex: 1,
-        data: chartData.map((item) => Math.floor(item.volume)),
+        data: extendedChartData.map((item, index) => (index < 10 ? '-' : Math.floor(item.volume))),
         itemStyle: {
           color: (params: any) => {
-            const item = chartData[params.dataIndex];
-            return item.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+            const index = params.dataIndex;
+            if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
+            return extendedChartData[index].changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
           },
         },
         barWidth: '60%',
