@@ -20,7 +20,7 @@ export default {
         'text-main-color': '#FFFFFF',
         'text-inactive-color': '#B4B4B4',
         'text-inactive-2-color': '#5E6D84',
-        'border-color': '#718096',
+        'text-border-color': '#718096',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
