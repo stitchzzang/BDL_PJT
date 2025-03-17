@@ -227,22 +227,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         start: 0,
         end: 100,
       },
-      {
-        show: true,
-        xAxisIndex: [0, 1],
-        type: 'slider' as const,
-        bottom: 10,
-        height: 40,
-        borderColor: '#2e3947',
-        fillerColor: 'rgba(100, 100, 100, 0.2)',
-        textStyle: {
-          color: '#CCCCCC',
-        },
-        handleStyle: {
-          color: '#CCCCCC',
-          borderColor: '#2e3947',
-        },
-      },
     ],
     series: [
       {
