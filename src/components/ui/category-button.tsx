@@ -1,3 +1,8 @@
+interface categoryData {
+  name: string;
+  icon: string;
+}
+
 export const CategoryButton = () => {
   return (
     <div>
