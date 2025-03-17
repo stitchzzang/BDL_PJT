@@ -20,6 +20,7 @@ export default {
         'text-main-color': '#FFFFFF',
         'text-inactive-color': '#B4B4B4',
         'text-inactive-2-color': '#5E6D84',
+        'text-inactive-3-color': '#718096',
         'border-color': '#718096',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
