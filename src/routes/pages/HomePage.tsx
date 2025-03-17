@@ -1,4 +1,4 @@
-import { SellingPrice } from '@/components/mock-investment/order-status/selling-price/selling-price';
+import { SellingPrice } from '@/components/mock-investment/selling-price/selling-price';
 
 export const HomePage = () => {
   return (
