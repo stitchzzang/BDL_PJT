@@ -162,13 +162,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     },
     grid: [
       {
-        left: 80,
+        left: 10,
         right: 80,
         top: 40,
         height: '60%',
       },
       {
-        left: 80,
+        left: 10,
         right: 80,
         top: '75%',
         height: '20%',
@@ -195,6 +195,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     ],
     yAxis: [
       {
+        position: 'right',
         scale: true,
         splitLine: {
           show: true,
@@ -207,6 +208,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         },
       },
       {
+        position: 'right',
         scale: true,
         gridIndex: 1,
         splitNumber: 2,
