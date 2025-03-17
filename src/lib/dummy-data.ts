@@ -48,7 +48,7 @@ const basePrice = 377500; // 초기 가격
 const volatility = 5000; // 변동성
 
 // 2024년 1년치 일봉 데이터 생성
-let currentDate = new Date(startDate);
+const currentDate = new Date(startDate);
 const endDate = new Date('2024-12-31T15:30:00');
 
 // 종목명과 종목코드 설정

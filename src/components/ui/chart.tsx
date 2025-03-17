@@ -1,28 +1,9 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { format } from 'd3-format';
-import { timeFormat } from 'd3-time-format';
-import {
-  ema,
-  discontinuousTimeScaleProviderBuilder,
-  Chart,
-  ChartCanvas,
-  CurrentCoordinate,
-  BarSeries,
-  CandlestickSeries,
-  LineSeries,
-  MovingAverageTooltip,
-  OHLCTooltip,
-  lastVisibleItemBasedZoomAnchor,
-  XAxis,
-  YAxis,
-  CrossHairCursor,
-  EdgeIndicator,
-  MouseCoordinateX,
-  MouseCoordinateY,
-  ZoomButtons,
-} from 'react-financial-charts';
+import type { EChartsOption } from 'echarts';
+import ReactECharts from 'echarts-for-react';
+import React, { useCallback, useState } from 'react';
+
 import { DataPoint, formatDate } from '@/lib/dummy-data';
 
 interface ChartComponentProps {
@@ -34,12 +15,10 @@ interface ChartComponentProps {
 
 type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
 
-const ChartComponent: React.FC<ChartComponentProps> = ({
-  width = 900,
-  height = 700,
-  ratio = 3,
-  data,
-}) => {
+const RISE_COLOR = '#ef5350'; // 빨강
+const FALL_COLOR = '#1976d2'; // 파랑
+
+const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
 
   const getData = useCallback(() => {
@@ -84,7 +63,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           return acc;
         }, []);
 
-      case 'MONTH':
+      case 'MONTH': {
         // 월봉: 실제 월 단위로 데이터 그룹화
         const monthlyGroups = data.reduce<Record<string, DataPoint[]>>((groups, item) => {
           const date = new Date(item.date);
@@ -111,12 +90,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               date: formatDate(monthDate, 'MONTH'),
             };
           });
-
-        console.log(
-          '월별 데이터:',
-          monthlyResult.map((d) => new Date(d.date).toISOString()),
-        );
         return monthlyResult;
+      }
 
       case 'DAY':
       default:
@@ -149,126 +124,159 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   const currentData = chartData[chartData.length - 1];
   const changePercent = ((currentData.change || 0) / (currentData.prevClose || 1)) * 100;
 
-  // 상승/하락 색상 정의
-  const RISE_COLOR = '#ef5350'; // 빨강
-  const FALL_COLOR = '#1976d2'; // 파랑
+  // ECharts 옵션 설정
+  const option: EChartsOption = {
+    animation: false,
+    backgroundColor: '#131722',
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+      },
+      backgroundColor: 'rgba(19, 23, 34, 0.9)',
+      borderColor: '#2e3947',
+      textStyle: {
+        color: '#fff',
+      },
+      formatter: (params: any) => {
+        const candleData = params[0];
+        const volumeData = params[1];
+        const date = candleData.name;
+        const { open, close, low, high } = candleData.data;
+        const volume = volumeData.data;
 
-  const ScaleProvider = discontinuousTimeScaleProviderBuilder().inputDateAccessor(
-    (d: DataPoint) => new Date(d.date),
-  );
-  const margin = { left: 80, right: 80, top: 30, bottom: 150 };
-
-  const ema5 = ema()
-    .id(1)
-    .options({ windowSize: 5 })
-    .merge((d: DataPoint, c: number) => {
-      d.ema5 = c;
-    })
-    .accessor((d: DataPoint) => d.ema5);
-
-  const ema20 = ema()
-    .id(2)
-    .options({ windowSize: 20 })
-    .merge((d: DataPoint, c: number) => {
-      d.ema20 = c;
-    })
-    .accessor((d: DataPoint) => d.ema20);
-
-  const calculatedData = ema20(ema5(chartData));
-  const { data: scaleData, xScale, xAccessor, displayXAccessor } = ScaleProvider(calculatedData);
-
-  const max = xAccessor(scaleData[scaleData.length - 1]);
-  const min = xAccessor(scaleData[Math.max(0, scaleData.length - 100)]);
-  const xExtents = [min, max + 5];
-
-  const gridHeight = height - margin.top - margin.bottom;
-
-  // 캔들차트와 거래량 차트의 비율 설정 (캔들차트 75%, 거래량 차트 25%)
-  const mainChartHeight = gridHeight * 0.75;
-  const volumeChartHeight = gridHeight * 0.25;
-
-  // 거래량 차트의 위치 설정
-  const volumeOrigin = (_: number, h: number) => [0, h - volumeChartHeight];
-
-  const dateTimeFormat = useCallback(() => {
-    switch (period) {
-      case 'MINUTE':
-        return '%H:%M';
-      case 'MONTH':
-        return '%Y년 %m월';
-      case 'DAY':
-      case 'WEEK':
-      default:
-        return '%m월 %d일';
-    }
-  }, [period]);
-
-  const timeDisplayFormat = timeFormat(dateTimeFormat());
-
-  // X축 레이블 커스텀 포맷
-  const xAxisTickFormat = useCallback(
-    (date: Date) => {
-      const d = new Date(date);
-      const month = d.getMonth() + 1;
-
-      switch (period) {
-        case 'MONTH':
-          return `${month}월`;
-        case 'WEEK':
-          return `${month}월`;
-        case 'DAY':
-          return `${month}월`;
-        case 'MINUTE':
-          const hours = d.getHours();
-          const minutes = d.getMinutes();
-          return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-        default:
-          return `${month}월`;
-      }
+        return `
+          <div style="font-size: 12px;">
+            <div style="margin-bottom: 4px;">${date}</div>
+            <div>시가: ${formatKoreanNumber(open)}원</div>
+            <div>고가: ${formatKoreanNumber(high)}원</div>
+            <div>저가: ${formatKoreanNumber(low)}원</div>
+            <div>종가: ${formatKoreanNumber(close)}원</div>
+            <div>거래량: ${formatVolumeNumber(volume)}</div>
+          </div>
+        `;
+      },
     },
-    [period],
-  );
-
-  const barChartExtents = (data: DataPoint) => {
-    return [0, data.volume * 1.1];
+    axisPointer: {
+      link: [{ xAxisIndex: [0, 1] }],
+    },
+    grid: [
+      {
+        left: 80,
+        right: 80,
+        top: 40,
+        height: '60%',
+      },
+      {
+        left: 80,
+        right: 80,
+        top: '75%',
+        height: '20%',
+      },
+    ],
+    xAxis: [
+      {
+        type: 'category' as const,
+        data: chartData.map((item) => item.date),
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLabel: { color: '#CCCCCC' },
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
+      },
+      {
+        type: 'category' as const,
+        gridIndex: 1,
+        data: chartData.map((item) => item.date),
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLabel: { color: '#CCCCCC' },
+      },
+    ],
+    yAxis: [
+      {
+        scale: true,
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLabel: {
+          color: '#CCCCCC',
+          formatter: (value: number) => formatKoreanNumber(value),
+        },
+      },
+      {
+        scale: true,
+        gridIndex: 1,
+        splitNumber: 2,
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLabel: {
+          color: '#CCCCCC',
+          formatter: (value: number) => formatVolumeNumber(value),
+        },
+        splitLine: { show: false },
+      },
+    ],
+    dataZoom: [
+      {
+        type: 'inside' as const,
+        xAxisIndex: [0, 1],
+        start: 0,
+        end: 100,
+      },
+      {
+        show: true,
+        xAxisIndex: [0, 1],
+        type: 'slider' as const,
+        bottom: 10,
+        height: 40,
+        borderColor: '#2e3947',
+        fillerColor: 'rgba(100, 100, 100, 0.2)',
+        textStyle: {
+          color: '#CCCCCC',
+        },
+        handleStyle: {
+          color: '#CCCCCC',
+          borderColor: '#2e3947',
+        },
+      },
+    ],
+    series: [
+      {
+        name: '캔들차트',
+        type: 'candlestick' as const,
+        data: chartData.map((item) => [item.open, item.close, item.low, item.high]),
+        itemStyle: {
+          color: RISE_COLOR,
+          color0: FALL_COLOR,
+          borderColor: RISE_COLOR,
+          borderColor0: FALL_COLOR,
+        },
+      },
+      {
+        name: '거래량',
+        type: 'bar' as const,
+        xAxisIndex: 1,
+        yAxisIndex: 1,
+        data: chartData.map((item) => item.volume),
+        itemStyle: {
+          color: (params: any) => {
+            const item = chartData[params.dataIndex];
+            return item.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+          },
+        },
+      },
+    ],
   };
-
-  const candleChartExtents = (data: DataPoint) => {
-    return [data.high, data.low];
-  };
-
-  const yEdgeIndicator = (data: DataPoint) => {
-    return data.close;
-  };
-
-  const volumeColor = (data: DataPoint) => {
-    return data.changeType === 'RISE' ? `${RISE_COLOR}` : `${FALL_COLOR}`;
-  };
-
-  const volumeSeries = (data: DataPoint) => {
-    return data.volume;
-  };
-
-  const openCloseColor = (data: DataPoint) => {
-    return data.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
-  };
-
-  // 공통 그리드 스타일
-  const gridStyle = {
-    strokeStyle: 'rgba(100, 100, 100, 0.4)',
-    strokeWidth: 1,
-  };
-
-  // 전체 차트 높이 계산
-  const totalChartHeight = height - margin.top - margin.bottom;
 
   return (
-    <div className="flex flex-col w-full h-full bg-modal-background-color">
-      <div className="flex items-center gap-4 mb-4 text-sm text-white p-4">
+    <div className="flex h-full w-full flex-col bg-modal-background-color">
+      <div className="mb-4 flex items-center gap-4 p-4 text-sm text-white">
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
             <span className="font-semibold">{currentData.stockName || '삼성전자'}</span>
-            <span className="text-gray-400 text-xs">{currentData.stockCode || '005930'}</span>
+            <span className="text-xs text-gray-400">{currentData.stockCode || '005930'}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-lg font-semibold">{formatKoreanNumber(currentData.close)}원</span>
@@ -278,216 +286,39 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             </span>
           </div>
         </div>
-        <div className="flex gap-2 ml-auto items-center">
+        <div className="ml-auto flex items-center gap-2">
           <button
-            className={`px-4 py-2 rounded ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
             onClick={() => setPeriod('MINUTE')}
           >
             1분
           </button>
           <button
-            className={`px-4 py-2 rounded ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
             onClick={() => setPeriod('DAY')}
           >
             일
           </button>
           <button
-            className={`px-4 py-2 rounded ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
             onClick={() => setPeriod('WEEK')}
           >
             주
           </button>
           <button
-            className={`px-4 py-2 rounded ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
             onClick={() => setPeriod('MONTH')}
           >
             월
           </button>
         </div>
       </div>
-      <div
-        className="relative w-full overflow-hidden bg-modal-background-color"
-        style={{ height: `${height}px` }}
-      >
-        <ChartCanvas
-          height={height}
-          ratio={ratio}
-          width={width}
-          margin={{ left: 80, right: 80, top: 30, bottom: 150 }}
-          data={scaleData}
-          displayXAccessor={displayXAccessor}
-          seriesName="Data"
-          xScale={xScale}
-          xAccessor={xAccessor}
-          xExtents={xExtents}
-          zoomAnchor={lastVisibleItemBasedZoomAnchor}
-          disableInteraction={false}
-          disablePan={false}
-          disableZoom={false}
-        >
-          {/* 전체 차트에 적용되는 그리드 라인 */}
-          <Chart id={3} height={totalChartHeight} yExtents={[0, 1]}>
-            <XAxis
-              showGridLines
-              gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
-              gridLinesStrokeWidth={1}
-              axisAt="bottom"
-              orient="bottom"
-              showTicks={false}
-              showTickLabel={false}
-              outerTickSize={0}
-              ticks={15}
-              tickFormat={xAxisTickFormat}
-            />
-            <YAxis
-              showGridLines
-              gridLinesStrokeStyle="rgba(100, 100, 100, 0.4)"
-              gridLinesStrokeWidth={1}
-              axisAt="right"
-              orient="right"
-              showTicks={false}
-              showTickLabel={false}
-              outerTickSize={0}
-              ticks={10}
-            />
-          </Chart>
-
-          {/* 캔들 차트 */}
-          <Chart id={1} height={mainChartHeight} yExtents={candleChartExtents}>
-            <YAxis
-              showGridLines={false}
-              tickFormat={(v: number) => formatKoreanNumber(v)}
-              tickLabelFill="#CCCCCC"
-            />
-            <CandlestickSeries
-              wickStroke={(d) => (d.close >= d.open ? RISE_COLOR : FALL_COLOR)}
-              fill={(d) => (d.close >= d.open ? RISE_COLOR : FALL_COLOR)}
-              stroke={(d) => (d.close >= d.open ? RISE_COLOR : FALL_COLOR)}
-              widthRatio={0.6}
-            />
-            <LineSeries yAccessor={ema5.accessor()} strokeStyle={FALL_COLOR} strokeWidth={1} />
-            <CurrentCoordinate yAccessor={ema5.accessor()} fillStyle={FALL_COLOR} />
-            <LineSeries yAccessor={ema20.accessor()} strokeStyle={RISE_COLOR} strokeWidth={1} />
-            <CurrentCoordinate yAccessor={ema20.accessor()} fillStyle={RISE_COLOR} />
-            <MouseCoordinateY
-              at="right"
-              orient="right"
-              displayFormat={(v: number) => `${formatKoreanNumber(v)}원`}
-              rectWidth={margin.right}
-              fill="#131722"
-              opacity={0.8}
-              textFill="#FFFFFF"
-            />
-            <EdgeIndicator
-              itemType="last"
-              rectWidth={80}
-              fill={openCloseColor}
-              lineStroke={openCloseColor}
-              displayFormat={(v: number) => `${formatKoreanNumber(v)}원`}
-              yAccessor={yEdgeIndicator}
-            />
-            <MovingAverageTooltip
-              origin={[8, 24]}
-              options={[
-                {
-                  yAccessor: ema5.accessor(),
-                  type: '5이평선',
-                  stroke: FALL_COLOR,
-                  windowSize: ema5.options().windowSize,
-                },
-                {
-                  yAccessor: ema20.accessor(),
-                  type: '20이평선',
-                  stroke: RISE_COLOR,
-                  windowSize: ema20.options().windowSize,
-                },
-              ]}
-              displayFormat={(v: number) => `${formatKoreanNumber(v)}원`}
-              textFill="#FFFFFF"
-              labelFill="#CCCCCC"
-            />
-            <OHLCTooltip
-              origin={[8, 16]}
-              textFill={(d) => (d.close > d.open ? RISE_COLOR : FALL_COLOR)}
-              labelFill="#888888"
-              displayTexts={{
-                o: '시가: ',
-                h: '고가: ',
-                l: '저가: ',
-                c: '종가: ',
-                na: '해당없음',
-              }}
-              ohlcFormat={(n: number | { valueOf(): number }) => {
-                const value = typeof n === 'number' ? n : n.valueOf();
-                return `${formatKoreanNumber(value)}원`;
-              }}
-            />
-            <ZoomButtons />
-          </Chart>
-
-          {/* 거래량 차트 */}
-          <Chart id={2} height={volumeChartHeight} origin={volumeOrigin} yExtents={barChartExtents}>
-            <XAxis
-              showGridLines={false}
-              tickFormat={xAxisTickFormat}
-              tickLabelFill="#FFFFFF"
-              strokeStyle="#555555"
-              tickStrokeStyle="#555555"
-              ticks={15}
-              tickPadding={2}
-              axisAt="bottom"
-              orient="bottom"
-              strokeWidth={1}
-              fontFamily="Helvetica"
-              fontSize={10}
-              showTicks={true}
-              showTickLabel={true}
-              outerTickSize={0}
-            />
-            <YAxis
-              showGridLines={false}
-              tickFormat={(v: number) => formatVolumeNumber(v)}
-              tickLabelFill="#CCCCCC"
-              showTicks={true}
-              showTickLabel={true}
-              showDomain={true}
-              domainClassName="stroke-gray-600"
-              innerTickSize={5}
-              tickStrokeWidth={1}
-              tickStrokeStyle="#555555"
-            />
-            <MouseCoordinateX
-              at="bottom"
-              orient="bottom"
-              displayFormat={timeDisplayFormat}
-              rectWidth={margin.right}
-              fill="#131722"
-              opacity={0.8}
-              textFill="#FFFFFF"
-            />
-            <MouseCoordinateY
-              at="right"
-              orient="right"
-              displayFormat={(v: number) => formatVolumeNumber(v)}
-              rectWidth={margin.right}
-              fill="#131722"
-              opacity={0.8}
-              textFill="#FFFFFF"
-            />
-            <text x={5} y={15} fontSize={11} fill="#CCCCCC" style={{ fontWeight: 'bold' }}>
-              거래량
-            </text>
-            <BarSeries
-              fillStyle={volumeColor}
-              yAccessor={volumeSeries}
-              widthRatio={0.6}
-              clip={true}
-            />
-          </Chart>
-
-          <CrossHairCursor snapX={true} strokeDasharray="Dot" strokeWidth={1} />
-        </ChartCanvas>
-      </div>
+      <ReactECharts
+        option={option}
+        style={{ height: `${height}px`, width: '100%' }}
+        notMerge={true}
+        lazyUpdate={true}
+      />
     </div>
   );
 };
