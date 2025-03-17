@@ -219,7 +219,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           color: 'rgba(255, 255, 255, 0.3)',
         },
         label: {
-          show: false,
+          show: true,
+          backgroundColor: '#2e3947',
         },
       },
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
@@ -267,7 +268,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       show: true,
       snap: true,
       label: {
-        show: false,
+        show: true,
       },
     },
     grid: [
@@ -311,7 +312,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: false,
         },
         axisPointer: {
-          show: false,
+          show: true,
+          label: {
+            show: false,
+          },
         },
         boundaryGap: true,
       },
@@ -345,6 +349,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         },
         axisPointer: {
           show: true,
+          label: {
+            show: true,
+          },
         },
         boundaryGap: true,
       },
@@ -366,6 +373,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             return formatKoreanNumber(floorValue);
           },
         },
+        axisPointer: {
+          show: true,
+          label: {
+            show: true,
+          },
+        },
       },
       {
         position: 'right',
@@ -384,6 +397,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         splitLine: {
           show: true,
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
+        axisPointer: {
+          show: true,
+          label: {
+            show: true,
+          },
         },
       },
     ],
