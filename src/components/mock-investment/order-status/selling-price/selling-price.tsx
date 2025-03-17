@@ -1,3 +1,28 @@
+export interface orderBook {
+  price: number;
+  quantity: number;
+}
+export interface orderBookData {
+  ask: orderBook[];
+  bid: orderBook[];
+}
+// 더미데이터
+const orderBookDummy: orderBookData = {
+  ask: [
+    { price: 50200, quantity: 15 },
+    { price: 50150, quantity: 32 },
+    { price: 50100, quantity: 21 },
+    { price: 50050, quantity: 40 },
+    { price: 50000, quantity: 10 },
+  ],
+  bid: [
+    { price: 49950, quantity: 12 },
+    { price: 49900, quantity: 25 },
+    { price: 49850, quantity: 18 },
+    { price: 49800, quantity: 30 },
+    { price: 49750, quantity: 20 },
+  ],
+};
 export const SellingPrice = () => {
   return (
     <div className="bg-modal-background-color">
