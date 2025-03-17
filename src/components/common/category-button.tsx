@@ -1,12 +1,15 @@
 import {
+  BeakerIcon,
+  CakeIcon,
   CpuChipIcon,
   CurrencyDollarIcon,
   EyeDropperIcon,
   PaintBrushIcon,
   QueueListIcon,
   RocketLaunchIcon,
-} from '@heroicons/react/24/outline';
-import { BeakerIcon, CakeIcon, TruckIcon, TvIcon } from 'lucide-react';
+  TruckIcon,
+  TvIcon,
+} from '@heroicons/react/24/solid';
 import React from 'react';
 
 export interface categoryData {
@@ -30,13 +33,18 @@ export const CategoryButton = () => {
 
   return (
     <div>
-      <div>
+      <div className="grid max-w-[660px] grid-cols-5 gap-[10px]">
         {categoryList.map((data, index) => {
           const IconComponent = data.icon;
           return (
-            <div key={index}>
-              <IconComponent /> {/* 이제 정상적으로 렌더링됨 */}
-              {data.name}
+            <div
+              className="flex items-center justify-center gap-2 rounded-xl bg-modal-background-color px-[14px] py-[12px]"
+              key={index}
+            >
+              <div className="min-h-[25px] min-w-[25px]">
+                <IconComponent /> {/* 이제 정상적으로 렌더링됨 */}
+              </div>
+              <p className="text-[16px] text-border-color">{data.name}</p>
             </div>
           );
         })}
