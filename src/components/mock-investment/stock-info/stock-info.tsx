@@ -31,7 +31,9 @@ export const StockInfo = () => {
               </div>
             </div>
             <div>
-              <Button>알고리즘 선택</Button>
+              <Button className="max-w-[225px]" variant={'red'} size={'lg'}>
+                알고리즘 선택
+              </Button>
             </div>
           </div>
         </div>
