@@ -13,7 +13,7 @@ export interface realTimeData {
 }
 export type RTData = realTimeData;
 
-// 사용 예시
+// 더미데이터 2개
 const stockDataList: RTData[] = [
   {
     tradePrice: 50000,
@@ -31,6 +31,42 @@ const stockDataList: RTData[] = [
   },
 ];
 
+// 일별 시세
+export interface dayData {
+  date: string;
+  closePrice: number;
+  changeRate: number;
+  accumulateVolume: number;
+  accumulatedTradeAmount: number;
+  openPrice: number;
+  highPrice: number;
+  lowPrice: number;
+}
+export type DTData = dayData;
+// 더미데이터 2개
+const dayDataList: DTData[] = [
+  {
+    date: '2025-03-17',
+    closePrice: 52500,
+    changeRate: 1.8,
+    accumulateVolume: 458900,
+    accumulatedTradeAmount: 23650000000,
+    openPrice: 51800,
+    highPrice: 52800,
+    lowPrice: 51500,
+  },
+  {
+    date: '2025-03-16',
+    closePrice: 51600,
+    changeRate: -0.6,
+    accumulateVolume: 387500,
+    accumulatedTradeAmount: 19850000000,
+    openPrice: 52000,
+    highPrice: 52300,
+    lowPrice: 51200,
+  },
+];
+
 export const StockCostHistory = () => {
   const [isActive, setIsActive] = useState<string>('실시간');
   return (
@@ -44,7 +80,7 @@ export const StockCostHistory = () => {
           {isActive === '실시간' ? (
             <StockCostHistoryRealTime stockDataList={stockDataList} />
           ) : (
-            <StockCostHistoryDay />
+            <StockCostHistoryDay dayDataList={dayDataList} />
           )}
         </div>
       </div>
