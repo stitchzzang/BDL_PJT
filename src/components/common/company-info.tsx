@@ -4,7 +4,7 @@ export const CompanyInfo = () => {
       <img
         src="https://placehold.co/50x50"
         alt="company-identifier"
-        className="h-[50px] w-[50px] rounded-lg"
+        className="h-[50px] w-[50px] rounded-xl"
       />
       <p className="text-base">회사명</p>
     </div>
