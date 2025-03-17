@@ -1,12 +1,12 @@
 export const SellingPrice = () => {
   return (
-    <div>
-      <div>
-        <h3>호가</h3>
+    <div className="bg-modal-background-color">
+      <div className="flex justify-between">
+        <h3 className="text-[18px] font-bold">호가</h3>
         {/* 장시간 string */}
-        <p>12:32</p>
+        <p className="text-[14px] font-light text-border-color">12:32</p>
       </div>
-      <hr />
+      <hr className="border-border-color border-opacity-20" />
       <div>{/* 매도,매수 정리  */}</div>
     </div>
   );
