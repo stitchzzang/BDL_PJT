@@ -210,7 +210,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   // ECharts 옵션 설정
   const option: EChartsOption = {
     animation: false,
-    backgroundColor: '#131722',
+    backgroundColor: '#0D192B',
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -516,20 +516,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   return (
     <div className="flex h-full w-full flex-col bg-modal-background-color">
       <div className="mb-4 flex items-center gap-4 p-4 text-sm text-white">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">{currentData.stockName || '삼성전자'}</span>
-            <span className="text-xs text-gray-400">{currentData.stockCode || '005930'}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-semibold">{formatKoreanNumber(currentData.close)}원</span>
-            <span className={currentData.changeType === 'RISE' ? 'text-red-500' : 'text-blue-500'}>
-              {currentData.change && currentData.change > 0 ? '+' : ''}
-              {formatKoreanNumber(currentData.change || 0)}원 ({Math.floor(changePercent)}%)
-            </span>
-          </div>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <button
             className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
             onClick={() => setPeriod('MINUTE')}
