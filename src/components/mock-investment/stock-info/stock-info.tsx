@@ -10,8 +10,22 @@ export const StockInfo = () => {
           <img src={TestImage} alt="stock-icon" />
         </div>
         <div>
-          <div>{/* 제목 */}</div>
-          <div>{/* 하단 정보 */}</div>
+          <div>
+            <h3>한화오션</h3>
+            <p>27210</p>
+          </div>
+          <div>
+            <h3>166,223 원</h3>
+            <div>
+              <div>
+                <p>어제보다</p>
+                <p>+1,323원(23%)</p>
+              </div>
+              <div>
+                <p>반도체체</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div>
