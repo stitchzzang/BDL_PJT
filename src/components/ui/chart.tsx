@@ -216,18 +216,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       // 현재 마우스 위치의 데이터 인덱스
       const xIndex = params.currents?.[0]?.dataIndex;
       if (xIndex !== undefined && chartData[xIndex]) {
-        const item = chartData[xIndex];
-        const color = item.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
-
-        // 차트 인스턴스 가져오기
+        // Y축 레이블 배경색을 파란색으로 고정
         const chartInstance = params.chart as any;
         if (chartInstance && chartInstance.setOption) {
-          // Y축 레이블 배경색 변경
           chartInstance.setOption(
             {
               axisPointer: {
                 label: {
-                  backgroundColor: color,
+                  backgroundColor: FALL_COLOR,
                 },
               },
             },
@@ -311,7 +307,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         margin: 4,
         color: '#FFFFFF',
         fontSize: 12,
-        backgroundColor: currentPriceColor,
+        backgroundColor: FALL_COLOR,
       },
     },
     grid: [
@@ -430,7 +426,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               const floorValue = Math.floor(params.value);
               return formatKoreanNumber(floorValue);
             },
-            backgroundColor: currentPriceColor,
+            backgroundColor: FALL_COLOR,
             color: '#FFFFFF',
             padding: [4, 8],
             fontSize: 12,
@@ -468,6 +464,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               const floorValue = Math.floor(params.value);
               return formatVolumeNumber(floorValue);
             },
+            backgroundColor: FALL_COLOR,
           },
         },
       },
