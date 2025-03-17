@@ -170,16 +170,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   }, [period, data, formatChartDate]);
 
   const formatKoreanNumber = (value: number) => {
-    return new Intl.NumberFormat('ko-KR').format(Math.round(value));
+    return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
   };
 
   const formatVolumeNumber = (value: number) => {
     if (value >= 1000000000) {
-      return `${(value / 1000000000).toFixed(2)}B`;
+      return `${Math.floor(value / 1000000000)}B`;
     } else if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(2)}M`;
+      return `${Math.floor(value / 1000000)}M`;
     } else if (value >= 1000) {
-      return `${(value / 1000).toFixed(2)}K`;
+      return `${Math.floor(value / 1000)}K`;
     } else {
       return formatKoreanNumber(value);
     }
@@ -192,7 +192,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
 
     for (let i = 0; i < data.length; i++) {
       const currentPrice = data[i];
-      const currentEma = i === 0 ? currentPrice : currentPrice * k + prevEma * (1 - k);
+      const currentEma = i === 0 ? currentPrice : Math.floor(currentPrice * k + prevEma * (1 - k));
       emaData.push(currentEma);
       prevEma = currentEma;
     }
@@ -201,7 +201,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   };
 
   const chartData = getData();
-  const closePrices = chartData.map((item) => item.close);
+  const closePrices = chartData.map((item) => Math.floor(item.close));
   const ema5Data = calculateEMA(closePrices, 5);
   const ema20Data = calculateEMA(closePrices, 20);
   const currentData = chartData[chartData.length - 1];
@@ -215,6 +215,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       trigger: 'axis',
       axisPointer: {
         type: 'cross',
+        label: {
+          formatter: (params: any) => {
+            if (params.axisDimension === 'y' && typeof params.value === 'number') {
+              return formatKoreanNumber(Math.floor(params.value));
+            }
+            return params.value;
+          },
+        },
       },
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
       borderColor: '#2e3947',
@@ -222,30 +230,51 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         color: '#fff',
       },
       formatter: (params: any) => {
-        const candleData = params[0];
-        const ema5Data = params[1];
-        const ema20Data = params[2];
-        const volumeData = params[3];
+        const candleData = params.find((p: any) => p.seriesName === '캔들차트');
+        const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
+        const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
+        const volumeData = params.find((p: any) => p.seriesName === '거래량');
+
+        if (!candleData) return '';
+
         const date = candleData.name;
         const { open, close, low, high } = candleData.data;
-        const volume = volumeData.data;
+        const volume = volumeData?.value || 0;
+
+        // 모든 값의 소수점 절삭
+        const floorOpen = Math.floor(open);
+        const floorHigh = Math.floor(high);
+        const floorLow = Math.floor(low);
+        const floorClose = Math.floor(close);
+        const floorVolume = Math.floor(volume);
+        const floorEma5 = ema5Data ? Math.floor(ema5Data.value) : 0;
+        const floorEma20 = ema20Data ? Math.floor(ema20Data.value) : 0;
 
         return `
           <div style="font-size: 12px;">
             <div style="margin-bottom: 4px;">${date}</div>
-            <div>시가: ${formatKoreanNumber(open)}원</div>
-            <div>고가: ${formatKoreanNumber(high)}원</div>
-            <div>저가: ${formatKoreanNumber(low)}원</div>
-            <div>종가: ${formatKoreanNumber(close)}원</div>
-            <div>MA5: ${formatKoreanNumber(ema5Data.data)}원</div>
-            <div>MA20: ${formatKoreanNumber(ema20Data.data)}원</div>
-            <div>거래량: ${formatVolumeNumber(volume)}</div>
+            <div>시가: ${formatKoreanNumber(floorOpen)}원</div>
+            <div>고가: ${formatKoreanNumber(floorHigh)}원</div>
+            <div>저가: ${formatKoreanNumber(floorLow)}원</div>
+            <div>종가: ${formatKoreanNumber(floorClose)}원</div>
+            <div>MA5: ${ema5Data ? formatKoreanNumber(floorEma5) : '-'}원</div>
+            <div>MA20: ${ema20Data ? formatKoreanNumber(floorEma20) : '-'}원</div>
+            <div>거래량: ${formatVolumeNumber(floorVolume)}</div>
           </div>
         `;
       },
     },
     axisPointer: {
       link: [{ xAxisIndex: [0, 1] }],
+      label: {
+        formatter: (params: any) => {
+          // 축 포인터 라벨 값의 소수점 절삭
+          if (params.axisDimension === 'y' && typeof params.value === 'number') {
+            return formatKoreanNumber(Math.floor(params.value));
+          }
+          return params.value;
+        },
+      },
     },
     grid: [
       {
@@ -284,6 +313,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: true,
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
+        axisPointer: {
+          label: {
+            show: false,
+          },
+        },
       },
       {
         type: 'category' as const,
@@ -309,6 +343,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: true,
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
+        axisPointer: {
+          label: {
+            formatter: (params: any) => {
+              return params.value;
+            },
+          },
+        },
       },
     ],
     yAxis: [
@@ -322,7 +363,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         axisLine: { lineStyle: { color: '#2e3947' } },
         axisLabel: {
           color: '#CCCCCC',
-          formatter: (value: number) => formatKoreanNumber(value),
+          formatter: (value: number) => {
+            // 소수점 절삭
+            const floorValue = Math.floor(value);
+            return formatKoreanNumber(floorValue);
+          },
+        },
+        axisPointer: {
+          label: {
+            formatter: (params: any) => {
+              return formatKoreanNumber(Math.floor(params.value));
+            },
+          },
         },
       },
       {
@@ -333,7 +385,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         axisLine: { lineStyle: { color: '#2e3947' } },
         axisLabel: {
           color: '#CCCCCC',
-          formatter: (value: number) => formatVolumeNumber(value),
+          formatter: (value: number) => {
+            // 소수점 절삭
+            const floorValue = Math.floor(value);
+            return formatVolumeNumber(floorValue);
+          },
+        },
+        axisPointer: {
+          label: {
+            formatter: (params: any) => {
+              return formatVolumeNumber(Math.floor(params.value));
+            },
+          },
         },
         splitLine: {
           show: true,
@@ -356,7 +419,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         name: '캔들차트',
         type: 'candlestick' as const,
-        data: chartData.map((item) => [item.open, item.close, item.low, item.high]),
+        data: chartData.map((item) => [
+          Math.floor(item.open),
+          Math.floor(item.close),
+          Math.floor(item.low),
+          Math.floor(item.high),
+        ]),
         itemStyle: {
           color: RISE_COLOR,
           color0: FALL_COLOR,
@@ -393,7 +461,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'bar' as const,
         xAxisIndex: 1,
         yAxisIndex: 1,
-        data: chartData.map((item) => item.volume),
+        data: chartData.map((item) => Math.floor(item.volume)),
         itemStyle: {
           color: (params: any) => {
             const item = chartData[params.dataIndex];
@@ -416,7 +484,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             <span className="text-lg font-semibold">{formatKoreanNumber(currentData.close)}원</span>
             <span className={currentData.changeType === 'RISE' ? 'text-red-500' : 'text-blue-500'}>
               {currentData.change && currentData.change > 0 ? '+' : ''}
-              {formatKoreanNumber(currentData.change || 0)}원 ({changePercent.toFixed(2)}%)
+              {formatKoreanNumber(currentData.change || 0)}원 ({Math.floor(changePercent)}%)
             </span>
           </div>
         </div>
