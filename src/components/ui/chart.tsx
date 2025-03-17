@@ -2,7 +2,7 @@
 
 import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 
 import { DataPoint } from '@/lib/dummy-data';
 
@@ -91,10 +91,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     const startDate = new Date(now);
     startDate.setHours(9, 0, 0, 0); // 오전 9시로 설정
 
+    let result;
+
     switch (period) {
       case 'MINUTE':
         // 1분봉: 실제 1분 단위 데이터 생성 (9:00 ~ 15:30)
-        return data
+        result = data
           .map((item, index) => {
             const date = new Date(startDate);
             date.setMinutes(date.getMinutes() + index);
@@ -105,10 +107,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             };
           })
           .slice(0, 390); // 6시간 30분
+        break;
 
       case 'WEEK':
         // 주봉: 월~금 5일 단위로 데이터 그룹화
-        return data.reduce<DataPoint[]>((acc, curr, i) => {
+        result = data.reduce<DataPoint[]>((acc, curr, i) => {
           if (i % 5 === 0) {
             const weekData = data.slice(i, i + 5);
             if (weekData.length > 0) {
@@ -127,6 +130,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           }
           return acc;
         }, []);
+        break;
 
       case 'MONTH': {
         // 월봉: 실제 월 단위로 데이터 그룹화
@@ -140,7 +144,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           return groups;
         }, {});
 
-        const monthlyResult = Object.entries(monthlyGroups)
+        result = Object.entries(monthlyGroups)
           .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
           .map(([_key, group]) => {
             const monthDate = new Date(group[0].date);
@@ -155,18 +159,21 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               date: formatChartDate(monthDate),
             };
           });
-        return monthlyResult;
+        break;
       }
 
       case 'DAY':
       default:
         // 일봉: 하루 단위 데이터 그대로 사용
-        return data.map((item) => ({
+        result = data.map((item) => ({
           ...item,
           date: formatChartDate(new Date(item.date)),
           periodType: 'DAY' as const,
         }));
+        break;
     }
+
+    return result;
   }, [period, data, formatChartDate]);
 
   const formatKoreanNumber = (value: number) => {
@@ -209,6 +216,118 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
 
   // 현재 가격 변화 방향에 따른 색상 설정
   const currentPriceColor = currentData.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+
+  // X축 레이블 데이터 생성 (실제 데이터 + 빈 공간용 레이블)
+  const xAxisLabels = useMemo(() => {
+    const labels = chartData.map((item) => item.date);
+
+    // 마지막 데이터 이후에 10개의 빈 레이블 추가
+    if (labels.length > 0) {
+      const lastLabel = labels[labels.length - 1];
+
+      for (let i = 1; i <= 10; i++) {
+        let newLabel = '';
+
+        switch (period) {
+          case 'MINUTE': {
+            // 분 단위: 마지막 시간에 i분 추가
+            const timeParts = lastLabel.split(':');
+            if (timeParts.length === 2) {
+              const hour = parseInt(timeParts[0]);
+              const minute = parseInt(timeParts[1]) + i;
+              const adjustedHour = hour + Math.floor(minute / 60);
+              const adjustedMinute = minute % 60;
+              newLabel = `${String(adjustedHour).padStart(2, '0')}:${String(adjustedMinute).padStart(2, '0')}`;
+            }
+            break;
+          }
+          case 'DAY': {
+            // 일 단위: 마지막 날짜에 i일 추가 (달력에 맞게)
+            const dayMatch = lastLabel.match(/(\d+)일/);
+            const monthMatch = lastLabel.match(/(\d+)월/);
+
+            if (dayMatch) {
+              let day = parseInt(dayMatch[1]) + i;
+              let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+
+              // 월별 일수 계산
+              const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+              // 월을 넘어가는 경우 처리
+              while (day > daysInMonth[month]) {
+                day -= daysInMonth[month];
+                month++;
+                if (month > 12) month = 1;
+              }
+
+              if (day === 1) {
+                newLabel = `${month}월`;
+              } else {
+                newLabel = `${day}일`;
+              }
+            }
+            break;
+          }
+          case 'WEEK': {
+            // 주 단위: 마지막 날짜에 i*7일 추가
+            const dayMatch = lastLabel.match(/(\d+)일/);
+            const monthMatch = lastLabel.match(/(\d+)월/);
+
+            if (dayMatch) {
+              let day = parseInt(dayMatch[1]) + i * 7;
+              let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+
+              // 월별 일수 계산
+              const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+              // 월을 넘어가는 경우 처리
+              while (day > daysInMonth[month]) {
+                day -= daysInMonth[month];
+                month++;
+                if (month > 12) month = 1;
+              }
+
+              if (day <= 7) {
+                newLabel = `${month}월`;
+              } else {
+                newLabel = `${day}일`;
+              }
+            }
+            break;
+          }
+          case 'MONTH': {
+            // 월 단위: 마지막 월에 i월 추가
+            const monthMatch = lastLabel.match(/(\d+)월/);
+            const yearMatch = lastLabel.match(/(\d+)년/);
+
+            if (monthMatch) {
+              let month = parseInt(monthMatch[1]) + i;
+              let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+
+              // 연도를 넘어가는 경우 처리
+              if (month > 12) {
+                year += Math.floor((month - 1) / 12);
+                month = ((month - 1) % 12) + 1;
+              }
+
+              if (month === 1) {
+                newLabel = `${year}년`;
+              } else {
+                newLabel = `${month}월`;
+              }
+            }
+            break;
+          }
+        }
+
+        if (newLabel) {
+          labels.push(newLabel);
+        }
+      }
+    }
+
+    return labels;
+  }, [chartData, period]);
 
   // 마우스 이동에 따른 Y축 레이블 배경색 변경 이벤트 핸들러
   const onChartEvents = {
@@ -337,7 +456,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     xAxis: [
       {
         type: 'category' as const,
-        data: chartData.map((item) => item.date),
+        data: xAxisLabels,
         axisLine: { lineStyle: { color: '#2e3947' } },
         axisLabel: {
           show: false,
@@ -361,7 +480,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         type: 'category' as const,
         gridIndex: 1,
-        data: chartData.map((item) => item.date),
+        data: xAxisLabels,
         axisLine: { lineStyle: { color: '#2e3947' } },
         axisLabel: {
           show: true,
