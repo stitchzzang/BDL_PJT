@@ -71,8 +71,8 @@ export const StockCostHistory = () => {
   const [isActive, setIsActive] = useState<string>('실시간');
   return (
     <div>
-      <div>
-        <div>
+      <div className="rounded-2xl bg-modal-background-color p-[20px]">
+        <div className="mt-[30px] border bg-black p-3">
           <button onClick={() => setIsActive('실시간')}>실시간</button>
           <button onClick={() => setIsActive('하루')}>하루</button>
         </div>
