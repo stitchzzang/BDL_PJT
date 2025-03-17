@@ -10,7 +10,7 @@ import {
   TruckIcon,
   TvIcon,
 } from '@heroicons/react/24/solid';
-import React from 'react';
+import React, { useState } from 'react';
 
 export interface categoryData {
   name: string;
@@ -31,6 +31,14 @@ export const CategoryButton = () => {
     { name: '음식', icon: CakeIcon },
   ];
 
+  const [isActive, setIsActive] = useState<string>('');
+  const isActiveHandler = (name: string) => {
+    if (name === isActive) {
+      setIsActive('');
+    } else {
+      setIsActive(name);
+    }
+  };
   return (
     <div>
       <div className="grid max-w-[660px] grid-cols-5 gap-[10px]">
@@ -38,13 +46,16 @@ export const CategoryButton = () => {
           const IconComponent = data.icon;
           return (
             <div
-              className="group flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-modal-background-color px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color"
+              className={`${isActive === data.name ? 'bg-btn-blue-color' : 'bg-modal-background-color'} group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color`}
               key={index}
+              onClick={() => isActiveHandler(data.name)}
             >
               <div className="min-h-[25px] min-w-[25px]">
                 <IconComponent /> {/* 이제 정상적으로 렌더링됨 */}
               </div>
-              <p className=" text-[16px] text-border-color transition-all duration-200 group-hover:text-white">
+              <p
+                className={`${isActive === data.name ? 'text-white' : 'text-border-color'}  text-[16px] transition-all duration-200 group-hover:text-white`}
+              >
                 {data.name}
               </p>
             </div>
