@@ -29,7 +29,7 @@ export const SellingPriceSell = ({ orderBookDummy }: SellingPriceSellProps) => {
                 <p>{data.price} 원</p>
               </div>
               <div className="flex w-[50%] justify-end bg-btn-red-color  bg-opacity-20 p-[14px]">
-                <p className="text-btn-red-color">{data.quantity} 원</p>
+                <p className="text-btn-red-color">{data.quantity}</p>
               </div>
             </div>
           );
