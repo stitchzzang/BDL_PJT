@@ -381,6 +381,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: true,
           label: {
             show: true,
+            formatter: (params: any) => {
+              // 소수점 절삭
+              const floorValue = Math.floor(params.value);
+              return formatKoreanNumber(floorValue);
+            },
           },
         },
       },
@@ -410,6 +415,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           show: true,
           label: {
             show: true,
+            formatter: (params: any) => {
+              // 소수점 절삭
+              const floorValue = Math.floor(params.value);
+              return formatVolumeNumber(floorValue);
+            },
           },
         },
       },
