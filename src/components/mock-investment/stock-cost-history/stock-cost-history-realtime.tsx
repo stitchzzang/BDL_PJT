@@ -22,7 +22,10 @@ export const StockCostHistoryRealTime = ({ stockDataList }: StockCostHistoryReal
 
             {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
             {stockDataList.map((item, index) => (
-              <div key={index} className="flex flex-row rounded-lg bg-[#102038] p-2 text-white">
+              <div
+                key={index}
+                className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
+              >
                 <div className="w-[20%] font-medium">
                   {formatThousandSeparator(item.tradePrice)}원
                 </div>
