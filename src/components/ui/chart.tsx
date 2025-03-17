@@ -514,7 +514,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   };
 
   return (
-    <div className="flex h-full w-full flex-col bg-modal-background-color">
+    <div className="flex h-full w-full flex-col" style={{ backgroundColor: '#0D192B' }}>
       <div className="mb-4 flex items-center gap-4 p-4 text-sm text-white">
         <div className="flex items-center gap-2 ml-auto">
           <button
