@@ -27,11 +27,11 @@ const stockInfoDetailTest: stockInfoDetail = {
 
 export const StockInfoDetail = () => {
   return (
-    <div>
+    <div className="rounded-2xl bg-modal-background-color p-[20px]">
       <div>
-        <h3>종목 정보</h3>
+        <h3 className="text-[18px] font-bold">종목 정보</h3>
       </div>
-      <div>
+      <div className="mt-[20px]">
         <StockInfoDetailList data={stockInfoDetailTest} />
       </div>
     </div>
