@@ -4,7 +4,7 @@ import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useState } from 'react';
 
-import { DataPoint, formatDate } from '@/lib/dummy-data';
+import { DataPoint } from '@/lib/dummy-data';
 
 interface ChartComponentProps {
   readonly height?: number;
@@ -21,6 +21,71 @@ const FALL_COLOR = '#1976d2'; // 파랑
 const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
 
+  // 차트 X축 라벨 포맷팅 함수
+  const formatChartDate = useCallback(
+    (date: Date): string => {
+      switch (period) {
+        case 'MINUTE':
+          return date.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          });
+        case 'DAY': {
+          const day = date.getDate();
+          if (day === 1) {
+            // 월의 첫 날에는 '월'을 표시
+            return `${date.getMonth() + 1}월`;
+          }
+          return `${day}일`;
+        }
+        case 'WEEK': {
+          const day = date.getDate();
+          if (day <= 7) {
+            // 월의 첫 주에는 '월'을 표시
+            return `${date.getMonth() + 1}월`;
+          }
+          return `${day}일`;
+        }
+        case 'MONTH': {
+          const month = date.getMonth() + 1;
+          if (month === 1) {
+            // 년의 첫 월에는 '년'을 표시
+            return `${date.getFullYear()}년`;
+          }
+          return `${month}월`;
+        }
+        default:
+          return '';
+      }
+    },
+    [period],
+  );
+
+  const isFirstOfPeriod = useCallback(
+    (date: string, index: number): boolean => {
+      if (index === 0) return true;
+
+      switch (period) {
+        case 'DAY': {
+          // 월의 첫 날인지 확인
+          return date.includes('월');
+        }
+        case 'WEEK': {
+          // 월의 첫 주인지 확인
+          return date.includes('월');
+        }
+        case 'MONTH': {
+          // 년의 첫 월인지 확인
+          return date.includes('년');
+        }
+        default:
+          return false;
+      }
+    },
+    [period],
+  );
+
   const getData = useCallback(() => {
     const now = new Date();
     const startDate = new Date(now);
@@ -35,7 +100,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             date.setMinutes(date.getMinutes() + index);
             return {
               ...item,
-              date: formatDate(date, 'MINUTE'),
+              date: formatChartDate(date),
               periodType: 'MINUTE' as const,
             };
           })
@@ -56,7 +121,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 low: Math.min(...weekData.map((item) => item.low)),
                 open: weekData[0].open,
                 close: weekData[weekData.length - 1].close,
-                date: formatDate(weekDate, 'WEEK'),
+                date: formatChartDate(weekDate),
               });
             }
           }
@@ -87,7 +152,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               low: Math.min(...group.map((item) => item.low)),
               open: group[0].open,
               close: group[group.length - 1].close,
-              date: formatDate(monthDate, 'MONTH'),
+              date: formatChartDate(monthDate),
             };
           });
         return monthlyResult;
@@ -98,11 +163,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         // 일봉: 하루 단위 데이터 그대로 사용
         return data.map((item) => ({
           ...item,
-          date: formatDate(new Date(item.date), 'DAY'),
+          date: formatChartDate(new Date(item.date)),
           periodType: 'DAY' as const,
         }));
     }
-  }, [period, data]);
+  }, [period, data, formatChartDate]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.round(value));
@@ -120,7 +185,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     }
   };
 
+  const calculateEMA = (data: number[], period: number): number[] => {
+    const k = 2 / (period + 1);
+    const emaData: number[] = [];
+    let prevEma = data[0];
+
+    for (let i = 0; i < data.length; i++) {
+      const currentPrice = data[i];
+      const currentEma = i === 0 ? currentPrice : currentPrice * k + prevEma * (1 - k);
+      emaData.push(currentEma);
+      prevEma = currentEma;
+    }
+
+    return emaData;
+  };
+
   const chartData = getData();
+  const closePrices = chartData.map((item) => item.close);
+  const ema5Data = calculateEMA(closePrices, 5);
+  const ema20Data = calculateEMA(closePrices, 20);
   const currentData = chartData[chartData.length - 1];
   const changePercent = ((currentData.change || 0) / (currentData.prevClose || 1)) * 100;
 
@@ -140,7 +223,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       },
       formatter: (params: any) => {
         const candleData = params[0];
-        const volumeData = params[1];
+        const ema5Data = params[1];
+        const ema20Data = params[2];
+        const volumeData = params[3];
         const date = candleData.name;
         const { open, close, low, high } = candleData.data;
         const volume = volumeData.data;
@@ -152,6 +237,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             <div>고가: ${formatKoreanNumber(high)}원</div>
             <div>저가: ${formatKoreanNumber(low)}원</div>
             <div>종가: ${formatKoreanNumber(close)}원</div>
+            <div>MA5: ${formatKoreanNumber(ema5Data.data)}원</div>
+            <div>MA20: ${formatKoreanNumber(ema20Data.data)}원</div>
             <div>거래량: ${formatVolumeNumber(volume)}</div>
           </div>
         `;
@@ -162,16 +249,26 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     },
     grid: [
       {
-        left: 10,
-        right: 80,
+        left: '5%',
+        right: '5%',
         top: 40,
+        bottom: '25%',
         height: '60%',
+        show: true,
+        borderColor: '#2e3947',
+        backgroundColor: 'transparent',
+        containLabel: true,
       },
       {
-        left: 10,
-        right: 80,
+        left: '5%',
+        right: '5%',
         top: '75%',
+        bottom: 30,
         height: '20%',
+        show: true,
+        borderColor: '#2e3947',
+        backgroundColor: 'transparent',
+        containLabel: true,
       },
     ],
     xAxis: [
@@ -179,7 +276,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'category' as const,
         data: chartData.map((item) => item.date),
         axisLine: { lineStyle: { color: '#2e3947' } },
-        axisLabel: { color: '#CCCCCC' },
+        axisLabel: {
+          show: false,
+          color: '#CCCCCC',
+        },
         splitLine: {
           show: true,
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
@@ -190,7 +290,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         gridIndex: 1,
         data: chartData.map((item) => item.date),
         axisLine: { lineStyle: { color: '#2e3947' } },
-        axisLabel: { color: '#CCCCCC' },
+        axisLabel: {
+          show: true,
+          color: '#CCCCCC',
+          margin: 12,
+          formatter: (value: string, index: number) => {
+            const isBold = isFirstOfPeriod(value, index);
+            return isBold ? `{bold|${value}}` : value;
+          },
+          rich: {
+            bold: {
+              fontWeight: 'bold',
+              fontSize: 12,
+            },
+          },
+        },
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
       },
     ],
     yAxis: [
@@ -217,7 +335,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           color: '#CCCCCC',
           formatter: (value: number) => formatVolumeNumber(value),
         },
-        splitLine: { show: false },
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
       },
     ],
     dataZoom: [
@@ -226,6 +347,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         xAxisIndex: [0, 1],
         start: 0,
         end: 100,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        preventDefaultMouseMove: false,
       },
     ],
     series: [
@@ -239,6 +363,30 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
         },
+      },
+      {
+        name: '5일 이평선',
+        type: 'line' as const,
+        data: ema5Data,
+        smooth: true,
+        lineStyle: {
+          opacity: 0.8,
+          color: '#f6c85d',
+          width: 1,
+        },
+        symbol: 'none',
+      },
+      {
+        name: '20일 이평선',
+        type: 'line' as const,
+        data: ema20Data,
+        smooth: true,
+        lineStyle: {
+          opacity: 0.8,
+          color: '#8b62d9',
+          width: 1,
+        },
+        symbol: 'none',
       },
       {
         name: '거래량',
@@ -304,6 +452,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         style={{ height: `${height}px`, width: '100%' }}
         notMerge={true}
         lazyUpdate={true}
+        opts={{ renderer: 'canvas' }}
       />
     </div>
   );
