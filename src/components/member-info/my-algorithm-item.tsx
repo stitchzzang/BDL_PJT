@@ -4,9 +4,14 @@ import { AlgorithmOptionItem } from '@/components/member-info/algorithm-option-i
 
 export const MyAlgorithmItem = () => {
   return (
-    <div className="flex flex-row items-center gap-5 rounded-[10px] bg-modal-background-color p-3">
-      <p className="text-text-main-color">알고리즘 이름</p>
-      <div className="flex flex-row gap-2">
+    <div className="flex w-full flex-row items-center justify-between rounded-[10px] bg-modal-background-color p-5">
+      <p className="mr-20 whitespace-nowrap text-text-main-color">알고리즘 이름</p>
+      <div className="flex flex-row flex-wrap gap-2">
+        <AlgorithmOptionItem />
+        <AlgorithmOptionItem />
+        <AlgorithmOptionItem />
+        <AlgorithmOptionItem />
+        <AlgorithmOptionItem />
         <AlgorithmOptionItem />
         <AlgorithmOptionItem />
         <AlgorithmOptionItem />
