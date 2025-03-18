@@ -7,6 +7,7 @@ import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
 import { MemberAlgorithmPage } from '@/routes/pages/MemberAlgorithmPage';
 import { MemberEditPage } from '@/routes/pages/MemberEditPage';
+import { MemberInvestmentPage } from '@/routes/pages/MemberInvestmentPage';
 import { MemberPasswordEditPage } from '@/routes/pages/MemberPasswordEditPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
@@ -44,6 +45,10 @@ export const router = createBrowserRouter([
           {
             path: '/member/algorithm',
             element: <MemberAlgorithmPage />,
+          },
+          {
+            path: '/member/investment',
+            element: <MemberInvestmentPage />,
           },
         ],
       },
