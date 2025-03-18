@@ -5,7 +5,7 @@ import { MemberLayout } from '@/layouts/MemberLayout';
 import { AlgorithmLabPage } from '@/routes/pages/AlgorithmLabPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
-import { MemberEditProfile } from '@/routes/pages/memberEditProfile';
+import { MemberEditProfile } from '@/routes/pages/MemberEditProfile';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
