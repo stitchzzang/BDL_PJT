@@ -28,6 +28,10 @@ export const router = createBrowserRouter([
         element: <AlgorithmLabPage />,
       },
       {
+        path: '/search',
+        element: <SearchPage />,
+      },
+      {
         path: '/signup',
         element: <SignUpPage />,
       },
@@ -38,10 +42,6 @@ export const router = createBrowserRouter([
       {
         path: '/simulated-investment',
         element: <SimulatedInvestmentPage />,
-      },
-      {
-        path: '/search',
-        element: <SearchPage />,
       },
       {
         path: '*',
