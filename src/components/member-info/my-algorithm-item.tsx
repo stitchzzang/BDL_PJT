@@ -1,6 +1,6 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
-import { AlgorithmOptionItem } from '@/components/my-info/algorithm-option-item';
+import { AlgorithmOptionItem } from '@/components/member-info/algorithm-option-item';
 
 export const MyAlgorithmItem = () => {
   return (
