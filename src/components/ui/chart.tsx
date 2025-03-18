@@ -587,8 +587,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               <div>고가: -</div>
               <div>저가: -</div>
               <div>종가: -</div>
-              <div>MA5: -</div>
-              <div>MA20: -</div>
+              <div>5이평선: -</div>
+              <div>20이평선: -</div>
               <div>거래량: -</div>
             </div>
           `;
@@ -607,8 +607,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               <div>고가: -</div>
               <div>저가: -</div>
               <div>종가: -</div>
-              <div>MA5: -</div>
-              <div>MA20: -</div>
+              <div>5이평선: -</div>
+              <div>20이평선: -</div>
               <div>거래량: -</div>
             </div>
           `;
@@ -646,8 +646,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             <div>고가: ${highStr}</div>
             <div>저가: ${lowStr}</div>
             <div>종가: ${closeStr}</div>
-            <div>MA5: ${ema5Str}</div>
-            <div>MA20: ${ema20Str}</div>
+            <div>5이평선: ${ema5Str}</div>
+            <div>20이평선: ${ema20Str}</div>
             <div>거래량: ${volumeStr}</div>
           </div>
         `;
