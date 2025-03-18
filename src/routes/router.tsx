@@ -5,11 +5,11 @@ import { MemberLayout } from '@/layouts/MemberLayout';
 import { AlgorithmLabPage } from '@/routes/pages/AlgorithmLabPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
+import { MemberEditProfile } from '@/routes/pages/memberEditProfile';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
-
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -25,7 +25,12 @@ export const router = createBrowserRouter([
       },
       {
         element: <MemberLayout />,
-        children: [],
+        children: [
+          {
+            path: '/member/edit',
+            element: <MemberEditProfile />,
+          },
+        ],
       },
       {
         path: '/algorithm-lab',
