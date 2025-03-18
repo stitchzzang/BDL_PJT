@@ -1,3 +1,5 @@
+import { Outlet } from 'react-router-dom';
+
 import { Profile } from '@/components/member-info/profile';
 import { SectionNavBar } from '@/components/member-info/section-nav-bar';
 
@@ -9,6 +11,7 @@ export const MemberLayout = () => {
         <SectionNavBar />
       </div>
       <hr className="mb-5 mt-3 border-t border-btn-primary-inactive-color" />
+      <Outlet />
     </>
   );
 };
