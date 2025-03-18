@@ -1,12 +1,32 @@
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+
 export const MemberEditPage = () => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold">프로필 수정</h1>
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="name">이름</label>
-          <input type="text" id="name" />
-          <button className="btn-primary">수정</button>
+      <div className="flex min-w-[400px] flex-col items-center gap-5 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src="https://placehold.co/130x130"
+            alt="profile"
+            className="h-32 w-32 rounded-full"
+          />
+          <Button className="w-full" variant="black">
+            이미지 변경
+          </Button>
+        </div>
+        <div className="flex w-full flex-col items-center gap-2">
+          <Input type="text" className="h-14" placeholder="이름" />
+          <p className="text-sm text-text-inactive-2-color">변경할 닉네임을 입력해주세요.</p>
+        </div>
+        <div className="flex w-full flex-col gap-4">
+          <Button variant="gray" className="w-full">
+            비밀번호 변경
+          </Button>
+          <Button variant="blue" className="w-full">
+            프로필 수정
+          </Button>
         </div>
       </div>
     </div>
