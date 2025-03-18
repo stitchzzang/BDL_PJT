@@ -10,7 +10,7 @@ export const MemberLayout = () => {
         <Profile />
         <SectionNavBar />
       </div>
-      <hr className="mb-5 mt-3 border-t border-btn-primary-inactive-color" />
+      <hr className="mb-12 mt-3 border-t border-btn-primary-inactive-color" />
       <Outlet />
     </>
   );
