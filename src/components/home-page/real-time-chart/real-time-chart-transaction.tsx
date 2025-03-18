@@ -1,3 +1,4 @@
+import noneStockImg from '@/assets/none-img/none_stock_img.png';
 import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
 
 export interface StockTransaction {
@@ -5,6 +6,7 @@ export interface StockTransaction {
   currentPrice: number;
   changeRate: number;
   tradingValue: number;
+  imageUrl: string | null;
 }
 export type StockTransactions = StockTransaction;
 
@@ -16,12 +18,14 @@ export const RealTimeChartTransaction = () => {
       currentPrice: 10000,
       changeRate: 1.5,
       tradingValue: 500000000,
+      imageUrl: null,
     },
     {
       stockName: 'SK하이닉스',
       currentPrice: 100000000000,
       changeRate: 1.5,
       tradingValue: 500000000,
+      imageUrl: null,
     },
   ];
 
@@ -49,11 +53,18 @@ export const RealTimeChartTransaction = () => {
               >
                 <div className="w-[40%] font-medium">
                   <h3>{index}</h3>
+                  <div>
+                    {stockTransaction.imageUrl === null ? (
+                      <img src={noneStockImg} alt="noneimage" />
+                    ) : (
+                      <img src={stockTransaction.imageUrl} alt="stockprofileimage" />
+                    )}
+                  </div>
                   <h3>{stockTransaction.stockName}</h3>
                 </div>
                 <div className="w-[20%] text-right text-btn-blue-color">
                   {formatThousandSeparator(stockTransaction.currentPrice)}
-                </div> 
+                </div>
                 <div className="w-[20%] text-right text-btn-red-color">
                   {stockTransaction.changeRate}%
                 </div>
