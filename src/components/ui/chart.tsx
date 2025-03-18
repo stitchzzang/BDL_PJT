@@ -456,9 +456,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     return labels;
   }, [extendedChartData, period, chartData]);
 
-  // 상단 캔들 차트와 하단 거래량 차트 비율 설정
-  const candleHeightRatio = 0.75; // 캔들 차트가 전체 높이의 75%
-  const volumeHeightRatio = 0.25; // 거래량 차트가 전체 높이의 25%
+  // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 20%)
+  const VOLUME_HEIGHT_RATIO = 0.2;
+  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 10%)
+  const VOLUME_GAP_RATIO = 0.1;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -479,41 +480,66 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     const minPrice = Math.min(...chartData.map((d) => d.low));
     const maxPrice = Math.max(...chartData.map((d) => d.high));
     const range = maxPrice - minPrice;
+    const margin = range * 0.1;
+
+    // 캔들차트 영역의 범위 계산
+    const candleMin = Math.floor(minPrice - margin);
+    const candleMax = Math.ceil(maxPrice + margin);
+    const candleRange = candleMax - candleMin;
+
+    // 전체 차트 영역 계산 (거래량 영역 포함)
+    const totalRange = candleRange / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
+    const volumeRange = totalRange * VOLUME_HEIGHT_RATIO;
 
     return {
-      min: Math.floor(minPrice - range * 0.1),
-      max: Math.ceil(maxPrice + range * 0.1),
+      min: candleMin - volumeRange - totalRange * VOLUME_GAP_RATIO,
+      max: candleMax,
+      candleMin: candleMin,
+      candleMax: candleMax,
+      volumeMax: candleMin - totalRange * VOLUME_GAP_RATIO,
     };
   }, [chartData]);
 
-  // 거래량 데이터 스케일링 (캔들차트 영역에 맞게 조정)
+  // 거래량 데이터 스케일링
   const scaleVolumeData = useCallback(() => {
-    const priceRange = getPriceRange();
     const volumeRange = getVolumeRange();
-    const priceHeight = priceRange.max - priceRange.min;
-
-    // 거래량을 가격 범위의 하단 25%에 맞춤
-    const volumeHeight = priceHeight * volumeHeightRatio;
-    const volumeMin = priceRange.min;
+    const priceRange = getPriceRange();
+    const volumeHeight = priceRange.volumeMax - priceRange.min;
 
     return extendedChartData.map((item, index) => {
-      if (index < 10) return 0;
-
-      // 거래량을 0 ~ volumeHeight 범위로 스케일링
+      if (index < 10) return priceRange.min;
       const volumeRatio = item.volume / volumeRange.max;
-      return volumeMin + volumeRatio * volumeHeight;
+      return priceRange.min + volumeRatio * volumeHeight;
     });
   }, [extendedChartData, getPriceRange, getVolumeRange]);
 
-  // 스케일링된 거래량 데이터
-  const scaledVolumeData = scaleVolumeData();
-
-  // 구분선 Y축 위치 계산 (가격 범위의 하단 25% 지점)
+  // 구분선 Y축 위치 계산
   const dividerLinePosition = useCallback(() => {
     const priceRange = getPriceRange();
-    const priceHeight = priceRange.max - priceRange.min;
-    return priceRange.min + priceHeight * volumeHeightRatio;
+    return priceRange.volumeMax;
   }, [getPriceRange]);
+
+  // 캔들차트 데이터 스케일링
+  const scaleCandleData = useCallback(() => {
+    return extendedChartData.map((item, index) => {
+      if (index < 10) return [0, 0, 0, 0];
+      return [item.open, item.close, item.low, item.high];
+    });
+  }, [extendedChartData]);
+
+  // EMA 데이터 스케일링
+  const scaleEMAData = useCallback((emaData: (number | null)[]) => {
+    return emaData.map((value, index) => {
+      if (index < 10 || value === null) return null;
+      return value;
+    });
+  }, []);
+
+  // 스케일링된 데이터
+  const scaledVolumeData = scaleVolumeData();
+  const scaledCandleData = scaleCandleData();
+  const scaledEMA5Data = scaleEMAData(ema5Data);
+  const scaledEMA20Data = scaleEMAData(ema20Data);
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -529,7 +555,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         },
         label: {
           show: true,
-          backgroundColor: '#2e3947',
+          backgroundColor: FALL_COLOR,
         },
         lineStyle: {
           color: 'rgba(255, 255, 255, 0.2)',
@@ -630,7 +656,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     axisPointer: {
       link: [{ xAxisIndex: 'all' }],
       label: {
-        backgroundColor: '#2e3947',
+        backgroundColor: FALL_COLOR,
       },
       lineStyle: {
         color: 'rgba(255, 255, 255, 0.2)',
@@ -653,7 +679,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     ],
     xAxis: [
       {
-        // 통합 X축
         type: 'category',
         data: xAxisLabels,
         gridIndex: 0,
@@ -677,7 +702,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     ],
     yAxis: [
       {
-        // 통합 Y축 (우측)
         type: 'value',
         position: 'right',
         scale: true,
@@ -694,15 +718,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             const priceRange = getPriceRange();
             const volumeRange = getVolumeRange();
             const priceHeight = priceRange.max - priceRange.min;
-            const dividerPos = priceRange.min + priceHeight * volumeHeightRatio;
+            const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
-            // 구분선 위쪽은 가격 표시
             if (value >= dividerPos) {
               return formatKoreanNumber(Math.floor(value));
-            }
-            // 구분선 아래쪽은 거래량 표시
-            else {
-              const volumeHeight = priceHeight * volumeHeightRatio;
+            } else {
+              const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
               const volumeRatio = (value - priceRange.min) / volumeHeight;
               const originalVolume = volumeRatio * volumeRange.max;
               return formatVolumeNumber(Math.floor(originalVolume));
@@ -720,12 +741,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 const priceRange = getPriceRange();
                 const volumeRange = getVolumeRange();
                 const priceHeight = priceRange.max - priceRange.min;
-                const dividerPos = priceRange.min + priceHeight * volumeHeightRatio;
+                const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
                 if (numValue >= dividerPos) {
                   return formatKoreanNumber(Math.floor(numValue));
                 } else {
-                  const volumeHeight = priceHeight * volumeHeightRatio;
+                  const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
                   const volumeRatio = (numValue - priceRange.min) / volumeHeight;
                   const originalVolume = volumeRatio * volumeRange.max;
                   return formatVolumeNumber(Math.floor(originalVolume));
@@ -744,27 +765,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     dataZoom: [
       {
         type: 'inside',
+        xAxisIndex: [0],
         start: 10,
         end: 100,
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
-        filterMode: 'none',
-        xAxisIndex: [0],
       },
       {
         type: 'slider',
         show: false,
-        height: 20,
-        bottom: 0,
+        xAxisIndex: [0],
         start: 10,
         end: 100,
-        borderColor: '#2e3947',
-        fillerColor: 'rgba(38, 43, 54, 0.5)',
-        textStyle: { color: '#CCCCCC' },
-        handleStyle: { color: '#8392a5' },
-        filterMode: 'none',
-        xAxisIndex: [0],
       },
     ],
     series: [
@@ -773,18 +786,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'candlestick',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        data: extendedChartData.map((item, index) => {
-          if (index < 10) {
-            const minValue = Math.min(...chartData.map((d) => d.low)) * 0.5;
-            return [minValue, minValue, minValue, minValue];
-          }
-          return [
-            Math.floor(item.open),
-            Math.floor(item.close),
-            Math.floor(item.low),
-            Math.floor(item.high),
-          ];
-        }),
+        data: scaledCandleData,
         itemStyle: {
           color: RISE_COLOR,
           color0: FALL_COLOR,
@@ -792,40 +794,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           borderColor0: FALL_COLOR,
         },
         barWidth: '60%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: currentPriceColor,
-            width: 1,
-            type: 'dashed',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            formatter: formatKoreanNumber(Math.floor(currentData.close)),
-            backgroundColor: currentPriceColor,
-            padding: [4, 8],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: Math.floor(currentData.close),
-              lineStyle: { color: currentPriceColor },
-            },
-          ],
-        },
       },
       {
         name: '5일 이평선',
         type: 'line',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        data: extendedChartData.map((item, index) => {
-          if (index < 10) return '-';
-          return ema5Data[index];
-        }),
+        data: scaledEMA5Data,
         smooth: true,
         lineStyle: {
           opacity: 0.8,
@@ -840,10 +815,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'line',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        data: extendedChartData.map((item, index) => {
-          if (index < 10) return '-';
-          return ema20Data[index];
-        }),
+        data: scaledEMA20Data,
         smooth: true,
         lineStyle: {
           opacity: 0.8,
@@ -858,17 +830,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'bar',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        data: showVolume
-          ? extendedChartData.map((item, index) => {
-              if (index < 10) return 0;
-              const priceRange = getPriceRange();
-              const volumeRange = getVolumeRange();
-              const priceHeight = priceRange.max - priceRange.min;
-              const volumeHeight = priceHeight * volumeHeightRatio;
-              const volumeRatio = item.volume / volumeRange.max;
-              return priceRange.min + volumeRatio * volumeHeight;
-            })
-          : [],
+        data: showVolume ? scaledVolumeData : [],
         itemStyle: {
           color: (params: any) => {
             const index = params.dataIndex;
@@ -888,7 +850,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           symbol: 'none',
           lineStyle: {
             color: '#2e3947',
-            width: 1,
+            width: 2,
             type: 'solid',
           },
           label: {
@@ -900,7 +862,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             },
           ],
         },
-        data: [],
       },
     ],
   };
