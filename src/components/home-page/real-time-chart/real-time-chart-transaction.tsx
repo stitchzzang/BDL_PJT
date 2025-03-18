@@ -16,8 +16,8 @@ export const RealTimeChartTransaction = () => {
       tradingValue: 500000000,
     },
     {
-      stockName: 'hello',
-      currentPrice: 10000,
+      stockName: 'hello2',
+      currentPrice: 100000000000,
       changeRate: 1.5,
       tradingValue: 500000000,
     },
@@ -40,21 +40,22 @@ export const RealTimeChartTransaction = () => {
             </div>
 
             {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
-            {stockDataList.map((item, index) => (
+            {stockTransactions.map((stockTransaction, index) => (
               <div
                 key={index}
                 className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
               >
-                <div className="w-[20%] font-medium">
-                  {formatThousandSeparator(item.tradePrice)}원
+                <div className="w-[40%] font-medium">
+                  {formatThousandSeparator(stockTransaction.stockName)}원
                 </div>
-                <div className="w-[20%] text-right text-btn-blue-color">{item.tradeVolume}</div>
-                <div className="w-[20%] text-right text-btn-red-color">{item.fluctuationRate}%</div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.tradingVolume}
+                <div className="w-[20%] text-right text-btn-blue-color">
+                  {stockTransaction.currentPrice}
+                </div>
+                <div className="w-[20%] text-right text-btn-red-color">
+                  {stockTransaction.changeRate}%
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {item.tradeTime}
+                  {stockTransaction.tradingValue}
                 </div>
               </div>
             ))}
