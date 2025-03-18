@@ -23,7 +23,12 @@ export const RealTimeChart = () => {
 
   return (
     <div>
-      <div></div>
+      <div>
+        <button onClick={() => setIsActive(chartType.TRADING_VOLUME)}>거래대금금</button>
+        <button onClick={() => setIsActive(chartType.RAPID_RISE)}>급상승</button>
+        <button onClick={() => setIsActive(chartType.RAPID_FALL)}>급하락</button>
+      </div>
+      <div>{components[isActive]}</div>
     </div>
   );
 };
