@@ -1,3 +1,5 @@
+import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
+
 export interface StockTransaction {
   stockName: string;
   currentPrice: number;
@@ -10,13 +12,13 @@ export const RealTimeChartTransaction = () => {
   // 더미데이터
   const stockTransactions: StockTransactions[] = [
     {
-      stockName: 'hello',
+      stockName: '삼성전자',
       currentPrice: 10000,
       changeRate: 1.5,
       tradingValue: 500000000,
     },
     {
-      stockName: 'hello2',
+      stockName: 'SK하이닉스',
       currentPrice: 100000000000,
       changeRate: 1.5,
       tradingValue: 500000000,
@@ -46,16 +48,17 @@ export const RealTimeChartTransaction = () => {
                 className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
               >
                 <div className="w-[40%] font-medium">
-                  {formatThousandSeparator(stockTransaction.stockName)}원
+                  <h3>{index}</h3>
+                  <h3>{stockTransaction.stockName}</h3>
                 </div>
                 <div className="w-[20%] text-right text-btn-blue-color">
-                  {stockTransaction.currentPrice}
-                </div>
+                  {formatThousandSeparator(stockTransaction.currentPrice)}
+                </div> 
                 <div className="w-[20%] text-right text-btn-red-color">
                   {stockTransaction.changeRate}%
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {stockTransaction.tradingValue}
+                  {formatThousandSeparator(stockTransaction.tradingValue)}
                 </div>
               </div>
             ))}
