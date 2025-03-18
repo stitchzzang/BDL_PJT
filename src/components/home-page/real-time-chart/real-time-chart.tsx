@@ -15,13 +15,6 @@ enum chartType {
 export const RealTimeChart = () => {
   const [isActive, setIsActive] = useState<chartType>(chartType.TRADING_VOLUME);
 
-  // Record를 사용하여 컴포넌트 매핑
-  const components: Record<chartType, React.ReactNode> = {
-    [chartType.TRADING_VOLUME]: <RealTimeChartTransaction />,
-    [chartType.RAPID_RISE]: <RealTimeChartRise />,
-    [chartType.RAPID_FALL]: <RealTimeChartFall />,
-  };
-
   const chartTabs = [
     { title: '거래대금', value: 'TRADING_VOLUME', content: <RealTimeChartTransaction /> },
     { title: '급상승', value: 'RAPID_RISE', content: <RealTimeChartRise /> },
@@ -35,6 +28,7 @@ export const RealTimeChart = () => {
           tabs={chartTabs}
           activeTabClassName="bg-btn-blue-color"
           contentClassName="mt-3 rounded-xl p-[20px] bg-modal-background-color"
+          containerClassName="inline-block"
         />
       </div>
     </div>
