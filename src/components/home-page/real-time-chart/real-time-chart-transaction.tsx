@@ -32,7 +32,7 @@ export const RealTimeChartTransaction = () => {
   return (
     <div>
       <div className="w-full">
-        <div className="flex flex-col space-y-4">
+        <div className="!mt-0 flex flex-col">
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">
             {/* 테이블 헤더 */}
