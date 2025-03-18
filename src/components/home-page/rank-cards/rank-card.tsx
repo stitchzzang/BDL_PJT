@@ -1,4 +1,4 @@
-export const LankCard = () => {
+export const RankCard = () => {
   return (
     <div>
       <div></div>
