@@ -1,9 +1,9 @@
-import { CompanyIdentifier } from '@/components/common/company-identifier';
+import { CompanyInfo } from '@/components/common/company-info';
 
 export const InvestmentResultItem = () => {
   return (
     <div className="flex flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3">
-      <CompanyIdentifier />
+      <CompanyInfo />
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
           <span className="text-text-border-color">시작 금액</span>
