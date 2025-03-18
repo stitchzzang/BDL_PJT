@@ -1,6 +1,6 @@
 import { CompanyInfo } from '@/components/common/company-info';
 
-export const InvestmentResultItem = () => {
+export const StockTutorialResultItem = () => {
   return (
     <div className="flex flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3">
       <CompanyInfo />

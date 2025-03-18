@@ -11,6 +11,7 @@ import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
+import { StockTutorialResultPage } from '@/routes/pages/StockTutorialResultPage';
 
 export const router = createBrowserRouter([
   {
@@ -34,6 +35,10 @@ export const router = createBrowserRouter([
           {
             path: '/member/edit/password',
             element: <MemberPasswordEditPage />,
+          },
+          {
+            path: '/member/stock-tutorial-result',
+            element: <StockTutorialResultPage />,
           },
         ],
       },
