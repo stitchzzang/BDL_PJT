@@ -41,7 +41,7 @@ export const Tabs = ({
     <>
       <div
         className={cn(
-          'flex flex-row items-center justify-start [perspective:1000px] relative overflow-auto sm:overflow-visible no-visible-scrollbar max-w-full w-full bg-modal-background-color p-3 rounded-2xl',
+          'flex flex-row items-center justify-start [perspective:1000px] relative overflow-auto sm:overflow-visible no-visible-scrollbar max-w-full bg-modal-background-color p-3 rounded-2xl',
           containerClassName,
         )}
       >
@@ -103,7 +103,7 @@ export const FadeInDiv = ({
       {tabs.map((tab, idx) => (
         <div
           key={tab.value}
-          className={cn('w-full h-full absolute top-0 left-0', className)}
+          className={cn('', className)}
           style={{
             display: isActive(tab) ? 'block' : 'none',
           }}
