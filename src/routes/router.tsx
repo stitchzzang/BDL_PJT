@@ -5,6 +5,7 @@ import { MemberLayout } from '@/layouts/MemberLayout';
 import { AlgorithmLabPage } from '@/routes/pages/AlgorithmLabPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
+import { MemberAlgorithmPage } from '@/routes/pages/MemberAlgorithmPage';
 import { MemberEditPage } from '@/routes/pages/MemberEditPage';
 import { MemberPasswordEditPage } from '@/routes/pages/MemberPasswordEditPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
           {
             path: '/member/stock-tutorial-result',
             element: <StockTutorialResultPage />,
+          },
+          {
+            path: '/member/algorithm',
+            element: <MemberAlgorithmPage />,
           },
         ],
       },
