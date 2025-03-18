@@ -486,6 +486,35 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     };
   }, [chartData]);
 
+  // 거래량 데이터 스케일링 (캔들차트 영역에 맞게 조정)
+  const scaleVolumeData = useCallback(() => {
+    const priceRange = getPriceRange();
+    const volumeRange = getVolumeRange();
+    const priceHeight = priceRange.max - priceRange.min;
+
+    // 거래량을 가격 범위의 하단 25%에 맞춤
+    const volumeHeight = priceHeight * volumeHeightRatio;
+    const volumeMin = priceRange.min;
+
+    return extendedChartData.map((item, index) => {
+      if (index < 10) return 0;
+
+      // 거래량을 0 ~ volumeHeight 범위로 스케일링
+      const volumeRatio = item.volume / volumeRange.max;
+      return volumeMin + volumeRatio * volumeHeight;
+    });
+  }, [extendedChartData, getPriceRange, getVolumeRange]);
+
+  // 스케일링된 거래량 데이터
+  const scaledVolumeData = scaleVolumeData();
+
+  // 구분선 Y축 위치 계산 (가격 범위의 하단 25% 지점)
+  const dividerLinePosition = useCallback(() => {
+    const priceRange = getPriceRange();
+    const priceHeight = priceRange.max - priceRange.min;
+    return priceRange.min + priceHeight * volumeHeightRatio;
+  }, [getPriceRange]);
+
   // ECharts 옵션 설정
   const option: EChartsOption = {
     animation: false,
@@ -609,71 +638,109 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'solid',
       },
     },
-    grid: {
-      left: 80,
-      right: 80,
-      top: 40,
-      bottom: 60,
-      show: true,
-      borderColor: '#2e3947',
-      backgroundColor: 'transparent',
-      containLabel: false,
-    },
-    xAxis: {
-      type: 'category',
-      data: xAxisLabels,
-      axisLine: { lineStyle: { color: '#2e3947' } },
-      axisLabel: {
+    grid: [
+      {
+        // 통합 차트 영역
+        left: 80,
+        right: 80,
+        top: 40,
+        bottom: 60,
         show: true,
-        color: '#CCCCCC',
-        margin: 12,
-        formatter: (value, index) => {
-          const isBold = isFirstOfPeriod(value, index);
-          return isBold ? value : value;
+        borderColor: '#2e3947',
+        backgroundColor: 'transparent',
+        containLabel: false,
+      },
+    ],
+    xAxis: [
+      {
+        // 통합 X축
+        type: 'category',
+        data: xAxisLabels,
+        gridIndex: 0,
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLabel: {
+          show: true,
+          color: '#CCCCCC',
+          margin: 12,
+          formatter: (value, index) => {
+            const isBold = isFirstOfPeriod(value, index);
+            return isBold ? value : value;
+          },
         },
-      },
-      splitLine: {
-        show: true,
-        lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
-      },
-      axisTick: { show: true },
-      boundaryGap: true,
-    },
-    yAxis: {
-      type: 'value',
-      position: 'right',
-      scale: true,
-      splitNumber: 8,
-      axisLine: { lineStyle: { color: '#2e3947' } },
-      splitLine: {
-        show: true,
-        lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
-      },
-      axisLabel: {
-        color: '#CCCCCC',
-        formatter: (value) => {
-          return formatKoreanNumber(Math.floor(value));
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
-        inside: false,
-        margin: 8,
-        fontSize: 12,
+        axisTick: { show: true },
+        boundaryGap: true,
       },
-      axisPointer: {
-        label: {
-          formatter: (params) => {
-            try {
-              const numValue = Number(params.value);
-              return !isNaN(numValue) ? formatKoreanNumber(Math.floor(numValue)): '-';
-            } catch (e) {
-              return '-';
+    ],
+    yAxis: [
+      {
+        // 통합 Y축 (우측)
+        type: 'value',
+        position: 'right',
+        scale: true,
+        splitNumber: 8,
+        gridIndex: 0,
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
+        axisLabel: {
+          color: '#CCCCCC',
+          formatter: (value) => {
+            const priceRange = getPriceRange();
+            const volumeRange = getVolumeRange();
+            const priceHeight = priceRange.max - priceRange.min;
+            const dividerPos = priceRange.min + priceHeight * volumeHeightRatio;
+
+            // 구분선 위쪽은 가격 표시
+            if (value >= dividerPos) {
+              return formatKoreanNumber(Math.floor(value));
+            }
+            // 구분선 아래쪽은 거래량 표시
+            else {
+              const volumeHeight = priceHeight * volumeHeightRatio;
+              const volumeRatio = (value - priceRange.min) / volumeHeight;
+              const originalVolume = volumeRatio * volumeRange.max;
+              return formatVolumeNumber(Math.floor(originalVolume));
             }
           },
-          backgroundColor: FALL_COLOR,
+          inside: false,
+          margin: 8,
+          fontSize: 12,
         },
+        axisPointer: {
+          label: {
+            formatter: (params) => {
+              try {
+                const numValue = Number(params.value);
+                const priceRange = getPriceRange();
+                const volumeRange = getVolumeRange();
+                const priceHeight = priceRange.max - priceRange.min;
+                const dividerPos = priceRange.min + priceHeight * volumeHeightRatio;
+
+                if (numValue >= dividerPos) {
+                  return formatKoreanNumber(Math.floor(numValue));
+                } else {
+                  const volumeHeight = priceHeight * volumeHeightRatio;
+                  const volumeRatio = (numValue - priceRange.min) / volumeHeight;
+                  const originalVolume = volumeRatio * volumeRange.max;
+                  return formatVolumeNumber(Math.floor(originalVolume));
+                }
+              } catch (e) {
+                return '-';
+              }
+            },
+            backgroundColor: FALL_COLOR,
+          },
+        },
+        min: getPriceRange().min,
+        max: getPriceRange().max,
       },
-      min: getPriceRange().min,
-      max: getPriceRange().max,
-    },
+    ],
     dataZoom: [
       {
         type: 'inside',
@@ -683,6 +750,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
         filterMode: 'none',
+        xAxisIndex: [0],
       },
       {
         type: 'slider',
@@ -696,24 +764,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         textStyle: { color: '#CCCCCC' },
         handleStyle: { color: '#8392a5' },
         filterMode: 'none',
+        xAxisIndex: [0],
       },
     ],
     series: [
       {
         name: '캔들차트',
         type: 'candlestick',
+        xAxisIndex: 0,
+        yAxisIndex: 0,
         data: extendedChartData.map((item, index) => {
           if (index < 10) {
-            // 앞쪽 빈 데이터는 차트의 최소값보다 아주 작은 값으로 설정하여 화면에 표시되지 않게 함
             const minValue = Math.min(...chartData.map((d) => d.low)) * 0.5;
             return [minValue, minValue, minValue, minValue];
           }
-
           return [
-            Math.floor(item.open), // 시가 (open)
-            Math.floor(item.close), // 종가 (close)
-            Math.floor(item.low), // 저가 (low)
-            Math.floor(item.high), // 고가 (high)
+            Math.floor(item.open),
+            Math.floor(item.close),
+            Math.floor(item.low),
+            Math.floor(item.high),
           ];
         }),
         itemStyle: {
@@ -751,10 +820,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         name: '5일 이평선',
         type: 'line',
+        xAxisIndex: 0,
+        yAxisIndex: 0,
         data: extendedChartData.map((item, index) => {
-          if (index < 10) {
-            return '-'; // 앞쪽 빈 데이터는 '-'로 설정하여 연결되지 않게 함
-          }
+          if (index < 10) return '-';
           return ema5Data[index];
         }),
         smooth: true,
@@ -769,10 +838,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         name: '20일 이평선',
         type: 'line',
+        xAxisIndex: 0,
+        yAxisIndex: 0,
         data: extendedChartData.map((item, index) => {
-          if (index < 10) {
-            return '-'; // 앞쪽 빈 데이터는 '-'로 설정하여 연결되지 않게 함
-          }
+          if (index < 10) return '-';
           return ema20Data[index];
         }),
         smooth: true,
@@ -787,17 +856,17 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         name: '거래량',
         type: 'bar',
+        xAxisIndex: 0,
+        yAxisIndex: 0,
         data: showVolume
           ? extendedChartData.map((item, index) => {
-              if (index < 10) return 0; // 앞쪽 빈 데이터는 0으로 설정
-
-              // 거래량을 가격 기준으로 정규화하여 차트 하단에 작게 표시
-              const maxVolume = getMaxVolume();
+              if (index < 10) return 0;
               const priceRange = getPriceRange();
-              const volumeScale = ((priceRange.max - priceRange.min) * 0.2) / maxVolume; // 차트 높이의 20%만 사용
-              const scaledVolume = priceRange.min + item.volume * volumeScale; // 최소 가격 위에 표시
-
-              return scaledVolume;
+              const volumeRange = getVolumeRange();
+              const priceHeight = priceRange.max - priceRange.min;
+              const volumeHeight = priceHeight * volumeHeightRatio;
+              const volumeRatio = item.volume / volumeRange.max;
+              return priceRange.min + volumeRatio * volumeHeight;
             })
           : [],
         itemStyle: {
@@ -808,8 +877,30 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           },
         },
         barWidth: '60%',
-        barGap: '-100%', // 캔들과 겹치도록 설정
-        z: 0, // 캔들차트보다 뒤에 표시되도록 z-index 설정
+      },
+      {
+        name: '구분선',
+        type: 'line',
+        xAxisIndex: 0,
+        yAxisIndex: 0,
+        markLine: {
+          silent: true,
+          symbol: 'none',
+          lineStyle: {
+            color: '#2e3947',
+            width: 1,
+            type: 'solid',
+          },
+          label: {
+            show: false,
+          },
+          data: [
+            {
+              yAxis: dividerLinePosition(),
+            },
+          ],
+        },
+        data: [],
       },
     ],
   };
