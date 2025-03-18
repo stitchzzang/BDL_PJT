@@ -1,4 +1,4 @@
-export const RealTimeChartList = () => {
+export const RealTimeChartTransaction = () => {
   return (
     <div>
       <div></div>
