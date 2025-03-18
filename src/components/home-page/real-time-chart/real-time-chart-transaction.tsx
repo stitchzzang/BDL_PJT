@@ -37,10 +37,10 @@ export const RealTimeChartTransaction = () => {
           <div className="flex flex-col space-y-2">
             {/* 테이블 헤더 */}
             <div className="rounded-lgp-2 flex flex-row">
-              <div className="w-[40%] text-[16px] text-border-color">종목</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">현재가</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">등락률</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
+              <div className="w-[40%] text-[14px] text-border-color">종목</div>
+              <div className="w-[20%] text-right text-[14px] text-border-color">현재가</div>
+              <div className="w-[20%] text-right text-[14px] text-border-color">등락률</div>
+              <div className="w-[20%] text-right text-[14px] text-btn-blue-color">
                 거래대금 많은 순
               </div>
             </div>
