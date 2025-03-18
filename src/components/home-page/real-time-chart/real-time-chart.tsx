@@ -12,7 +12,7 @@ enum chartType {
 }
 
 export const RealTimeChart = () => {
-  const [isActive, setIsActive] = useState<string>('거래대금');
+  const [isActive, setIsActive] = useState<chartType>(chartType.TRADING_VOLUME);
 
   // Record를 사용하여 컴포넌트 매핑
   const components: Record<chartType, React.ReactNode> = {
