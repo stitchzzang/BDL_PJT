@@ -265,36 +265,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     // 앞쪽 빈 데이터에 대한 레이블 생성
     const labels = extendedChartData.map((item, index) => {
       if (index < 10) {
-        // 앞쪽 빈 데이터에 대한 레이블 생성
-        if (chartData.length > 0) {
+        // 앞쪽 빈 데이터에 대한 레이블 생성 - 1분봉에서는 표시하지 않음
+        if (chartData.length > 0 && period !== 'MINUTE') {
           const firstLabel = chartData[0].date;
           let newLabel = '';
 
           switch (period) {
-            case 'MINUTE': {
-              // 분 단위: 첫 시간에서 (10-index)분 빼기
-              const timeParts = firstLabel.split(':');
-              if (timeParts.length === 2) {
-                const hour = parseInt(timeParts[0]);
-                const minute = parseInt(timeParts[1]) - (10 - index);
-                let adjustedHour = hour;
-                let adjustedMinute = minute;
-
-                if (minute < 0) {
-                  adjustedHour = hour - 1 - Math.floor(Math.abs(minute) / 60);
-                  adjustedMinute = 60 - (Math.abs(minute) % 60);
-                  if (adjustedMinute === 60) {
-                    adjustedMinute = 0;
-                    adjustedHour += 1;
-                  }
-                }
-
-                if (adjustedHour >= 0) {
-                  newLabel = `${String(adjustedHour).padStart(2, '0')}:${String(adjustedMinute).padStart(2, '0')}`;
-                }
-              }
-              break;
-            }
             case 'DAY': {
               // 일 단위: 첫 날짜에서 (10-index)일 빼기
               const dayMatch = firstLabel.match(/(\d+)일/);
@@ -385,103 +361,94 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     if (labels.length > 0) {
       const lastLabel = labels[labels.length - 1];
 
-      for (let i = 1; i <= 10; i++) {
-        let newLabel = '';
+      // 1분봉에서는 마지막 데이터 이후의 빈 레이블을 표시하지 않음
+      if (period !== 'MINUTE') {
+        for (let i = 1; i <= 10; i++) {
+          let newLabel = '';
 
-        switch (period) {
-          case 'MINUTE': {
-            // 분 단위: 마지막 시간에 i분 추가
-            const timeParts = lastLabel.split(':');
-            if (timeParts.length === 2) {
-              const hour = parseInt(timeParts[0]);
-              const minute = parseInt(timeParts[1]) + i;
-              const adjustedHour = hour + Math.floor(minute / 60);
-              const adjustedMinute = minute % 60;
-              newLabel = `${String(adjustedHour).padStart(2, '0')}:${String(adjustedMinute).padStart(2, '0')}`;
+          switch (period) {
+            case 'DAY': {
+              // 일 단위: 마지막 날짜에 i일 추가 (달력에 맞게)
+              const dayMatch = lastLabel.match(/(\d+)일/);
+              const monthMatch = lastLabel.match(/(\d+)월/);
+
+              if (dayMatch) {
+                let day = parseInt(dayMatch[1]) + i;
+                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+
+                // 월별 일수 계산
+                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+                // 월을 넘어가는 경우 처리
+                while (day > daysInMonth[month]) {
+                  day -= daysInMonth[month];
+                  month++;
+                  if (month > 12) month = 1;
+                }
+
+                if (day === 1) {
+                  newLabel = `${month}월`;
+                } else {
+                  newLabel = `${day}일`;
+                }
+              }
+              break;
             }
-            break;
-          }
-          case 'DAY': {
-            // 일 단위: 마지막 날짜에 i일 추가 (달력에 맞게)
-            const dayMatch = lastLabel.match(/(\d+)일/);
-            const monthMatch = lastLabel.match(/(\d+)월/);
+            case 'WEEK': {
+              // 주 단위: 마지막 날짜에 i*7일 추가
+              const dayMatch = lastLabel.match(/(\d+)일/);
+              const monthMatch = lastLabel.match(/(\d+)월/);
 
-            if (dayMatch) {
-              let day = parseInt(dayMatch[1]) + i;
-              let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+              if (dayMatch) {
+                let day = parseInt(dayMatch[1]) + i * 7;
+                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
 
-              // 월별 일수 계산
-              const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                // 월별 일수 계산
+                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-              // 월을 넘어가는 경우 처리
-              while (day > daysInMonth[month]) {
-                day -= daysInMonth[month];
-                month++;
-                if (month > 12) month = 1;
+                // 월을 넘어가는 경우 처리
+                while (day > daysInMonth[month]) {
+                  day -= daysInMonth[month];
+                  month++;
+                  if (month > 12) month = 1;
+                }
+
+                if (day <= 7) {
+                  newLabel = `${month}월`;
+                } else {
+                  newLabel = `${day}일`;
+                }
               }
-
-              if (day === 1) {
-                newLabel = `${month}월`;
-              } else {
-                newLabel = `${day}일`;
-              }
+              break;
             }
-            break;
-          }
-          case 'WEEK': {
-            // 주 단위: 마지막 날짜에 i*7일 추가
-            const dayMatch = lastLabel.match(/(\d+)일/);
-            const monthMatch = lastLabel.match(/(\d+)월/);
+            case 'MONTH': {
+              // 월 단위: 마지막 월에 i월 추가
+              const monthMatch = lastLabel.match(/(\d+)월/);
+              const yearMatch = lastLabel.match(/(\d+)년/);
 
-            if (dayMatch) {
-              let day = parseInt(dayMatch[1]) + i * 7;
-              let month = monthMatch ? parseInt(monthMatch[1]) : 1;
+              if (monthMatch) {
+                let month = parseInt(monthMatch[1]) + i;
+                let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
 
-              // 월별 일수 계산
-              const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+                // 연도를 넘어가는 경우 처리
+                if (month > 12) {
+                  year += Math.floor((month - 1) / 12);
+                  month = ((month - 1) % 12) + 1;
+                }
 
-              // 월을 넘어가는 경우 처리
-              while (day > daysInMonth[month]) {
-                day -= daysInMonth[month];
-                month++;
-                if (month > 12) month = 1;
+                if (month === 1) {
+                  newLabel = `${year}년`;
+                } else {
+                  newLabel = `${month}월`;
+                }
               }
-
-              if (day <= 7) {
-                newLabel = `${month}월`;
-              } else {
-                newLabel = `${day}일`;
-              }
+              break;
             }
-            break;
           }
-          case 'MONTH': {
-            // 월 단위: 마지막 월에 i월 추가
-            const monthMatch = lastLabel.match(/(\d+)월/);
-            const yearMatch = lastLabel.match(/(\d+)년/);
 
-            if (monthMatch) {
-              let month = parseInt(monthMatch[1]) + i;
-              let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
-
-              // 연도를 넘어가는 경우 처리
-              if (month > 12) {
-                year += Math.floor((month - 1) / 12);
-                month = ((month - 1) % 12) + 1;
-              }
-
-              if (month === 1) {
-                newLabel = `${year}년`;
-              } else {
-                newLabel = `${month}월`;
-              }
-            }
-            break;
+          if (newLabel) {
+            labels.push(newLabel);
           }
-        }
-
-        if (newLabel) {
-          labels.push(newLabel);
         }
       }
     }
@@ -490,8 +457,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   }, [extendedChartData, period, chartData]);
 
   // 상단 캔들 차트와 하단 거래량 차트 비율 설정
-  const candleHeightRatio = 0.85; // 캔들 차트가 전체 높이의 85%
-  const volumeHeightRatio = 0.15; // 거래량 차트가 전체 높이의 15%
+  const candleHeightRatio = 0.75; // 캔들 차트가 전체 높이의 75%
+  const volumeHeightRatio = 0.25; // 거래량 차트가 전체 높이의 25%
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -528,11 +495,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       axisPointer: {
         type: 'cross',
         crossStyle: {
-          color: 'rgba(255, 255, 255, 0.3)',
+          color: 'rgba(255, 255, 255, 0.2)',
+          width: 1,
         },
         label: {
           show: true,
           backgroundColor: '#2e3947',
+        },
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.2)',
+          width: 1,
         },
       },
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
@@ -549,28 +521,79 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         if (!candleData) return '';
 
         const date = candleData.name;
-        const { open, close, low, high } = candleData.data;
-        const volume = volumeData?.value || 0;
+        const dataIndex = candleData.dataIndex;
 
-        // 모든 값의 소수점 절삭
-        const floorOpen = Math.floor(open);
-        const floorHigh = Math.floor(high);
-        const floorLow = Math.floor(low);
-        const floorClose = Math.floor(close);
-        const floorVolume = Math.floor(volume);
-        const floorEma5 = ema5Data ? Math.floor(ema5Data.value) : 0;
-        const floorEma20 = ema20Data ? Math.floor(ema20Data.value) : 0;
+        // 앞쪽 빈 데이터 처리
+        if (dataIndex < 10) {
+          return `
+            <div style="font-size: 12px;">
+              <div style="margin-bottom: 4px;">${date || '-'}</div>
+              <div>시가: -</div>
+              <div>고가: -</div>
+              <div>저가: -</div>
+              <div>종가: -</div>
+              <div>MA5: -</div>
+              <div>MA20: -</div>
+              <div>거래량: -</div>
+            </div>
+          `;
+        }
+
+        // 유효하지 않은 데이터 처리
+        if (
+          !candleData.data ||
+          !Array.isArray(candleData.data) ||
+          candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
+        ) {
+          return `
+            <div style="font-size: 12px;">
+              <div style="margin-bottom: 4px;">${date || '-'}</div>
+              <div>시가: -</div>
+              <div>고가: -</div>
+              <div>저가: -</div>
+              <div>종가: -</div>
+              <div>MA5: -</div>
+              <div>MA20: -</div>
+              <div>거래량: -</div>
+            </div>
+          `;
+        }
+
+        // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
+        const [open, close, low, high] = candleData.data;
+
+        // 거래량 데이터 추출
+        const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
+
+        // 숫자 여부 확인하고 문자열 포맷팅
+        const openStr =
+          typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
+        const closeStr =
+          typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
+        const lowStr =
+          typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
+        const highStr =
+          typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
+        const volumeStr = volume ? formatVolumeNumber(volume) : '-';
+        const ema5Str =
+          ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
+            ? formatKoreanNumber(ema5Data.value) + '원'
+            : '-';
+        const ema20Str =
+          ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
+            ? formatKoreanNumber(ema20Data.value) + '원'
+            : '-';
 
         return `
           <div style="font-size: 12px;">
-            <div style="margin-bottom: 4px;">${date}</div>
-            <div>시가: ${formatKoreanNumber(floorOpen)}원</div>
-            <div>고가: ${formatKoreanNumber(floorHigh)}원</div>
-            <div>저가: ${formatKoreanNumber(floorLow)}원</div>
-            <div>종가: ${formatKoreanNumber(floorClose)}원</div>
-            <div>MA5: ${ema5Data ? formatKoreanNumber(floorEma5) : '-'}원</div>
-            <div>MA20: ${ema20Data ? formatKoreanNumber(floorEma20) : '-'}원</div>
-            <div>거래량: ${formatVolumeNumber(floorVolume)}</div>
+            <div style="margin-bottom: 4px;">${date || '-'}</div>
+            <div>시가: ${openStr}</div>
+            <div>고가: ${highStr}</div>
+            <div>저가: ${lowStr}</div>
+            <div>종가: ${closeStr}</div>
+            <div>MA5: ${ema5Str}</div>
+            <div>MA20: ${ema20Str}</div>
+            <div>거래량: ${volumeStr}</div>
           </div>
         `;
       },
@@ -580,16 +603,21 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       label: {
         backgroundColor: '#2e3947',
       },
+      lineStyle: {
+        color: 'rgba(255, 255, 255, 0.2)',
+        width: 1,
+        type: 'solid',
+      },
     },
     grid: {
-      left: 120,
-      right: 120,
+      left: 80,
+      right: 80,
       top: 40,
-      bottom: 30,
+      bottom: 60,
       show: true,
       borderColor: '#2e3947',
       backgroundColor: 'transparent',
-      containLabel: true,
+      containLabel: false,
     },
     xAxis: {
       type: 'category',
@@ -599,15 +627,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         show: true,
         color: '#CCCCCC',
         margin: 12,
-        formatter: (value: string, index: number) => {
+        formatter: (value, index) => {
           const isBold = isFirstOfPeriod(value, index);
-          return isBold ? `{bold|${value}}` : value;
-        },
-        rich: {
-          bold: {
-            fontWeight: 'bold',
-            fontSize: 12,
-          },
+          return isBold ? value : value;
         },
       },
       splitLine: {
@@ -629,38 +651,28 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       },
       axisLabel: {
         color: '#CCCCCC',
-        formatter: (value: number) => {
-          const priceRange = getPriceRange();
-          const volumeRange = getVolumeRange();
-
-          // 전체 Y축 범위 계산
-          const totalRange = priceRange.max - priceRange.min + volumeRange.max;
-
-          // 캔들 차트 영역 높이를 전체 높이의 75%로 설정
-          const candleRangeHeight = totalRange * candleHeightRatio;
-          const volumeRangeHeight = totalRange * volumeHeightRatio;
-
-          // 캔들 차트 영역의 Y축 값 (상단 75%)
-          if (value >= priceRange.min) {
-            return formatKoreanNumber(Math.floor(value)) + '원';
-          }
-          // 거래량 차트 영역의 Y축 값 (하단 25%)
-          else if (showVolume && value < priceRange.min && value >= 0) {
-            // 거래량 축에서의 상대적 위치 계산
-            const relativePos = (value - 0) / (priceRange.min - 0);
-            // 실제 거래량 값으로 변환
-            const volumeValue = relativePos * volumeRange.max;
-            return formatVolumeNumber(Math.floor(volumeValue));
-          }
-
-          return '';
+        formatter: (value) => {
+          return formatKoreanNumber(Math.floor(value));
         },
         inside: false,
         margin: 8,
-        width: 60,
-        overflow: 'truncate',
         fontSize: 12,
       },
+      axisPointer: {
+        label: {
+          formatter: (params) => {
+            try {
+              const numValue = Number(params.value);
+              return !isNaN(numValue) ? formatKoreanNumber(Math.floor(numValue)): '-';
+            } catch (e) {
+              return '-';
+            }
+          },
+          backgroundColor: FALL_COLOR,
+        },
+      },
+      min: getPriceRange().min,
+      max: getPriceRange().max,
     },
     dataZoom: [
       {
@@ -671,9 +683,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
         filterMode: 'none',
-        rangeMode: ['value', 'value'],
-        minValueSpan: 5,
-        maxValueSpan: extendedChartData.length,
       },
       {
         type: 'slider',
@@ -687,23 +696,26 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         textStyle: { color: '#CCCCCC' },
         handleStyle: { color: '#8392a5' },
         filterMode: 'none',
-        rangeMode: ['value', 'value'],
       },
     ],
     series: [
       {
         name: '캔들차트',
         type: 'candlestick',
-        data: extendedChartData.map((item, index) =>
-          index < 10
-            ? ['-', '-', '-', '-']
-            : [
-                Math.floor(item.open),
-                Math.floor(item.close),
-                Math.floor(item.low),
-                Math.floor(item.high),
-              ],
-        ),
+        data: extendedChartData.map((item, index) => {
+          if (index < 10) {
+            // 앞쪽 빈 데이터는 차트의 최소값보다 아주 작은 값으로 설정하여 화면에 표시되지 않게 함
+            const minValue = Math.min(...chartData.map((d) => d.low)) * 0.5;
+            return [minValue, minValue, minValue, minValue];
+          }
+
+          return [
+            Math.floor(item.open), // 시가 (open)
+            Math.floor(item.close), // 종가 (close)
+            Math.floor(item.low), // 저가 (low)
+            Math.floor(item.high), // 고가 (high)
+          ];
+        }),
         itemStyle: {
           color: RISE_COLOR,
           color0: FALL_COLOR,
@@ -736,34 +748,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           ],
         },
       },
-      // 캔들 차트와 거래량 차트 사이 구분선
-      {
-        name: '구분선',
-        type: 'line',
-        showSymbol: false,
-        data: [],
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: '#2e3947',
-            width: 1,
-            type: 'solid',
-          },
-          label: {
-            show: false,
-          },
-          data: [
-            {
-              yAxis: getPriceRange().min,
-              lineStyle: { color: '#2e3947' },
-            },
-          ],
-        },
-      },
       {
         name: '5일 이평선',
         type: 'line',
-        data: ema5Data,
+        data: extendedChartData.map((item, index) => {
+          if (index < 10) {
+            return '-'; // 앞쪽 빈 데이터는 '-'로 설정하여 연결되지 않게 함
+          }
+          return ema5Data[index];
+        }),
         smooth: true,
         lineStyle: {
           opacity: 0.8,
@@ -776,7 +769,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       {
         name: '20일 이평선',
         type: 'line',
-        data: ema20Data,
+        data: extendedChartData.map((item, index) => {
+          if (index < 10) {
+            return '-'; // 앞쪽 빈 데이터는 '-'로 설정하여 연결되지 않게 함
+          }
+          return ema20Data[index];
+        }),
         smooth: true,
         lineStyle: {
           opacity: 0.8,
@@ -791,15 +789,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         type: 'bar',
         data: showVolume
           ? extendedChartData.map((item, index) => {
-              if (index < 10) return '-';
+              if (index < 10) return 0; // 앞쪽 빈 데이터는 0으로 설정
 
-              // 거래량을 캔들 차트 바로 아래에 표시하기 위해 Y축 값을 조정
+              // 거래량을 가격 기준으로 정규화하여 차트 하단에 작게 표시
+              const maxVolume = getMaxVolume();
               const priceRange = getPriceRange();
-              const volumeRange = getVolumeRange();
-
-              // 거래량에 비례한 Y축 위치 계산 (프라이스 범위의 최소값보다 작게)
-              const volumeRatio = item.volume / volumeRange.max;
-              const scaledVolume = volumeRatio * (priceRange.min * 0.9); // 0 ~ priceRange.min 사이에 정규화
+              const volumeScale = ((priceRange.max - priceRange.min) * 0.2) / maxVolume; // 차트 높이의 20%만 사용
+              const scaledVolume = priceRange.min + item.volume * volumeScale; // 최소 가격 위에 표시
 
               return scaledVolume;
             })
@@ -812,6 +808,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           },
         },
         barWidth: '60%',
+        barGap: '-100%', // 캔들과 겹치도록 설정
+        z: 0, // 캔들차트보다 뒤에 표시되도록 z-index 설정
       },
     ],
   };
