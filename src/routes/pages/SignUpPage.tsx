@@ -1,13 +1,13 @@
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-
 interface SignUpFormValues {
   email: string;
   password: string;
@@ -32,6 +32,8 @@ export const SignUpPage = () => {
   const onSubmit = (data: SignUpFormValues) => {
     // TODO: API 호출
   };
+
+  const navigate = useNavigate();
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
@@ -127,7 +129,12 @@ export const SignUpPage = () => {
                 </FormItem>
               )}
             />
-            <Button type="submit" variant="blue" className="mt-5 w-full">
+            <Button
+              type="submit"
+              variant="blue"
+              className="mt-5 w-full"
+              onClick={() => navigate('/signup-success')}
+            >
               회원가입
             </Button>
           </form>

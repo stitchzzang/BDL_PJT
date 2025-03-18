@@ -1,8 +1,12 @@
+import { useNavigate } from 'react-router-dom';
+
 import { MainLogoIcon } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
       <MainLogoIcon color="white" className="h-36 w-36" />
@@ -17,7 +21,10 @@ export const LoginPage = () => {
             <button className="text-base text-border-color hover:text-primary-color">
               비밀번호 찾기
             </button>
-            <button className="text-base text-border-color hover:text-primary-color">
+            <button
+              className="text-base text-border-color hover:text-primary-color"
+              onClick={() => navigate('/signup')}
+            >
               회원가입
             </button>
           </div>
