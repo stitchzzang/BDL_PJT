@@ -8,18 +8,18 @@ import { dummyChartData } from '@/lib/dummy-data';
 
 export const SimulatedInvestmentPage = () => {
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col px-6">
       <div>
         <div>
           <StockInfo />
         </div>
-        <div>
-          <div>
-            <p>차트</p>
+        <div className="mb-[16px] mt-[30px] flex items-center justify-between">
+          <div className="rounded-2xl bg-btn-blue-color bg-opacity-40 px-[24px] py-[20px]">
+            <p className="font-bold">차트</p>
           </div>
-          <div>
-            <p>오늘 날짜</p>
-            <div>
+          <div className="flex items-center gap-3">
+            <p className="text-border-color">오늘 날짜</p>
+            <div className="rounded-xl bg-modal-background-color px-[20px] py-[16px]">
               <p>2023:02:12</p>
             </div>
           </div>
