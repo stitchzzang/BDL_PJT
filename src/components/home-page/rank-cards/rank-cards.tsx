@@ -30,7 +30,7 @@ export const RankCards = () => {
       <div>
         {RankInformations.map((rankInfo, index) => (
           <div>
-            <RankCard />
+            <RankCard rankInfo={rankInfo} />
           </div>
         ))}
       </div>
