@@ -34,9 +34,9 @@ export const MemberInvestmentPage = () => {
       </div>
       <hr className="w-full border-btn-primary-inactive-color" />
       <div className="flex flex-row gap-3">
-        <div className="flex flex-col items-start">
-          <p>총 자산</p>
-          <p>52,1223,425원</p>
+        <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
+          <p>전체 개수:</p>
+          <span>12개</span>
         </div>
       </div>
     </div>
