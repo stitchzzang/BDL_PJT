@@ -27,6 +27,27 @@ export const RealTimeChartTransaction = () => {
       tradingValue: 5026210000000,
       imageUrl: null,
     },
+    {
+      stockName: '삼성전자',
+      currentPrice: 110002131240,
+      changeRate: 1.5,
+      tradingValue: 500235235000000,
+      imageUrl: null,
+    },
+    {
+      stockName: 'SK하이닉스',
+      currentPrice: 100000000000,
+      changeRate: 1.5,
+      tradingValue: 5026210000000,
+      imageUrl: null,
+    },
+    {
+      stockName: 'SK하이닉스',
+      currentPrice: 100000000000,
+      changeRate: 1.5,
+      tradingValue: 5026210000000,
+      imageUrl: null,
+    },
   ];
 
   return (
@@ -49,10 +70,10 @@ export const RealTimeChartTransaction = () => {
             {stockTransactions.map((stockTransaction, index) => (
               <div
                 key={index}
-                className="flex flex-row items-center rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
+                className="flex flex-row items-center rounded-lg bg-[#102038] p-2 px-3 text-white hover:bg-modal-background-color"
               >
                 <div className="flex w-[40%] items-center gap-3 font-medium">
-                  <h3 className="text-[20px] font-bold">{index + 1}</h3>
+                  <h3 className="text-[18px] font-bold">{index + 1}</h3>
                   <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
                     {stockTransaction.imageUrl === null ? (
                       <img src={noneStockImg} alt="noneimage" />

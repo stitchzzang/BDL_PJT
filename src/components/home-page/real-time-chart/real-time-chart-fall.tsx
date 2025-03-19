@@ -45,10 +45,10 @@ export const RealTimeChartFall = () => {
             {StockFalls.map((stockFall, index) => (
               <div
                 key={index}
-                className="flex flex-row items-center rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
+                className="flex flex-row items-center rounded-lg bg-[#102038] p-2 px-3 text-white hover:bg-modal-background-color"
               >
                 <div className="flex w-[60%] items-center gap-3 font-medium">
-                  <h3 className="text-[20px] font-bold">{index + 1}</h3>
+                  <h3 className="text-[18px] font-bold">{index + 1}</h3>
                   <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
                     {stockFall.imageUrl === null ? (
                       <img src={noneStockImg} alt="noneimage" />
