@@ -8,7 +8,6 @@ import { DataPoint } from '@/lib/dummy-data';
 
 interface ChartComponentProps {
   readonly height?: number;
-  readonly width?: number;
   readonly ratio?: number;
   readonly data: DataPoint[];
 }
@@ -18,9 +17,9 @@ type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
 const RISE_COLOR = '#ef5350'; // 빨강
 const FALL_COLOR = '#1976d2'; // 파랑
 
-const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 700, data }) => {
+const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
-  const [showVolume, setShowVolume] = useState<boolean>(true);
+  const [showVolume, _setShowVolume] = useState<boolean>(true);
 
   // 차트 X축 라벨 포맷팅 함수
   const formatChartDate = useCallback(
@@ -108,6 +107,32 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
             };
           })
           .slice(0, 390); // 6시간 30분
+
+        // 우측 여유 공간 추가
+        if (result.length > 0) {
+          const lastData = result[result.length - 1];
+          const lastDate = new Date(lastData.date);
+
+          for (let i = 1; i <= 10; i++) {
+            const newDate = new Date(lastDate);
+            newDate.setMinutes(newDate.getMinutes() + i);
+            if (
+              newDate.getHours() <= 15 &&
+              (newDate.getHours() < 15 || newDate.getMinutes() <= 30)
+            ) {
+              result.push({
+                date: formatChartDate(newDate),
+                open: lastData.close,
+                high: lastData.close,
+                low: lastData.close,
+                close: lastData.close,
+                volume: 0,
+                changeType: 'NONE' as const,
+                periodType: 'MINUTE' as const,
+              });
+            }
+          }
+        }
         break;
 
       case 'WEEK':
@@ -228,20 +253,47 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
 
   const chartData = getData();
   // 앞쪽에 10개의 빈 데이터 추가
-  const extendedChartData = [
-    ...Array(10)
-      .fill({})
-      .map(() => ({
-        date: '',
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 0,
-        volume: 0,
-        changeType: 'NONE' as const,
-      })),
-    ...chartData,
-  ];
+  const extendedChartData = useMemo(() => {
+    const baseData = [
+      ...Array(10)
+        .fill({})
+        .map(() => ({
+          date: '',
+          open: 0,
+          high: 0,
+          low: 0,
+          close: 0,
+          volume: 0,
+          changeType: 'NONE' as const,
+        })),
+      ...chartData,
+    ];
+
+    // 분봉의 경우 우측 여유 공간 추가
+    if (period === 'MINUTE' && chartData.length > 0) {
+      const lastData = chartData[chartData.length - 1];
+      const lastDate = new Date(lastData.date);
+
+      for (let i = 1; i <= 10; i++) {
+        const newDate = new Date(lastDate);
+        newDate.setMinutes(newDate.getMinutes() + i);
+        if (newDate.getHours() <= 15 && (newDate.getHours() < 15 || newDate.getMinutes() <= 30)) {
+          baseData.push({
+            date: formatChartDate(newDate),
+            open: lastData.close,
+            high: lastData.close,
+            low: lastData.close,
+            close: lastData.close,
+            volume: 0,
+            changeType: 'NONE' as const,
+            periodType: 'MINUTE' as const,
+          });
+        }
+      }
+    }
+
+    return baseData;
+  }, [chartData, period, formatChartDate]);
 
   const closePrices = extendedChartData.map((item, index) =>
     index < 10 ? '-' : Math.floor(item.close),
@@ -254,25 +306,27 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     closePrices.map((p) => (p === '-' ? null : p)),
     20,
   );
-  const currentData = chartData[chartData.length - 1];
-  const changePercent = ((currentData.change || 0) / (currentData.prevClose || 1)) * 100;
-
-  // 현재 가격 변화 방향에 따른 색상 설정
-  const currentPriceColor = currentData.changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
 
   // X축 레이블 데이터 생성 (실제 데이터 + 빈 공간용 레이블)
   const xAxisLabels = useMemo(() => {
     // 앞쪽 빈 데이터에 대한 레이블 생성
     const labels = extendedChartData.map((item, index) => {
       if (index < 10) {
-        // 앞쪽 빈 데이터에 대한 레이블 생성 - 1분봉에서는 표시하지 않음
-        if (chartData.length > 0 && period !== 'MINUTE') {
+        // 앞쪽 빈 데이터에 대한 레이블 생성
+        if (chartData.length > 0) {
           const firstLabel = chartData[0].date;
           let newLabel = '';
 
+          if (period === 'MINUTE') {
+            // 분봉의 경우 시간 계산
+            const firstDate = new Date(firstLabel);
+            const newDate = new Date(firstDate);
+            newDate.setMinutes(newDate.getMinutes() - (10 - index));
+            return formatChartDate(newDate);
+          }
+
           switch (period) {
             case 'DAY': {
-              // 일 단위: 첫 날짜에서 (10-index)일 빼기
               const dayMatch = firstLabel.match(/(\d+)일/);
               const monthMatch = firstLabel.match(/(\d+)월/);
 
@@ -280,10 +334,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 let day = parseInt(dayMatch[1]) - (10 - index);
                 let month = monthMatch ? parseInt(monthMatch[1]) : 1;
 
-                // 월별 일수 계산
                 const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-                // 월을 넘어가는 경우 처리
                 while (day <= 0) {
                   month--;
                   if (month <= 0) month = 12;
@@ -299,7 +351,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               break;
             }
             case 'WEEK': {
-              // 주 단위: 첫 날짜에서 (10-index)*7일 빼기
               const dayMatch = firstLabel.match(/(\d+)일/);
               const monthMatch = firstLabel.match(/(\d+)월/);
 
@@ -307,10 +358,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 let day = parseInt(dayMatch[1]) - (10 - index) * 7;
                 let month = monthMatch ? parseInt(monthMatch[1]) : 1;
 
-                // 월별 일수 계산
                 const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-                // 월을 넘어가는 경우 처리
                 while (day <= 0) {
                   month--;
                   if (month <= 0) month = 12;
@@ -326,7 +375,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               break;
             }
             case 'MONTH': {
-              // 월 단위: 첫 월에서 (10-index)월 빼기
               const monthMatch = firstLabel.match(/(\d+)월/);
               const yearMatch = firstLabel.match(/(\d+)년/);
 
@@ -334,7 +382,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 let month = parseInt(monthMatch[1]) - (10 - index);
                 let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
 
-                // 연도를 넘어가는 경우 처리
                 while (month <= 0) {
                   year--;
                   month += 12;
@@ -361,14 +408,23 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     if (labels.length > 0) {
       const lastLabel = labels[labels.length - 1];
 
-      // 1분봉에서는 마지막 데이터 이후의 빈 레이블을 표시하지 않음
-      if (period !== 'MINUTE') {
+      if (period === 'MINUTE') {
+        // 분봉의 경우 마지막 시간 이후의 레이블 생성
+        const lastDate = new Date(chartData[chartData.length - 1].date);
+        for (let i = 1; i <= 10; i++) {
+          const newDate = new Date(lastDate);
+          newDate.setMinutes(newDate.getMinutes() + i);
+          if (newDate.getHours() <= 15 && (newDate.getHours() < 15 || newDate.getMinutes() <= 30)) {
+            labels.push(formatChartDate(newDate));
+          }
+        }
+      } else {
+        // 다른 기간의 경우 기존 로직 유지
         for (let i = 1; i <= 10; i++) {
           let newLabel = '';
 
           switch (period) {
             case 'DAY': {
-              // 일 단위: 마지막 날짜에 i일 추가 (달력에 맞게)
               const dayMatch = lastLabel.match(/(\d+)일/);
               const monthMatch = lastLabel.match(/(\d+)월/);
 
@@ -376,10 +432,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 let day = parseInt(dayMatch[1]) + i;
                 let month = monthMatch ? parseInt(monthMatch[1]) : 1;
 
-                // 월별 일수 계산
                 const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-                // 월을 넘어가는 경우 처리
                 while (day > daysInMonth[month]) {
                   day -= daysInMonth[month];
                   month++;
@@ -395,7 +449,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               break;
             }
             case 'WEEK': {
-              // 주 단위: 마지막 날짜에 i*7일 추가
               const dayMatch = lastLabel.match(/(\d+)일/);
               const monthMatch = lastLabel.match(/(\d+)월/);
 
@@ -403,10 +456,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 let day = parseInt(dayMatch[1]) + i * 7;
                 let month = monthMatch ? parseInt(monthMatch[1]) : 1;
 
-                // 월별 일수 계산
                 const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-                // 월을 넘어가는 경우 처리
                 while (day > daysInMonth[month]) {
                   day -= daysInMonth[month];
                   month++;
@@ -422,7 +473,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
               break;
             }
             case 'MONTH': {
-              // 월 단위: 마지막 월에 i월 추가
               const monthMatch = lastLabel.match(/(\d+)월/);
               const yearMatch = lastLabel.match(/(\d+)년/);
 
@@ -430,7 +480,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
                 let month = parseInt(monthMatch[1]) + i;
                 let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
 
-                // 연도를 넘어가는 경우 처리
                 if (month > 12) {
                   year += Math.floor((month - 1) / 12);
                   month = ((month - 1) % 12) + 1;
@@ -454,7 +503,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
     }
 
     return labels;
-  }, [extendedChartData, period, chartData]);
+  }, [extendedChartData, period, chartData, formatChartDate]);
 
   // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 20%)
   const VOLUME_HEIGHT_RATIO = 0.2;
@@ -541,6 +590,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
   const scaledEMA5Data = scaleEMAData(ema5Data);
   const scaledEMA20Data = scaleEMAData(ema20Data);
 
+  // 현재가 관련 데이터 계산
+  const currentData = chartData[chartData.length - 1];
+  const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
+
   // ECharts 옵션 설정
   const option: EChartsOption = {
     animation: false,
@@ -560,6 +613,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
         lineStyle: {
           color: 'rgba(255, 255, 255, 0.2)',
           width: 1,
+          type: 'dashed',
         },
       },
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
@@ -661,7 +715,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       lineStyle: {
         color: 'rgba(255, 255, 255, 0.2)',
         width: 1,
-        type: 'solid',
+        type: 'dashed',
       },
     },
     grid: [
@@ -794,6 +848,32 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           borderColor0: FALL_COLOR,
         },
         barWidth: '60%',
+        markLine: {
+          symbol: 'none',
+          lineStyle: {
+            color: currentPriceColor,
+            width: 1,
+            type: 'dashed',
+          },
+          label: {
+            show: true,
+            position: 'end',
+            formatter: formatKoreanNumber(Math.floor(currentData.close)),
+            backgroundColor: currentPriceColor,
+            padding: [4, 8],
+            borderRadius: 2,
+            color: '#FFFFFF',
+            fontSize: 12,
+          },
+          data: [
+            {
+              yAxis: Math.floor(currentData.close),
+              lineStyle: {
+                color: currentPriceColor,
+              },
+            },
+          ],
+        },
       },
       {
         name: '5일 이평선',
@@ -835,10 +915,38 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
           color: (params: any) => {
             const index = params.dataIndex;
             if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
-            return extendedChartData[index].changeType === 'RISE' ? RISE_COLOR : FALL_COLOR;
+            return extendedChartData[index].close >= extendedChartData[index].open
+              ? RISE_COLOR
+              : FALL_COLOR;
           },
         },
         barWidth: '60%',
+        markLine: {
+          symbol: 'none',
+          lineStyle: {
+            color: 'transparent',
+            width: 0,
+            type: 'solid',
+          },
+          label: {
+            show: true,
+            position: 'end',
+            formatter: formatVolumeNumber(currentData.volume),
+            backgroundColor: currentPriceColor,
+            padding: [4, 8],
+            borderRadius: 2,
+            color: '#FFFFFF',
+            fontSize: 12,
+          },
+          data: [
+            {
+              yAxis: scaledVolumeData[scaledVolumeData.length - 1],
+              lineStyle: {
+                color: 'transparent',
+              },
+            },
+          ],
+        },
       },
       {
         name: '구분선',
@@ -871,7 +979,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ width = 900, height = 7
       className="flex h-full w-full flex-col overflow-hidden"
       style={{ backgroundColor: '#0D192B' }}
     >
-      <div className="mb-4 flex items-center gap-4 p-4 text-sm text-white">
+      <div className="flex items-center gap-4 p-4 text-sm text-white">
         <div className="ml-auto flex items-center gap-2">
           <button
             className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
