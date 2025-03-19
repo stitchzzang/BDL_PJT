@@ -7,7 +7,7 @@ export interface NewsChartSubProps {
 
 export const NewsChartSub = ({ newsSubInfo }: NewsChartSubProps) => {
   return (
-    <div className="flex flex-col items-start sm:flex-row sm:items-center">
+    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
       <div className="max-h-[100px] max-w-[100px] overflow-hidden rounded-2xl">
         {newsSubInfo.imgUrl === null ? (
           <img src={NoneImg} alt="noneNewsImg" />

@@ -29,7 +29,7 @@ export const NewsChart = () => {
         </div>
       </div>
       <div>
-        <div>
+        <div className="mb-[10px]">
           <NewsChartMain newsMainInfo={NewsLists[0]} />
         </div>
         <div>

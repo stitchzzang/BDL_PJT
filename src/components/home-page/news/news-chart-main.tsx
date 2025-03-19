@@ -8,7 +8,7 @@ export interface NewsChartMainProps {
 export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
   return (
     <div className="w-full">
-      <div className="inline-block max-h-[240px] overflow-hidden rounded-2xl">
+      <div className="inline-block max-h-[260px] overflow-hidden rounded-2xl">
         {newsMainInfo.imgUrl === null ? (
           <img
             src={noneNewsImg}
