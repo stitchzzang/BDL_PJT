@@ -285,6 +285,24 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     }
   };
 
+  // 기간별 날짜 포맷팅 함수 (포인터 및 툴팁용)
+  const formatDetailDate = (date: Date): string => {
+    switch (period) {
+      case 'MINUTE':
+        // YYYY-MM-DD HH:MM 형식
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+      case 'DAY':
+      case 'WEEK':
+        // YYYY-MM-DD 형식
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      case 'MONTH':
+        // YYYY-MM 형식
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      default:
+        return date.toISOString().split('T')[0];
+    }
+  };
+
   const calculateEMA = (data: (number | null | string)[], period: number): (number | null)[] => {
     const k = 2 / (period + 1);
     const emaData: (number | null)[] = [];
@@ -736,6 +754,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         const low = originalItem.low;
         const high = originalItem.high;
 
+        // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
+        let formattedDate = date;
+        if (originalItem && 'rawDate' in originalItem && originalItem.rawDate) {
+          const rawDate = originalItem.rawDate as Date;
+          formattedDate = formatDetailDate(rawDate);
+        }
+
         // 거래량 데이터 추출
         const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
 
@@ -760,7 +785,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
         return `
           <div style="font-size: 12px;">
-            <div style="margin-bottom: 4px;">${date || '-'}</div>
+            <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
             <div>시가: ${openStr}</div>
             <div>고가: ${highStr}</div>
             <div>저가: ${lowStr}</div>
@@ -776,6 +801,36 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       link: [{ xAxisIndex: 'all' }],
       label: {
         backgroundColor: FALL_COLOR,
+        formatter: (params: any) => {
+          // X축 포인터인 경우에만 처리
+          if (params.axisDimension === 'x') {
+            const value = params.value;
+
+            // 빈 값이나 숫자인 경우 처리
+            if (!value || typeof value === 'number') {
+              return value;
+            }
+
+            // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+            const labelIndex = xAxisLabels.findIndex((label) => label === value);
+            if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+              return value; // 원래 레이블 반환
+            }
+
+            // 해당 인덱스의 데이터 찾기
+            const item = extendedChartData[labelIndex];
+            if (!item || !('rawDate' in item) || !item.rawDate) {
+              return value; // 원래 레이블 반환
+            }
+
+            // 기간에 맞는 상세 날짜 포맷으로 변환
+            const rawDate = item.rawDate as Date;
+            return formatDetailDate(rawDate);
+          }
+
+          // Y축 포인터는 기본값 사용
+          return params.value;
+        },
       },
       lineStyle: {
         color: 'rgba(255, 255, 255, 0.2)',
@@ -829,6 +884,34 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         },
         axisTick: { show: true },
         boundaryGap: true,
+        axisPointer: {
+          label: {
+            formatter: (params: any) => {
+              const value = params.value;
+
+              // 빈 값이나 숫자인 경우 처리
+              if (!value || typeof value === 'number') {
+                return value;
+              }
+
+              // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+              const labelIndex = xAxisLabels.findIndex((label) => label === value);
+              if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+                return value; // 원래 레이블 반환
+              }
+
+              // 해당 인덱스의 데이터 찾기
+              const item = extendedChartData[labelIndex];
+              if (!item || !('rawDate' in item) || !item.rawDate) {
+                return value; // 원래 레이블 반환
+              }
+
+              // 기간에 맞는 상세 날짜 포맷으로 변환
+              const rawDate = item.rawDate as Date;
+              return formatDetailDate(rawDate);
+            },
+          },
+        },
       },
     ],
     yAxis: [
