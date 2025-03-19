@@ -729,8 +729,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           `;
         }
 
-        // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
-        const [open, close, low, high] = candleData.data;
+        // 원본 데이터에서 직접 값을 가져옴
+        const originalItem = extendedChartData[dataIndex];
+        const open = originalItem.open;
+        const close = originalItem.close;
+        const low = originalItem.low;
+        const high = originalItem.high;
 
         // 거래량 데이터 추출
         const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
