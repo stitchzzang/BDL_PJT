@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { RealTimeChartFall } from '@/components/home-page/real-time-chart/real-time-chart-fall';
 import { RealTimeChartRise } from '@/components/home-page/real-time-chart/real-time-chart-rise';
