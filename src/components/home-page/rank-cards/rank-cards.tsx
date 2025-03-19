@@ -22,14 +22,24 @@ const RankInformations: RankInformation[] = [
     rate: 23.2,
     imgUrl: null,
   },
+  {
+    name: '크와와왕',
+    rate: 23.2,
+    imgUrl: null,
+  },
+  {
+    name: '크와와왕',
+    rate: 23.2,
+    imgUrl: null,
+  },
 ];
 
 export const RankCards = () => {
   return (
     <div>
-      <div>
+      <div className="grid grid-cols-5 gap-5">
         {RankInformations.map((rankInfo, index) => (
-          <div>
+          <div key={index}>
             <RankCard rankInfo={rankInfo} />
           </div>
         ))}
