@@ -1,11 +1,18 @@
-import ChartComponent from '@/components/ui/chart';
-import { dummyChartData } from '@/lib/dummy-data';
+import { NewsChart } from '@/components/home-page/news/news-chart';
+import { RankCards } from '@/components/home-page/rank-cards/rank-cards';
+import { RealTimeChart } from '@/components/home-page/real-time-chart/real-time-chart';
 
 export const HomePage = () => {
   return (
-    <div className="container mx-auto p-4">
-      <div className="w-full h-[700px] bg-modal-background-color rounded-lg shadow-lg">
-        <ChartComponent data={dummyChartData} />
+    <div>
+      <div>
+        <RealTimeChart />
+      </div>
+      <div>
+        <RankCards />
+      </div>
+      <div>
+        <NewsChart />
       </div>
     </div>
   );

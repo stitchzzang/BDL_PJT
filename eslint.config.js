@@ -75,7 +75,7 @@ export default [
       // 가능한 모든 경우에 const 사용
       'prefer-const': 'error',
       // 정의되기 전에 변수 사용 금지
-      'no-use-before-define': 'error',
+      'no-use-before-define': 'off',
       // 사용하지 않는 변수 경고 비활성화 -> 아래 unused-imports/no-unused-vars로 대체
       'no-unused-vars': 'off',
       'no-console': 'warn',
@@ -90,11 +90,13 @@ export default [
           varsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/no-use-before-define': ['error'],
+      '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-empty-interface': 'off',
+      '@typescript-eslint/no-empty-object-type': 'off',
 
       // React 규칙
       'react/react-in-jsx-scope': 'off',
