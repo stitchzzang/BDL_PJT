@@ -95,10 +95,21 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     const hours = date.getHours();
     const minutes = date.getMinutes();
 
-    // 9:00-15:00까지만 유효한 시간으로 처리 (15:00 포함)
+    // 9:01-15:20까지와 15:30만 유효한 시간으로 처리 (장 운영 시간)
     return (
-      (hours === 9 && minutes >= 0) || (hours > 9 && hours < 15) || (hours === 15 && minutes === 0)
+      (hours === 9 && minutes >= 1) ||
+      (hours > 9 && hours < 15) ||
+      (hours === 15 && minutes <= 20) ||
+      (hours === 15 && minutes === 30)
     );
+  }, []);
+
+  const isDynamicAuctionTime = useCallback((date: Date): boolean => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+
+    // 15:21-15:29는 동시호가 시간
+    return hours === 15 && minutes >= 21 && minutes <= 29;
   }, []);
 
   const isNextTradingDay = useCallback((date: Date): boolean => {
@@ -118,19 +129,28 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
     switch (period) {
       case 'MINUTE':
-        // 1분봉: 실제 1분 단위 데이터 생성 (9:00 ~ 15:00)
+        // 1분봉: 실제 1분 단위 데이터 생성 (9:01 ~ 15:30)
         result = data
           .map((item, index) => {
             const date = new Date(startDate);
             date.setMinutes(date.getMinutes() + index);
 
-            // 9:00-15:00 사이만 유효한 데이터로 처리
+            // 정규 장 시간(9:01-15:20, 15:30)에만 유효한 데이터로 처리
             if (isValidTimeForMinute(date)) {
               return {
                 ...item,
                 date: formatChartDate(date),
                 periodType: 'MINUTE' as const,
                 rawDate: date, // 원시 날짜 정보 저장
+              };
+            } else if (isDynamicAuctionTime(date)) {
+              // 동시호가 시간(15:21-15:29)에는 거래량이 0인 데이터로 처리
+              return {
+                ...item,
+                date: formatChartDate(date),
+                periodType: 'MINUTE' as const,
+                rawDate: date,
+                volume: 0, // 동시호가 시간에는 거래량이 없음
               };
             }
             return null;
@@ -209,7 +229,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     }
 
     return result;
-  }, [period, data, formatChartDate, isValidTimeForMinute]);
+  }, [period, data, formatChartDate, isValidTimeForMinute, isDynamicAuctionTime]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -988,6 +1008,64 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       },
     ],
   };
+
+  // 서비스 동작을 위한 더미 데이터 생성 함수 추가
+  // 컴포넌트 최상단 부분에 추가할 내용
+  const generateDummyMinuteData = useCallback((): ExtendedDataPoint[] => {
+    const result: ExtendedDataPoint[] = [];
+
+    // 시작 날짜 설정 (오늘 9:00)
+    const startDate = new Date();
+    startDate.setHours(9, 0, 0, 0);
+
+    // 기본 가격 설정
+    let basePrice = 50000;
+    let prevClose = basePrice;
+
+    // 9:00부터 15:30까지 1분 단위로 데이터 생성
+    for (let i = 1; i <= 391; i++) {
+      // 9:01 ~ 15:30까지 391분
+      const currentDate = new Date(startDate);
+      currentDate.setMinutes(currentDate.getMinutes() + i);
+
+      const hours = currentDate.getHours();
+      const minutes = currentDate.getMinutes();
+
+      // 동시호가 시간(15:21~15:29)인지 확인
+      const isDynamicAuction = hours === 15 && minutes >= 21 && minutes <= 29;
+
+      // 랜덤 가격 변동 (-200 ~ +200)
+      const priceChange = isDynamicAuction ? 0 : Math.floor(Math.random() * 400) - 200;
+      const close = prevClose + priceChange;
+
+      // 고가와 저가 계산
+      const volatility = isDynamicAuction ? 50 : 500;
+      const high = close + Math.floor(Math.random() * volatility);
+      const low = close - Math.floor(Math.random() * volatility);
+
+      // 거래량 계산 (동시호가 시간에는 0)
+      const volume = isDynamicAuction ? 0 : Math.floor(Math.random() * 10000) + 1000;
+
+      // 시가는 이전 종가를 기준으로 약간의 변동을 줌
+      const open = prevClose + (Math.floor(Math.random() * 100) - 50);
+
+      result.push({
+        date: formatChartDate(currentDate),
+        open,
+        high,
+        low,
+        close,
+        volume,
+        changeType: close >= open ? 'RISE' : 'FALL',
+        rawDate: currentDate,
+        periodType: 'MINUTE' as const,
+      });
+
+      prevClose = close;
+    }
+
+    return result;
+  }, [formatChartDate, period]);
 
   return (
     <div
