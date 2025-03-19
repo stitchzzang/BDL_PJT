@@ -37,7 +37,7 @@ const RankInformations: RankInformation[] = [
 export const RankCards = () => {
   return (
     <div>
-      <div className="grid grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {RankInformations.map((rankInfo, index) => (
           <div key={index}>
             <RankCard rankInfo={rankInfo} />
