@@ -23,11 +23,18 @@ const NewsLists: NewsList[] = [
 export const NewsChart = () => {
   return (
     <div>
-      <div>
-        <NewsChartMain newsMainInfo={NewsLists[0]} />
+      <div className="mb-[12px] inline-block rounded-xl bg-modal-background-color px-[12px] py-[8px]">
+        <div className="rounded-xl bg-btn-blue-color bg-opacity-40 p-[12px]">
+          <h3 className="text-[16px]">현재뉴스</h3>
+        </div>
       </div>
       <div>
-        <NewsChartSub newsSubInfo={NewsLists[1]} />
+        <div>
+          <NewsChartMain newsMainInfo={NewsLists[0]} />
+        </div>
+        <div>
+          <NewsChartSub newsSubInfo={NewsLists[1]} />
+        </div>
       </div>
     </div>
   );
