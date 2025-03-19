@@ -48,9 +48,9 @@ export const OrderStatusBuy = () => {
     setIsActive(active);
   };
   return (
-    <div>
+    <div className="h-full">
       <h3 className={h3Style}>구매하기</h3>
-      <div>
+      <div className="flex h-full flex-col justify-between">
         <div className="mb-[25px] flex w-full flex-col gap-4">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-[74px]">
@@ -129,8 +129,8 @@ export const OrderStatusBuy = () => {
               </div>
             </div>
           </div>
+          <hr className="border border-border-color border-opacity-20" />
         </div>
-        <hr className="border border-border-color border-opacity-20" />
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
