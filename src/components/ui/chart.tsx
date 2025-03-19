@@ -6,6 +6,11 @@ import React, { useCallback, useMemo, useState } from 'react';
 
 import { DataPoint } from '@/mocks/dummy-data';
 
+// 기존 DataPoint 확장 인터페이스 (rawDate 속성 추가)
+interface ExtendedDataPoint extends DataPoint {
+  rawDate?: Date;
+}
+
 interface ChartComponentProps {
   readonly height?: number;
   readonly ratio?: number;
@@ -86,53 +91,51 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     [period],
   );
 
+  const isValidTimeForMinute = useCallback((date: Date): boolean => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+
+    // 9:00-15:00까지만 유효한 시간으로 처리 (15:00 포함)
+    return (
+      (hours === 9 && minutes >= 0) || (hours > 9 && hours < 15) || (hours === 15 && minutes === 0)
+    );
+  }, []);
+
+  const isNextTradingDay = useCallback((date: Date): boolean => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+
+    // 다음 거래일 시작 (9:01)
+    return hours === 9 && minutes === 1;
+  }, []);
+
   const getData = useCallback(() => {
     const now = new Date();
     const startDate = new Date(now);
     startDate.setHours(9, 0, 0, 0); // 오전 9시로 설정
 
-    let result;
+    let result: ExtendedDataPoint[];
 
     switch (period) {
       case 'MINUTE':
-        // 1분봉: 실제 1분 단위 데이터 생성 (9:00 ~ 15:30)
+        // 1분봉: 실제 1분 단위 데이터 생성 (9:00 ~ 15:00)
         result = data
           .map((item, index) => {
             const date = new Date(startDate);
             date.setMinutes(date.getMinutes() + index);
-            return {
-              ...item,
-              date: formatChartDate(date),
-              periodType: 'MINUTE' as const,
-            };
-          })
-          .slice(0, 390); // 6시간 30분
 
-        // 우측 여유 공간 추가
-        if (result.length > 0) {
-          const lastData = result[result.length - 1];
-          const lastDate = new Date(lastData.date);
-
-          for (let i = 1; i <= 10; i++) {
-            const newDate = new Date(lastDate);
-            newDate.setMinutes(newDate.getMinutes() + i);
-            if (
-              newDate.getHours() <= 15 &&
-              (newDate.getHours() < 15 || newDate.getMinutes() <= 30)
-            ) {
-              result.push({
-                date: formatChartDate(newDate),
-                open: lastData.close,
-                high: lastData.close,
-                low: lastData.close,
-                close: lastData.close,
-                volume: 0,
-                changeType: 'NONE' as const,
+            // 9:00-15:00 사이만 유효한 데이터로 처리
+            if (isValidTimeForMinute(date)) {
+              return {
+                ...item,
+                date: formatChartDate(date),
                 periodType: 'MINUTE' as const,
-              });
+                rawDate: date, // 원시 날짜 정보 저장
+              };
             }
-          }
-        }
+            return null;
+          })
+          .filter(Boolean) as ExtendedDataPoint[]; // null 제거 후 타입 명시
         break;
 
       case 'WEEK':
@@ -151,11 +154,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
                 open: weekData[0].open,
                 close: weekData[weekData.length - 1].close,
                 date: formatChartDate(weekDate),
+                rawDate: weekDate, // 원시 날짜 정보 저장
               });
             }
           }
           return acc;
-        }, []);
+        }, []) as ExtendedDataPoint[];
         break;
 
       case 'MONTH': {
@@ -183,24 +187,29 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
               open: group[0].open,
               close: group[group.length - 1].close,
               date: formatChartDate(monthDate),
+              rawDate: monthDate, // 원시 날짜 정보 저장
             };
-          });
+          }) as ExtendedDataPoint[];
         break;
       }
 
       case 'DAY':
       default:
         // 일봉: 하루 단위 데이터 그대로 사용
-        result = data.map((item) => ({
-          ...item,
-          date: formatChartDate(new Date(item.date)),
-          periodType: 'DAY' as const,
-        }));
+        result = data.map((item) => {
+          const date = new Date(item.date);
+          return {
+            ...item,
+            date: formatChartDate(date),
+            periodType: 'DAY' as const,
+            rawDate: date, // 원시 날짜 정보 저장
+          };
+        }) as ExtendedDataPoint[];
         break;
     }
 
     return result;
-  }, [period, data, formatChartDate]);
+  }, [period, data, formatChartDate, isValidTimeForMinute]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -252,8 +261,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   };
 
   const chartData = getData();
-  // 앞쪽에 10개의 빈 데이터 추가
+  // 앞쪽에 빈 데이터 없이 실제 데이터만 사용
   const extendedChartData = useMemo(() => {
+    // 앞쪽에 10개의 빈 데이터 추가
     const baseData = [
       ...Array(10)
         .fill({})
@@ -269,156 +279,55 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       ...chartData,
     ];
 
-    // 분봉의 경우 우측 여유 공간 추가
-    if (period === 'MINUTE' && chartData.length > 0) {
-      const lastData = chartData[chartData.length - 1];
-      const lastDate = new Date(lastData.date);
-
-      for (let i = 1; i <= 10; i++) {
-        const newDate = new Date(lastDate);
-        newDate.setMinutes(newDate.getMinutes() + i);
-        if (newDate.getHours() <= 15 && (newDate.getHours() < 15 || newDate.getMinutes() <= 30)) {
-          baseData.push({
-            date: formatChartDate(newDate),
-            open: lastData.close,
-            high: lastData.close,
-            low: lastData.close,
-            close: lastData.close,
-            volume: 0,
-            changeType: 'NONE' as const,
-            periodType: 'MINUTE' as const,
-          });
-        }
-      }
-    }
-
     return baseData;
-  }, [chartData, period, formatChartDate]);
+  }, [chartData]);
 
-  const closePrices = extendedChartData.map((item, index) =>
-    index < 10 ? '-' : Math.floor(item.close),
-  );
-  const ema5Data = calculateEMA(
-    closePrices.map((p) => (p === '-' ? null : p)),
-    5,
-  );
-  const ema20Data = calculateEMA(
-    closePrices.map((p) => (p === '-' ? null : p)),
-    20,
-  );
-
-  // X축 레이블 데이터 생성 (실제 데이터 + 빈 공간용 레이블)
+  // X축 레이블 데이터 생성
   const xAxisLabels = useMemo(() => {
-    // 앞쪽 빈 데이터에 대한 레이블 생성
-    const labels = extendedChartData.map((item, index) => {
-      if (index < 10) {
-        // 앞쪽 빈 데이터에 대한 레이블 생성
-        if (chartData.length > 0) {
-          const firstLabel = chartData[0].date;
-          let newLabel = '';
-
-          if (period === 'MINUTE') {
-            // 분봉의 경우 시간 계산
-            const firstDate = new Date(firstLabel);
-            const newDate = new Date(firstDate);
-            newDate.setMinutes(newDate.getMinutes() - (10 - index));
-            return formatChartDate(newDate);
-          }
-
-          switch (period) {
-            case 'DAY': {
-              const dayMatch = firstLabel.match(/(\d+)일/);
-              const monthMatch = firstLabel.match(/(\d+)월/);
-
-              if (dayMatch) {
-                let day = parseInt(dayMatch[1]) - (10 - index);
-                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
-
-                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-                while (day <= 0) {
-                  month--;
-                  if (month <= 0) month = 12;
-                  day += daysInMonth[month];
-                }
-
-                if (day === 1) {
-                  newLabel = `${month}월`;
-                } else {
-                  newLabel = `${day}일`;
-                }
-              }
-              break;
-            }
-            case 'WEEK': {
-              const dayMatch = firstLabel.match(/(\d+)일/);
-              const monthMatch = firstLabel.match(/(\d+)월/);
-
-              if (dayMatch) {
-                let day = parseInt(dayMatch[1]) - (10 - index) * 7;
-                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
-
-                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-                while (day <= 0) {
-                  month--;
-                  if (month <= 0) month = 12;
-                  day += daysInMonth[month];
-                }
-
-                if (day <= 7) {
-                  newLabel = `${month}월`;
-                } else {
-                  newLabel = `${day}일`;
-                }
-              }
-              break;
-            }
-            case 'MONTH': {
-              const monthMatch = firstLabel.match(/(\d+)월/);
-              const yearMatch = firstLabel.match(/(\d+)년/);
-
-              if (monthMatch) {
-                let month = parseInt(monthMatch[1]) - (10 - index);
-                let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
-
-                while (month <= 0) {
-                  year--;
-                  month += 12;
-                }
-
-                if (month === 1) {
-                  newLabel = `${year}년`;
-                } else {
-                  newLabel = `${month}월`;
-                }
-              }
-              break;
-            }
-          }
-
-          return newLabel;
+    if (period === 'MINUTE') {
+      // 앞쪽 빈 데이터에 대한 레이블 생성
+      const labels = extendedChartData.map((item, index) => {
+        if (index < 10) {
+          // 앞쪽 빈 데이터에 대한 레이블 생성
+          return ''; // 왼쪽 여백에는 빈 문자열로 레이블 생성
         }
-        return '';
+        return item.date;
+      });
+
+      // 다음 거래일 데이터 추가 (15:00 이후 9:01부터)
+      if (labels.length > 0 && chartData.length > 0) {
+        const lastItem = chartData[chartData.length - 1];
+        if (lastItem && lastItem.rawDate) {
+          const lastDataTime = lastItem.rawDate as Date;
+          const nextDay = new Date(lastDataTime);
+
+          // 다음 날 9:01부터 표시
+          nextDay.setDate(nextDay.getDate() + 1);
+          nextDay.setHours(9, 1, 0, 0);
+
+          // 여유 공간 추가 (다음 거래일 9:01 ~ 9:30)
+          for (let i = 0; i < 30; i++) {
+            const newTime = new Date(nextDay);
+            newTime.setMinutes(newTime.getMinutes() + i);
+            labels.push(formatChartDate(newTime));
+          }
+        }
       }
-      return item.date;
-    });
 
-    // 마지막 데이터 이후에 10개의 빈 레이블 추가
-    if (labels.length > 0) {
-      const lastLabel = labels[labels.length - 1];
-
-      if (period === 'MINUTE') {
-        // 분봉의 경우 마지막 시간 이후의 레이블 생성
-        const lastDate = new Date(chartData[chartData.length - 1].date);
-        for (let i = 1; i <= 10; i++) {
-          const newDate = new Date(lastDate);
-          newDate.setMinutes(newDate.getMinutes() + i);
-          if (newDate.getHours() <= 15 && (newDate.getHours() < 15 || newDate.getMinutes() <= 30)) {
-            labels.push(formatChartDate(newDate));
-          }
+      return labels;
+    } else {
+      // 다른 기간의 경우도 왼쪽 여백 추가
+      const labels = extendedChartData.map((item, index) => {
+        if (index < 10) {
+          return ''; // 왼쪽 여백에는 빈 문자열로 레이블 생성
         }
-      } else {
+        return item.date;
+      });
+
+      // 오른쪽 여유 공간 추가 (10개의 레이블)
+      if (labels.length > 0 && chartData.length > 0) {
+        const lastLabel = labels[labels.length - 1];
+
         // 다른 기간의 경우 기존 로직 유지
         for (let i = 1; i <= 10; i++) {
           let newLabel = '';
@@ -476,20 +385,58 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
               const monthMatch = lastLabel.match(/(\d+)월/);
               const yearMatch = lastLabel.match(/(\d+)년/);
 
+              let month, year;
+
+              // 마지막 레이블이 '월'인 경우 (예: '12월')
               if (monthMatch) {
-                let month = parseInt(monthMatch[1]) + i;
-                let year = yearMatch ? parseInt(yearMatch[1]) : new Date().getFullYear();
+                month = parseInt(monthMatch[1]) + i;
+                // 마지막 레이블에 표시된 연도가 없는 경우 현재 연도를 사용
+                // 하지만 실제로는 마지막 데이터의 연도를 사용해야 함
+                year = new Date().getFullYear(); // 기본값
+
+                // chartData에서 마지막 데이터의 연도 가져오기 (더 정확함)
+                if (chartData.length > 0 && chartData[chartData.length - 1].rawDate) {
+                  year = (chartData[chartData.length - 1].rawDate as Date).getFullYear();
+                }
+
+                // 12월에서 1월로 넘어갈 때 연도 증가
+                if (monthMatch[1] === '12' && month > 12) {
+                  year += 1;
+                  month = month - 12;
+                }
+                // 그 외 일반적인 월 증가에 따른 연도 처리
+                else if (month > 12) {
+                  year += Math.floor((month - 1) / 12);
+                  month = ((month - 1) % 12) + 1;
+                }
+              }
+              // 마지막 레이블이 '년'인 경우 (예: '2024년')
+              else if (yearMatch) {
+                year = parseInt(yearMatch[1]);
+                month = i;
 
                 if (month > 12) {
                   year += Math.floor((month - 1) / 12);
                   month = ((month - 1) % 12) + 1;
                 }
+              }
+              // 어떤 경우도 해당하지 않을 때는 현재 날짜 사용
+              else {
+                const now = new Date();
+                year = now.getFullYear();
+                month = now.getMonth() + 1 + i;
 
-                if (month === 1) {
-                  newLabel = `${year}년`;
-                } else {
-                  newLabel = `${month}월`;
+                if (month > 12) {
+                  year += Math.floor((month - 1) / 12);
+                  month = ((month - 1) % 12) + 1;
                 }
+              }
+
+              // 1월인 경우 연도 표시
+              if (month === 1) {
+                newLabel = `${year}년`;
+              } else {
+                newLabel = `${month}월`;
               }
               break;
             }
@@ -500,10 +447,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           }
         }
       }
-    }
 
-    return labels;
-  }, [extendedChartData, period, chartData, formatChartDate]);
+      return labels;
+    }
+  }, [extendedChartData, period, formatChartDate, chartData]);
+
+  const closePrices = extendedChartData.map((item, index) =>
+    index < 10 ? null : Math.floor(item.close),
+  );
+  const ema5Data = calculateEMA(closePrices, 5);
+  const ema20Data = calculateEMA(closePrices, 20);
 
   // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 20%)
   const VOLUME_HEIGHT_RATIO = 0.2;
@@ -512,7 +465,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
-    return Math.max(...chartData.map((d) => d.volume));
+    // 유효한 데이터만 필터링
+    const validData = chartData.filter((d) => d !== null && d !== undefined);
+    if (validData.length === 0) return 0;
+    return Math.max(...validData.map((d) => d.volume));
   }, [chartData]);
 
   // 거래량 범위 계산
@@ -526,8 +482,20 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
   // 가격 범위 계산
   const getPriceRange = useCallback(() => {
-    const minPrice = Math.min(...chartData.map((d) => d.low));
-    const maxPrice = Math.max(...chartData.map((d) => d.high));
+    // 유효한 데이터만 필터링
+    const validData = chartData.filter((d) => d !== null && d !== undefined);
+    if (validData.length === 0) {
+      return {
+        min: 0,
+        max: 100,
+        candleMin: 0,
+        candleMax: 100,
+        volumeMax: 0,
+      };
+    }
+
+    const minPrice = Math.min(...validData.map((d) => d.low));
+    const maxPrice = Math.max(...validData.map((d) => d.high));
     const range = maxPrice - minPrice;
     const margin = range * 0.1;
 
@@ -556,7 +524,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     const volumeHeight = priceRange.volumeMax - priceRange.min;
 
     return extendedChartData.map((item, index) => {
-      if (index < 10) return priceRange.min;
+      if (index < 10) return priceRange.min; // 왼쪽 여백 데이터
       const volumeRatio = item.volume / volumeRange.max;
       return priceRange.min + volumeRatio * volumeHeight;
     });
@@ -571,7 +539,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   // 캔들차트 데이터 스케일링
   const scaleCandleData = useCallback(() => {
     return extendedChartData.map((item, index) => {
-      if (index < 10) return [0, 0, 0, 0];
+      if (index < 10) return [0, 0, 0, 0]; // 왼쪽 여백 데이터
       return [item.open, item.close, item.low, item.high];
     });
   }, [extendedChartData]);
@@ -593,6 +561,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   // 현재가 관련 데이터 계산
   const currentData = chartData[chartData.length - 1];
   const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
+
+  // 1분봉 차트의 시작 위치와 종료 위치 계산
+  const getDataZoomRange = useCallback(() => {
+    if (period === 'MINUTE') {
+      // 1분봉의 경우 전체 데이터를 표시
+      return {
+        start: 10,
+        end: 90, // 전체 데이터 중 90%만 표시 (오른쪽 여백 확보)
+      };
+    }
+
+    // 다른 기간의 경우 기본값 사용
+    return {
+      start: 10,
+      end: 100,
+    };
+  }, [period]);
+
+  const dataZoomRange = getDataZoomRange();
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -632,11 +619,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         const date = candleData.name;
         const dataIndex = candleData.dataIndex;
 
-        // 앞쪽 빈 데이터 처리
+        // 왼쪽 여백 데이터 처리
         if (dataIndex < 10) {
           return `
             <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
+              <div style="margin-bottom: 4px;">-</div>
               <div>시가: -</div>
               <div>고가: -</div>
               <div>저가: -</div>
@@ -654,6 +641,22 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           !Array.isArray(candleData.data) ||
           candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
         ) {
+          return `
+            <div style="font-size: 12px;">
+              <div style="margin-bottom: 4px;">${date || '-'}</div>
+              <div>시가: -</div>
+              <div>고가: -</div>
+              <div>저가: -</div>
+              <div>종가: -</div>
+              <div>5이평선: -</div>
+              <div>20이평선: -</div>
+              <div>거래량: -</div>
+            </div>
+          `;
+        }
+
+        // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
+        if (dataIndex >= 10 + chartData.length) {
           return `
             <div style="font-size: 12px;">
               <div style="margin-bottom: 4px;">${date || '-'}</div>
@@ -743,7 +746,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           margin: 12,
           formatter: (value, index) => {
             const isBold = isFirstOfPeriod(value, index);
+
+            // 다음 거래일 시작 (9:01) 표시 강화
+            if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
+              return `{nextDay|${value}}`;
+            }
+
             return isBold ? value : value;
+          },
+          rich: {
+            nextDay: {
+              color: '#ff9800',
+              fontWeight: 'bold',
+            },
           },
         },
         splitLine: {
@@ -820,8 +835,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       {
         type: 'inside',
         xAxisIndex: [0],
-        start: 10,
-        end: 100,
+        start: dataZoomRange.start,
+        end: dataZoomRange.end,
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
@@ -830,8 +845,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         type: 'slider',
         show: false,
         xAxisIndex: [0],
-        start: 10,
-        end: 100,
+        start: dataZoomRange.start,
+        end: dataZoomRange.end,
       },
     ],
     series: [
@@ -914,7 +929,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         itemStyle: {
           color: (params: any) => {
             const index = params.dataIndex;
-            if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
+            if (index < 10 || index >= 10 + chartData.length) return FALL_COLOR;
             return extendedChartData[index].close >= extendedChartData[index].open
               ? RISE_COLOR
               : FALL_COLOR;

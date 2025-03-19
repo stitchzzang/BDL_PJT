@@ -16,6 +16,7 @@ export interface DataPoint {
   ema20?: number; // 20일 이동평균
   stockName?: string; // 종목명
   stockCode?: string; // 종목코드
+  rawDate?: Date; // 원시 날짜 객체
 }
 
 export const formatDate = (date: Date, type: 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH' | 'YEAR') => {
@@ -83,6 +84,7 @@ while (currentDate <= endDate) {
       periodType: 'DAY' as const,
       stockName,
       stockCode,
+      rawDate: currentDate,
     });
   }
 
@@ -130,6 +132,7 @@ for (let i = 0; i < 390; i++) {
     changeType: change > 0 ? 'RISE' : change < 0 ? 'FALL' : 'NONE',
     volume: Math.floor(10000 + Math.random() * 10000),
     periodType: 'MINUTE' as const,
+    rawDate: date,
   });
 }
 
@@ -150,6 +153,7 @@ export const weeklyData = dummyChartData.reduce<DataPoint[]>((acc, curr, i) => {
         open: weekData[0].open,
         close: weekData[weekData.length - 1].close,
         date: formatDate(weekDate, 'WEEK'),
+        rawDate: weekDate,
       });
     }
   }
@@ -178,12 +182,14 @@ export const monthlyDataArray = Object.values(monthlyData).map((group) => {
     open: group[0].open,
     close: group[group.length - 1].close,
     date: formatDate(monthDate, 'MONTH'),
+    rawDate: monthDate,
   };
 });
 
 export const dailyData = dummyChartData.map((data) => ({
   ...data,
   date: formatDate(new Date(data.date), 'DAY'),
+  rawDate: new Date(data.date),
 }));
 
 export const initialData = dailyData;
