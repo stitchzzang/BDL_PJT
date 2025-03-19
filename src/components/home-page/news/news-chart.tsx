@@ -23,7 +23,7 @@ export const NewsChart = () => {
   return (
     <div>
       <div>
-        <NewsChartMain />
+        <NewsChartMain newsMainInfo={NewsLists[0]} />
       </div>
     </div>
   );
