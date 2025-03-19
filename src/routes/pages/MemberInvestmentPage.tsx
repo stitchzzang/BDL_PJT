@@ -6,8 +6,8 @@ export const MemberInvestmentPage = () => {
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
-          <p>총 자산</p>
-          <p>52,1223,425원</p>
+          <p className="text-lg text-border-color">총 자산</p>
+          <p className="text-4xl font-bold">52,1223,425원</p>
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
