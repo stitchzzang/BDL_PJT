@@ -23,6 +23,8 @@ const buttonVariants = cva(
           'border-none bg-btn-yellow-color text-text-main-color hover:bg-btn-yellow-color/20 hover:text-btn-yellow-color active:bg-btn-yellow-color/20 active:text-btn-yellow-color',
         red: 'border-none bg-btn-red-color text-text-main-color hover:bg-btn-red-color/20 hover:text-btn-red-color active:bg-btn-red-color/20 active:text-btn-red-color',
         gray: 'border-none bg-btn-primary-active-color text-text-main-color hover:bg-btn-primary-inactive-color hover:text-text-inactive-3-color active:bg-btn-primary-inactive-color active:text-text-inactive-3-color',
+        black:
+          'border-none bg-background-color text-text-main-color hover:bg-primary-color active:bg-primary-color',
       },
       size: {
         default: 'h-9 px-4 py-2',
