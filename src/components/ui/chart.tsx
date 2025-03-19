@@ -2,7 +2,7 @@
 
 import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 
 import { DataPoint } from '@/mocks/dummy-data';
 
@@ -22,9 +22,11 @@ type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
 const RISE_COLOR = '#ef5350'; // 빨강
 const FALL_COLOR = '#1976d2'; // 파랑
 
-const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
+export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
   const [showVolume, _setShowVolume] = useState<boolean>(true);
+  const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.2);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
 
   // 서비스 동작을 위한 더미 데이터 생성 함수
   const generateDummyMinuteData = useCallback((): ExtendedDataPoint[] => {
@@ -535,7 +537,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   const ema20Data = calculateEMA(closePrices, 20);
 
   // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 20%)
-  const VOLUME_HEIGHT_RATIO = 0.2;
+  const VOLUME_HEIGHT_RATIO = volumeHeightRatio;
   // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 10%)
   const VOLUME_GAP_RATIO = 0.1;
 
@@ -656,6 +658,41 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   }, [period]);
 
   const dataZoomRange = getDataZoomRange();
+
+  // ECharts 이벤트 핸들러
+  const onChartEvents = {
+    mousemove: (params: any) => {
+      if (!isDragging) return;
+
+      const chartElement = document.querySelector('.echarts-for-react');
+      if (!chartElement) return;
+
+      const rect = chartElement.getBoundingClientRect();
+      const totalHeight = rect.height;
+      const mouseY = params.event.offsetY;
+
+      // 비율 계산 (최소 10%, 최대 50%)
+      let newRatio = 1 - mouseY / totalHeight;
+      newRatio = Math.max(0.1, Math.min(0.5, newRatio));
+
+      setVolumeHeightRatio(newRatio);
+    },
+    mousedown: (params: any) => {
+      // 구분선 클릭 확인
+      if (params.componentType === 'markLine') {
+        setIsDragging(true);
+        document.body.style.cursor = 'ns-resize';
+      }
+    },
+    mouseup: () => {
+      setIsDragging(false);
+      document.body.style.cursor = 'default';
+    },
+    globalout: () => {
+      setIsDragging(false);
+      document.body.style.cursor = 'default';
+    },
+  };
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -1114,11 +1151,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         xAxisIndex: 0,
         yAxisIndex: 0,
         markLine: {
-          silent: true,
+          silent: false,
           symbol: 'none',
           lineStyle: {
             color: '#2e3947',
-            width: 2,
+            width: 4,
             type: 'solid',
           },
           label: {
@@ -1127,8 +1164,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           data: [
             {
               yAxis: dividerLinePosition(),
+              lineStyle: {
+                color: isDragging ? '#4a90e2' : '#2e3947',
+                width: isDragging ? 6 : 4,
+              },
             },
           ],
+          emphasis: {
+            lineStyle: {
+              width: 6,
+              color: '#4a90e2',
+            },
+          },
         },
       },
     ],
@@ -1137,7 +1184,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   return (
     <div
       className="flex h-full w-full flex-col overflow-hidden"
-      style={{ backgroundColor: '#0D192B' }}
+      style={{ backgroundColor: '#0D192B', cursor: isDragging ? 'ns-resize' : 'default' }}
     >
       <div className="flex items-center gap-4 p-4 text-sm text-white">
         <div className="ml-auto flex items-center gap-2">
@@ -1173,6 +1220,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         notMerge={true}
         lazyUpdate={true}
         opts={{ renderer: 'canvas' }}
+        onEvents={onChartEvents}
       />
     </div>
   );
