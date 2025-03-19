@@ -1,5 +1,3 @@
-import React from 'react';
-
 import { TestItem } from '@/components/mock-investment/order-status/order-status-wait'; // TestItem 타입을 임포트
 
 interface OrderStatusWaitListProps {
