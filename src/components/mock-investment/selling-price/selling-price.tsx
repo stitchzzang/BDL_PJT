@@ -37,7 +37,7 @@ export const SellingPrice = () => {
         <p className="text-[18px] text-btn-blue-color">매도잔량</p>
         <p className="text-[18px] text-btn-red-color">매수잔량</p>
       </div>
-      <hr className="border-border-color border-opacity-20 mt-[16px]" />
+      <hr className="mt-[16px] border-border-color border-opacity-20" />
       <div>
         <SellingPriceSell orderBookDummy={orderBookDummy} />
       </div>
