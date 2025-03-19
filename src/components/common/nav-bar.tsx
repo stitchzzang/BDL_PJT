@@ -60,9 +60,18 @@ export const NavBar = () => {
           />
         </div>
       </div>
-      <Button variant="blue" onClick={() => navigate('/login')}>
-        로그인
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button variant="blue" onClick={() => navigate('/login')}>
+          로그인
+        </Button>
+        <button onClick={() => navigate('/member/stock-tutorial-result')}>
+          <img
+            src="/none-img/none_profile_img.png"
+            alt="profile"
+            className="h-[40px] w-[40px] rounded-full border border-primary-color"
+          />
+        </button>
+      </div>
     </nav>
   );
 };
