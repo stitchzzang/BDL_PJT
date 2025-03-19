@@ -12,7 +12,7 @@ export const HomePage = () => {
             <h3 className="text-[28px] font-bold">실시간 차트</h3>
             <p className="text-[20px] font-light text-text-inactive-2-color">어제 08:25 기준</p>
           </div>
-          <div className="grid w-full grid-cols-1 gap-3 border lg:grid-cols-7">
+          <div className="grid min-h-0 w-full grid-cols-1 gap-3 border md:grid-cols-7 lg:min-h-[520px]">
             <div className="col-span-1 lg:col-span-5">
               <RealTimeChart />
             </div>
