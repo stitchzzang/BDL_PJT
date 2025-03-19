@@ -907,8 +907,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         end: dataZoomRange.end,
       },
     ],
-    barCategoryGap: '10%',
-    barGap: '0%',
     series: [
       {
         name: '캔들차트',
@@ -922,7 +920,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
         },
-        barWidth: '85%',
+        barWidth: '90%',
         markLine: {
           symbol: 'none',
           lineStyle: {
@@ -995,7 +993,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
               : FALL_COLOR;
           },
         },
-        barWidth: '85%',
+        barWidth: '90%',
         markLine: {
           symbol: 'none',
           lineStyle: {
