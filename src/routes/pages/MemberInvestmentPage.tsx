@@ -1,3 +1,14 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
@@ -39,7 +50,31 @@ export const MemberInvestmentPage = () => {
           </Badge>
         </div>
         <div className="flex flex-row gap-3">
-          <Button variant="red">자산 초기화 하기</Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="red">자산 초기화 하기</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="border-none bg-modal-background-color">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="mb-10 text-center text-2xl font-bold text-btn-red-color">
+                  자산이 초기화됩니다.
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-text-main-color">
+                  현재 모든 거래 데이터가 초기화됩니다.
+                  <div className="my-2" />
+                  초기화된 데이터는 더 이상 복구가 불가하니 유의 부탁드립니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-5">
+                <AlertDialogCancel className="border-none bg-btn-primary-active-color hover:bg-btn-primary-inactive-color hover:text-text-inactive-3-color">
+                  취소하기
+                </AlertDialogCancel>
+                <AlertDialogAction className="border-none bg-btn-red-color hover:bg-btn-red-color/20 hover:text-btn-red-color">
+                  초기화하기
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
       <hr className="mt-5 w-full border-btn-primary-inactive-color" />
