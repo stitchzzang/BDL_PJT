@@ -1,4 +1,3 @@
-import noneStockImg from '@/assets/none-img/none_stock_img.png';
 import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
 export interface StockRise {
@@ -51,7 +50,7 @@ export const RealTimeChartRise = () => {
                   <h3 className="text-[18px] font-bold">{index + 1}</h3>
                   <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
                     {stockRiese.imageUrl === null ? (
-                      <img src={noneStockImg} alt="noneimage" />
+                      <img src="/public/none-img/none_stock_img.png" alt="noneimage" />
                     ) : (
                       <img src={stockRiese.imageUrl} alt="stockprofileimage" />
                     )}
