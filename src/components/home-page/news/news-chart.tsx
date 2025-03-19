@@ -1,4 +1,5 @@
 import { NewsChartMain } from '@/components/home-page/news/news-chart-main';
+import { NewsChartSub } from '@/components/home-page/news/news-chart-sub';
 
 export interface NewsList {
   imgUrl: string | null;
@@ -24,6 +25,9 @@ export const NewsChart = () => {
     <div>
       <div>
         <NewsChartMain newsMainInfo={NewsLists[0]} />
+      </div>
+      <div>
+        <NewsChartSub newsSubInfo={NewsLists[1]} />
       </div>
     </div>
   );
