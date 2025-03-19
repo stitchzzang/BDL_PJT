@@ -8,7 +8,7 @@ export const MemberEditPage = () => {
       <div className="flex min-w-[400px] flex-col items-center gap-5 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex flex-col items-center gap-4">
           <img
-            src="https://placehold.co/130x130"
+            src="/none-img/none_profile_img.png"
             alt="profile"
             className="h-32 w-32 rounded-full"
           />

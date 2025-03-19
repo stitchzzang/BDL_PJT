@@ -66,7 +66,7 @@ export const NavBar = () => {
         </Button>
         <button onClick={() => navigate('/member/stock-tutorial-result')}>
           <img
-            src="https://placehold.co/40x40"
+            src="/none-img/none_profile_img.png"
             alt="profile"
             className="h-[40px] w-[40px] rounded-full border border-primary-color"
           />
