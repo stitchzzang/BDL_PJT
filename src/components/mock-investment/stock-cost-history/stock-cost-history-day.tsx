@@ -1,5 +1,5 @@
 import { DTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
-import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
+import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
 interface StockCostHistoryDayProps {
   dayDataList: DTData[];

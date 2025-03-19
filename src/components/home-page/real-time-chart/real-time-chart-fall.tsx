@@ -1,5 +1,5 @@
 import noneStockImg from '@/assets/none-img/none_stock_img.png';
-import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
+import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
 export interface StockFall {
   stockName: string;

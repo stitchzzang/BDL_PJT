@@ -1,5 +1,5 @@
 import { stockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
-import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
+import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
 interface StockInfoDetailListProps {
   data: stockInfoDetail; // 타입 이름을 맞춰야 함
