@@ -1,4 +1,4 @@
-import noneStockImg from '@/assets/none-img/none_stock_img.png';
+import noneProfilImg from '@/assets/none-img/none_profil_img.png';
 import { RankInformation } from '@/components/home-page/rank-cards/rank-cards';
 
 interface RankCardProps {
@@ -12,7 +12,7 @@ export const RankCard = ({ rankInfo }: RankCardProps) => {
       <div className="flex flex-col items-center justify-center gap-[15px]">
         {imgUrl === null ? (
           <div className="max-h-[168px] max-w-[168px] overflow-hidden rounded-2xl">
-            <img src={noneStockImg} alt="noneimg" />
+            <img src={noneProfilImg} alt="noneimg" />
           </div>
         ) : (
           <img src={imgUrl} alt="profilimg" />
