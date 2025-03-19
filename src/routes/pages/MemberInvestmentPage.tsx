@@ -23,16 +23,26 @@ export const MemberInvestmentPage = () => {
       </div>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3">
-          <Badge variant="increase">총 수익률: +32.12%</Badge>
-          <Badge variant="main">총 수익: 50,000,000원</Badge>
-          <Badge variant="decrease">일간 수익률: -32.12%</Badge>
-          <Badge variant="main">일간 수익: -5,000원</Badge>
+          <Badge variant="increase">
+            <span className="mr-1 text-sm text-border-color">총 수익률:</span>
+            <span className="text-sm text-btn-blue-color">+32.12%</span>
+          </Badge>
+          <Badge variant="main">
+            <span className="mr-1 text-sm text-border-color">총 수익:</span>50,000,000원
+          </Badge>
+          <Badge variant="decrease">
+            <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
+            <span className="text-sm text-btn-red-color">-32.12%</span>
+          </Badge>
+          <Badge variant="main">
+            <span className="mr-1 text-sm text-border-color">일간 수익:</span>-5,000원
+          </Badge>
         </div>
         <div className="flex flex-row gap-3">
           <Button variant="red">자산 초기화 하기</Button>
         </div>
       </div>
-      <hr className="w-full border-btn-primary-inactive-color" />
+      <hr className="mt-5 w-full border-btn-primary-inactive-color" />
       <div className="flex flex-row gap-3">
         <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
           <p>전체 개수:</p>
