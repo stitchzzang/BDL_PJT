@@ -8,7 +8,7 @@ interface RankCardProps {
 export const RankCard = ({ rankInfo }: RankCardProps) => {
   const { name, rate, imgUrl } = rankInfo;
   return (
-    <div className="flex items-center justify-center rounded-2xl bg-modal-background-color p-[30px]">
+    <div className="flex items-center justify-center rounded-2xl border border-background-color bg-modal-background-color p-[30px] transition-all duration-300 hover:border-btn-blue-color">
       <div className="flex flex-col items-center justify-center gap-[15px]">
         {imgUrl === null ? (
           <div className="max-h-[168px] max-w-[168px] overflow-hidden rounded-2xl">
