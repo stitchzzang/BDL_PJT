@@ -4,7 +4,7 @@ import { RealTimeChart } from '@/components/home-page/real-time-chart/real-time-
 
 export const HomePage = () => {
   return (
-    <div className="px-4">
+    <div className="px-6">
       <div>{/* 코스피,코스단.. 차트 */}</div>
       <div>
         <div className="mt-[100px] w-full">
