@@ -11,6 +11,8 @@ import { MemberInvestmentPage } from '@/routes/pages/MemberInvestmentPage';
 import { MemberPasswordEditPage } from '@/routes/pages/MemberPasswordEditPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
+import { SignUpPage } from '@/routes/pages/SignUpPage';
+import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
 import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
 import { StockTutorialResultPage } from '@/routes/pages/StockTutorialResultPage';
@@ -57,16 +59,24 @@ export const router = createBrowserRouter([
         element: <AlgorithmLabPage />,
       },
       {
+        path: '/search',
+        element: <SearchPage />,
+      },
+      {
+        path: '/signup',
+        element: <SignUpPage />,
+      },
+      {
+        path: '/signup-success',
+        element: <SignUpSuccessPage />,
+      },
+      {
         path: '/simulated-education',
         element: <SimulatedEducationPage />,
       },
       {
         path: '/simulated-investment',
         element: <SimulatedInvestmentPage />,
-      },
-      {
-        path: '/search',
-        element: <SearchPage />,
       },
       {
         path: '*',
