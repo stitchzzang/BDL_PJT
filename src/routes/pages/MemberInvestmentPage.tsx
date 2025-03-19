@@ -11,13 +11,13 @@ export const MemberInvestmentPage = () => {
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
-            <p>내 평가금</p>
-            <p>32,123,425원</p>
+            <p className="text-sm text-border-color">내 평가금</p>
+            <p className="text-3xl font-bold text-btn-red-color">32,123,425원</p>
           </div>
-          <hr className="h-full w-1 border-r border-btn-primary-inactive-color" />
-          <div className="flex  flex-col items-start">
-            <p>내 현금</p>
-            <p>32,123,425원</p>
+          <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+          <div className="flex flex-col items-start">
+            <p className="text-sm text-border-color">내 현금</p>
+            <p className="text-3xl font-bold text-btn-green-color">32,123,425원</p>
           </div>
         </div>
       </div>
