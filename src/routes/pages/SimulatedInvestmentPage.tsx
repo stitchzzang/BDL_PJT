@@ -1,5 +1,5 @@
 import ChartComponent from '@/components/ui/chart';
-import { dummyChartData } from '@/lib/dummy-data';
+import { dummyChartData } from '@/mocks/dummy-data';
 
 export const SimulatedInvestmentPage = () => {
   return (

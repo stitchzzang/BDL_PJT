@@ -4,7 +4,7 @@ import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useMemo, useState } from 'react';
 
-import { DataPoint } from '@/lib/dummy-data';
+import { DataPoint } from '@/mocks/dummy-data';
 
 interface ChartComponentProps {
   readonly height?: number;
