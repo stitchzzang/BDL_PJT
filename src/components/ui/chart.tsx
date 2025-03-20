@@ -2,7 +2,7 @@
 
 import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DataPoint } from '@/mocks/dummy-data';
 
@@ -10,6 +10,20 @@ import { DataPoint } from '@/mocks/dummy-data';
 interface ExtendedDataPoint extends DataPoint {
   rawDate?: Date;
 }
+
+// 빈 데이터 포인트 타입 정의
+interface EmptyDataPoint {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+  changeType: 'NONE';
+  rawDate?: never;
+}
+
+type ChartDataPoint = ExtendedDataPoint | EmptyDataPoint;
 
 interface ChartComponentProps {
   readonly height?: number;
@@ -27,6 +41,9 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const [showVolume, _setShowVolume] = useState<boolean>(true);
   const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.2);
   const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStartY, setDragStartY] = useState<number>(0);
+  const [dragStartRatio, setDragStartRatio] = useState<number>(0);
+  const chartRef = useRef<ReactECharts>(null);
 
   // 서비스 동작을 위한 더미 데이터 생성 함수
   const generateDummyMinuteData = useCallback((): ExtendedDataPoint[] => {
@@ -630,40 +647,56 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   const dataZoomRange = getDataZoomRange();
 
-  // ECharts 이벤트 핸들러
-  const onChartEvents = {
-    mousemove: (params: any) => {
+  // 드래그 이벤트 핸들러
+  const handleDragStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(true);
+      setDragStartY(e.clientY);
+      setDragStartRatio(volumeHeightRatio);
+      document.body.style.cursor = 'ns-resize';
+    },
+    [volumeHeightRatio],
+  );
+
+  const handleDragMove = useCallback(
+    (e: MouseEvent) => {
       if (!isDragging) return;
 
       const chartElement = document.querySelector('.echarts-for-react');
       if (!chartElement) return;
 
       const rect = chartElement.getBoundingClientRect();
+      const deltaY = e.clientY - dragStartY;
       const totalHeight = rect.height;
-      const mouseY = params.event.offsetY;
 
       // 비율 계산 (최소 10%, 최대 50%)
-      let newRatio = 1 - mouseY / totalHeight;
+      let newRatio = dragStartRatio - deltaY / totalHeight;
       newRatio = Math.max(0.1, Math.min(0.5, newRatio));
 
       setVolumeHeightRatio(newRatio);
     },
-    mousedown: (params: any) => {
-      // 구분선 클릭 확인
-      if (params.componentType === 'markLine') {
-        setIsDragging(true);
-        document.body.style.cursor = 'ns-resize';
-      }
-    },
-    mouseup: () => {
-      setIsDragging(false);
-      document.body.style.cursor = 'default';
-    },
-    globalout: () => {
-      setIsDragging(false);
-      document.body.style.cursor = 'default';
-    },
-  };
+    [isDragging, dragStartY, dragStartRatio],
+  );
+
+  const handleDragEnd = useCallback(() => {
+    setIsDragging(false);
+    document.body.style.cursor = 'default';
+  }, []);
+
+  // 드래그 이벤트 리스너 등록/해제
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleDragMove);
+      window.addEventListener('mouseup', handleDragEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleDragMove);
+      window.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [isDragging, handleDragMove, handleDragEnd]);
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -677,15 +710,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           color: 'rgba(255, 255, 255, 0.2)',
           width: 1,
         },
-        label: {
-          show: true,
-          backgroundColor: FALL_COLOR,
-        },
-        lineStyle: {
-          color: 'rgba(255, 255, 255, 0.2)',
-          width: 1,
-          type: 'dashed',
-        },
       },
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
       borderColor: '#2e3947',
@@ -693,115 +717,51 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         color: '#fff',
       },
       formatter: (params: any) => {
-        const candleData = params.find((p: any) => p.seriesName === '캔들차트');
-        const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
-        const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
-        const volumeData = params.find((p: any) => p.seriesName === '거래량');
+        try {
+          if (!Array.isArray(params) || params.length === 0) return '';
 
-        if (!candleData) return '';
+          const dataIndex = params[0].dataIndex;
+          if (dataIndex < 0 || dataIndex >= extendedChartData.length) return '';
 
-        const date = candleData.name;
-        const dataIndex = candleData.dataIndex;
+          const item = extendedChartData[dataIndex];
+          if (!item) return '';
 
-        // 왼쪽 여백 데이터 처리
-        if (dataIndex < 10) {
-          return `            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">-</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
+          // 왼쪽 여백 데이터 처리
+          if (dataIndex < 10) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">-</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
 
-        // 유효하지 않은 데이터 처리
-        if (
-          !candleData.data ||
-          !Array.isArray(candleData.data) ||
-          candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
-        ) {
+          const formattedDate =
+            'rawDate' in item && item.rawDate ? formatDetailDate(item.rawDate) : item.date;
+          const volumeStr = formatVolumeNumber(item.volume);
+          const openStr = formatKoreanNumber(item.open) + '원';
+          const highStr = formatKoreanNumber(item.high) + '원';
+          const lowStr = formatKoreanNumber(item.low) + '원';
+          const closeStr = formatKoreanNumber(item.close) + '원';
+
           return `
             <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
+              <div style="margin-bottom: 4px;">${formattedDate}</div>
+              <div>시가: ${openStr}</div>
+              <div>고가: ${highStr}</div>
+              <div>저가: ${lowStr}</div>
+              <div>종가: ${closeStr}</div>
+              <div>거래량: ${volumeStr}</div>
             </div>
           `;
+        } catch (error) {
+          console.error('Tooltip formatter error:', error);
+          return '';
         }
-
-        // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
-        if (dataIndex >= 10 + chartData.length) {
-          return `
-            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
-
-        // 원본 데이터에서 직접 값을 가져옴
-        const originalItem = extendedChartData[dataIndex];
-        const open = originalItem.open;
-        const close = originalItem.close;
-        const low = originalItem.low;
-        const high = originalItem.high;
-
-        // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
-        let formattedDate = date;
-        if (originalItem && 'rawDate' in originalItem && originalItem.rawDate) {
-          const rawDate = originalItem.rawDate as Date;
-          formattedDate = formatDetailDate(rawDate);
-        }
-
-        // 거래량 데이터 추출
-        const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
-
-        // 숫자 여부 확인하고 문자열 포맷팅
-        const openStr =
-          typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
-        const closeStr =
-          typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
-        const lowStr =
-          typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
-        const highStr =
-          typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
-        const volumeStr = volume ? formatVolumeNumber(volume) : '-';
-        const ema5Str =
-          ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
-            ? formatKoreanNumber(ema5Data.value) + '원'
-            : '-';
-        const ema20Str =
-          ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
-            ? formatKoreanNumber(ema20Data.value) + '원'
-            : '-';
-
-        return `
-          <div style="font-size: 12px;">
-            <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
-            <div>시가: ${openStr}</div>
-            <div>고가: ${highStr}</div>
-            <div>저가: ${lowStr}</div>
-            <div>종가: ${closeStr}</div>
-            <div>5이평선: ${ema5Str}</div>
-            <div>20이평선: ${ema20Str}</div>
-            <div>거래량: ${volumeStr}</div>
-          </div>
-        `;
       },
     },
     axisPointer: {
@@ -809,34 +769,13 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       label: {
         backgroundColor: FALL_COLOR,
         formatter: (params: any) => {
-          // X축 포인터인 경우에만 처리
-          if (params.axisDimension === 'x') {
-            const value = params.value;
-
-            // 빈 값이나 숫자인 경우 처리
-            if (!value || typeof value === 'number') {
-              return value;
-            }
-
-            // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-            const labelIndex = xAxisLabels.findIndex((label) => label === value);
-            if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-              return value; // 원래 레이블 반환
-            }
-
-            // 해당 인덱스의 데이터 찾기
-            const item = extendedChartData[labelIndex];
-            if (!item || !('rawDate' in item) || !item.rawDate) {
-              return value; // 원래 레이블 반환
-            }
-
-            // 기간에 맞는 상세 날짜 포맷으로 변환
-            const rawDate = item.rawDate as Date;
-            return formatDetailDate(rawDate);
+          try {
+            if (!params || !params.value) return '';
+            return params.value;
+          } catch (error) {
+            console.error('Axis pointer label formatter error:', error);
+            return '';
           }
-
-          // Y축 포인터는 기본값 사용
-          return params.value;
         },
       },
       lineStyle: {
@@ -847,7 +786,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     },
     grid: [
       {
-        // 통합 차트 영역
         left: 80,
         right: 80,
         top: 40,
@@ -869,14 +807,16 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           color: '#CCCCCC',
           margin: 12,
           formatter: (value, index) => {
-            const isBold = isFirstOfPeriod(value, index);
-
-            // 다음 거래일 시작 (9:01) 표시 강화
-            if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
-              return `{nextDay|${value}}`;
+            try {
+              const isBold = isFirstOfPeriod(value, index);
+              if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
+                return `{nextDay|${value}}`;
+              }
+              return isBold ? value : value;
+            } catch (error) {
+              console.error('X-axis label formatter error:', error);
+              return value;
             }
-
-            return isBold ? value : value;
           },
           rich: {
             nextDay: {
@@ -891,34 +831,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         axisTick: { show: true },
         boundaryGap: true,
-        axisPointer: {
-          label: {
-            formatter: (params: any) => {
-              const value = params.value;
-
-              // 빈 값이나 숫자인 경우 처리
-              if (!value || typeof value === 'number') {
-                return value;
-              }
-
-              // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-              const labelIndex = xAxisLabels.findIndex((label) => label === value);
-              if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-                return value; // 원래 레이블 반환
-              }
-
-              // 해당 인덱스의 데이터 찾기
-              const item = extendedChartData[labelIndex];
-              if (!item || !('rawDate' in item) || !item.rawDate) {
-                return value; // 원래 레이블 반환
-              }
-
-              // 기간에 맞는 상세 날짜 포맷으로 변환
-              const rawDate = item.rawDate as Date;
-              return formatDetailDate(rawDate);
-            },
-          },
-        },
       },
     ],
     yAxis: [
@@ -936,48 +848,28 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         axisLabel: {
           color: '#CCCCCC',
           formatter: (value) => {
-            const priceRange = getPriceRange();
-            const volumeRange = getVolumeRange();
-            const priceHeight = priceRange.max - priceRange.min;
-            const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
+            try {
+              const priceRange = getPriceRange();
+              const volumeRange = getVolumeRange();
+              const priceHeight = priceRange.max - priceRange.min;
+              const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
-            if (value >= dividerPos) {
-              return formatKoreanNumber(Math.floor(value));
-            } else {
-              const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
-              const volumeRatio = (value - priceRange.min) / volumeHeight;
-              const originalVolume = volumeRatio * volumeRange.max;
-              return formatVolumeNumber(Math.floor(originalVolume));
+              if (value >= dividerPos) {
+                return formatKoreanNumber(Math.floor(value));
+              } else {
+                const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
+                const volumeRatio = (value - priceRange.min) / volumeHeight;
+                const originalVolume = volumeRatio * volumeRange.max;
+                return formatVolumeNumber(Math.floor(originalVolume));
+              }
+            } catch (error) {
+              console.error('Y-axis label formatter error:', error);
+              return '';
             }
           },
           inside: false,
           margin: 8,
           fontSize: 12,
-        },
-        axisPointer: {
-          label: {
-            formatter: (params) => {
-              try {
-                const numValue = Number(params.value);
-                const priceRange = getPriceRange();
-                const volumeRange = getVolumeRange();
-                const priceHeight = priceRange.max - priceRange.min;
-                const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
-
-                if (numValue >= dividerPos) {
-                  return formatKoreanNumber(Math.floor(numValue));
-                } else {
-                  const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
-                  const volumeRatio = (numValue - priceRange.min) / volumeHeight;
-                  const originalVolume = volumeRatio * volumeRange.max;
-                  return formatVolumeNumber(Math.floor(originalVolume));
-                }
-              } catch (e) {
-                return '-';
-              }
-            },
-            backgroundColor: FALL_COLOR,
-          },
         },
         min: getPriceRange().min,
         max: getPriceRange().max,
@@ -1015,32 +907,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           borderColor0: FALL_COLOR,
         },
         barWidth: '90%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: currentPriceColor,
-            width: 1,
-            type: 'dashed',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            formatter: formatKoreanNumber(Math.floor(currentData.close)),
-            backgroundColor: currentPriceColor,
-            padding: [4, 8],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: Math.floor(currentData.close),
-              lineStyle: {
-                color: currentPriceColor,
-              },
-            },
-          ],
-        },
+        silent: true,
       },
       {
         name: '5일 이평선',
@@ -1056,6 +923,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         symbol: 'none',
         connectNulls: true,
+        silent: true,
       },
       {
         name: '20일 이평선',
@@ -1071,6 +939,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         symbol: 'none',
         connectNulls: true,
+        silent: true,
       },
       {
         name: '거래량',
@@ -1080,73 +949,20 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         data: showVolume ? scaledVolumeData : [],
         itemStyle: {
           color: (params: any) => {
-            const index = params.dataIndex;
-            if (index < 10 || index >= 10 + chartData.length) return FALL_COLOR;
-            return extendedChartData[index].close >= extendedChartData[index].open
-              ? RISE_COLOR
-              : FALL_COLOR;
+            try {
+              const index = params.dataIndex;
+              if (index < 10 || index >= 10 + chartData.length) return FALL_COLOR;
+              return extendedChartData[index].close >= extendedChartData[index].open
+                ? RISE_COLOR
+                : FALL_COLOR;
+            } catch (error) {
+              console.error('Volume color formatter error:', error);
+              return FALL_COLOR;
+            }
           },
         },
         barWidth: '90%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: 'transparent',
-            width: 0,
-            type: 'solid',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            formatter: formatVolumeNumber(currentData.volume),
-            backgroundColor: currentPriceColor,
-            padding: [4, 8],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: scaledVolumeData[scaledVolumeData.length - 1],
-              lineStyle: {
-                color: 'transparent',
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: '구분선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        markLine: {
-          silent: false,
-          symbol: 'none',
-          lineStyle: {
-            color: '#2e3947',
-            width: 4,
-            type: 'solid',
-          },
-          label: {
-            show: false,
-          },
-          data: [
-            {
-              yAxis: dividerLinePosition(),
-              lineStyle: {
-                color: isDragging ? '#4a90e2' : '#2e3947',
-                width: isDragging ? 6 : 4,
-              },
-            },
-          ],
-          emphasis: {
-            lineStyle: {
-              width: 6,
-              color: '#4a90e2',
-            },
-          },
-        },
+        silent: true,
       },
     ],
   };
@@ -1154,7 +970,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   return (
     <div
       className="flex h-full w-full flex-col overflow-hidden"
-      style={{ backgroundColor: '#0D192B', cursor: isDragging ? 'ns-resize' : 'default' }}
+      style={{ backgroundColor: '#0D192B' }}
     >
       <div className="flex items-center gap-4 p-4 text-sm text-white">
         <div className="ml-auto flex items-center gap-2">
@@ -1184,14 +1000,26 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           </button>
         </div>
       </div>
-      <ReactECharts
-        option={option}
-        style={{ height: `${height}px`, width: '100%' }}
-        notMerge={true}
-        lazyUpdate={true}
-        opts={{ renderer: 'canvas' }}
-        onEvents={onChartEvents}
-      />
+      <div className="relative">
+        <ReactECharts
+          ref={chartRef}
+          option={option}
+          style={{ height: `${height}px`, width: '100%' }}
+          notMerge={true}
+          lazyUpdate={true}
+          opts={{ renderer: 'canvas' }}
+        />
+        <div
+          className="absolute left-[80px] right-[80px] z-10 cursor-ns-resize"
+          style={{
+            top: `${(1 - volumeHeightRatio) * 100}%`,
+            height: '4px',
+            backgroundColor: isDragging ? '#4a90e2' : '#2e3947',
+            transition: isDragging ? 'none' : 'background-color 0.2s',
+          }}
+          onMouseDown={handleDragStart}
+        />
+      </div>
     </div>
   );
 };
