@@ -6,7 +6,6 @@ export const HomePage = () => {
   return (
     <div className="px-6">
       <div>{/* 코스피,코스단.. 차트 */}</div>
-    <div>
       <div>
         <div className="mt-[100px] w-full">
           <div className="mb-[25px] flex items-center gap-3">
