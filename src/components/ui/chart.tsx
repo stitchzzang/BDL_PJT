@@ -987,7 +987,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
         },
-        barWidth: '60%',
+        barWidth: '85%',
         markLine: {
           symbol: ['none', 'none'],
           animation: false,
@@ -1067,7 +1067,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               : FALL_COLOR;
           },
         },
-        barWidth: '60%',
+        barWidth: '85%',
         markLine: {
           symbol: 'none',
           lineStyle: {
