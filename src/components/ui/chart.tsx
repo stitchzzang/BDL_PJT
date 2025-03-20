@@ -2,7 +2,7 @@
 
 import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import { DataPoint } from '@/mocks/dummy-data';
 
@@ -37,7 +37,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     startDate.setHours(9, 0, 0, 0);
 
     // 기본 가격 설정
-    let basePrice = 50000;
+    const basePrice = 50000;
     let prevClose = basePrice;
 
     // 9:01부터 15:30까지 1분 단위로 데이터 생성
@@ -153,35 +153,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     [period],
   );
 
-  const isValidTimeForMinute = useCallback((date: Date): boolean => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    // 9:01-15:20까지와 15:30만 유효한 시간으로 처리 (장 운영 시간)
-    return (
-      (hours === 9 && minutes >= 1) ||
-      (hours > 9 && hours < 15) ||
-      (hours === 15 && minutes <= 20) ||
-      (hours === 15 && minutes === 30)
-    );
-  }, []);
-
-  const isDynamicAuctionTime = useCallback((date: Date): boolean => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    // 15:21-15:29는 동시호가 시간
-    return hours === 15 && minutes >= 21 && minutes <= 29;
-  }, []);
-
-  const isNextTradingDay = useCallback((date: Date): boolean => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    // 다음 거래일 시작 (9:01)
-    return hours === 9 && minutes === 1;
-  }, []);
-
   const getData = useCallback(() => {
     const now = new Date();
     const startDate = new Date(now);
@@ -269,7 +240,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     }
 
     return result;
-  }, [period, data, minuteDummyData, formatChartDate, isValidTimeForMinute, isDynamicAuctionTime]);
+  }, [period, data, minuteDummyData, formatChartDate]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -734,8 +705,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
         // 왼쪽 여백 데이터 처리
         if (dataIndex < 10) {
-          return `
-            <div style="font-size: 12px;">
+          return `            <div style="font-size: 12px;">
               <div style="margin-bottom: 4px;">-</div>
               <div>시가: -</div>
               <div>고가: -</div>
