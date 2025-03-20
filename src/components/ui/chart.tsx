@@ -11,20 +11,6 @@ interface ExtendedDataPoint extends DataPoint {
   rawDate?: Date;
 }
 
-// 빈 데이터 포인트 타입 정의
-interface EmptyDataPoint {
-  date: string;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  changeType: 'NONE';
-  rawDate?: never;
-}
-
-type ChartDataPoint = ExtendedDataPoint | EmptyDataPoint;
-
 interface ChartComponentProps {
   readonly height?: number;
   readonly ratio?: number;
@@ -39,10 +25,8 @@ const FALL_COLOR = '#1976d2'; // 파랑
 export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
   const [showVolume, _setShowVolume] = useState<boolean>(true);
-  const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.3);
+  const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.2);
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [dragStartY, setDragStartY] = useState<number>(0);
-  const [dragStartRatio, setDragStartRatio] = useState<number>(0);
   const chartRef = useRef<ReactECharts>(null);
 
   // 서비스 동작을 위한 더미 데이터 생성 함수
@@ -527,7 +511,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   // 거래량 차트의 높이 비율 상수 정의
   const VOLUME_HEIGHT_RATIO = volumeHeightRatio;
   // 거래량 차트와 캔들차트 사이의 간격 비율
-  const VOLUME_GAP_RATIO = 0.05;
+  const VOLUME_GAP_RATIO = 0.01;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -652,17 +636,12 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const dataZoomRange = getDataZoomRange();
 
   // 드래그 이벤트 핸들러
-  const handleDragStart = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(true);
-      setDragStartY(e.clientY);
-      setDragStartRatio(volumeHeightRatio);
-      document.body.style.cursor = 'ns-resize';
-    },
-    [volumeHeightRatio],
-  );
+  const handleDragStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    document.body.style.cursor = 'ns-resize';
+  }, []);
 
   const handleDragMove = useCallback(
     (e: MouseEvent) => {
@@ -821,8 +800,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         top: 40,
         bottom: 60,
         show: true,
-        borderColor: '#2e3947',
-        backgroundColor: 'transparent',
+        borderColor: '#1a2536',
+        backgroundColor: '#0a1421',
         containLabel: true,
       },
     ],
@@ -831,7 +810,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'category',
         data: xAxisLabels,
         gridIndex: 0,
-        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLine: { lineStyle: { color: '#1a2536' } },
         axisLabel: {
           show: true,
           color: '#CCCCCC',
@@ -855,9 +834,13 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         splitLine: {
           show: true,
-          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+          lineStyle: {
+            color: '#1a2536',
+            width: 1,
+            type: [2, 3], // 점선 스타일 적용
+          },
         },
-        axisTick: { show: true },
+        axisTick: { show: false }, // 축 눈금 제거
         boundaryGap: true,
         axisPointer: {
           label: {
@@ -894,12 +877,16 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'value',
         position: 'right',
         scale: true,
-        splitNumber: 8,
+        splitNumber: 12, // 그리드 라인 개수 증가
         gridIndex: 0,
-        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLine: { lineStyle: { color: '#1a2536' } },
         splitLine: {
           show: true,
-          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+          lineStyle: {
+            color: '#1a2536',
+            width: 1,
+            type: [2, 3], // 점선 스타일 적용
+          },
         },
         axisLabel: {
           color: '#CCCCCC',
@@ -1013,9 +1000,11 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           label: {
             show: true,
             position: 'end',
+            distance: 0,
+            offset: [0, 0],
             formatter: formatKoreanNumber(Math.floor(currentData.close)),
             backgroundColor: currentPriceColor,
-            padding: [4, 8],
+            padding: [4, 7, 4, 7],
             borderRadius: 2,
             color: '#FFFFFF',
             fontSize: 12,
@@ -1026,6 +1015,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               label: {
                 show: true,
                 position: 'end',
+                distance: 0,
+                offset: [0, 0],
               },
             },
           ],
@@ -1087,9 +1078,11 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           label: {
             show: true,
             position: 'end',
+            distance: 0,
+            offset: [0, 0],
             formatter: formatVolumeNumber(currentData.volume),
             backgroundColor: currentPriceColor,
-            padding: [4, 8],
+            padding: [4, 7, 4, 7],
             borderRadius: 2,
             color: '#FFFFFF',
             fontSize: 12,
@@ -1099,6 +1092,12 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               yAxis: scaledVolumeData[scaledVolumeData.length - 1],
               lineStyle: {
                 color: 'transparent',
+              },
+              label: {
+                show: true,
+                position: 'end',
+                distance: 0,
+                offset: [0, 0],
               },
             },
           ],
