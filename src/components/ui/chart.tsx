@@ -524,10 +524,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const ema5Data = calculateEMA(closePrices, 5);
   const ema20Data = calculateEMA(closePrices, 20);
 
-  // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 20%)
+  // 거래량 차트의 높이 비율 상수 정의
   const VOLUME_HEIGHT_RATIO = volumeHeightRatio;
-  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 10%)
-  const VOLUME_GAP_RATIO = 0.1;
+  // 거래량 차트와 캔들차트 사이의 간격 비율
+  const VOLUME_GAP_RATIO = 0.02;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -548,7 +548,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   // 가격 범위 계산
   const getPriceRange = useCallback(() => {
-    // 유효한 데이터만 필터링
     const validData = chartData.filter((d) => d !== null && d !== undefined);
     if (validData.length === 0) {
       return {
@@ -556,7 +555,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         max: 100,
         candleMin: 0,
         candleMax: 100,
-        volumeMax: 0,
+        volumeMin: 0,
+        volumeMax: 20,
       };
     }
 
@@ -565,42 +565,40 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const range = maxPrice - minPrice;
     const margin = range * 0.1;
 
-    // 캔들차트 영역의 범위 계산
     const candleMin = Math.floor(minPrice - margin);
     const candleMax = Math.ceil(maxPrice + margin);
     const candleRange = candleMax - candleMin;
 
-    // 전체 차트 영역 계산 (거래량 영역 포함)
+    // 전체 차트 영역 계산
     const totalRange = candleRange / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
-    const volumeRange = totalRange * VOLUME_HEIGHT_RATIO;
 
-    // 거래량 최대값 계산
+    // 거래량 영역 계산
     const maxVolume = getMaxVolume();
+    const volumeRange = totalRange * VOLUME_HEIGHT_RATIO;
     const volumeScale = volumeRange / maxVolume;
     const scaledMaxVolume = maxVolume * volumeScale;
 
     return {
       min: candleMin - scaledMaxVolume - totalRange * VOLUME_GAP_RATIO,
       max: candleMax,
-      candleMin: candleMin,
-      candleMax: candleMax,
+      candleMin,
+      candleMax,
       volumeMax: candleMin - totalRange * VOLUME_GAP_RATIO,
     };
   }, [chartData, getMaxVolume]);
 
   // 거래량 데이터 스케일링
   const scaleVolumeData = useCallback(() => {
-    const volumeRange = getVolumeRange();
+    const maxVolume = getMaxVolume();
     const priceRange = getPriceRange();
     const volumeHeight = priceRange.volumeMax - priceRange.min;
-    const maxVolume = volumeRange.max;
 
     return extendedChartData.map((item, index) => {
       if (index < 10) return priceRange.min;
-      const volumeRatio = Math.min(1, item.volume / maxVolume); // 최대 1로 제한
+      const volumeRatio = Math.min(1, item.volume / maxVolume);
       return priceRange.min + volumeRatio * volumeHeight;
     });
-  }, [extendedChartData, getPriceRange, getVolumeRange]);
+  }, [extendedChartData, getMaxVolume, getPriceRange]);
 
   // 구분선 Y축 위치 계산
   const dividerLinePosition = useCallback(() => {
@@ -905,24 +903,42 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         axisLabel: {
           color: '#CCCCCC',
-          formatter: (value) => {
+          formatter: (value: number) => {
             const priceRange = getPriceRange();
             const volumeRange = getVolumeRange();
             const priceHeight = priceRange.max - priceRange.min;
             const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
             if (value >= dividerPos) {
-              return formatKoreanNumber(Math.floor(value));
+              const formattedValue = formatKoreanNumber(Math.floor(value));
+              // 현재가와 일치하는 경우 rich text 사용
+              if (Math.abs(value - currentData.close) < 0.1) {
+                return `{current|${formattedValue}}`;
+              }
+              return formattedValue;
             } else {
               const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
               const volumeRatio = (value - priceRange.min) / volumeHeight;
               const originalVolume = volumeRatio * volumeRange.max;
-              return formatVolumeNumber(Math.floor(originalVolume));
+              const formattedVolume = formatVolumeNumber(Math.floor(originalVolume));
+              // 현재 거래량과 일치하는 경우 rich text 사용
+              if (Math.abs(originalVolume - currentData.volume) < 0.1) {
+                return `{current|${formattedVolume}}`;
+              }
+              return formattedVolume;
             }
           },
           inside: false,
           margin: 8,
           fontSize: 12,
+          rich: {
+            current: {
+              backgroundColor: currentPriceColor,
+              padding: [4, 8],
+              borderRadius: 2,
+              color: '#FFFFFF',
+            },
+          },
         },
         axisPointer: {
           label: {
@@ -986,8 +1002,9 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         barWidth: '60%',
         markLine: {
-          symbol: 'none',
+          symbol: ['none', 'none'],
           animation: false,
+          silent: true,
           lineStyle: {
             color: currentPriceColor,
             width: 1,
@@ -1006,11 +1023,9 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           data: [
             {
               yAxis: Math.floor(currentData.close),
-              lineStyle: {
-                color: currentPriceColor,
-              },
               label: {
-                position: 'insideEndTop',
+                show: true,
+                position: 'end',
               },
             },
           ],
