@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { RealTimeChartFall } from '@/components/home-page/real-time-chart/real-time-chart-fall';
 import { RealTimeChartRise } from '@/components/home-page/real-time-chart/real-time-chart-rise';
 import { RealTimeChartTransaction } from '@/components/home-page/real-time-chart/real-time-chart-transaction';
@@ -13,8 +11,6 @@ enum chartType {
 }
 
 export const RealTimeChart = () => {
-  const [isActive, setIsActive] = useState<chartType>(chartType.TRADING_VOLUME);
-
   const chartTabs = [
     { title: '거래대금', value: 'TRADING_VOLUME', content: <RealTimeChartTransaction /> },
     { title: '급상승', value: 'RAPID_RISE', content: <RealTimeChartRise /> },

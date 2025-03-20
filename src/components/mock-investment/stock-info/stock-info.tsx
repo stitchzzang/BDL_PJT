@@ -1,6 +1,6 @@
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
-import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
+import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
 export const StockInfo = () => {
   return (
