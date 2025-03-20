@@ -39,7 +39,7 @@ const FALL_COLOR = '#1976d2'; // 파랑
 export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
   const [showVolume, _setShowVolume] = useState<boolean>(true);
-  const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.2);
+  const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.3);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [dragStartY, setDragStartY] = useState<number>(0);
   const [dragStartRatio, setDragStartRatio] = useState<number>(0);
@@ -542,7 +542,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const maxVolume = getMaxVolume();
     return {
       min: 0,
-      max: Math.ceil(maxVolume * 1.8), // 1.5에서 1.8로 증가
+      max: Math.ceil(maxVolume * 1.6),
     };
   }, [getMaxVolume]);
 
@@ -574,8 +574,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
     // 거래량 영역 계산
     const maxVolume = getMaxVolume();
-    const volumeRange = totalRange * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO * 0.9); // 0.7에서 0.9로 증가
-    const volumeScale = (volumeRange * 0.6) / maxVolume; // 0.7에서 0.6으로 감소하여 더 많은 여백 확보
+    const volumeRange = totalRange * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO * 0.9);
+    const volumeScale = (volumeRange * 0.7) / maxVolume;
     const scaledMaxVolume = maxVolume * volumeScale;
 
     return {
