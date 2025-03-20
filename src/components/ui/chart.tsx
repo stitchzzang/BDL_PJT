@@ -574,24 +574,30 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const totalRange = candleRange / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
     const volumeRange = totalRange * VOLUME_HEIGHT_RATIO;
 
+    // 거래량 최대값 계산
+    const maxVolume = getMaxVolume();
+    const volumeScale = volumeRange / maxVolume;
+    const scaledMaxVolume = maxVolume * volumeScale;
+
     return {
-      min: candleMin - volumeRange - totalRange * VOLUME_GAP_RATIO,
+      min: candleMin - scaledMaxVolume - totalRange * VOLUME_GAP_RATIO,
       max: candleMax,
       candleMin: candleMin,
       candleMax: candleMax,
       volumeMax: candleMin - totalRange * VOLUME_GAP_RATIO,
     };
-  }, [chartData]);
+  }, [chartData, getMaxVolume]);
 
   // 거래량 데이터 스케일링
   const scaleVolumeData = useCallback(() => {
     const volumeRange = getVolumeRange();
     const priceRange = getPriceRange();
     const volumeHeight = priceRange.volumeMax - priceRange.min;
+    const maxVolume = volumeRange.max;
 
     return extendedChartData.map((item, index) => {
-      if (index < 10) return priceRange.min; // 왼쪽 여백 데이터
-      const volumeRatio = item.volume / volumeRange.max;
+      if (index < 10) return priceRange.min;
+      const volumeRatio = Math.min(1, item.volume / maxVolume); // 최대 1로 제한
       return priceRange.min + volumeRatio * volumeHeight;
     });
   }, [extendedChartData, getPriceRange, getVolumeRange]);
@@ -668,16 +674,21 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       if (!chartElement) return;
 
       const rect = chartElement.getBoundingClientRect();
-      const deltaY = e.clientY - dragStartY;
-      const totalHeight = rect.height;
+      const chartTop = rect.top + 40; // 상단 여백
+      const chartBottom = rect.bottom - 60; // 하단 여백
+      const chartHeight = chartBottom - chartTop;
 
-      // 비율 계산 (최소 10%, 최대 50%)
-      let newRatio = dragStartRatio - deltaY / totalHeight;
-      newRatio = Math.max(0.1, Math.min(0.5, newRatio));
+      // 마우스 위치가 차트 영역을 벗어나지 않도록 제한
+      const mouseY = Math.max(chartTop, Math.min(chartBottom, e.clientY));
+      const relativeY = mouseY - chartTop;
+
+      // 비율 계산 (최소 5%, 최대 70%)
+      let newRatio = 1 - relativeY / chartHeight;
+      newRatio = Math.max(0.05, Math.min(0.7, newRatio));
 
       setVolumeHeightRatio(newRatio);
     },
-    [isDragging, dragStartY, dragStartRatio],
+    [isDragging],
   );
 
   const handleDragEnd = useCallback(() => {
@@ -814,7 +825,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         show: true,
         borderColor: '#2e3947',
         backgroundColor: 'transparent',
-        containLabel: false,
+        containLabel: true,
       },
     ],
     xAxis: [
@@ -976,6 +987,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         barWidth: '60%',
         markLine: {
           symbol: 'none',
+          animation: false,
           lineStyle: {
             color: currentPriceColor,
             width: 1,
@@ -996,6 +1008,9 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               yAxis: Math.floor(currentData.close),
               lineStyle: {
                 color: currentPriceColor,
+              },
+              label: {
+                position: 'insideEndTop',
               },
             },
           ],
@@ -1079,23 +1094,19 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'line',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        markLine: {
-          silent: true,
-          symbol: 'none',
-          lineStyle: {
-            color: '#2e3947',
-            width: 2,
-            type: 'solid',
-          },
-          label: {
-            show: false,
-          },
-          data: [
-            {
-              yAxis: dividerLinePosition(),
-            },
-          ],
+        data: showVolume
+          ? [
+              [10, dividerLinePosition()],
+              [xAxisLabels.length - 1, dividerLinePosition()],
+            ]
+          : [],
+        lineStyle: {
+          color: '#2e3947',
+          width: 2,
+          type: 'solid',
         },
+        symbol: 'none',
+        silent: true,
       },
     ],
   };
@@ -1143,7 +1154,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           opts={{ renderer: 'canvas' }}
           onEvents={{
             globalout: () => {
-              // 차트 영역을 벗어났을 때 드래그 상태 해제
               if (isDragging) {
                 handleDragEnd();
               }
@@ -1151,12 +1161,14 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           }}
         />
         <div
-          className="absolute left-[80px] right-[80px] z-10 cursor-ns-resize"
+          className="absolute z-10 cursor-ns-resize"
           style={{
-            top: `${(1 - volumeHeightRatio) * 100}%`,
+            left: '80px',
+            right: '80px',
+            top: `calc(${(1 - volumeHeightRatio) * 100}% - 60px)`,
             height: '4px',
             backgroundColor: isDragging ? '#4a90e2' : '#2e3947',
-            transition: isDragging ? 'none' : 'background-color 0.2s',
+            transition: isDragging ? 'none' : 'all 0.2s ease',
           }}
           onMouseDown={handleDragStart}
         />
