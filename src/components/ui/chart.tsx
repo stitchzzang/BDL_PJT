@@ -259,7 +259,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     }
   };
 
-  // 기간별 날짜 포맷팅 함수 (포인터 및 툴팁용)
+  // 기간별 날짜 포맷팅 함수 (포인터 및 툴크용)
   const formatDetailDate = (date: Date): string => {
     switch (period) {
       case 'MINUTE':
@@ -512,6 +512,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const VOLUME_HEIGHT_RATIO = volumeHeightRatio;
   // 거래량 차트와 캔들차트 사이의 간격 비율
   const VOLUME_GAP_RATIO = 0.01;
+  // 거래량 차트 상단 여백 비율
+  const VOLUME_TOP_MARGIN_RATIO = 0.15;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -526,7 +528,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const maxVolume = getMaxVolume();
     return {
       min: 0,
-      max: Math.ceil(maxVolume * 1.6),
+      max: Math.ceil(maxVolume * (1 + VOLUME_TOP_MARGIN_RATIO)),
     };
   }, [getMaxVolume]);
 
@@ -559,7 +561,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     // 거래량 영역 계산
     const maxVolume = getMaxVolume();
     const volumeRange = totalRange * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO * 0.9);
-    const volumeScale = (volumeRange * 0.7) / maxVolume;
+    const volumeScale = (volumeRange * (1 - VOLUME_TOP_MARGIN_RATIO)) / maxVolume;
     const scaledMaxVolume = maxVolume * volumeScale;
 
     return {
@@ -575,7 +577,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const scaleVolumeData = useCallback(() => {
     const maxVolume = getMaxVolume();
     const priceRange = getPriceRange();
-    const volumeHeight = priceRange.volumeMax - priceRange.min;
+    const volumeHeight = (priceRange.volumeMax - priceRange.min) * (1 - VOLUME_TOP_MARGIN_RATIO);
 
     return extendedChartData.map((item, index) => {
       if (index < 10) return priceRange.min;
@@ -685,6 +687,102 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       window.removeEventListener('mouseup', handleDragEnd);
     };
   }, [isDragging, handleDragMove, handleDragEnd]);
+
+  useEffect(() => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) return;
+
+    const handleYAxisWheel = (e: Event) => {
+      const wheelEvent = e as WheelEvent;
+      wheelEvent.preventDefault();
+
+      const currentOption = chart.getOption();
+      const yAxis = (currentOption as any).yAxis[0];
+      const currentMin = yAxis.min;
+      const currentMax = yAxis.max;
+      const range = currentMax - currentMin;
+
+      // 스크롤 방향에 따라 확대/축소
+      const zoomFactor = wheelEvent.deltaY > 0 ? 1.1 : 0.9;
+      const mouseY = wheelEvent.clientY;
+      const chartRect = chart.getDom().getBoundingClientRect();
+      const relativeY = (mouseY - chartRect.top) / chartRect.height;
+
+      // 마우스 위치를 기준으로 확대/축소
+      const newRange = range * zoomFactor;
+      const centerValue = currentMin + range * relativeY;
+      const newMin = centerValue - newRange * relativeY;
+      const newMax = newMin + newRange;
+
+      chart.setOption({
+        yAxis: [
+          {
+            ...yAxis,
+            min: newMin,
+            max: newMax,
+          },
+        ],
+      });
+    };
+
+    const handleYAxisMouseDown = (e: Event) => {
+      const mouseEvent = e as MouseEvent;
+      mouseEvent.preventDefault();
+      let lastY = mouseEvent.clientY;
+      let isDragging = true;
+
+      const handleMouseMove = (moveEvent: Event) => {
+        if (!isDragging) return;
+        const mouseMoveEvent = moveEvent as MouseEvent;
+
+        const currentOption = chart.getOption();
+        const yAxis = (currentOption as any).yAxis[0];
+        const currentMin = yAxis.min;
+        const currentMax = yAxis.max;
+        const range = currentMax - currentMin;
+
+        const deltaY = mouseMoveEvent.clientY - lastY;
+        const chartRect = chart.getDom().getBoundingClientRect();
+        const moveRatio = deltaY / chartRect.height;
+        const valueChange = range * moveRatio;
+
+        chart.setOption({
+          yAxis: [
+            {
+              ...yAxis,
+              min: currentMin - valueChange,
+              max: currentMax - valueChange,
+            },
+          ],
+        });
+
+        lastY = mouseMoveEvent.clientY;
+      };
+
+      const handleMouseUp = () => {
+        isDragging = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    // Y축 요소에 이벤트 리스너 추가
+    const yAxisElement = chart.getDom().querySelector('.echarts-y-axis');
+    if (yAxisElement) {
+      yAxisElement.addEventListener('wheel', handleYAxisWheel);
+      yAxisElement.addEventListener('mousedown', handleYAxisMouseDown);
+    }
+
+    return () => {
+      if (yAxisElement) {
+        yAxisElement.removeEventListener('wheel', handleYAxisWheel);
+        yAxisElement.removeEventListener('mousedown', handleYAxisMouseDown);
+      }
+    };
+  }, []);
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -1160,8 +1258,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           style={{
             left: '80px',
             right: '80px',
-            top: `calc(${(1 - volumeHeightRatio) * 100}% - 61px)`,
-            height: '3px',
+            top: `calc(${(1 - volumeHeightRatio) * 100}% - 60px)`,
+            height: '2px',
             backgroundColor: isDragging ? '#4a90e2' : '#2e3947',
             transition: isDragging ? 'none' : 'all 0.2s ease',
           }}
