@@ -11,7 +11,7 @@ export const RankCard = ({ rankInfo }: RankCardProps) => {
       <div className="flex flex-col items-center justify-center gap-[15px]">
         {imgUrl === null ? (
           <div className="max-h-[168px] max-w-[168px] overflow-hidden rounded-2xl">
-            <img src="/public/none-img/none_profile_img.png" alt="noneImg" />
+            <img src="/none-img/none_profile_img.png" alt="noneImg" />
           </div>
         ) : (
           <img src={imgUrl} alt="profileImg" />

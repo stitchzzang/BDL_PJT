@@ -10,7 +10,7 @@ export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
       <div className="inline-block max-h-[260px] overflow-hidden rounded-2xl">
         {newsMainInfo.imgUrl === null ? (
           <img
-            src="/public/none-img/none_news_img.png"
+            src="/none-img/none_news_img.png"
             alt="noneImg"
             className="h-full w-full object-cover object-center"
           />

@@ -9,7 +9,7 @@ export const NewsChartSub = ({ newsSubInfo }: NewsChartSubProps) => {
     <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
       <div className="max-h-[100px] max-w-[100px] overflow-hidden rounded-2xl">
         {newsSubInfo.imgUrl === null ? (
-          <img src="/public/none-img/none_stock_img.png" alt="noneNewsImg" />
+          <img src="/none-img/none_stock_img.png" alt="noneNewsImg" />
         ) : (
           <img src={newsSubInfo.imgUrl} alt="newsSubImg" />
         )}
