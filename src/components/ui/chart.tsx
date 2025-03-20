@@ -527,7 +527,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   // 거래량 차트의 높이 비율 상수 정의
   const VOLUME_HEIGHT_RATIO = volumeHeightRatio;
   // 거래량 차트와 캔들차트 사이의 간격 비율
-  const VOLUME_GAP_RATIO = 0.02;
+  const VOLUME_GAP_RATIO = 0.05;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -542,7 +542,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const maxVolume = getMaxVolume();
     return {
       min: 0,
-      max: Math.ceil(maxVolume * 1.1),
+      max: Math.ceil(maxVolume * 1.8), // 1.5에서 1.8로 증가
     };
   }, [getMaxVolume]);
 
@@ -574,8 +574,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
     // 거래량 영역 계산
     const maxVolume = getMaxVolume();
-    const volumeRange = totalRange * VOLUME_HEIGHT_RATIO;
-    const volumeScale = volumeRange / maxVolume;
+    const volumeRange = totalRange * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO * 0.9); // 0.7에서 0.9로 증가
+    const volumeScale = (volumeRange * 0.6) / maxVolume; // 0.7에서 0.6으로 감소하여 더 많은 여백 확보
     const scaledMaxVolume = maxVolume * volumeScale;
 
     return {
