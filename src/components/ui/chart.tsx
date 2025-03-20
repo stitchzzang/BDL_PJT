@@ -1104,25 +1104,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           ],
         },
       },
-      {
-        name: '구분선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: showVolume
-          ? [
-              [10, dividerLinePosition()],
-              [xAxisLabels.length - 1, dividerLinePosition()],
-            ]
-          : [],
-        lineStyle: {
-          color: '#2e3947',
-          width: 2,
-          type: 'solid',
-        },
-        symbol: 'none',
-        silent: true,
-      },
     ],
   };
 
@@ -1180,8 +1161,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           style={{
             left: '80px',
             right: '80px',
-            top: `calc(${(1 - volumeHeightRatio) * 100}% - 60px)`,
-            height: '4px',
+            top: `calc(${(1 - volumeHeightRatio) * 100}% - 61px)`,
+            height: '3px',
             backgroundColor: isDragging ? '#4a90e2' : '#2e3947',
             transition: isDragging ? 'none' : 'all 0.2s ease',
           }}
