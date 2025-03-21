@@ -5,7 +5,7 @@ interface OrderStatusWaitListProps {
 }
 
 export const OrderStatusWaitList = ({ test }: OrderStatusWaitListProps) => {
-  const h3Style = 'text-[18px] font-medium text-white';
+  const h3Style = 'text-[16px] font-medium text-white';
   return (
     <div
       className={`mb-3 mt-[12px] flex justify-between rounded-xl p-3 ${test.status === '판매' ? 'bg-btn-blue-color bg-opacity-20' : 'bg-btn-red-color bg-opacity-20'}`}
