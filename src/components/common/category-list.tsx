@@ -17,7 +17,7 @@ export interface categoryData {
   icon: React.ComponentType; // ComponentType으로 변경
 }
 
-export const CategoryButton = () => {
+export const CategoryList = () => {
   const categoryList: categoryData[] = [
     { name: '자동차', icon: TruckIcon },
     { name: '화장품', icon: EyeDropperIcon },
