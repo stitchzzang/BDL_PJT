@@ -1,9 +1,14 @@
-import { CompanyInfo } from '@/components/common/company-info';
-
 export const StockTutorialResultItem = () => {
   return (
     <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3">
-      <CompanyInfo />
+      <div className="flex flex-row items-center gap-4">
+        <img
+          src="https://placehold.co/50x50"
+          alt="company-identifier"
+          className="h-[50px] w-[50px] rounded-xl"
+        />
+        <p className="text-base">회사명</p>
+      </div>
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">시작 금액</span>
