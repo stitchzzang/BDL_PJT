@@ -1,7 +1,7 @@
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
+import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
-import { CategoryName, getCategoryIcon } from '@/utils/getCategoryInfo';
 
 interface StockInfoProps {
   category: CategoryName;
