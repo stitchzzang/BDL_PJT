@@ -13,7 +13,7 @@ export const SimulatedInvestmentPage = () => {
     <div className="flex h-full w-full flex-col px-6">
       <div>
         <div>
-          <StockInfo />
+          <StockInfo category="반도체" />
         </div>
         <div className="mb-[16px] mt-[30px] flex items-center justify-between">
           <div className="rounded-2xl bg-modal-background-color px-[24px] py-[20px]">

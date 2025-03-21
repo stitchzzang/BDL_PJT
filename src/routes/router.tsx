@@ -78,10 +78,10 @@ export const router = createBrowserRouter([
         path: '/simulated-investment',
         element: <SimulatedInvestmentPage />,
       },
-      {
-        path: '*',
-        element: <NotFoundPage />,
-      },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   },
 ]);
