@@ -26,11 +26,11 @@ export const SimulatedInvestmentPage = () => {
           </div>
         </div>
       </div>
-      <div className="mb-[20px] grid grid-cols-10 gap-5">
-        <div className="col-span-8">
+      <div className="mb-[20px] grid grid-cols-1 gap-5 lg:grid-cols-10">
+        <div className="col-span-1 lg:col-span-8">
           <ChartComponent data={dummyChartData} height={600} />
         </div>
-        <div className="col-span-2">
+        <div className="col-span-1 lg:col-span-2">
           <OrderStatus />
         </div>
       </div>
