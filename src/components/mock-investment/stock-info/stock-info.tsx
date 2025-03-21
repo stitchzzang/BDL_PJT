@@ -1,8 +1,15 @@
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
+import { CategoryName, getCategoryIcon } from '@/utils/categoryMapping';
 import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
-export const StockInfo = () => {
+interface StockInfoProps {
+  category: CategoryName;
+}
+
+export const StockInfo = ({ category }: StockInfoProps) => {
+  const CategoryIcon = getCategoryIcon(category);
+
   return (
     <div className="flex items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
@@ -25,8 +32,11 @@ export const StockInfo = () => {
                   <p className="text-border-color">어제보다</p>
                   <p className="text-btn-red-color">{formatThousandSeparator(1323)}원(23%)</p>
                 </div>
-                <div className="flex gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
-                  <p className="text-border-color">반도체</p>
+                <div className="flex items-center justify-center gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
+                  <div className="min-h-[25px] min-w-[25px]">
+                    <CategoryIcon />
+                  </div>
+                  <p className="text-border-color">{category}</p>
                 </div>
               </div>
             </div>
