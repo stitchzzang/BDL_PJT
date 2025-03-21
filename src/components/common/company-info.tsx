@@ -1,6 +1,6 @@
 export const CompanyInfo = () => {
   return (
-    <div className="flex flex-row items-center gap-2">
+    <div className="flex flex-row items-center gap-4">
       <img
         src="https://placehold.co/50x50"
         alt="company-identifier"
