@@ -586,12 +586,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     });
   }, [extendedChartData, getMaxVolume, getPriceRange]);
 
-  // 구분선 Y축 위치 계산
-  const dividerLinePosition = useCallback(() => {
-    const priceRange = getPriceRange();
-    return priceRange.volumeMax;
-  }, [getPriceRange]);
-
   // 캔들차트 데이터 스케일링
   const scaleCandleData = useCallback(() => {
     return extendedChartData.map((item, index) => {
@@ -844,8 +838,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               <div>거래량: ${volumeStr}</div>
             </div>
           `;
-        } catch (error) {
-          console.error('Tooltip formatter error:', error);
+        } catch {
           return '';
         }
       },
@@ -1043,7 +1036,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
                   const originalVolume = volumeRatio * volumeRange.max;
                   return formatVolumeNumber(Math.floor(originalVolume));
                 }
-              } catch (e) {
+              } catch {
                 return '-';
               }
             },
