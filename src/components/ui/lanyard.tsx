@@ -26,13 +26,13 @@ interface LanyardProps {
 }
 
 export const Lanyard = ({
-  position = [0, 0, 30],
+  position = [0, 0, 20],
   gravity = [0, -40, 0],
-  fov = 20,
+  fov = 13,
   transparent = true,
 }: LanyardProps) => {
   return (
-    <div className="relative z-0 flex h-screen w-full origin-center scale-100 transform items-center justify-center">
+    <div className="relative z-0 flex h-[400px] w-full origin-center scale-100 transform items-center justify-center">
       <Canvas
         camera={{ position, fov }}
         gl={{ alpha: transparent }}
