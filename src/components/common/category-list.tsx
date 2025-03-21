@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { type CategoryName, getCategoryIcon, getCategoryNames } from '@/utils/categoryMapping';
 
