@@ -1102,6 +1102,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       link: [{ xAxisIndex: 'all' }],
       label: {
         backgroundColor: FALL_COLOR,
+        show: false, // 기본적으로 모든 축포인터 레이블을 숨김
         formatter: (params: any) => {
           // X축 포인터인 경우에만 처리
           if (params.axisDimension === 'x') {
@@ -1181,6 +1182,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         axisTick: { show: false },
         boundaryGap: true,
+        axisPointer: {
+          show: true,
+          label: { show: false }, // 상단 축포인터 레이블 숨김
+        },
       },
       {
         type: 'category',
@@ -1216,6 +1221,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         axisTick: { show: false },
         boundaryGap: true,
+        axisPointer: {
+          show: true,
+          label: { show: true }, // 하단 축포인터 레이블 표시
+        },
       },
     ],
     yAxis: [
