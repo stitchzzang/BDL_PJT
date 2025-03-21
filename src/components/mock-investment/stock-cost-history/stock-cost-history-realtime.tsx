@@ -1,5 +1,5 @@
 import { RTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
-import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockCostHistoryRealTimeProps {
   stockDataList: RTData[];
@@ -26,9 +26,7 @@ export const StockCostHistoryRealTime = ({ stockDataList }: StockCostHistoryReal
                 key={index}
                 className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
               >
-                <div className="w-[20%] font-medium">
-                  {formatThousandSeparator(item.tradePrice)}원
-                </div>
+                <div className="w-[20%] font-medium">{addCommasToThousand(item.tradePrice)}원</div>
                 <div className="w-[20%] text-right text-btn-blue-color">{item.tradeVolume}</div>
                 <div className="w-[20%] text-right text-btn-red-color">{item.fluctuationRate}%</div>
                 <div className="w-[20%] text-right font-light text-border-color">
