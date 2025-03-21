@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 
 export const OrderStatusShell = () => {
-  const h3Style = 'text-[18px] font-bold text-white';
+  const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 구매가격
@@ -59,13 +59,13 @@ export const OrderStatusShell = () => {
               {/* 지정가 */}
               <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-1 py-1">
                 <div
-                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[18px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
                   <p>지정가</p>
                 </div>
                 <div
-                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[18px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('시장가')}
                 >
                   <p>시장가</p>
@@ -138,7 +138,7 @@ export const OrderStatusShell = () => {
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
           <Button variant="blue" className="w-full" size="lg">
-            <p className=" text-[22px] font-medium text-white">판매하기</p>
+            <p className=" text-[18px] font-medium text-white">판매하기</p>
           </Button>
           <p className="text-[14px] font-light text-[#718096]">
             결제 수수료는 결제 금액의 0.004% 입니다.

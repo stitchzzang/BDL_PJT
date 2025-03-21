@@ -8,7 +8,7 @@ export const NavBar = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="flex items-center justify-between bg-[#030D1B] px-10 py-2">
+    <nav className="mb-[60px] flex items-center justify-between bg-[#030D1B] px-10 py-2">
       <button className="duration-300 hover:scale-110" onClick={() => navigate('/')}>
         <MainLogoIcon className="h-10 w-10" color="white" />
       </button>

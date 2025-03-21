@@ -29,7 +29,7 @@ export const StockCostHistoryDay = ({ dayDataList }: StockCostHistoryDayProps) =
                 key={index}
                 className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
               >
-                <div className="w-[20%] font-light text-border-color">{item.date}</div>
+                <div className="w-[20%] text-[14px] font-light text-border-color">{item.date}</div>
                 <div className="w-[20%] text-right text-border-color">{item.closePrice}</div>
                 <div className="w-[20%] text-right text-btn-red-color">{item.changeRate}%</div>
                 <div className="w-[20%] text-right font-light text-border-color">

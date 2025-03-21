@@ -27,7 +27,7 @@ const orderBookDummy: orderBookData = {
 };
 export const SellingPrice = () => {
   return (
-    <div className="rounded-2xl bg-modal-background-color p-[20px]">
+    <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
       <div className="flex justify-between">
         <h3 className="text-[18px] font-bold">호가</h3>
         {/* 장시간 string */}

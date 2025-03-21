@@ -11,7 +11,7 @@ export interface TestItem {
 }
 
 export const OrderStatusWait = () => {
-  const h3Style = 'text-[18px] font-bold text-white';
+  const h3Style = 'text-[16px] font-bold text-white';
   const testList: TestItem[] = [
     { name: '삼성전자', price: 32321, quantity: 3, status: '판매' },
     { name: '삼성전자', price: 12321, quantity: 3, status: '판매' },
