@@ -1,5 +1,5 @@
 import { TestItem } from '@/components/mock-investment/order-status/order-status-wait'; // TestItem 타입을 임포트
-
+import { formatNumber } from '@/utils/formatNumber';
 interface OrderStatusWaitListProps {
   test: TestItem; // test 객체를 prop으로 받기
 }
@@ -13,7 +13,7 @@ export const OrderStatusWaitList = ({ test }: OrderStatusWaitListProps) => {
       <div className="flex items-center gap-3">
         <h3 className={h3Style}>{test.name}</h3>
         <p className="text-border-color">
-          {test.price}원 <span>|</span> {test.quantity}주
+          {formatNumber(test.price)}원 <span>|</span> {test.quantity}주
         </p>
       </div>
       <div>

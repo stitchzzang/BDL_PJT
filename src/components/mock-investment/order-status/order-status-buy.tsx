@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
+import { formatNumber } from '@/utils/formatNumber';
 
 export const OrderStatusBuy = () => {
   // 폰트 동일 스타일링 함수
@@ -134,11 +135,11 @@ export const OrderStatusBuy = () => {
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
-            <h3 className={h3Style}>{printCost}</h3>
+            <h3 className={h3Style}>{formatNumber(printCost)}</h3>
           </div>
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>충 주문 금액</h3>
-            <h3 className={h3Style}>{totalPrice()} 원</h3>
+            <h3 className={h3Style}>{formatNumber(totalPrice())} 원</h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">

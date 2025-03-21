@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
+import { formatNumber } from '@/utils/formatNumber';
 
 export const OrderStatusShell = () => {
   const h3Style = 'text-[16px] font-bold text-white';
@@ -133,7 +134,7 @@ export const OrderStatusShell = () => {
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>{totalPrice()} 원</h3>
+            <h3 className={h3Style}>{formatNumber(totalPrice())} 원</h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
