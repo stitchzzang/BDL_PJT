@@ -5,6 +5,7 @@ import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import ChartComponent from '@/components/ui/chart';
 import { dummyChartData } from '@/lib/dummy-data';
+import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
   return (
@@ -14,13 +15,13 @@ export const SimulatedInvestmentPage = () => {
           <StockInfo />
         </div>
         <div className="mb-[16px] mt-[30px] flex items-center justify-between">
-          <div className="rounded-2xl bg-btn-blue-color bg-opacity-40 px-[24px] py-[20px]">
+          <div className="rounded-2xl bg-modal-background-color px-[24px] py-[20px]">
             <p className="font-bold">차트</p>
           </div>
           <div className="flex items-center gap-3">
             <p className="text-border-color">오늘 날짜</p>
             <div className="rounded-xl bg-modal-background-color px-[20px] py-[16px]">
-              <p>2023:02:12</p>
+              <p>{getTodayFormatted()}</p>
             </div>
           </div>
         </div>
