@@ -976,7 +976,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
   return (
     <div
-      className="flex h-full w-full flex-col overflow-hidden"
+      className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
       style={{ backgroundColor: '#0D192B' }}
     >
       <div className="flex items-center gap-4 p-4 text-sm text-white">
