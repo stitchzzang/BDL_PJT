@@ -1,6 +1,6 @@
 'use client';
 
-import type { EChartsOption } from 'echarts';
+import type { EChartsOption, SeriesOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -21,6 +21,162 @@ type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
 
 const RISE_COLOR = '#ef5350'; // 빨강
 const FALL_COLOR = '#1976d2'; // 파랑
+
+// 캔들차트 시리즈 생성 함수
+const createCandleSeries = (
+  scaledCandleData: number[][],
+  scaledEMA5Data: (number | null)[],
+  scaledEMA20Data: (number | null)[],
+  currentData: ExtendedDataPoint,
+  formatKoreanNumber: (value: number) => string,
+): SeriesOption[] => {
+  const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
+
+  return [
+    {
+      name: '캔들차트',
+      type: 'candlestick',
+      xAxisIndex: 0,
+      yAxisIndex: 0,
+      data: scaledCandleData,
+      itemStyle: {
+        color: RISE_COLOR,
+        color0: FALL_COLOR,
+        borderColor: RISE_COLOR,
+        borderColor0: FALL_COLOR,
+      },
+      barWidth: '85%',
+      markLine: {
+        symbol: ['none', 'none'],
+        animation: false,
+        silent: true,
+        lineStyle: {
+          color: currentPriceColor,
+          width: 1,
+          type: 'dashed',
+        },
+        label: {
+          show: true,
+          position: 'end',
+          distance: 0,
+          offset: [0, 0],
+          formatter: formatKoreanNumber(Math.floor(currentData.close)),
+          backgroundColor: currentPriceColor,
+          padding: [4, 7, 4, 7],
+          borderRadius: 2,
+          color: '#FFFFFF',
+          fontSize: 12,
+        },
+        data: [
+          {
+            yAxis: Math.floor(currentData.close),
+            label: {
+              show: true,
+              position: 'end',
+              distance: 0,
+              offset: [0, 0],
+            },
+          },
+        ],
+      },
+    },
+    {
+      name: '5일 이평선',
+      type: 'line',
+      xAxisIndex: 0,
+      yAxisIndex: 0,
+      data: scaledEMA5Data,
+      smooth: true,
+      lineStyle: {
+        opacity: 0.8,
+        color: '#f6c85d',
+        width: 1,
+      },
+      symbol: 'none',
+      connectNulls: true,
+    },
+    {
+      name: '20일 이평선',
+      type: 'line',
+      xAxisIndex: 0,
+      yAxisIndex: 0,
+      data: scaledEMA20Data,
+      smooth: true,
+      lineStyle: {
+        opacity: 0.8,
+        color: '#8b62d9',
+        width: 1,
+      },
+      symbol: 'none',
+      connectNulls: true,
+    },
+  ];
+};
+
+// 거래량 시리즈 생성 함수
+const createVolumeSeries = (
+  showVolume: boolean,
+  scaledVolumeData: number[],
+  extendedChartData: ExtendedDataPoint[],
+  currentData: ExtendedDataPoint,
+  formatVolumeNumber: (value: number) => string,
+): SeriesOption[] => {
+  const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
+
+  return [
+    {
+      name: '거래량',
+      type: 'bar',
+      xAxisIndex: 0,
+      yAxisIndex: 0,
+      data: showVolume ? scaledVolumeData : [],
+      itemStyle: {
+        color: (params: any) => {
+          const index = params.dataIndex;
+          if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
+          return extendedChartData[index].close >= extendedChartData[index].open
+            ? RISE_COLOR
+            : FALL_COLOR;
+        },
+      },
+      barWidth: '85%',
+      markLine: {
+        symbol: 'none',
+        lineStyle: {
+          color: 'transparent',
+          width: 0,
+          type: 'solid',
+        },
+        label: {
+          show: true,
+          position: 'end',
+          distance: 0,
+          offset: [0, 0],
+          formatter: formatVolumeNumber(currentData.volume),
+          backgroundColor: currentPriceColor,
+          padding: [4, 7, 4, 7],
+          borderRadius: 2,
+          color: '#FFFFFF',
+          fontSize: 12,
+        },
+        data: [
+          {
+            yAxis: scaledVolumeData[scaledVolumeData.length - 1],
+            lineStyle: {
+              color: 'transparent',
+            },
+            label: {
+              show: true,
+              position: 'end',
+              distance: 0,
+              offset: [0, 0],
+            },
+          },
+        ],
+      },
+    },
+  ];
+};
 
 export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
@@ -1066,134 +1222,20 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       },
     ],
     series: [
-      {
-        name: '캔들차트',
-        type: 'candlestick',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: scaledCandleData,
-        itemStyle: {
-          color: RISE_COLOR,
-          color0: FALL_COLOR,
-          borderColor: RISE_COLOR,
-          borderColor0: FALL_COLOR,
-        },
-        barWidth: '85%',
-        markLine: {
-          symbol: ['none', 'none'],
-          animation: false,
-          silent: true,
-          lineStyle: {
-            color: currentPriceColor,
-            width: 1,
-            type: 'dashed',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            distance: 0,
-            offset: [0, 0],
-            formatter: formatKoreanNumber(Math.floor(currentData.close)),
-            backgroundColor: currentPriceColor,
-            padding: [4, 7, 4, 7],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: Math.floor(currentData.close),
-              label: {
-                show: true,
-                position: 'end',
-                distance: 0,
-                offset: [0, 0],
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: '5일 이평선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: scaledEMA5Data,
-        smooth: true,
-        lineStyle: {
-          opacity: 0.8,
-          color: '#f6c85d',
-          width: 1,
-        },
-        symbol: 'none',
-        connectNulls: true,
-      },
-      {
-        name: '20일 이평선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: scaledEMA20Data,
-        smooth: true,
-        lineStyle: {
-          opacity: 0.8,
-          color: '#8b62d9',
-          width: 1,
-        },
-        symbol: 'none',
-        connectNulls: true,
-      },
-      {
-        name: '거래량',
-        type: 'bar',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: showVolume ? scaledVolumeData : [],
-        itemStyle: {
-          color: (params: any) => {
-            const index = params.dataIndex;
-            if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
-            return extendedChartData[index].close >= extendedChartData[index].open
-              ? RISE_COLOR
-              : FALL_COLOR;
-          },
-        },
-        barWidth: '85%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: 'transparent',
-            width: 0,
-            type: 'solid',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            distance: 0,
-            offset: [0, 0],
-            formatter: formatVolumeNumber(currentData.volume),
-            backgroundColor: currentPriceColor,
-            padding: [4, 7, 4, 7],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: scaledVolumeData[scaledVolumeData.length - 1],
-              lineStyle: {
-                color: 'transparent',
-              },
-              label: {
-                show: true,
-                position: 'end',
-                distance: 0,
-                offset: [0, 0],
-              },
-            },
-          ],
-        },
-      },
+      ...createCandleSeries(
+        scaledCandleData,
+        scaledEMA5Data,
+        scaledEMA20Data,
+        currentData,
+        formatKoreanNumber,
+      ),
+      ...createVolumeSeries(
+        showVolume,
+        scaledVolumeData,
+        extendedChartData,
+        currentData,
+        formatVolumeNumber,
+      ),
     ],
   };
 
