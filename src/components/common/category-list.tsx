@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { type CategoryName, getCategoryIcon, getCategoryNames } from '@/utils/getCategoryInfo';
+import { type CategoryName, getCategoryIcon, getCategoryNames } from '@/utils/categoryMapper';
 
 export const CategoryList = () => {
   const categoryNames = getCategoryNames();

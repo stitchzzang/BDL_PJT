@@ -1,7 +1,7 @@
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
 import { addCommasToThousand } from '@/utils/numberFormatter';
-import { CategoryName, getCategoryIcon } from '@/utils/getCategoryInfo';
+import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 
 interface StockInfoProps {
   category: CategoryName;
@@ -9,7 +9,6 @@ interface StockInfoProps {
 
 export const StockInfo = ({ category }: StockInfoProps) => {
   const CategoryIcon = getCategoryIcon(category);
->>>>>>> src/components/mock-investment/stock-info/stock-info.tsx
 
   return (
     <div className="flex items-center">
