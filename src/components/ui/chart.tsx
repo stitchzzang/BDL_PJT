@@ -949,182 +949,265 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   }, [isDragging, handleDragMove, handleDragEnd]);
 
   useEffect(() => {
-    const chartInstance = chartRef.current?.getEchartsInstance();
-    if (!chartInstance) return;
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) return;
 
     let isDragging = false;
     let lastX = 0;
     let lastY = 0;
-    let isDisposed = false;
+    let isZooming = false;
+    let zoomStart = { x: 0, y: 0 };
 
+    // 줌 설정 초기화
+    const initZoom = () => {
+      chart.dispatchAction({
+        type: 'dataZoom',
+        start: dataZoomRange.start,
+        end: dataZoomRange.end,
+        xAxisIndex: [0, 1],
+      });
+    };
+
+    // 마우스 이벤트 핸들러
     const handleMouseDown = (e: MouseEvent) => {
-      try {
-        const target = e.target as HTMLElement;
-        if (!target.closest('.echarts-for-react')) return;
+      const target = e.target as HTMLElement;
+      if (!target.closest('.echarts-for-react')) return;
 
-        isDragging = true;
-        lastX = e.clientX;
-        lastY = e.clientY;
+      // 차트 그리드 영역인지 확인
+      const gridElements = document.querySelectorAll('.echarts-grid');
+      let isInGridArea = false;
 
-        const chartElement = document.querySelector('.echarts-for-react');
-        if (chartElement) {
-          (chartElement as HTMLElement).style.cursor = 'grabbing';
+      gridElements.forEach((grid) => {
+        const rect = grid.getBoundingClientRect();
+        if (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        ) {
+          isInGridArea = true;
         }
-      } catch (error) {
-        console.error('Mouse down error:', error);
+      });
+
+      if (!isInGridArea) return;
+
+      isDragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+
+      const chartElement = document.querySelector('.echarts-for-react');
+      if (chartElement) {
+        (chartElement as HTMLElement).style.cursor = 'grabbing';
       }
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      try {
-        if (!isDragging || !chartInstance || chartInstance.isDisposed()) return;
+      if (!isDragging) return;
 
-        const moveX = e.clientX - lastX;
-        const moveY = e.clientY - lastY;
-        const chartWidth = chartInstance.getWidth();
-        const chartHeight = chartInstance.getHeight();
+      // X축 이동 - 데이터줌 사용
+      const moveX = e.clientX - lastX;
+      const chartWidth = chart.getWidth();
+      const moveRatio = (moveX / chartWidth) * 10; // 이동 민감도 조절
 
-        // X축 이동
-        const options = chartInstance.getOption();
-        const dataZoomOpt = options.dataZoom?.[0] as any;
-        if (!dataZoomOpt) return;
+      // 현재 dataZoom 상태 가져오기
+      const dataZoomOption = chart.getOption() as any;
+      const moveCurrentStart = dataZoomOption.dataZoom?.[0]?.start ?? dataZoomRange.start;
+      const moveCurrentEnd = dataZoomOption.dataZoom?.[0]?.end ?? dataZoomRange.end;
+      const moveRange = moveCurrentEnd - moveCurrentStart;
 
-        const moveRatio = (moveX / chartWidth) * (dataZoomOpt.end - dataZoomOpt.start);
-        let newStart = dataZoomOpt.start - moveRatio;
-        let newEnd = dataZoomOpt.end - moveRatio;
+      // 새 위치 계산 (이동 방향 반대로 적용)
+      let newStart = moveCurrentStart - moveRatio;
+      let newEnd = moveCurrentEnd - moveRatio;
 
-        // 범위 제한
-        if (newStart < 0) {
-          newEnd = newEnd - newStart;
-          newStart = 0;
-        }
-        if (newEnd > 100) {
-          newStart = newStart - (newEnd - 100);
-          newEnd = 100;
-        }
-
-        chartInstance.dispatchAction({
-          type: 'dataZoom',
-          start: newStart,
-          end: newEnd,
-          xAxisIndex: [0, 1],
-        });
-
-        // Y축 이동
-        const moveYRatio = moveY / chartHeight;
-
-        // 캔들차트 Y축 이동
-        const candleRange = candleYScale.max - candleYScale.min;
-        const candleMoveAmount = candleRange * moveYRatio;
-        setCandleYScale((prev) => ({
-          min: prev.min + candleMoveAmount,
-          max: prev.max + candleMoveAmount,
-        }));
-
-        // 거래량 차트 Y축 이동
-        const volumeRange = volumeYScale.max - volumeYScale.min;
-        const volumeMoveAmount = volumeRange * moveYRatio;
-        setVolumeYScale((prev) => ({
-          min: Math.max(0, prev.min + volumeMoveAmount),
-          max: prev.max + volumeMoveAmount,
-        }));
-
-        lastX = e.clientX;
-        lastY = e.clientY;
-      } catch (error) {
-        console.error('Mouse move error:', error);
+      // 범위 제한
+      if (newStart < 0) {
+        newStart = 0;
+        newEnd = moveRange;
+      } else if (newEnd > 100) {
+        newEnd = 100;
+        newStart = 100 - moveRange;
       }
+
+      // 데이터줌 적용
+      chart.dispatchAction({
+        type: 'dataZoom',
+        start: newStart,
+        end: newEnd,
+        xAxisIndex: [0, 1],
+      });
+
+      // Y축 이동 (Y축 범위 변경)
+      const moveY = e.clientY - lastY;
+      const chartHeight = chart.getHeight();
+      const yMoveRatio = (moveY / chartHeight) * 5; // Y축 이동 민감도
+
+      // 캔들 차트 Y축 이동
+      const currentCandleMin = candleYScale.min;
+      const currentCandleMax = candleYScale.max;
+      const candleRange = currentCandleMax - currentCandleMin;
+      const candleMoveAmount = candleRange * yMoveRatio;
+
+      // 거래량 차트 Y축 이동
+      const currentVolumeMin = volumeYScale.min;
+      const currentVolumeMax = volumeYScale.max;
+      const volumeRange = currentVolumeMax - currentVolumeMin;
+      const volumeMoveAmount = volumeRange * yMoveRatio;
+
+      // 새 Y축 범위 설정
+      setCandleYScale({
+        min: currentCandleMin + candleMoveAmount,
+        max: currentCandleMax + candleMoveAmount,
+      });
+
+      setVolumeYScale({
+        min: Math.max(0, currentVolumeMin + volumeMoveAmount),
+        max: currentVolumeMax + volumeMoveAmount,
+      });
+
+      // 마지막 위치 업데이트
+      lastX = e.clientX;
+      lastY = e.clientY;
     };
 
     const handleMouseUp = () => {
-      try {
-        if (!isDragging) return;
-        isDragging = false;
+      if (!isDragging) return;
 
-        const chartElement = document.querySelector('.echarts-for-react');
-        if (chartElement) {
-          (chartElement as HTMLElement).style.cursor = 'grab';
-        }
-      } catch (error) {
-        console.error('Mouse up error:', error);
+      isDragging = false;
+      const chartElement = document.querySelector('.echarts-for-react');
+      if (chartElement) {
+        (chartElement as HTMLElement).style.cursor = 'grab';
       }
     };
 
     const handleWheel = (e: WheelEvent) => {
-      try {
-        e.preventDefault();
+      const target = e.target as HTMLElement;
+      if (!target.closest('.echarts-for-react')) return;
 
-        if (!chartInstance || chartInstance.isDisposed()) return;
+      // 차트 그리드 영역인지 확인
+      const gridElements = document.querySelectorAll('.echarts-grid');
+      let isInGridArea = false;
 
-        const target = e.target as HTMLElement;
-        if (!target.closest('.echarts-for-react')) return;
-
-        const chartRect = chartInstance.getDom().getBoundingClientRect();
-        const mouseY = e.clientY - chartRect.top;
-        const splitPosition = chartRect.height * (1 - volumeHeightRatio);
-
-        // 줌 방향 및 비율 계산
-        const zoomDirection = e.deltaY > 0 ? 1 : -1;
-        const zoomFactor = zoomDirection < 0 ? 0.8 : 1.2;
-
-        // 마우스 위치에 따라 캔들/거래량 차트 줌 처리
-        if (mouseY < splitPosition) {
-          // 캔들차트 줌
-          const range = candleYScale.max - candleYScale.min;
-          const center = candleYScale.min + range * (mouseY / splitPosition);
-          const newRange = range * zoomFactor;
-
-          setCandleYScale({
-            min: center - newRange * (mouseY / splitPosition),
-            max: center + newRange * (1 - mouseY / splitPosition),
-          });
-        } else {
-          // 거래량 차트 줌
-          const range = volumeYScale.max - volumeYScale.min;
-          const relativeY = (mouseY - splitPosition) / (chartRect.height - splitPosition);
-          const center = volumeYScale.min + range * relativeY;
-          const newRange = range * zoomFactor;
-
-          setVolumeYScale({
-            min: Math.max(0, center - newRange * relativeY),
-            max: center + newRange * (1 - relativeY),
-          });
+      gridElements.forEach((grid) => {
+        const rect = grid.getBoundingClientRect();
+        if (
+          e.clientX >= rect.left &&
+          e.clientX <= rect.right &&
+          e.clientY >= rect.top &&
+          e.clientY <= rect.bottom
+        ) {
+          isInGridArea = true;
         }
-      } catch (error) {
-        console.error('Wheel error:', error);
+      });
+
+      if (!isInGridArea) return;
+
+      e.preventDefault();
+
+      // 줌 방향 감지 (delta가 양수면 축소, 음수면 확대)
+      const zoomDirection = e.deltaY > 0 ? 1 : -1;
+
+      // 모든 축 동시에 확대/축소
+
+      // 1. X축 확대/축소
+      const zoomFactor = zoomDirection < 0 ? 0.8 : 1.2; // 줌인은 0.8, 줌아웃은 1.2
+      const zoomDataOption = chart.getOption() as any;
+      const zoomCurrentStart = zoomDataOption.dataZoom?.[0]?.start ?? dataZoomRange.start;
+      const zoomCurrentEnd = zoomDataOption.dataZoom?.[0]?.end ?? dataZoomRange.end;
+      const zoomCurrentRange = zoomCurrentEnd - zoomCurrentStart;
+      const newRange = Math.min(Math.max(zoomCurrentRange * zoomFactor, 5), 100);
+
+      // 줌 센터 계산
+      const chartRect = chart.getDom().getBoundingClientRect();
+      const mouseX = e.clientX - chartRect.left;
+      const totalWidth = chartRect.width;
+      const zoomCenter =
+        (mouseX / totalWidth) * (zoomCurrentEnd - zoomCurrentStart) + zoomCurrentStart;
+
+      // 새 범위 계산
+      const rangeHalf = newRange / 2;
+      let newStart = Math.max(0, zoomCenter - rangeHalf);
+      let newEnd = Math.min(100, zoomCenter + rangeHalf);
+
+      if (newStart < 0) {
+        newStart = 0;
+        newEnd = newRange;
+      } else if (newEnd > 100) {
+        newEnd = 100;
+        newStart = 100 - newRange;
+      }
+
+      chart.dispatchAction({
+        type: 'dataZoom',
+        start: newStart,
+        end: newEnd,
+        xAxisIndex: [0, 1],
+      });
+
+      // 2. Y축 확대/축소
+      // 캔들 차트 Y축
+      const currentCandleMin = candleYScale.min;
+      const currentCandleMax = candleYScale.max;
+      const candleRange = currentCandleMax - currentCandleMin;
+      const newCandleRange = candleRange * zoomFactor;
+
+      // Y축 줌 센터 계산
+      const mouseY = e.clientY - chartRect.top;
+      const splitPosition = chartRect.height * (1 - volumeHeightRatio);
+      const isInCandleArea = mouseY < splitPosition;
+
+      if (isInCandleArea) {
+        // 캔들 영역에서 Y축 줌
+        const candleHeight = splitPosition;
+        const candleRatio = mouseY / candleHeight;
+        const centerValue = currentCandleMin + candleRange * candleRatio;
+
+        setCandleYScale({
+          min: centerValue - newCandleRange * candleRatio,
+          max: centerValue + newCandleRange * (1 - candleRatio),
+        });
+      } else {
+        // 거래량 영역에서 Y축 줌
+        const currentVolumeMin = volumeYScale.min;
+        const currentVolumeMax = volumeYScale.max;
+        const volumeRange = currentVolumeMax - currentVolumeMin;
+        const newVolumeRange = volumeRange * zoomFactor;
+
+        const volumeHeight = chartRect.height - splitPosition;
+        const volumeRatio = (mouseY - splitPosition) / volumeHeight;
+        const centerVolume = currentVolumeMin + volumeRange * volumeRatio;
+
+        setVolumeYScale({
+          min: Math.max(0, centerVolume - newVolumeRange * volumeRatio),
+          max: centerVolume + newVolumeRange * (1 - volumeRatio),
+        });
       }
     };
 
-    // 이벤트 리스너 등록
-    try {
-      const zr = chartInstance.getZr();
-      if (zr) {
-        zr.on('mousedown', handleMouseDown);
-      }
+    // 차트 DOM 스타일과 이벤트 설정
+    const chartDom = chart.getDom();
+    if (chartDom) {
+      chartDom.style.cursor = 'grab';
+
+      chartDom.addEventListener('mousedown', handleMouseDown);
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
-      chartInstance.getDom()?.addEventListener('wheel', handleWheel, { passive: false });
-    } catch (error) {
-      console.error('Event listener registration error:', error);
+      window.addEventListener('mouseleave', handleMouseUp);
+      chartDom.addEventListener('wheel', handleWheel, { passive: false });
     }
 
-    // 클린업
+    // 초기 줌 설정
+    initZoom();
+
     return () => {
-      try {
-        if (chartInstance && !chartInstance.isDisposed()) {
-          const zr = chartInstance.getZr();
-          if (zr) {
-            zr.off('mousedown');
-          }
-          chartInstance.getDom()?.removeEventListener('wheel', handleWheel);
-        }
+      if (chartDom) {
+        chartDom.removeEventListener('mousedown', handleMouseDown);
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
-      } catch (error) {
-        console.error('Cleanup error:', error);
+        window.removeEventListener('mouseleave', handleMouseUp);
+        chartDom.removeEventListener('wheel', handleWheel);
       }
     };
-  }, [candleYScale, volumeYScale, volumeHeightRatio]);
+  }, [chartRef, dataZoomRange, candleYScale, volumeYScale, volumeHeightRatio]);
 
   // Y축 스크롤 이벤트 핸들러를 useEffect 내부로 이동
   useEffect(() => {
