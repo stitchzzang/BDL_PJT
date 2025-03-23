@@ -135,29 +135,26 @@ const createVolumeSeries = (
       type: 'bar',
       xAxisIndex: 1,
       yAxisIndex: 1,
-      data: showVolume ? scaledVolumeData : [],
-      itemStyle: {
-        color: (params: any) => {
-          const index = params.dataIndex;
-          if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
-          return extendedChartData[index].close >= extendedChartData[index].open
-            ? RISE_COLOR
-            : FALL_COLOR;
-        },
-      },
+      data: showVolume
+        ? scaledVolumeData.map((volume, index) => ({
+            value: volume,
+            itemStyle: {
+              color:
+                index < 10
+                  ? FALL_COLOR
+                  : extendedChartData[index].close >= extendedChartData[index].open
+                    ? RISE_COLOR
+                    : FALL_COLOR,
+            },
+          }))
+        : [],
       barWidth: '85%',
       markLine: {
         symbol: 'none',
-        lineStyle: {
-          color: 'transparent',
-          width: 0,
-          type: 'solid',
-        },
+        lineStyle: { color: 'transparent' },
         label: {
           show: true,
           position: 'end',
-          distance: 0,
-          offset: [0, 0],
           formatter: formatVolumeNumber(currentData.volume),
           backgroundColor: currentPriceColor,
           padding: [4, 7, 4, 7],
@@ -167,15 +164,10 @@ const createVolumeSeries = (
         },
         data: [
           {
-            yAxis: scaledVolumeData[scaledVolumeData.length - 1],
-            lineStyle: {
-              color: 'transparent',
-            },
+            yAxis: currentData.volume,
             label: {
               show: true,
               position: 'end',
-              distance: 0,
-              offset: [0, 0],
             },
           },
         ],
@@ -755,76 +747,20 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   // 거래량 차트 상단 여백 비율
   const VOLUME_TOP_MARGIN_RATIO = 0.15;
 
-  // 거래량 데이터 최대값 계산
-  const getMaxVolume = useCallback(() => {
-    // 유효한 데이터만 필터링
-    const validData = chartData.filter((d) => d !== null && d !== undefined);
-    if (validData.length === 0) return 0;
-    return Math.max(...validData.map((d) => d.volume));
-  }, [chartData]);
-
-  // 거래량 범위 계산
-  const getVolumeRange = useCallback(() => {
-    const maxVolume = getMaxVolume();
-    return {
-      min: 0,
-      max: Math.ceil(maxVolume * (1 + VOLUME_TOP_MARGIN_RATIO)),
-    };
-  }, [getMaxVolume]);
-
-  // 가격 범위 계산
-  const getPriceRange = useCallback(() => {
-    const validData = chartData.filter((d) => d !== null && d !== undefined);
-    if (validData.length === 0) {
-      return {
-        min: 0,
-        max: 100,
-        candleMin: 0,
-        candleMax: 100,
-        volumeMin: 0,
-        volumeMax: 20,
-      };
-    }
-
-    const minPrice = Math.min(...validData.map((d) => d.low));
-    const maxPrice = Math.max(...validData.map((d) => d.high));
-    const range = maxPrice - minPrice;
-    const margin = range * 0.1;
-
-    const candleMin = Math.floor(minPrice - margin);
-    const candleMax = Math.ceil(maxPrice + margin);
-    const candleRange = candleMax - candleMin;
-
-    // 전체 차트 영역 계산
-    const totalRange = candleRange / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
-
-    // 거래량 영역 계산
-    const maxVolume = getMaxVolume();
-    const volumeRange = totalRange * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO * 0.9);
-    const volumeScale = (volumeRange * (1 - VOLUME_TOP_MARGIN_RATIO)) / maxVolume;
-    const scaledMaxVolume = maxVolume * volumeScale;
-
-    return {
-      min: candleMin - scaledMaxVolume - totalRange * VOLUME_GAP_RATIO,
-      max: candleMax,
-      candleMin,
-      candleMax,
-      volumeMax: candleMin - totalRange * VOLUME_GAP_RATIO,
-    };
-  }, [chartData, getMaxVolume]);
-
-  // 거래량 데이터 스케일링
+  // 거래량 데이터 스케일링 함수 수정
   const scaleVolumeData = useCallback(() => {
-    const maxVolume = getMaxVolume();
-    const priceRange = getPriceRange();
-    const volumeHeight = (priceRange.volumeMax - priceRange.min) * (1 - VOLUME_TOP_MARGIN_RATIO);
+    // 유효한 데이터만 필터링
+    const validData = extendedChartData.filter((item, index) => index >= 10);
+    if (validData.length === 0) return [];
+
+    const maxVolume = Math.max(...validData.map((item) => item.volume));
+    const volumeRange = volumeYScale.max - volumeYScale.min;
 
     return extendedChartData.map((item, index) => {
-      if (index < 10) return priceRange.min;
-      const volumeRatio = Math.min(1, item.volume / maxVolume);
-      return priceRange.min + volumeRatio * volumeHeight;
+      if (index < 10) return 0;
+      return item.volume; // 원본 거래량 값을 직접 사용
     });
-  }, [extendedChartData, getMaxVolume, getPriceRange]);
+  }, [extendedChartData, volumeYScale]);
 
   // 캔들차트 데이터 스케일링
   const scaleCandleData = useCallback(() => {
@@ -874,9 +810,13 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   // 드래그 이벤트 핸들러
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
     setIsDragging(true);
     document.body.style.cursor = 'row-resize';
+
+    const chartElement = document.querySelector('.echarts-for-react');
+    if (chartElement) {
+      (chartElement as HTMLElement).style.pointerEvents = 'none';
+    }
   }, []);
 
   const handleDragMove = useCallback(
@@ -887,8 +827,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       if (!chartElement) return;
 
       const rect = chartElement.getBoundingClientRect();
-      const chartTop = rect.top + 40; // 상단 여백
-      const chartBottom = rect.bottom - 60; // 하단 여백
+      const chartTop = rect.top + 40;
+      const chartBottom = rect.bottom - 60;
       const chartHeight = chartBottom - chartTop;
 
       // 마우스 위치가 차트 영역을 벗어나지 않도록 제한
@@ -907,18 +847,37 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
     document.body.style.cursor = 'default';
+
+    const chartElement = document.querySelector('.echarts-for-react');
+    if (chartElement) {
+      (chartElement as HTMLElement).style.pointerEvents = 'auto';
+    }
   }, []);
 
   // 드래그 이벤트 리스너 등록/해제
   useEffect(() => {
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (isDragging) {
+        handleDragMove(e);
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      if (isDragging) {
+        handleDragEnd();
+      }
+    };
+
     if (isDragging) {
-      window.addEventListener('mousemove', handleDragMove);
-      window.addEventListener('mouseup', handleDragEnd);
+      window.addEventListener('mousemove', handleGlobalMouseMove);
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+      window.addEventListener('mouseleave', handleGlobalMouseUp);
     }
 
     return () => {
-      window.removeEventListener('mousemove', handleDragMove);
-      window.removeEventListener('mouseup', handleDragEnd);
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('mouseleave', handleGlobalMouseUp);
     };
   }, [isDragging, handleDragMove, handleDragEnd]);
 
@@ -1232,7 +1191,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'value',
         position: 'right',
         scale: true,
-        splitNumber: 12,
+        splitNumber: 6, // 6 or 12로 처리
         gridIndex: 0,
         axisLine: { lineStyle: { color: '#1a2536' } },
         splitLine: {
@@ -1281,21 +1240,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         axisLabel: {
           color: '#CCCCCC',
-          formatter: (value: number) => {
-            const formattedVolume = formatVolumeNumber(Math.floor(value));
-            if (Math.abs(value - currentData.volume) < 0.1) {
-              return `{current|${formattedVolume}}`;
-            }
-            return formattedVolume;
-          },
-          rich: {
-            current: {
-              backgroundColor: currentPriceColor,
-              padding: [4, 8],
-              borderRadius: 2,
-              color: '#FFFFFF',
-            },
-          },
+          formatter: (value: number) => formatVolumeNumber(value),
         },
         min: 0,
         max: volumeYScale.max,
@@ -1408,7 +1353,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'bar',
         xAxisIndex: 1,
         yAxisIndex: 1,
-        data: showVolume ? scaledVolumeData : [],
+        data: scaledVolumeData,
         itemStyle: {
           color: (params: any) => {
             const index = params.dataIndex;
@@ -1440,15 +1385,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           },
           data: [
             {
-              yAxis: scaledVolumeData[scaledVolumeData.length - 1],
-              lineStyle: {
-                color: 'transparent',
-              },
+              yAxis: currentData.volume,
               label: {
                 show: true,
                 position: 'end',
-                distance: 0,
-                offset: [0, 0],
               },
             },
           ],
@@ -1494,20 +1434,16 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         <ReactECharts
           ref={chartRef}
           option={option}
-          style={{ height: '100%', width: '100%', pointerEvents: isDragging ? 'none' : 'auto' }}
+          style={{ height: '100%', width: '100%' }}
           notMerge={true}
-          lazyUpdate={true}
-          opts={{ renderer: 'canvas' }}
-          onEvents={{
-            globalout: () => {
-              if (isDragging) {
-                handleDragEnd();
-              }
-            },
+          opts={{
+            renderer: 'canvas',
+            width: 'auto',
+            height: 'auto',
           }}
         />
         <div
-          className="absolute z-10 cursor-row-resize"
+          className="absolute z-10"
           style={{
             left: '80px',
             right: '80px',
@@ -1515,20 +1451,13 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             height: '4px',
             backgroundColor: isDragging ? '#4a90e2' : 'rgba(26, 37, 54, 0.8)',
             transition: isDragging ? 'none' : 'background-color 0.2s ease',
+            cursor: 'row-resize',
+            transform: 'translateZ(0)',
+            willChange: 'transform',
+            userSelect: 'none',
+            touchAction: 'none',
           }}
           onMouseDown={handleDragStart}
-          onMouseEnter={() => {
-            const element = document.querySelector('.echarts-for-react');
-            if (element) {
-              (element as HTMLElement).style.pointerEvents = 'none';
-            }
-          }}
-          onMouseLeave={() => {
-            const element = document.querySelector('.echarts-for-react');
-            if (element) {
-              (element as HTMLElement).style.pointerEvents = 'auto';
-            }
-          }}
         />
       </div>
     </div>
