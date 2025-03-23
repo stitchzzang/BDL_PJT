@@ -785,7 +785,14 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const scaledEMA20Data = scaleEMAData(ema20Data);
 
   // 현재가 관련 데이터 계산
-  const currentData = chartData[chartData.length - 1];
+  const currentData =
+    chartData.length > 0
+      ? chartData[chartData.length - 1]
+      : {
+          close: 0,
+          open: 0,
+          volume: 0,
+        };
   const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
 
   // 1분봉 차트의 시작 위치와 종료 위치 계산
@@ -885,74 +892,76 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const chart = chartRef.current?.getEchartsInstance();
     if (!chart) return;
 
-    const handleYAxisLabelWheel = (e: Event) => {
-      const wheelEvent = e as WheelEvent;
-      wheelEvent.preventDefault();
-      wheelEvent.stopPropagation();
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement;
 
-      const target = wheelEvent.target as HTMLElement;
-      const value = parseFloat(target.textContent || '0');
-      const chartRect = chart.getDom().getBoundingClientRect();
-      const mouseY = wheelEvent.clientY - chartRect.top;
-      const splitPosition = chartRect.height * (1 - volumeHeightRatio);
-      const isInCandleArea = mouseY < splitPosition;
+      // Y축 라벨 스크롤 처리
+      if (
+        target.classList.contains('echarts-axis-label') &&
+        target.parentElement?.classList.contains('echarts-y-axis')
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const zoomFactor = wheelEvent.deltaY > 0 ? 1.1 : 0.9;
+        const value = parseFloat(target.textContent || '0');
+        const chartRect = chart.getDom().getBoundingClientRect();
+        const mouseY = e.clientY - chartRect.top;
+        const splitPosition = chartRect.height * (1 - volumeHeightRatio);
+        const isInCandleArea = mouseY < splitPosition;
 
-      if (isInCandleArea) {
-        const range = candleYScale.max - candleYScale.min;
-        const newRange = range * zoomFactor;
-        setCandleYScale({
-          min: value - (newRange * (mouseY - chartRect.top)) / splitPosition,
-          max: value + (newRange * (splitPosition - (mouseY - chartRect.top))) / splitPosition,
-        });
-      } else {
-        const range = volumeYScale.max - volumeYScale.min;
-        const newRange = range * zoomFactor;
-        const volumeHeight = chartRect.height - splitPosition;
-        setVolumeYScale({
-          min: Math.max(0, value - (newRange * (mouseY - splitPosition)) / volumeHeight),
-          max: value + (newRange * (volumeHeight - (mouseY - splitPosition))) / volumeHeight,
-        });
+        const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+
+        if (isInCandleArea) {
+          const range = candleYScale.max - candleYScale.min;
+          const newRange = range * zoomFactor;
+          const ratio = (mouseY - chartRect.top) / splitPosition;
+
+          setCandleYScale({
+            min: value - newRange * ratio,
+            max: value + newRange * (1 - ratio),
+          });
+        } else {
+          const range = volumeYScale.max - volumeYScale.min;
+          const newRange = range * zoomFactor;
+          const volumeHeight = chartRect.height - splitPosition;
+          const ratio = (mouseY - splitPosition) / volumeHeight;
+
+          setVolumeYScale({
+            min: Math.max(0, value - newRange * ratio),
+            max: value + newRange * (1 - ratio),
+          });
+        }
       }
-    };
 
-    const handleXAxisLabelWheel = (e: Event) => {
-      const wheelEvent = e as WheelEvent;
-      wheelEvent.preventDefault();
-      wheelEvent.stopPropagation();
+      // X축 라벨 스크롤 처리
+      if (
+        target.classList.contains('echarts-axis-label') &&
+        target.parentElement?.classList.contains('echarts-x-axis')
+      ) {
+        e.preventDefault();
+        e.stopPropagation();
 
-      const zoomFactor = wheelEvent.deltaY > 0 ? 1.1 : 0.9;
-      const currentRange = dataZoomRange.end - dataZoomRange.start;
-      const newRange = Math.min(Math.max(currentRange * zoomFactor, 5), 100);
+        const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+        const currentRange = dataZoomRange.end - dataZoomRange.start;
+        const newRange = Math.min(Math.max(currentRange * zoomFactor, 5), 100);
 
-      // 마우스 위치를 기준으로 줌 중심점 계산
-      const chartRect = chart.getDom().getBoundingClientRect();
-      const mouseX = wheelEvent.clientX - chartRect.left;
-      const totalWidth = chartRect.width;
-      const zoomCenter = (mouseX / totalWidth) * 100;
+        const chartRect = chart.getDom().getBoundingClientRect();
+        const mouseX = e.clientX - chartRect.left;
+        const totalWidth = chartRect.width;
+        const zoomCenter = (mouseX / totalWidth) * 100;
 
-      // 새로운 start와 end 계산
-      const rangeHalf = newRange / 2;
-      const newStart = Math.max(0, zoomCenter - rangeHalf);
-      const newEnd = Math.min(100, zoomCenter + rangeHalf);
+        const rangeHalf = newRange / 2;
+        let newStart = Math.max(0, zoomCenter - rangeHalf);
+        let newEnd = Math.min(100, zoomCenter + rangeHalf);
 
-      // 범위가 차트 경계를 벗어나지 않도록 조정
-      if (newStart < 0) {
-        chart.dispatchAction({
-          type: 'dataZoom',
-          start: 0,
-          end: newRange,
-          xAxisIndex: [0, 1],
-        });
-      } else if (newEnd > 100) {
-        chart.dispatchAction({
-          type: 'dataZoom',
-          start: 100 - newRange,
-          end: 100,
-          xAxisIndex: [0, 1],
-        });
-      } else {
+        if (newStart < 0) {
+          newStart = 0;
+          newEnd = newRange;
+        } else if (newEnd > 100) {
+          newEnd = 100;
+          newStart = 100 - newRange;
+        }
+
         chart.dispatchAction({
           type: 'dataZoom',
           start: newStart,
@@ -962,30 +971,26 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       }
     };
 
-    // Y축 라벨 이벤트 리스너
+    // 스타일 적용
     const yAxisLabels = chart.getDom().querySelectorAll('.echarts-y-axis .echarts-axis-label');
     yAxisLabels.forEach((label) => {
-      label.addEventListener('wheel', handleYAxisLabelWheel, { passive: false });
       (label as HTMLElement).style.cursor = 'ns-resize';
     });
 
-    // X축 라벨 이벤트 리스너
     const xAxisLabels = chart.getDom().querySelectorAll('.echarts-x-axis .echarts-axis-label');
     xAxisLabels.forEach((label) => {
-      label.addEventListener('wheel', handleXAxisLabelWheel, { passive: false });
       (label as HTMLElement).style.cursor = 'ew-resize';
     });
 
-    // cleanup 함수
+    // 이벤트 리스너 등록
+    chart.getDom().addEventListener('wheel', handleWheel, { passive: false });
+
     return () => {
-      yAxisLabels.forEach((label) => {
-        label.removeEventListener('wheel', handleYAxisLabelWheel);
-      });
-      xAxisLabels.forEach((label) => {
-        label.removeEventListener('wheel', handleXAxisLabelWheel);
-      });
+      if (chart && chart.getDom()) {
+        chart.getDom().removeEventListener('wheel', handleWheel);
+      }
     };
-  }, [volumeHeightRatio, candleYScale, volumeYScale, dataZoomRange]);
+  }, [chartRef, volumeHeightRatio, candleYScale, volumeYScale, dataZoomRange]);
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -1389,22 +1394,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     ],
   };
 
-  // 차트 옵션 업데이트 함수
-  const updateChart = useCallback(() => {
-    const chart = chartRef.current?.getEchartsInstance();
-    if (chart) {
-      try {
-        chart.setOption(option, { notMerge: false });
-      } catch (error) {
-        console.warn('Chart update failed:', error);
-      }
-    }
-  }, [option]);
-
   // 차트 크기 조정 핸들러
   const handleResize = useCallback(() => {
     const chart = chartRef.current?.getEchartsInstance();
-    if (chart) {
+    if (chart && typeof chart.resize === 'function') {
       chart.resize();
     }
   }, []);
@@ -1413,10 +1406,26 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   useEffect(() => {
     window.addEventListener('resize', handleResize);
 
+    // 컴포넌트가 마운트된 후 초기 차트 렌더링
+    const initChart = () => {
+      const chart = chartRef.current?.getEchartsInstance();
+      if (chart && typeof chart.setOption === 'function') {
+        try {
+          chart.setOption(option, { notMerge: true });
+        } catch (error) {
+          console.warn('Chart initialization failed:', error);
+        }
+      }
+    };
+
+    // 초기화 지연시켜 DOM이 완전히 렌더링된 후 실행
+    const timeoutId = setTimeout(initChart, 200);
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
       const chart = chartRef.current?.getEchartsInstance();
-      if (chart) {
+      if (chart && typeof chart.dispose === 'function') {
         try {
           chart.dispose();
         } catch (error) {
@@ -1428,8 +1437,24 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   // 옵션 변경 시 차트 업데이트
   useEffect(() => {
-    updateChart();
-  }, [updateChart]);
+    // 이미 렌더링된 차트가 있을 때만 업데이트하고 지연 적용
+    if (!data || data.length === 0) return; // 데이터가 없으면 차트 업데이트 건너뛰기
+
+    const timeoutId = setTimeout(() => {
+      const chart = chartRef.current?.getEchartsInstance();
+      if (chart && typeof chart.setOption === 'function') {
+        try {
+          chart.setOption(option, { notMerge: false });
+        } catch (error) {
+          console.warn('Chart update failed:', error);
+        }
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [period, volumeHeightRatio, candleYScale, volumeYScale, getData, data]);
 
   return (
     <div
@@ -1465,24 +1490,21 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         </div>
       </div>
       <div className="relative" style={{ height: `${height}px` }}>
-        <ReactECharts
-          ref={chartRef}
-          option={option}
-          style={{ height: '100%', width: '100%' }}
-          notMerge={false}
-          opts={{
-            renderer: 'canvas',
-            width: 'auto',
-            height: 'auto',
-          }}
-          onEvents={{
-            globalout: () => {
-              if (isDragging) {
-                handleDragEnd();
-              }
-            },
-          }}
-        />
+        {data && data.length > 0 && (
+          <ReactECharts
+            ref={chartRef}
+            option={option}
+            style={{ height: '100%', width: '100%' }}
+            notMerge={false}
+            opts={{
+              renderer: 'canvas',
+              width: 'auto',
+              height: 'auto',
+            }}
+            lazyUpdate={true}
+            theme="theme_name"
+          />
+        )}
         <div
           className="absolute z-10"
           style={{
