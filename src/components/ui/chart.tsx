@@ -1158,36 +1158,37 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   }, []);
 
   // ECharts 옵션 설정
-  const option: EChartsOption = {
-    animation: false,
-    backgroundColor: '#0D192B',
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'cross',
-        crossStyle: {
-          color: 'rgba(255, 255, 255, 0.2)',
-          width: 1,
+  const option: EChartsOption = useMemo(
+    () => ({
+      animation: false,
+      backgroundColor: '#0D192B',
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'cross',
+          crossStyle: {
+            color: 'rgba(255, 255, 255, 0.2)',
+            width: 1,
+          },
         },
-      },
-      backgroundColor: 'rgba(19, 23, 34, 0.9)',
-      borderColor: '#2e3947',
-      textStyle: {
-        color: '#fff',
-      },
-      formatter: (params: any) => {
-        try {
-          if (!Array.isArray(params) || params.length === 0) return '';
+        backgroundColor: 'rgba(19, 23, 34, 0.9)',
+        borderColor: '#2e3947',
+        textStyle: {
+          color: '#fff',
+        },
+        formatter: (params: any) => {
+          try {
+            if (!Array.isArray(params) || params.length === 0) return '';
 
-          const dataIndex = params[0].dataIndex;
-          if (dataIndex < 0 || dataIndex >= extendedChartData.length) return '';
+            const dataIndex = params[0].dataIndex;
+            if (dataIndex < 0 || dataIndex >= extendedChartData.length) return '';
 
-          const item = extendedChartData[dataIndex];
-          if (!item) return '';
+            const item = extendedChartData[dataIndex];
+            if (!item) return '';
 
-          // 왼쪽 여백 데이터 처리
-          if (dataIndex < 10) {
-            return `
+            // 왼쪽 여백 데이터 처리
+            if (dataIndex < 10) {
+              return `
               <div style="font-size: 12px;">
                 <div style="margin-bottom: 4px;">-</div>
                 <div>시가: -</div>
@@ -1197,17 +1198,17 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
                 <div>거래량: -</div>
               </div>
             `;
-          }
+            }
 
-          const formattedDate =
-            'rawDate' in item && item.rawDate ? formatDetailDate(item.rawDate) : item.date;
-          const volumeStr = formatVolumeNumber(item.volume);
-          const openStr = formatKoreanNumber(item.open) + '원';
-          const highStr = formatKoreanNumber(item.high) + '원';
-          const lowStr = formatKoreanNumber(item.low) + '원';
-          const closeStr = formatKoreanNumber(item.close) + '원';
+            const formattedDate =
+              'rawDate' in item && item.rawDate ? formatDetailDate(item.rawDate) : item.date;
+            const volumeStr = formatVolumeNumber(item.volume);
+            const openStr = formatKoreanNumber(item.open) + '원';
+            const highStr = formatKoreanNumber(item.high) + '원';
+            const lowStr = formatKoreanNumber(item.low) + '원';
+            const closeStr = formatKoreanNumber(item.close) + '원';
 
-          return `
+            return `
             <div style="font-size: 12px;">
               <div style="margin-bottom: 4px;">${formattedDate}</div>
               <div>시가: ${openStr}</div>
@@ -1217,273 +1218,291 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               <div>거래량: ${volumeStr}</div>
             </div>
           `;
-        } catch {
-          return '';
-        }
-      },
-    },
-    axisPointer: {
-      link: [{ xAxisIndex: 'all' }],
-      label: {
-        backgroundColor: FALL_COLOR,
-        show: false, // 기본적으로 모든 축포인터 레이블을 숨김
-        formatter: (params: any) => {
-          // X축 포인터인 경우에만 처리
-          if (params.axisDimension === 'x') {
-            const value = params.value;
-
-            // 빈 값이나 숫자인 경우 처리
-            if (!value || typeof value === 'number') {
-              return value;
-            }
-
-            // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-            const labelIndex = xAxisLabels.findIndex((label) => label === value);
-            if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-              return value; // 원래 레이블 반환
-            }
-
-            // 해당 인덱스의 데이터 찾기
-            const item = extendedChartData[labelIndex];
-            if (!item || !('rawDate' in item) || !item.rawDate) {
-              return value; // 원래 레이블 반환
-            }
-
-            // 기간에 맞는 상세 날짜 포맷으로 변환
-            const rawDate = item.rawDate as Date;
-            return formatDetailDate(rawDate);
-          }
-
-          // Y축 포인터는 해당하는 축의 포맷터 사용
-          const numValue = Number(params.value);
-          if (params.axisIndex === 0) {
-            return formatKoreanNumber(Math.floor(numValue));
-          } else {
-            return formatVolumeNumber(Math.floor(numValue));
+          } catch {
+            return '';
           }
         },
       },
-      lineStyle: {
-        color: 'rgba(255, 255, 255, 0.2)',
-        width: 1,
-        type: 'dashed',
-      },
-    },
-    grid: [
-      {
-        left: 80,
-        right: 100, // Y축 라벨과 겹치지 않도록 여백 증가
-        top: 40,
-        height: `${(1 - volumeHeightRatio - 0.05) * 100}%`, // 간격 더 넓게
-        show: true,
-        borderColor: '#1a2536',
-        backgroundColor: '#0a1421',
-      },
-      {
-        left: 80,
-        right: 100, // Y축 라벨과 겹치지 않도록 여백 증가
-        top: `${(1 - volumeHeightRatio + 0.05) * 100}%`, // 간격 더 넓게
-        bottom: 60,
-        show: true,
-        borderColor: '#1a2536',
-        backgroundColor: '#0a1421',
-      },
-    ],
-    xAxis: [
-      {
-        type: 'category',
-        data: xAxisLabels,
-        gridIndex: 0,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: 'rgba(26, 37, 54, 0.4)',
-            width: 1,
-            type: [2, 2],
+      axisPointer: {
+        link: [{ xAxisIndex: 'all' }],
+        label: {
+          backgroundColor: FALL_COLOR,
+          show: false, // 기본적으로 모든 축포인터 레이블을 숨김
+          formatter: (params: any) => {
+            // X축 포인터인 경우에만 처리
+            if (params.axisDimension === 'x') {
+              const value = params.value;
+
+              // 빈 값이나 숫자인 경우 처리
+              if (!value || typeof value === 'number') {
+                return value;
+              }
+
+              // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+              const labelIndex = xAxisLabels.findIndex((label) => label === value);
+              if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+                return value; // 원래 레이블 반환
+              }
+
+              // 해당 인덱스의 데이터 찾기
+              const item = extendedChartData[labelIndex];
+              if (!item || !('rawDate' in item) || !item.rawDate) {
+                return value; // 원래 레이블 반환
+              }
+
+              // 기간에 맞는 상세 날짜 포맷으로 변환
+              const rawDate = item.rawDate as Date;
+              return formatDetailDate(rawDate);
+            }
+
+            // Y축 포인터는 해당하는 축의 포맷터 사용
+            const numValue = Number(params.value);
+            if (params.axisIndex === 0) {
+              return formatKoreanNumber(Math.floor(numValue));
+            } else {
+              return formatVolumeNumber(Math.floor(numValue));
+            }
           },
         },
-        axisLabel: { show: false },
-        axisPointer: {
-          show: true,
-          label: { show: false },
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.2)',
+          width: 1,
+          type: 'dashed',
         },
-        boundaryGap: true,
       },
-      {
-        type: 'category',
-        data: xAxisLabels,
-        gridIndex: 1,
-        position: 'bottom',
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: {
+      grid: [
+        {
+          left: 80,
+          right: 100, // Y축 라벨과 겹치지 않도록 여백 증가
+          top: 40,
+          height: `${(1 - volumeHeightRatio - 0.05) * 100}%`, // 간격 더 넓게
           show: true,
-          lineStyle: {
-            color: 'rgba(26, 37, 54, 0.4)',
-            width: 1,
-            type: [2, 2],
-          },
+          borderColor: '#1a2536',
+          backgroundColor: '#0a1421',
         },
-        axisLabel: {
+        {
+          left: 80,
+          right: 100, // Y축 라벨과 겹치지 않도록 여백 증가
+          top: `${(1 - volumeHeightRatio + 0.05) * 100}%`, // 간격 더 넓게
+          bottom: 60,
           show: true,
-          color: '#999',
-          fontSize: 11,
-          margin: 12,
+          borderColor: '#1a2536',
+          backgroundColor: '#0a1421',
         },
-        axisPointer: {
-          show: true,
-          label: {
+      ],
+      xAxis: [
+        {
+          type: 'category',
+          data: xAxisLabels,
+          gridIndex: 0,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: {
             show: true,
-            backgroundColor: '#2a3546',
-            color: '#fff',
-            fontSize: 11,
-            padding: [4, 8],
-          },
-        },
-        boundaryGap: true,
-      },
-    ],
-    yAxis: [
-      {
-        type: 'value',
-        position: 'right',
-        scale: true,
-        gridIndex: 0,
-        splitNumber: 6,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: 'rgba(26, 37, 54, 0.4)',
-            width: 1,
-            type: [2, 2],
-          },
-        },
-        axisLabel: {
-          inside: false,
-          color: '#999',
-          fontSize: 11,
-          padding: [0, 0, 0, 10],
-          formatter: (value: number) => {
-            const formattedValue = formatKoreanNumber(Math.floor(value));
-            if (Math.abs(value - currentData.close) < 0.1) {
-              return `{current|${formattedValue}}`;
-            }
-            return formattedValue;
-          },
-          rich: {
-            current: {
-              backgroundColor: currentPriceColor,
-              padding: [2, 6],
-              borderRadius: 2,
-              color: '#FFFFFF',
-              fontSize: 11,
+            lineStyle: {
+              color: 'rgba(26, 37, 54, 0.4)',
+              width: 1,
+              type: [2, 2],
             },
           },
-        },
-        min: candleYScale.min,
-        max: candleYScale.max,
-        boundaryGap: ['10%', '10%'],
-      },
-      {
-        type: 'value',
-        position: 'right',
-        scale: true,
-        gridIndex: 1,
-        splitNumber: 3,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        splitLine: {
-          show: true,
-          lineStyle: {
-            color: 'rgba(26, 37, 54, 0.4)',
-            width: 1,
-            type: [2, 2],
+          axisLabel: { show: false },
+          axisPointer: {
+            show: true,
+            label: { show: false },
           },
+          boundaryGap: true,
         },
-        axisLabel: {
-          inside: false,
-          color: '#999',
-          fontSize: 11,
-          padding: [0, 0, 0, 10],
-          formatter: (value: number) => formatVolumeNumber(value),
+        {
+          type: 'category',
+          data: xAxisLabels,
+          gridIndex: 1,
+          position: 'bottom',
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: 'rgba(26, 37, 54, 0.4)',
+              width: 1,
+              type: [2, 2],
+            },
+          },
+          axisLabel: {
+            show: true,
+            color: '#999',
+            fontSize: 11,
+            margin: 12,
+          },
+          axisPointer: {
+            show: true,
+            label: {
+              show: true,
+              backgroundColor: '#2a3546',
+              color: '#fff',
+              fontSize: 11,
+              padding: [4, 8],
+            },
+          },
+          boundaryGap: true,
         },
-        min: volumeYScale.min,
-        max: volumeYScale.max,
-        boundaryGap: ['10%', '10%'],
-      },
-    ],
-    dataZoom: [
-      {
-        type: 'inside',
-        xAxisIndex: [0, 1],
-        start: dataZoomRange.start,
-        end: dataZoomRange.end,
-        zoomLock: false,
-        moveOnMouseMove: true,
-        preventDefaultMouseMove: true,
-      },
-    ],
-    series: [
-      {
-        name: '캔들차트',
-        type: 'candlestick',
-        data: scaledCandleData,
-        itemStyle: {
-          color: RISE_COLOR,
-          color0: FALL_COLOR,
-          borderColor: RISE_COLOR,
-          borderColor0: FALL_COLOR,
-          borderWidth: 1,
+      ],
+      yAxis: [
+        {
+          type: 'value',
+          position: 'right',
+          scale: true,
+          gridIndex: 0,
+          splitNumber: 6,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: 'rgba(26, 37, 54, 0.4)',
+              width: 1,
+              type: [2, 2],
+            },
+          },
+          axisLabel: {
+            inside: false,
+            color: '#999',
+            fontSize: 11,
+            padding: [0, 0, 0, 10],
+            formatter: (value: number) => {
+              const formattedValue = formatKoreanNumber(Math.floor(value));
+              if (Math.abs(value - currentData.close) < 0.1) {
+                return `{current|${formattedValue}}`;
+              }
+              return formattedValue;
+            },
+            rich: {
+              current: {
+                backgroundColor: currentPriceColor,
+                padding: [2, 6],
+                borderRadius: 2,
+                color: '#FFFFFF',
+                fontSize: 11,
+              },
+            },
+          },
+          min: candleYScale.min,
+          max: candleYScale.max,
+          boundaryGap: ['10%', '10%'],
         },
-        barWidth: '70%',
-      },
-      {
-        name: '5일 이평선',
-        type: 'line',
-        data: scaledEMA5Data,
-        smooth: true,
-        lineStyle: {
-          opacity: 0.8,
-          color: '#f6c85d',
-          width: 1,
+        {
+          type: 'value',
+          position: 'right',
+          scale: true,
+          gridIndex: 1,
+          splitNumber: 3,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: 'rgba(26, 37, 54, 0.4)',
+              width: 1,
+              type: [2, 2],
+            },
+          },
+          axisLabel: {
+            inside: false,
+            color: '#999',
+            fontSize: 11,
+            padding: [0, 0, 0, 10],
+            formatter: (value: number) => formatVolumeNumber(value),
+          },
+          min: volumeYScale.min,
+          max: volumeYScale.max,
+          boundaryGap: ['10%', '10%'],
         },
-        symbol: 'none',
-      },
-      {
-        name: '20일 이평선',
-        type: 'line',
-        data: scaledEMA20Data,
-        smooth: true,
-        lineStyle: {
-          opacity: 0.8,
-          color: '#8b62d9',
-          width: 1,
+      ],
+      dataZoom: [
+        {
+          type: 'inside',
+          xAxisIndex: [0, 1],
+          start: dataZoomRange.start,
+          end: dataZoomRange.end,
+          zoomLock: false,
+          moveOnMouseMove: true,
+          preventDefaultMouseMove: true,
         },
-        symbol: 'none',
-      },
-      {
-        name: '거래량',
-        type: 'bar',
-        xAxisIndex: 1,
-        yAxisIndex: 1,
-        data: scaledVolumeData.map((volume, index) => ({
-          value: volume,
+      ],
+      series: [
+        {
+          name: '캔들차트',
+          type: 'candlestick',
+          data: scaledCandleData,
           itemStyle: {
-            color:
-              extendedChartData[index].close >= extendedChartData[index].open
-                ? RISE_COLOR
-                : FALL_COLOR,
-            opacity: 0.8,
+            color: RISE_COLOR,
+            color0: FALL_COLOR,
+            borderColor: RISE_COLOR,
+            borderColor0: FALL_COLOR,
+            borderWidth: 1,
           },
-        })),
-        barWidth: '70%',
-      },
+          barWidth: '70%',
+        },
+        {
+          name: '5일 이평선',
+          type: 'line',
+          data: scaledEMA5Data,
+          smooth: true,
+          lineStyle: {
+            opacity: 0.8,
+            color: '#f6c85d',
+            width: 1,
+          },
+          symbol: 'none',
+        },
+        {
+          name: '20일 이평선',
+          type: 'line',
+          data: scaledEMA20Data,
+          smooth: true,
+          lineStyle: {
+            opacity: 0.8,
+            color: '#8b62d9',
+            width: 1,
+          },
+          symbol: 'none',
+        },
+        {
+          name: '거래량',
+          type: 'bar',
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: scaledVolumeData.map((volume, index) => ({
+            value: volume,
+            itemStyle: {
+              color:
+                extendedChartData[index].close >= extendedChartData[index].open
+                  ? RISE_COLOR
+                  : FALL_COLOR,
+              opacity: 0.8,
+            },
+          })),
+          barWidth: '70%',
+        },
+      ],
+    }),
+    [
+      xAxisLabels,
+      candleYScale,
+      volumeYScale,
+      volumeHeightRatio,
+      currentData,
+      currentPriceColor,
+      scaledCandleData,
+      scaledVolumeData,
+      scaledEMA5Data,
+      scaledEMA20Data,
+      extendedChartData,
+      formatKoreanNumber,
+      formatVolumeNumber,
+      formatDetailDate,
+      dataZoomRange,
     ],
-  };
+  );
 
   // 차트 옵션 메모이제이션
   const chartOption = useMemo(
@@ -1562,9 +1581,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   // 차트 옵션 업데이트
   useEffect(() => {
-    if (!chartRef.current) return;
-
-    const chart = chartRef.current.getEchartsInstance();
+    const chart = chartRef.current?.getEchartsInstance();
     if (!chart || chart.isDisposed()) return;
 
     try {
@@ -1661,13 +1678,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             borderTop: '2px solid #2a3546',
             borderBottom: '2px solid #2a3546',
           }}
-          onMouseDown={(e) => {
-            try {
-              handleDragStart(e);
-            } catch (error) {
-              console.error('Error in onMouseDown event:', error);
-            }
-          }}
+          onMouseDown={handleDragStart}
         />
       </div>
     </div>
