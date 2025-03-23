@@ -1397,6 +1397,48 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     ],
   };
 
+  // 차트 옵션 업데이트 함수
+  const updateChart = useCallback(() => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (chart) {
+      try {
+        chart.setOption(option, { notMerge: false });
+      } catch (error) {
+        console.warn('Chart update failed:', error);
+      }
+    }
+  }, [option]);
+
+  // 차트 크기 조정 핸들러
+  const handleResize = useCallback(() => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (chart) {
+      chart.resize();
+    }
+  }, []);
+
+  // 컴포넌트 마운트/언마운트 처리
+  useEffect(() => {
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      const chart = chartRef.current?.getEchartsInstance();
+      if (chart) {
+        try {
+          chart.dispose();
+        } catch (error) {
+          console.warn('Chart disposal failed:', error);
+        }
+      }
+    };
+  }, [handleResize]);
+
+  // 옵션 변경 시 차트 업데이트
+  useEffect(() => {
+    updateChart();
+  }, [updateChart]);
+
   return (
     <div
       className="flex h-full w-full flex-col overflow-hidden relative"
@@ -1435,11 +1477,18 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           ref={chartRef}
           option={option}
           style={{ height: '100%', width: '100%' }}
-          notMerge={true}
+          notMerge={false}
           opts={{
             renderer: 'canvas',
             width: 'auto',
             height: 'auto',
+          }}
+          onEvents={{
+            globalout: () => {
+              if (isDragging) {
+                handleDragEnd();
+              }
+            },
           }}
         />
         <div
@@ -1456,6 +1505,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             willChange: 'transform',
             userSelect: 'none',
             touchAction: 'none',
+            pointerEvents: 'auto',
           }}
           onMouseDown={handleDragStart}
         />
