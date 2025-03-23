@@ -451,7 +451,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           max: Math.ceil(maxPrice + priceMargin),
         };
       }
-      return prev;
+      return prev; // 기존 스케일 유지
     });
 
     // 거래량 차트 스케일 업데이트
@@ -467,15 +467,19 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           max: Math.ceil(maxVolume + volumeMargin),
         };
       }
-      return prev;
+      return prev; // 기존 스케일 유지
     });
   }, [getData]);
 
-  // 주기적으로 Y축 스케일 업데이트
+  // 주기적으로 Y축 스케일 업데이트 (interval 시간 증가)
   useEffect(() => {
-    const intervalId = setInterval(updateYScales, 1000);
+    // 데이터가 변경될 때만 Y축 업데이트하도록 수정
+    updateYScales();
+
+    // 초기화 방지를 위해 주기적인 업데이트 간격 확장
+    const intervalId = setInterval(updateYScales, 5000);
     return () => clearInterval(intervalId);
-  }, [updateYScales]);
+  }, [updateYScales, period]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -1161,15 +1165,17 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       if (isCandle) {
         setCandleYScale((prev) => {
           const range = prev.max - prev.min;
-          const newMin = prev.min + range * scaleFactor * Math.sign(delta);
-          const newMax = prev.max - range * scaleFactor * Math.sign(delta);
+          // 델타 부호를 반대로 적용 (위로 휠 -> 확대, 아래로 휠 -> 축소)
+          const newMin = prev.min - range * scaleFactor * Math.sign(delta);
+          const newMax = prev.max + range * scaleFactor * Math.sign(delta);
           return { min: newMin, max: newMax };
         });
       } else {
         setVolumeYScale((prev) => {
           const range = prev.max - prev.min;
-          const newMin = Math.max(0, prev.min + range * scaleFactor * Math.sign(delta));
-          const newMax = prev.max - range * scaleFactor * Math.sign(delta);
+          // 델타 부호를 반대로 적용하고 최소값이 0 이하로 내려가지 않도록 제한
+          const newMin = Math.max(0, prev.min - range * scaleFactor * Math.sign(delta));
+          const newMax = prev.max + range * scaleFactor * Math.sign(delta);
           return { min: newMin, max: newMax };
         });
       }
@@ -1655,7 +1661,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       const chart = chartRef.current?.getEchartsInstance();
       if (chart && typeof chart.setOption === 'function') {
         try {
-          chart.setOption(option, { notMerge: false });
+          // notMerge를 false로 유지하여 기존 설정을 보존하도록 함
+          chart.setOption(option, { notMerge: false, lazyUpdate: true });
         } catch (error) {
           console.warn('Chart update failed:', error);
         }
