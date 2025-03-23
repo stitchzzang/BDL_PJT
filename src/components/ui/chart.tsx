@@ -184,6 +184,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   const [isHoveringCandleY, setIsHoveringCandleY] = useState(false);
   const [isHoveringVolumeY, setIsHoveringVolumeY] = useState(false);
   const chartRef = useRef<ReactECharts>(null);
+  const [isChartReady, setIsChartReady] = useState(false);
+  const [shouldUpdate, setShouldUpdate] = useState(false);
 
   // Y축 스케일 상태 추가
   const [candleYScale, setCandleYScale] = useState<YAxisScale>({ min: 0, max: 100 });
@@ -436,7 +438,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const chartData = getData();
     if (chartData.length === 0) return;
 
-    // 캔들차트 스케일 업데이트
+    // 캔들차트 스케일 업데이트 - 이미 확대/축소된 경우에는 업데이트하지 않음
     const prices = chartData.map((item) => [item.high, item.low]).flat();
     const maxPrice = Math.max(...prices);
     const minPrice = Math.min(...prices);
@@ -444,7 +446,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const priceMargin = priceRange * 0.1;
 
     setCandleYScale((prev) => {
-      // 현재 스케일이 데이터 범위를 포함하지 않는 경우에만 업데이트
+      // 현재 사용자가 확대/축소한 스케일이 있는 경우 업데이트하지 않음
+      // 데이터 범위를 벗어난 경우에만 업데이트
       if (prev.min > minPrice || prev.max < maxPrice) {
         return {
           min: Math.floor(minPrice - priceMargin),
@@ -454,13 +457,14 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       return prev; // 기존 스케일 유지
     });
 
-    // 거래량 차트 스케일 업데이트
+    // 거래량 차트 스케일 업데이트 - 이미 확대/축소된 경우에는 업데이트하지 않음
     const volumes = chartData.map((item) => item.volume);
     const maxVolume = Math.max(...volumes);
     const volumeMargin = maxVolume * 0.1;
 
     setVolumeYScale((prev) => {
-      // 현재 스케일이 데이터 범위를 포함하지 않는 경우에만 업데이트
+      // 현재 사용자가 확대/축소한 스케일이 있는 경우 업데이트하지 않음
+      // 데이터 범위를 벗어난 경우에만 업데이트
       if (prev.max < maxVolume) {
         return {
           min: 0,
@@ -471,15 +475,44 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     });
   }, [getData]);
 
-  // 주기적으로 Y축 스케일 업데이트 (interval 시간 증가)
-  useEffect(() => {
-    // 데이터가 변경될 때만 Y축 업데이트하도록 수정
-    updateYScales();
+  // 자동 업데이트 완전히 제거 - 사용자가 변경한 스케일을 유지하기 위함
+  // useEffect(() => {
+  //   // 초기 업데이트 - 기간 변경 시에만 실행
+  //   updateYScales();
 
-    // 초기화 방지를 위해 주기적인 업데이트 간격 확장
-    const intervalId = setInterval(updateYScales, 5000);
-    return () => clearInterval(intervalId);
-  }, [updateYScales, period]);
+  //   // 초기화 방지를 위해 주기적인 업데이트 간격 확장 (5초)
+  //   const intervalId = setInterval(updateYScales, 5000);
+  //   return () => clearInterval(intervalId);
+  // }, [updateYScales, period]);
+
+  // 기간 변경 시에만 업데이트
+  useEffect(() => {
+    // 기간이 변경될 때만 스케일 초기화
+    const chartData = getData();
+    if (chartData.length === 0) return;
+
+    // 캔들차트 스케일 계산 (기간 변경 시에만 완전히 초기화)
+    const prices = chartData.map((item) => [item.high, item.low]).flat();
+    const maxPrice = Math.max(...prices);
+    const minPrice = Math.min(...prices);
+    const priceRange = maxPrice - minPrice;
+    const priceMargin = priceRange * 0.1;
+
+    setCandleYScale({
+      min: Math.floor(minPrice - priceMargin),
+      max: Math.ceil(maxPrice + priceMargin),
+    });
+
+    // 거래량 차트 스케일 계산
+    const volumes = chartData.map((item) => item.volume);
+    const maxVolume = Math.max(...volumes);
+    const volumeMargin = maxVolume * 0.1;
+
+    setVolumeYScale({
+      min: 0,
+      max: Math.ceil(maxVolume + volumeMargin),
+    });
+  }, [period, getData]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -822,62 +855,83 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   // 드래그 이벤트 핸들러
   const handleDragStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-    document.body.style.cursor = 'row-resize';
+    try {
+      console.log('handleDragStart called', e);
+      e.preventDefault();
+      setIsDragging(true);
+      document.body.style.cursor = 'row-resize';
 
-    const chartElement = document.querySelector('.echarts-for-react');
-    if (chartElement) {
-      (chartElement as HTMLElement).style.pointerEvents = 'none';
+      const chartElement = document.querySelector('.echarts-for-react');
+      if (chartElement) {
+        (chartElement as HTMLElement).style.pointerEvents = 'none';
+      }
+    } catch (error) {
+      console.error('Error in handleDragStart:', error);
     }
   }, []);
 
   const handleDragMove = useCallback(
     (e: MouseEvent) => {
-      if (!isDragging) return;
+      try {
+        if (!isDragging) return;
 
-      const chartElement = document.querySelector('.echarts-for-react');
-      if (!chartElement) return;
+        const chartElement = document.querySelector('.echarts-for-react');
+        if (!chartElement) return;
 
-      const rect = chartElement.getBoundingClientRect();
-      const chartTop = rect.top + 40;
-      const chartBottom = rect.bottom - 60;
-      const chartHeight = chartBottom - chartTop;
+        const rect = chartElement.getBoundingClientRect();
+        const chartTop = rect.top + 40;
+        const chartBottom = rect.bottom - 60;
+        const chartHeight = chartBottom - chartTop;
 
-      // 마우스 위치가 차트 영역을 벗어나지 않도록 제한
-      const mouseY = Math.max(chartTop, Math.min(chartBottom, e.clientY));
-      const relativeY = mouseY - chartTop;
+        // 마우스 위치가 차트 영역을 벗어나지 않도록 제한
+        const mouseY = Math.max(chartTop, Math.min(chartBottom, e.clientY));
+        const relativeY = mouseY - chartTop;
 
-      // 비율 계산 (최소 5%, 최대 70%)
-      let newRatio = 1 - relativeY / chartHeight;
-      newRatio = Math.max(0.05, Math.min(0.7, newRatio));
+        // 비율 계산 (최소 5%, 최대 70%)
+        let newRatio = 1 - relativeY / chartHeight;
+        newRatio = Math.max(0.05, Math.min(0.7, newRatio));
 
-      setVolumeHeightRatio(newRatio);
+        setVolumeHeightRatio(newRatio);
+      } catch (error) {
+        console.error('Error in handleDragMove:', error);
+      }
     },
     [isDragging],
   );
 
   const handleDragEnd = useCallback(() => {
-    setIsDragging(false);
-    document.body.style.cursor = 'default';
+    try {
+      setIsDragging(false);
+      document.body.style.cursor = 'default';
 
-    const chartElement = document.querySelector('.echarts-for-react');
-    if (chartElement) {
-      (chartElement as HTMLElement).style.pointerEvents = 'auto';
+      const chartElement = document.querySelector('.echarts-for-react');
+      if (chartElement) {
+        (chartElement as HTMLElement).style.pointerEvents = 'auto';
+      }
+    } catch (error) {
+      console.error('Error in handleDragEnd:', error);
     }
   }, []);
 
   // 드래그 이벤트 리스너 등록/해제
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        handleDragMove(e);
+      try {
+        if (isDragging) {
+          handleDragMove(e);
+        }
+      } catch (error) {
+        console.error('Error in handleGlobalMouseMove:', error);
       }
     };
 
     const handleGlobalMouseUp = () => {
-      if (isDragging) {
-        handleDragEnd();
+      try {
+        if (isDragging) {
+          handleDragEnd();
+        }
+      } catch (error) {
+        console.error('Error in handleGlobalMouseUp:', error);
       }
     };
 
@@ -1181,30 +1235,42 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       }
     };
 
+    // DOM 요소 선택
     const candleYAxisElement = document.querySelector('.candle-y-axis');
     const volumeYAxisElement = document.querySelector('.volume-y-axis');
 
-    const handleCandleWheel = (e: Event) => handleYAxisScroll(e as WheelEvent, true);
-    const handleVolumeWheel = (e: Event) => handleYAxisScroll(e as WheelEvent, false);
+    // 이벤트 핸들러 함수 (Event 타입으로 받고 내부에서 WheelEvent로 변환)
+    const handleCandleWheel = (e: Event) => {
+      e.preventDefault();
+      handleYAxisScroll(e as WheelEvent, true);
+    };
 
+    const handleVolumeWheel = (e: Event) => {
+      e.preventDefault();
+      handleYAxisScroll(e as WheelEvent, false);
+    };
+
+    // 캔들 Y축 이벤트 리스너 추가
     if (candleYAxisElement) {
-      candleYAxisElement.addEventListener('wheel', handleCandleWheel as EventListener, {
+      candleYAxisElement.addEventListener('wheel', handleCandleWheel, {
         passive: false,
       });
     }
 
+    // 거래량 Y축 이벤트 리스너 추가
     if (volumeYAxisElement) {
-      volumeYAxisElement.addEventListener('wheel', handleVolumeWheel as EventListener, {
+      volumeYAxisElement.addEventListener('wheel', handleVolumeWheel, {
         passive: false,
       });
     }
 
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
       if (candleYAxisElement) {
-        candleYAxisElement.removeEventListener('wheel', handleCandleWheel as EventListener);
+        candleYAxisElement.removeEventListener('wheel', handleCandleWheel);
       }
       if (volumeYAxisElement) {
-        volumeYAxisElement.removeEventListener('wheel', handleVolumeWheel as EventListener);
+        volumeYAxisElement.removeEventListener('wheel', handleVolumeWheel);
       }
     };
   }, []);
@@ -1611,11 +1677,48 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     ],
   };
 
+  // 차트 옵션 메모이제이션
+  const chartOption = useMemo(
+    () => ({
+      ...option,
+      animation: false,
+    }),
+    [option],
+  );
+
+  // 차트 이벤트 핸들러 메모이제이션
+  const onEvents = useMemo(
+    () => ({
+      rendered: () => {
+        try {
+          const chart = chartRef.current?.getEchartsInstance();
+          if (chart && typeof chart.resize === 'function') {
+            chart.resize();
+          }
+          if (!isChartReady) {
+            setIsChartReady(true);
+          }
+        } catch (error) {
+          console.error('Chart rendered event error:', error);
+        }
+      },
+      finished: () => {
+        console.log('차트 렌더링 완료');
+        setShouldUpdate(true);
+      },
+    }),
+    [isChartReady],
+  );
+
   // 차트 크기 조정 핸들러
   const handleResize = useCallback(() => {
-    const chart = chartRef.current?.getEchartsInstance();
-    if (chart && typeof chart.resize === 'function') {
-      chart.resize();
+    try {
+      const chart = chartRef.current?.getEchartsInstance();
+      if (chart && typeof chart.resize === 'function') {
+        chart.resize();
+      }
+    } catch (error) {
+      console.error('Resize error:', error);
     }
   }, []);
 
@@ -1623,56 +1726,46 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   useEffect(() => {
     window.addEventListener('resize', handleResize);
 
-    // 컴포넌트가 마운트된 후 초기 차트 렌더링
-    const initChart = () => {
-      const chart = chartRef.current?.getEchartsInstance();
-      if (chart && typeof chart.setOption === 'function') {
-        try {
-          chart.setOption(option, { notMerge: true });
-        } catch (error) {
-          console.warn('Chart initialization failed:', error);
-        }
-      }
-    };
-
-    // 초기화 지연시켜 DOM이 완전히 렌더링된 후 실행
-    const timeoutId = setTimeout(initChart, 200);
-
     return () => {
       window.removeEventListener('resize', handleResize);
-      clearTimeout(timeoutId);
-      const chart = chartRef.current?.getEchartsInstance();
-      if (chart && typeof chart.dispose === 'function') {
-        try {
+      try {
+        const chart = chartRef.current?.getEchartsInstance();
+        if (chart) {
+          setIsChartReady(false);
+          setShouldUpdate(false);
+          chart.clear();
           chart.dispose();
-        } catch (error) {
-          console.warn('Chart disposal failed:', error);
         }
+      } catch (error) {
+        console.warn('Chart cleanup failed:', error);
       }
     };
   }, [handleResize]);
 
-  // 옵션 변경 시 차트 업데이트
+  // 데이터 변경 시 차트 업데이트
   useEffect(() => {
-    // 이미 렌더링된 차트가 있을 때만 업데이트하고 지연 적용
-    if (!data || data.length === 0) return; // 데이터가 없으면 차트 업데이트 건너뛰기
+    if (!shouldUpdate || !isChartReady || !data || data.length === 0) {
+      return;
+    }
 
-    const timeoutId = setTimeout(() => {
-      const chart = chartRef.current?.getEchartsInstance();
-      if (chart && typeof chart.setOption === 'function') {
-        try {
-          // notMerge를 false로 유지하여 기존 설정을 보존하도록 함
-          chart.setOption(option, { notMerge: false, lazyUpdate: true });
-        } catch (error) {
-          console.warn('Chart update failed:', error);
-        }
+    const updateChart = () => {
+      try {
+        const chart = chartRef.current?.getEchartsInstance();
+        if (!chart) return;
+
+        chart.setOption(chartOption, {
+          notMerge: false,
+          lazyUpdate: true,
+          silent: true,
+        });
+      } catch (error) {
+        console.error('Chart update failed:', error);
       }
-    }, 200);
-
-    return () => {
-      clearTimeout(timeoutId);
     };
-  }, [period, volumeHeightRatio, candleYScale, volumeYScale, getData, data]);
+
+    const timeoutId = setTimeout(updateChart, 100);
+    return () => clearTimeout(timeoutId);
+  }, [data, chartOption, isChartReady, shouldUpdate]);
 
   return (
     <div
@@ -1726,14 +1819,15 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         {data && data.length > 0 && (
           <ReactECharts
             ref={chartRef}
-            option={option}
+            option={chartOption}
             style={{ height: '100%', width: '100%' }}
-            notMerge={false}
             opts={{
               renderer: 'canvas',
               width: 'auto',
               height: 'auto',
             }}
+            onEvents={onEvents}
+            notMerge={false}
             lazyUpdate={true}
             theme="theme_name"
           />
@@ -1754,7 +1848,13 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             touchAction: 'none',
             pointerEvents: 'auto',
           }}
-          onMouseDown={handleDragStart}
+          onMouseDown={(e) => {
+            try {
+              handleDragStart(e);
+            } catch (error) {
+              console.error('Error in onMouseDown event:', error);
+            }
+          }}
         />
       </div>
     </div>
