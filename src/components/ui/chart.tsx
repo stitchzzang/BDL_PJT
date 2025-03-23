@@ -1390,17 +1390,17 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     grid: [
       {
         left: 80,
-        right: 80,
+        right: 100, // Y축 라벨과 겹치지 않도록 여백 증가
         top: 40,
-        height: `${(1 - volumeHeightRatio) * 100}%`,
+        height: `${(1 - volumeHeightRatio - 0.05) * 100}%`, // 간격 더 넓게
         show: true,
         borderColor: '#1a2536',
         backgroundColor: '#0a1421',
       },
       {
         left: 80,
-        right: 80,
-        top: `${(1 - volumeHeightRatio + 0.01) * 100}%`,
+        right: 100, // Y축 라벨과 겹치지 않도록 여백 증가
+        top: `${(1 - volumeHeightRatio + 0.05) * 100}%`, // 간격 더 넓게
         bottom: 60,
         show: true,
         borderColor: '#1a2536',
@@ -1412,61 +1412,55 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'category',
         data: xAxisLabels,
         gridIndex: 0,
-        axisLine: { lineStyle: { color: '#1a2536' } },
-        axisLabel: { show: false },
+        axisLine: { show: false },
+        axisTick: { show: false },
         splitLine: {
           show: true,
           lineStyle: {
-            color: '#1a2536',
+            color: 'rgba(26, 37, 54, 0.4)',
             width: 1,
-            type: [2, 3],
+            type: [2, 2],
           },
         },
-        axisTick: { show: false },
-        boundaryGap: true,
+        axisLabel: { show: false },
         axisPointer: {
           show: true,
-          label: { show: false }, // 상단 축포인터 레이블 숨김
+          label: { show: false },
         },
+        boundaryGap: true,
       },
       {
         type: 'category',
         data: xAxisLabels,
         gridIndex: 1,
         position: 'bottom',
-        axisLine: { lineStyle: { color: '#1a2536' } },
-        axisLabel: {
-          show: true,
-          color: '#CCCCCC',
-          margin: 12,
-          formatter: (value, index) => {
-            const isBold = isFirstOfPeriod(value, index);
-            if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
-              return `{nextDay|${value}}`;
-            }
-            return isBold ? value : value;
-          },
-          rich: {
-            nextDay: {
-              color: '#ff9800',
-              fontWeight: 'bold',
-            },
-          },
-        },
+        axisLine: { show: false },
+        axisTick: { show: false },
         splitLine: {
           show: true,
           lineStyle: {
-            color: '#1a2536',
+            color: 'rgba(26, 37, 54, 0.4)',
             width: 1,
-            type: [2, 3],
+            type: [2, 2],
           },
         },
-        axisTick: { show: false },
-        boundaryGap: true,
+        axisLabel: {
+          show: true,
+          color: '#999',
+          fontSize: 11,
+          margin: 12,
+        },
         axisPointer: {
           show: true,
-          label: { show: true }, // 하단 축포인터 레이블 표시
+          label: {
+            show: true,
+            backgroundColor: '#2a3546',
+            color: '#fff',
+            fontSize: 11,
+            padding: [4, 8],
+          },
         },
+        boundaryGap: true,
       },
     ],
     yAxis: [
@@ -1474,19 +1468,23 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'value',
         position: 'right',
         scale: true,
-        splitNumber: 6, // 6 or 12로 처리
         gridIndex: 0,
-        axisLine: { lineStyle: { color: '#1a2536' } },
+        splitNumber: 6,
+        axisLine: { show: false },
+        axisTick: { show: false },
         splitLine: {
           show: true,
           lineStyle: {
-            color: '#1a2536',
+            color: 'rgba(26, 37, 54, 0.4)',
             width: 1,
-            type: [2, 3],
+            type: [2, 2],
           },
         },
         axisLabel: {
-          color: '#CCCCCC',
+          inside: false, // 그리드 밖으로 라벨 위치 이동
+          color: '#999',
+          fontSize: 11,
+          padding: [0, 0, 0, 10], // 라벨 패딩 조정
           formatter: (value: number) => {
             const formattedValue = formatKoreanNumber(Math.floor(value));
             if (Math.abs(value - currentData.close) < 0.1) {
@@ -1497,9 +1495,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           rich: {
             current: {
               backgroundColor: currentPriceColor,
-              padding: [4, 8],
+              padding: [2, 6],
               borderRadius: 2,
               color: '#FFFFFF',
+              fontSize: 11,
             },
           },
         },
@@ -1510,22 +1509,26 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         type: 'value',
         position: 'right',
         scale: true,
-        splitNumber: 6,
         gridIndex: 1,
-        axisLine: { lineStyle: { color: '#1a2536' } },
+        splitNumber: 3,
+        axisLine: { show: false },
+        axisTick: { show: false },
         splitLine: {
           show: true,
           lineStyle: {
-            color: '#1a2536',
+            color: 'rgba(26, 37, 54, 0.4)',
             width: 1,
-            type: [2, 3],
+            type: [2, 2],
           },
         },
         axisLabel: {
-          color: '#CCCCCC',
+          inside: false, // 그리드 밖으로 라벨 위치 이동
+          color: '#999',
+          fontSize: 11,
+          padding: [0, 0, 0, 10], // 라벨 패딩 조정
           formatter: (value: number) => formatVolumeNumber(value),
         },
-        min: 0,
+        min: volumeYScale.min,
         max: volumeYScale.max,
       },
     ],
@@ -1535,74 +1538,28 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         xAxisIndex: [0, 1],
         start: dataZoomRange.start,
         end: dataZoomRange.end,
-        zoomOnMouseWheel: true,
+        zoomLock: false,
         moveOnMouseMove: true,
-        preventDefaultMouseMove: false,
-      },
-      {
-        type: 'inside',
-        yAxisIndex: [0],
-        zoomOnMouseWheel: false,
-      },
-      {
-        type: 'inside',
-        yAxisIndex: [1],
-        zoomOnMouseWheel: false,
+        preventDefaultMouseMove: true,
       },
     ],
     series: [
       {
         name: '캔들차트',
         type: 'candlestick',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
         data: scaledCandleData,
         itemStyle: {
           color: RISE_COLOR,
           color0: FALL_COLOR,
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
+          borderWidth: 1,
         },
-        barWidth: '85%',
-        markLine: {
-          symbol: ['none', 'none'],
-          animation: false,
-          silent: true,
-          lineStyle: {
-            color: currentPriceColor,
-            width: 1,
-            type: 'dashed',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            distance: 0,
-            offset: [0, 0],
-            formatter: formatKoreanNumber(Math.floor(currentData.close)),
-            backgroundColor: currentPriceColor,
-            padding: [4, 7, 4, 7],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: Math.floor(currentData.close),
-              label: {
-                show: true,
-                position: 'end',
-                distance: 0,
-                offset: [0, 0],
-              },
-            },
-          ],
-        },
+        barWidth: '70%',
       },
       {
         name: '5일 이평선',
         type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
         data: scaledEMA5Data,
         smooth: true,
         lineStyle: {
@@ -1611,13 +1568,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           width: 1,
         },
         symbol: 'none',
-        connectNulls: true,
       },
       {
         name: '20일 이평선',
         type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
         data: scaledEMA20Data,
         smooth: true,
         lineStyle: {
@@ -1626,53 +1580,23 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           width: 1,
         },
         symbol: 'none',
-        connectNulls: true,
       },
       {
         name: '거래량',
         type: 'bar',
         xAxisIndex: 1,
         yAxisIndex: 1,
-        data: scaledVolumeData,
-        itemStyle: {
-          color: (params: any) => {
-            const index = params.dataIndex;
-            if (index < 10 || !extendedChartData[index]) return FALL_COLOR;
-            return extendedChartData[index].close >= extendedChartData[index].open
-              ? RISE_COLOR
-              : FALL_COLOR;
+        data: scaledVolumeData.map((volume, index) => ({
+          value: volume,
+          itemStyle: {
+            color:
+              extendedChartData[index].close >= extendedChartData[index].open
+                ? RISE_COLOR
+                : FALL_COLOR,
+            opacity: 0.8,
           },
-        },
-        barWidth: '85%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: 'transparent',
-            width: 0,
-            type: 'solid',
-          },
-          label: {
-            show: true,
-            position: 'end',
-            distance: 0,
-            offset: [0, 0],
-            formatter: formatVolumeNumber(currentData.volume),
-            backgroundColor: currentPriceColor,
-            padding: [4, 7, 4, 7],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 12,
-          },
-          data: [
-            {
-              yAxis: currentData.volume,
-              label: {
-                show: true,
-                position: 'end',
-              },
-            },
-          ],
-        },
+        })),
+        barWidth: '70%',
       },
     ],
   };
@@ -1805,19 +1729,41 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       </div>
       <div className="relative" style={{ height: `${height}px` }}>
         <div
-          className="absolute right-0 top-0 bottom-0 w-12 z-10 candle-y-axis"
+          className="absolute right-0 top-0 bottom-0 w-20 z-10 candle-y-axis"
           style={{ cursor: isHoveringCandleY ? 'ns-resize' : 'default' }}
           onMouseEnter={() => setIsHoveringCandleY(true)}
           onMouseLeave={() => setIsHoveringCandleY(false)}
+          onWheel={(e) => {
+            e.preventDefault();
+            const delta = e.deltaY;
+            const scaleFactor = 0.1;
+            setCandleYScale((prev) => {
+              const range = prev.max - prev.min;
+              const newMin = prev.min - range * scaleFactor * Math.sign(delta);
+              const newMax = prev.max + range * scaleFactor * Math.sign(delta);
+              return { min: newMin, max: newMax };
+            });
+          }}
         />
         <div
-          className="absolute right-0 bottom-0 w-12 z-10 volume-y-axis"
+          className="absolute right-0 bottom-0 w-20 z-10 volume-y-axis"
           style={{
             height: `${height * volumeHeightRatio}px`,
             cursor: isHoveringVolumeY ? 'ns-resize' : 'default',
           }}
           onMouseEnter={() => setIsHoveringVolumeY(true)}
           onMouseLeave={() => setIsHoveringVolumeY(false)}
+          onWheel={(e) => {
+            e.preventDefault();
+            const delta = e.deltaY;
+            const scaleFactor = 0.1;
+            setVolumeYScale((prev) => {
+              const range = prev.max - prev.min;
+              const newMin = Math.max(0, prev.min - range * scaleFactor * Math.sign(delta));
+              const newMax = prev.max + range * scaleFactor * Math.sign(delta);
+              return { min: newMin, max: newMax };
+            });
+          }}
         />
         {data && data.length > 0 && (
           <ReactECharts
@@ -1841,8 +1787,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             left: '80px',
             right: '80px',
             top: `${(1 - volumeHeightRatio) * 100}%`,
-            height: '4px',
-            backgroundColor: isDragging ? '#4a90e2' : 'rgba(26, 37, 54, 0.8)',
+            height: '8px',
+            backgroundColor: isDragging ? '#4a90e2' : '#1a2536',
             transition: isDragging ? 'none' : 'background-color 0.2s ease',
             cursor: 'row-resize',
             transform: 'translateZ(0)',
@@ -1850,6 +1796,8 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             userSelect: 'none',
             touchAction: 'none',
             pointerEvents: 'auto',
+            borderTop: '2px solid #2a3546',
+            borderBottom: '2px solid #2a3546',
           }}
           onMouseDown={(e) => {
             try {
