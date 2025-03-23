@@ -1213,58 +1213,55 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   useEffect(() => {
     const handleYAxisScroll = (event: WheelEvent, isCandle: boolean) => {
       event.preventDefault();
+      event.stopPropagation();
+
       const delta = event.deltaY;
-      const scaleFactor = 0.1;
+      const zoomFactor = delta > 0 ? 1.1 : 0.9;
 
       if (isCandle) {
         setCandleYScale((prev) => {
           const range = prev.max - prev.min;
-          // 델타 부호를 반대로 적용 (위로 휠 -> 확대, 아래로 휠 -> 축소)
-          const newMin = prev.min - range * scaleFactor * Math.sign(delta);
-          const newMax = prev.max + range * scaleFactor * Math.sign(delta);
-          return { min: newMin, max: newMax };
+          const centerValue = (prev.max + prev.min) / 2;
+          const newRange = range * zoomFactor;
+
+          return {
+            min: centerValue - newRange / 2,
+            max: centerValue + newRange / 2,
+          };
         });
       } else {
         setVolumeYScale((prev) => {
           const range = prev.max - prev.min;
-          // 델타 부호를 반대로 적용하고 최소값이 0 이하로 내려가지 않도록 제한
-          const newMin = Math.max(0, prev.min - range * scaleFactor * Math.sign(delta));
-          const newMax = prev.max + range * scaleFactor * Math.sign(delta);
-          return { min: newMin, max: newMax };
+          const centerValue = (prev.max + prev.min) / 2;
+          const newRange = range * zoomFactor;
+
+          return {
+            min: Math.max(0, centerValue - newRange / 2),
+            max: centerValue + newRange / 2,
+          };
         });
       }
     };
 
-    // DOM 요소 선택
     const candleYAxisElement = document.querySelector('.candle-y-axis');
     const volumeYAxisElement = document.querySelector('.volume-y-axis');
 
-    // 이벤트 핸들러 함수 (Event 타입으로 받고 내부에서 WheelEvent로 변환)
     const handleCandleWheel = (e: Event) => {
-      e.preventDefault();
       handleYAxisScroll(e as WheelEvent, true);
     };
 
     const handleVolumeWheel = (e: Event) => {
-      e.preventDefault();
       handleYAxisScroll(e as WheelEvent, false);
     };
 
-    // 캔들 Y축 이벤트 리스너 추가
     if (candleYAxisElement) {
-      candleYAxisElement.addEventListener('wheel', handleCandleWheel, {
-        passive: false,
-      });
+      candleYAxisElement.addEventListener('wheel', handleCandleWheel, { passive: false });
     }
 
-    // 거래량 Y축 이벤트 리스너 추가
     if (volumeYAxisElement) {
-      volumeYAxisElement.addEventListener('wheel', handleVolumeWheel, {
-        passive: false,
-      });
+      volumeYAxisElement.addEventListener('wheel', handleVolumeWheel, { passive: false });
     }
 
-    // 컴포넌트 언마운트 시 이벤트 리스너 제거
     return () => {
       if (candleYAxisElement) {
         candleYAxisElement.removeEventListener('wheel', handleCandleWheel);
@@ -1481,10 +1478,10 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           },
         },
         axisLabel: {
-          inside: false, // 그리드 밖으로 라벨 위치 이동
+          inside: false,
           color: '#999',
           fontSize: 11,
-          padding: [0, 0, 0, 10], // 라벨 패딩 조정
+          padding: [0, 0, 0, 10],
           formatter: (value: number) => {
             const formattedValue = formatKoreanNumber(Math.floor(value));
             if (Math.abs(value - currentData.close) < 0.1) {
@@ -1504,6 +1501,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         },
         min: candleYScale.min,
         max: candleYScale.max,
+        boundaryGap: ['10%', '10%'],
       },
       {
         type: 'value',
@@ -1522,14 +1520,15 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           },
         },
         axisLabel: {
-          inside: false, // 그리드 밖으로 라벨 위치 이동
+          inside: false,
           color: '#999',
           fontSize: 11,
-          padding: [0, 0, 0, 10], // 라벨 패딩 조정
+          padding: [0, 0, 0, 10],
           formatter: (value: number) => formatVolumeNumber(value),
         },
         min: volumeYScale.min,
         max: volumeYScale.max,
+        boundaryGap: ['10%', '10%'],
       },
     ],
     dataZoom: [
@@ -1733,17 +1732,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           style={{ cursor: isHoveringCandleY ? 'ns-resize' : 'default' }}
           onMouseEnter={() => setIsHoveringCandleY(true)}
           onMouseLeave={() => setIsHoveringCandleY(false)}
-          onWheel={(e) => {
-            e.preventDefault();
-            const delta = e.deltaY;
-            const scaleFactor = 0.1;
-            setCandleYScale((prev) => {
-              const range = prev.max - prev.min;
-              const newMin = prev.min - range * scaleFactor * Math.sign(delta);
-              const newMax = prev.max + range * scaleFactor * Math.sign(delta);
-              return { min: newMin, max: newMax };
-            });
-          }}
         />
         <div
           className="absolute right-0 bottom-0 w-20 z-10 volume-y-axis"
@@ -1753,17 +1741,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           }}
           onMouseEnter={() => setIsHoveringVolumeY(true)}
           onMouseLeave={() => setIsHoveringVolumeY(false)}
-          onWheel={(e) => {
-            e.preventDefault();
-            const delta = e.deltaY;
-            const scaleFactor = 0.1;
-            setVolumeYScale((prev) => {
-              const range = prev.max - prev.min;
-              const newMin = Math.max(0, prev.min - range * scaleFactor * Math.sign(delta));
-              const newMax = prev.max + range * scaleFactor * Math.sign(delta);
-              return { min: newMin, max: newMax };
-            });
-          }}
         />
         {data && data.length > 0 && (
           <ReactECharts
