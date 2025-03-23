@@ -8,7 +8,7 @@ export const NavBar = () => {
   const navigate = useNavigate();
 
   return (
-    <nav className="flex items-center justify-between bg-[#030D1B] px-10 py-2">
+    <nav className="mb-[60px] flex items-center justify-between bg-[#030D1B] px-10 py-2">
       <button className="duration-300 hover:scale-110" onClick={() => navigate('/')}>
         <MainLogoIcon className="h-10 w-10" color="white" />
       </button>
@@ -60,9 +60,18 @@ export const NavBar = () => {
           />
         </div>
       </div>
-      <Button variant="blue" onClick={() => navigate('/login')}>
-        로그인
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button variant="blue" onClick={() => navigate('/login')}>
+          로그인
+        </Button>
+        <button onClick={() => navigate('/member/stock-tutorial-result')}>
+          <img
+            src="/none-img/none_profile_img.png"
+            alt="profile"
+            className="h-[40px] w-[40px] rounded-full border border-primary-color"
+          />
+        </button>
+      </div>
     </nav>
   );
 };

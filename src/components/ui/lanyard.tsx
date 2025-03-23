@@ -25,14 +25,14 @@ interface LanyardProps {
   transparent?: boolean;
 }
 
-export default function Lanyard({
-  position = [0, 0, 30],
+export const Lanyard = ({
+  position = [0, 0, 20],
   gravity = [0, -40, 0],
-  fov = 20,
+  fov = 13,
   transparent = true,
-}: LanyardProps) {
+}: LanyardProps) => {
   return (
-    <div className="relative z-0 flex h-screen w-full origin-center scale-100 transform items-center justify-center">
+    <div className="relative z-0 flex h-[400px] w-full origin-center scale-100 transform items-center justify-center">
       <Canvas
         camera={{ position, fov }}
         gl={{ alpha: transparent }}
@@ -75,7 +75,7 @@ export default function Lanyard({
       </Canvas>
     </div>
   );
-}
+};
 
 interface BandProps {
   maxSpeed?: number;

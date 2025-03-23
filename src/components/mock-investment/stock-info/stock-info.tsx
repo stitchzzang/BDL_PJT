@@ -1,19 +1,26 @@
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
-import { formatThousandSeparator } from '@/lib/formatThousandSeparator';
+import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
+import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
 
-export const StockInfo = () => {
+interface StockInfoProps {
+  category: CategoryName;
+}
+
+export const StockInfo = ({ category }: StockInfoProps) => {
+  const CategoryIcon = getCategoryIcon(category);
+
   return (
     <div className="flex items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
-        <div className="max-h-[90px] max-w-[90px] overflow-hidden rounded-xl">
+        <div className="max-h-[70px] max-w-[70px] overflow-hidden rounded-xl">
           {/* 이미지 */}
           <img src={TestImage} alt="stock-icon" />
         </div>
         <div className="flex w-full flex-col">
           <div className="flex items-center gap-2">
-            <h3 className="text-[24px] font-medium text-white">한화오션</h3>
-            <p className="text-[16px] font-light text-border-color">27210</p>
+            <h3 className="text-[20px] font-medium text-white">한화오션</h3>
+            <p className="text-[14px] font-light text-border-color">27210</p>
           </div>
           <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-[18px] sm:flex-row">
@@ -25,8 +32,11 @@ export const StockInfo = () => {
                   <p className="text-border-color">어제보다</p>
                   <p className="text-btn-red-color">{formatThousandSeparator(1323)}원(23%)</p>
                 </div>
-                <div className="flex gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
-                  <p className="text-border-color">반도체체</p>
+                <div className="flex items-center justify-center gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
+                  <div className="min-h-[25px] min-w-[25px]">
+                    <CategoryIcon />
+                  </div>
+                  <p className="text-border-color">{category}</p>
                 </div>
               </div>
             </div>
