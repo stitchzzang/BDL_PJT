@@ -178,16 +178,12 @@ const createVolumeSeries = (
 
 export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
-  const [showVolume, _setShowVolume] = useState<boolean>(true);
+  const [showVolume] = useState<boolean>(true);
   const [volumeHeightRatio, setVolumeHeightRatio] = useState<number>(0.2);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [isHoveringCandleY, setIsHoveringCandleY] = useState(false);
   const [isHoveringVolumeY, setIsHoveringVolumeY] = useState(false);
   const chartRef = useRef<ReactECharts>(null);
-  const [isChartReady, setIsChartReady] = useState(false);
-  const [shouldUpdate, setShouldUpdate] = useState(false);
-
-  // Y축 스케일 상태 추가
   const [candleYScale, setCandleYScale] = useState<YAxisScale>({ min: 0, max: 100 });
   const [volumeYScale, setVolumeYScale] = useState<YAxisScale>({ min: 0, max: 100 });
 
@@ -287,30 +283,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         }
         default:
           return '';
-      }
-    },
-    [period],
-  );
-
-  const isFirstOfPeriod = useCallback(
-    (date: string, index: number): boolean => {
-      if (index === 0) return true;
-
-      switch (period) {
-        case 'DAY': {
-          // 월의 첫 날인지 확인
-          return date.includes('월');
-        }
-        case 'WEEK': {
-          // 월의 첫 주인지 확인
-          return date.includes('월');
-        }
-        case 'MONTH': {
-          // 년의 첫 월인지 확인
-          return date.includes('년');
-        }
-        default:
-          return false;
       }
     },
     [period],
@@ -432,87 +404,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
       max: Math.ceil(maxVolume + volumeMargin),
     });
   }, [data, period, getData]);
-
-  // 데이터 변경 시 Y축 스케일 업데이트
-  const updateYScales = useCallback(() => {
-    const chartData = getData();
-    if (chartData.length === 0) return;
-
-    // 캔들차트 스케일 업데이트 - 이미 확대/축소된 경우에는 업데이트하지 않음
-    const prices = chartData.map((item) => [item.high, item.low]).flat();
-    const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
-    const priceRange = maxPrice - minPrice;
-    const priceMargin = priceRange * 0.1;
-
-    setCandleYScale((prev) => {
-      // 현재 사용자가 확대/축소한 스케일이 있는 경우 업데이트하지 않음
-      // 데이터 범위를 벗어난 경우에만 업데이트
-      if (prev.min > minPrice || prev.max < maxPrice) {
-        return {
-          min: Math.floor(minPrice - priceMargin),
-          max: Math.ceil(maxPrice + priceMargin),
-        };
-      }
-      return prev; // 기존 스케일 유지
-    });
-
-    // 거래량 차트 스케일 업데이트 - 이미 확대/축소된 경우에는 업데이트하지 않음
-    const volumes = chartData.map((item) => item.volume);
-    const maxVolume = Math.max(...volumes);
-    const volumeMargin = maxVolume * 0.1;
-
-    setVolumeYScale((prev) => {
-      // 현재 사용자가 확대/축소한 스케일이 있는 경우 업데이트하지 않음
-      // 데이터 범위를 벗어난 경우에만 업데이트
-      if (prev.max < maxVolume) {
-        return {
-          min: 0,
-          max: Math.ceil(maxVolume + volumeMargin),
-        };
-      }
-      return prev; // 기존 스케일 유지
-    });
-  }, [getData]);
-
-  // 자동 업데이트 완전히 제거 - 사용자가 변경한 스케일을 유지하기 위함
-  // useEffect(() => {
-  //   // 초기 업데이트 - 기간 변경 시에만 실행
-  //   updateYScales();
-
-  //   // 초기화 방지를 위해 주기적인 업데이트 간격 확장 (5초)
-  //   const intervalId = setInterval(updateYScales, 5000);
-  //   return () => clearInterval(intervalId);
-  // }, [updateYScales, period]);
-
-  // 기간 변경 시에만 업데이트
-  useEffect(() => {
-    // 기간이 변경될 때만 스케일 초기화
-    const chartData = getData();
-    if (chartData.length === 0) return;
-
-    // 캔들차트 스케일 계산 (기간 변경 시에만 완전히 초기화)
-    const prices = chartData.map((item) => [item.high, item.low]).flat();
-    const maxPrice = Math.max(...prices);
-    const minPrice = Math.min(...prices);
-    const priceRange = maxPrice - minPrice;
-    const priceMargin = priceRange * 0.1;
-
-    setCandleYScale({
-      min: Math.floor(minPrice - priceMargin),
-      max: Math.ceil(maxPrice + priceMargin),
-    });
-
-    // 거래량 차트 스케일 계산
-    const volumes = chartData.map((item) => item.volume);
-    const maxVolume = Math.max(...volumes);
-    const volumeMargin = maxVolume * 0.1;
-
-    setVolumeYScale({
-      min: 0,
-      max: Math.ceil(maxVolume + volumeMargin),
-    });
-  }, [period, getData]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -781,10 +672,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   // 거래량 차트의 높이 비율 상수 정의
   const VOLUME_HEIGHT_RATIO = volumeHeightRatio;
-  // 거래량 차트와 캔들차트 사이의 간격 비율
-  const VOLUME_GAP_RATIO = 0.01;
-  // 거래량 차트 상단 여백 비율
-  const VOLUME_TOP_MARGIN_RATIO = 0.15;
 
   // 거래량 데이터 스케일링 함수 수정
   const scaleVolumeData = useCallback(() => {
@@ -955,8 +842,6 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     let isDragging = false;
     let lastX = 0;
     let lastY = 0;
-    let isZooming = false;
-    let zoomStart = { x: 0, y: 0 };
 
     // 줌 설정 초기화
     const initZoom = () => {
