@@ -1689,25 +1689,22 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
   // 차트 이벤트 핸들러 메모이제이션
   const onEvents = useMemo(
     () => ({
-      rendered: () => {
+      finished: () => {
         try {
           const chart = chartRef.current?.getEchartsInstance();
-          if (chart && typeof chart.resize === 'function') {
-            chart.resize();
-          }
-          if (!isChartReady) {
-            setIsChartReady(true);
+          if (chart && !chart.isDisposed()) {
+            requestAnimationFrame(() => {
+              if (chart && !chart.isDisposed()) {
+                chart.resize();
+              }
+            });
           }
         } catch (error) {
-          console.error('Chart rendered event error:', error);
+          console.error('Chart finished event error:', error);
         }
       },
-      finished: () => {
-        console.log('차트 렌더링 완료');
-        setShouldUpdate(true);
-      },
     }),
-    [isChartReady],
+    [],
   );
 
   // 차트 크기 조정 핸들러
@@ -1724,48 +1721,54 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
 
   // 컴포넌트 마운트/언마운트 처리
   useEffect(() => {
+    let mounted = true;
+    let resizeTimeout: number | null = null;
+
+    const handleResize = () => {
+      if (resizeTimeout) {
+        window.cancelAnimationFrame(resizeTimeout);
+      }
+
+      resizeTimeout = window.requestAnimationFrame(() => {
+        try {
+          const chart = chartRef.current?.getEchartsInstance();
+          if (mounted && chart && !chart.isDisposed()) {
+            chart.resize();
+          }
+        } catch (error) {
+          console.error('Resize error:', error);
+        }
+      });
+    };
+
     window.addEventListener('resize', handleResize);
 
     return () => {
+      mounted = false;
+      if (resizeTimeout) {
+        window.cancelAnimationFrame(resizeTimeout);
+      }
       window.removeEventListener('resize', handleResize);
-      try {
-        const chart = chartRef.current?.getEchartsInstance();
-        if (chart) {
-          setIsChartReady(false);
-          setShouldUpdate(false);
-          chart.clear();
-          chart.dispose();
-        }
-      } catch (error) {
-        console.warn('Chart cleanup failed:', error);
-      }
     };
-  }, [handleResize]);
+  }, []);
 
-  // 데이터 변경 시 차트 업데이트
+  // 차트 옵션 업데이트
   useEffect(() => {
-    if (!shouldUpdate || !isChartReady || !data || data.length === 0) {
-      return;
+    if (!chartRef.current) return;
+
+    const chart = chartRef.current.getEchartsInstance();
+    if (!chart || chart.isDisposed()) return;
+
+    try {
+      chart.setOption(chartOption, {
+        notMerge: false,
+        lazyUpdate: true,
+        silent: true,
+      });
+    } catch (error) {
+      console.error('Chart update error:', error);
     }
-
-    const updateChart = () => {
-      try {
-        const chart = chartRef.current?.getEchartsInstance();
-        if (!chart) return;
-
-        chart.setOption(chartOption, {
-          notMerge: false,
-          lazyUpdate: true,
-          silent: true,
-        });
-      } catch (error) {
-        console.error('Chart update failed:', error);
-      }
-    };
-
-    const timeoutId = setTimeout(updateChart, 100);
-    return () => clearTimeout(timeoutId);
-  }, [data, chartOption, isChartReady, shouldUpdate]);
+  }, [chartOption]);
 
   return (
     <div
