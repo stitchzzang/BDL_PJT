@@ -885,112 +885,107 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
     const chart = chartRef.current?.getEchartsInstance();
     if (!chart) return;
 
-    const handleYAxisWheel = (e: Event) => {
+    const handleYAxisLabelWheel = (e: Event) => {
       const wheelEvent = e as WheelEvent;
       wheelEvent.preventDefault();
+      wheelEvent.stopPropagation();
 
+      const target = wheelEvent.target as HTMLElement;
+      const value = parseFloat(target.textContent || '0');
       const chartRect = chart.getDom().getBoundingClientRect();
       const mouseY = wheelEvent.clientY - chartRect.top;
-
-      // 차트 영역 분할 위치 계산
       const splitPosition = chartRect.height * (1 - volumeHeightRatio);
-
-      // 마우스가 캔들차트 영역에 있는지 거래량 차트 영역에 있는지 확인
       const isInCandleArea = mouseY < splitPosition;
 
-      // 스크롤 방향에 따라 확대/축소
       const zoomFactor = wheelEvent.deltaY > 0 ? 1.1 : 0.9;
-      const relativeY =
-        (mouseY - (isInCandleArea ? 40 : splitPosition)) /
-        (isInCandleArea ? splitPosition - 40 : chartRect.height - splitPosition - 60);
 
       if (isInCandleArea) {
-        // 캔들차트 Y축 스케일 조정
         const range = candleYScale.max - candleYScale.min;
         const newRange = range * zoomFactor;
-        const centerValue = candleYScale.min + range * relativeY;
-        const newMin = centerValue - newRange * relativeY;
-        const newMax = newMin + newRange;
-
-        setCandleYScale({ min: newMin, max: newMax });
+        setCandleYScale({
+          min: value - (newRange * (mouseY - chartRect.top)) / splitPosition,
+          max: value + (newRange * (splitPosition - (mouseY - chartRect.top))) / splitPosition,
+        });
       } else {
-        // 거래량 차트 Y축 스케일 조정
         const range = volumeYScale.max - volumeYScale.min;
         const newRange = range * zoomFactor;
-        const centerValue = volumeYScale.min + range * relativeY;
-        const newMin = centerValue - newRange * relativeY;
-        const newMax = newMin + newRange;
-
-        setVolumeYScale({ min: newMin, max: newMax });
+        const volumeHeight = chartRect.height - splitPosition;
+        setVolumeYScale({
+          min: Math.max(0, value - (newRange * (mouseY - splitPosition)) / volumeHeight),
+          max: value + (newRange * (volumeHeight - (mouseY - splitPosition))) / volumeHeight,
+        });
       }
     };
 
-    const handleYAxisMouseDown = (e: Event) => {
-      const mouseEvent = e as MouseEvent;
-      mouseEvent.preventDefault();
+    const handleXAxisLabelWheel = (e: Event) => {
+      const wheelEvent = e as WheelEvent;
+      wheelEvent.preventDefault();
+      wheelEvent.stopPropagation();
 
+      const zoomFactor = wheelEvent.deltaY > 0 ? 1.1 : 0.9;
+      const currentRange = dataZoomRange.end - dataZoomRange.start;
+      const newRange = Math.min(Math.max(currentRange * zoomFactor, 5), 100);
+
+      // 마우스 위치를 기준으로 줌 중심점 계산
       const chartRect = chart.getDom().getBoundingClientRect();
-      const startY = mouseEvent.clientY - chartRect.top;
-      const splitPosition = chartRect.height * (1 - volumeHeightRatio);
-      const isInCandleArea = startY < splitPosition;
+      const mouseX = wheelEvent.clientX - chartRect.left;
+      const totalWidth = chartRect.width;
+      const zoomCenter = (mouseX / totalWidth) * 100;
 
-      let lastY = mouseEvent.clientY;
-      let isDragging = true;
+      // 새로운 start와 end 계산
+      const rangeHalf = newRange / 2;
+      const newStart = Math.max(0, zoomCenter - rangeHalf);
+      const newEnd = Math.min(100, zoomCenter + rangeHalf);
 
-      const handleMouseMove = (moveEvent: Event) => {
-        if (!isDragging) return;
-        const mouseMoveEvent = moveEvent as MouseEvent;
-
-        const deltaY = mouseMoveEvent.clientY - lastY;
-        const moveRatio =
-          deltaY / (isInCandleArea ? splitPosition - 40 : chartRect.height - splitPosition - 60);
-
-        if (isInCandleArea) {
-          // 캔들차트 Y축 이동
-          const range = candleYScale.max - candleYScale.min;
-          const valueChange = range * moveRatio;
-          setCandleYScale({
-            min: candleYScale.min - valueChange,
-            max: candleYScale.max - valueChange,
-          });
-        } else {
-          // 거래량 차트 Y축 이동
-          const range = volumeYScale.max - volumeYScale.min;
-          const valueChange = range * moveRatio;
-          setVolumeYScale({
-            min: volumeYScale.min - valueChange,
-            max: volumeYScale.max - valueChange,
-          });
-        }
-
-        lastY = mouseMoveEvent.clientY;
-      };
-
-      const handleMouseUp = () => {
-        isDragging = false;
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      // 범위가 차트 경계를 벗어나지 않도록 조정
+      if (newStart < 0) {
+        chart.dispatchAction({
+          type: 'dataZoom',
+          start: 0,
+          end: newRange,
+          xAxisIndex: [0, 1],
+        });
+      } else if (newEnd > 100) {
+        chart.dispatchAction({
+          type: 'dataZoom',
+          start: 100 - newRange,
+          end: 100,
+          xAxisIndex: [0, 1],
+        });
+      } else {
+        chart.dispatchAction({
+          type: 'dataZoom',
+          start: newStart,
+          end: newEnd,
+          xAxisIndex: [0, 1],
+        });
+      }
     };
 
-    // Y축 요소에 이벤트 리스너 추가
-    const yAxisElements = chart.getDom().querySelectorAll('.echarts-y-axis');
-    yAxisElements.forEach((element) => {
-      element.addEventListener('wheel', handleYAxisWheel, { passive: false });
-      element.addEventListener('mousedown', handleYAxisMouseDown);
-      (element as HTMLElement).style.cursor = 'ns-resize';
+    // Y축 라벨 이벤트 리스너
+    const yAxisLabels = chart.getDom().querySelectorAll('.echarts-y-axis .echarts-axis-label');
+    yAxisLabels.forEach((label) => {
+      label.addEventListener('wheel', handleYAxisLabelWheel, { passive: false });
+      (label as HTMLElement).style.cursor = 'ns-resize';
     });
 
+    // X축 라벨 이벤트 리스너
+    const xAxisLabels = chart.getDom().querySelectorAll('.echarts-x-axis .echarts-axis-label');
+    xAxisLabels.forEach((label) => {
+      label.addEventListener('wheel', handleXAxisLabelWheel, { passive: false });
+      (label as HTMLElement).style.cursor = 'ew-resize';
+    });
+
+    // cleanup 함수
     return () => {
-      yAxisElements.forEach((element) => {
-        element.removeEventListener('wheel', handleYAxisWheel);
-        element.removeEventListener('mousedown', handleYAxisMouseDown);
+      yAxisLabels.forEach((label) => {
+        label.removeEventListener('wheel', handleYAxisLabelWheel);
+      });
+      xAxisLabels.forEach((label) => {
+        label.removeEventListener('wheel', handleXAxisLabelWheel);
       });
     };
-  }, [volumeHeightRatio, candleYScale, volumeYScale]);
+  }, [volumeHeightRatio, candleYScale, volumeYScale, dataZoomRange]);
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -1252,22 +1247,19 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
         xAxisIndex: [0, 1],
         start: dataZoomRange.start,
         end: dataZoomRange.end,
-        zoomOnMouseWheel: 'shift',
+        zoomOnMouseWheel: true,
         moveOnMouseMove: true,
+        preventDefaultMouseMove: false,
       },
       {
         type: 'inside',
         yAxisIndex: [0],
-        zoomOnMouseWheel: true,
-        moveOnMouseMove: false,
-        rangeMode: ['value', 'value'],
+        zoomOnMouseWheel: false,
       },
       {
         type: 'inside',
         yAxisIndex: [1],
-        zoomOnMouseWheel: true,
-        moveOnMouseMove: false,
-        rangeMode: ['value', 'value'],
+        zoomOnMouseWheel: false,
       },
     ],
     series: [
