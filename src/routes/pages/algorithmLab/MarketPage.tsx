@@ -21,6 +21,10 @@ export const MarketPage = () => {
     setFallResponse,
     setRiseAction,
     setFallAction,
+    setShortTermMaPeriod,
+    setLongTermMaPeriod,
+    shortTermMaPeriod,
+    longTermMaPeriod,
   } = useAlgorithmLabStore();
 
   if (!isValidAccess) {
@@ -132,6 +136,41 @@ export const MarketPage = () => {
             max={30}
             step={0.5}
           />
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <HelpBadge
+          title="주식의 장기적인 움직임을 분석할까요?"
+          description={`주식의 장기적인 움직임을 분석할 이동평균선 사용이 가능합니다.
+                      해당 기능은 주가의 추세를 파악하는데 도움이 됩니다.
+
+                      단기선이 장기선을 상향 돌파할 때 매수 신호, 하양 돌파할 때 매도 신호로 활용 할 수 있습니다.`}
+        />
+        <div className="flex items-center gap-2">
+          <Button
+            variant="blue"
+            onClick={() => {
+              if (shortTermMaPeriod === 5 && longTermMaPeriod === 20) {
+                setShortTermMaPeriod(null);
+                setLongTermMaPeriod(null);
+              } else {
+                setShortTermMaPeriod(5);
+                setLongTermMaPeriod(20);
+              }
+            }}
+            className={
+              shortTermMaPeriod === 5 && longTermMaPeriod === 20
+                ? 'bg-btn-blue-color'
+                : 'bg-btn-blue-color/20'
+            }
+          >
+            {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
+          </Button>
+          <p className="text-base text-btn-primary-active-color">
+            {shortTermMaPeriod === 5 && longTermMaPeriod === 20
+              ? '이동평균선이 적용되었습니다.'
+              : '버튼 클릭시 이동평균선 사용이 가능합니다.'}
+          </p>
         </div>
       </div>
       <div className="flex w-full gap-2">
