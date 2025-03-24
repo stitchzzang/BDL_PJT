@@ -1,3 +1,5 @@
+import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
@@ -11,6 +13,7 @@ export const NamePage = () => {
   const isValidAccess = useAlgorithmLabGuard('name');
   const navigate = useNavigate();
   const { algorithmName, setAlgorithmName } = useAlgorithmLabStore();
+  const [nowName, setNowName] = useState<string>('');
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -24,27 +27,64 @@ export const NamePage = () => {
         description="여러분이 생성한 알고리즘은 저장하여 나중에 확인이 가능합니다.
         알고리즘 이름을 생성하여 편하게 관리해보세요!"
       />
-      <div className="w-full">
-        <Input
-          type="text"
-          value={algorithmName}
-          onChange={(e) => setAlgorithmName(e.target.value)}
-          placeholder="알고리즘 이름을 작성하세요."
-          className="h-12"
-        />
-      </div>
-      <div className="flex w-full gap-2">
-        <Button variant="blue" onClick={() => navigate('/algorithm-lab')} className="flex-1">
-          이전
-        </Button>
-        <Button
-          variant="blue"
-          onClick={() => navigate('/algorithm-lab/style')}
-          disabled={!algorithmName.trim()}
-          className="flex-1 disabled:cursor-not-allowed"
+      <div className="relative w-full">
+        <AnimatePresence>
+          {nowName && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.5, ease: 'easeInOut' }}
+              className="flex justify-center overflow-hidden text-[22px] font-bold text-btn-blue-color"
+              style={{
+                textShadow: '0 0 20px rgba(20, 61, 128, 0.7), 0 0 5px rgba(8, 32, 72, 0.5)',
+                filter: 'drop-shadow(0 0 1px #0a68ff)',
+              }}
+            >
+              <motion.h1
+                initial={{ y: -20 }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                {nowName}
+              </motion.h1>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 아래 요소들을 컨테이너로 감싸서 함께 움직이게 함 */}
+        <motion.div
+          animate={{
+            y: nowName ? 20 : 0,
+          }}
+          transition={{ duration: 0.5 }}
         >
-          다음
-        </Button>
+          <div className="mb-4 w-full">
+            <Input
+              type="text"
+              value={algorithmName}
+              onChange={(e) => {
+                setAlgorithmName(e.target.value);
+                setNowName(e.target.value);
+              }}
+              placeholder="알고리즘 이름을 작성하세요."
+              className="h-12 transition-colors duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+          </div>
+          <div className="flex w-full gap-2">
+            <Button variant="blue" onClick={() => navigate('/algorithm-lab')} className="flex-1">
+              이전
+            </Button>
+            <Button
+              variant="blue"
+              onClick={() => navigate('/algorithm-lab/style')}
+              disabled={!algorithmName.trim()}
+              className="flex-1 disabled:cursor-not-allowed"
+            >
+              다음
+            </Button>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
