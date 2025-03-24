@@ -1,6 +1,7 @@
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
 import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-info';
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
+import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
 import ChartComponent from '@/components/ui/chart';
 import { minuteData } from '@/lib/dummy-data';
 
@@ -24,8 +25,13 @@ export const SimulatedEducationPage = () => {
           </div>
         </div>
       </div>
-      <div className="flex-1">
-        <ChartComponent data={minuteData} height={600} />
+      <div className="grid grid-cols-10 gap-3">
+        <div className="col-span-8">
+          <ChartComponent data={minuteData} height={600} />
+        </div>
+        <div className="col-span-2">
+          <TutorialOrderStatus />
+        </div>
       </div>
     </div>
   );
