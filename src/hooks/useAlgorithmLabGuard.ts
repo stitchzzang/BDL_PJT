@@ -6,7 +6,7 @@ import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 type PageType = 'name' | 'style' | 'method' | 'market' | 'confirm';
 
 export const useAlgorithmLabGuard = (page: PageType): boolean => {
-  const { name, investmentStyle, investmentMethod, investmentAmount, marketResponse } =
+  const { name, investmentMethod, investmentAmount, marketResponse, riseResponse, fallResponse } =
     useAlgorithmLabStore();
 
   // 각 페이지별로 필요한 이전 데이터 체크
@@ -22,7 +22,7 @@ export const useAlgorithmLabGuard = (page: PageType): boolean => {
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
     case 'method':
-      if (!investmentStyle) {
+      if (!riseResponse || !fallResponse) {
         return false;
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
