@@ -1,5 +1,7 @@
+import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
+import StableMotion from '@/assets/lottie/stable-anmation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -53,7 +55,20 @@ export const StylePage = () => {
 
   return (
     <div className="flex flex-col items-center justify-center gap-8">
-      <h2 className="text-3xl font-bold">투자 스타일 선택</h2>
+      <div className="flex flex-col items-center justify-center">
+        <h2 className="text-3xl font-bold">투자 스타일 선택</h2>
+        <div>
+          <Lottie
+            animationData={StableMotion}
+            loop={true}
+            autoplay={true}
+            style={{ height: 170, width: 170 }}
+            rendererSettings={{
+              preserveAspectRatio: 'xMidYMid slice',
+            }}
+          />
+        </div>
+      </div>
       <HelpBadge
         title="어떤 투자 스타일을 선호하시나요?"
         description="3가지 선택지 중 가장 선호하는 투자 스타일을 선택해주세요."
@@ -62,7 +77,7 @@ export const StylePage = () => {
         <Button
           variant="green"
           onClick={() => handleStyleClick('conservative', 4, 1.5)}
-          className={`flex w-full flex-col items-start p-4 ${
+          className={`flex w-full flex-col items-start p-4 transition-all duration-300 ${
             isConservativeValid || investmentStyle === 'conservative'
               ? 'bg-btn-green-color'
               : 'bg-btn-green-color/20'
@@ -77,7 +92,7 @@ export const StylePage = () => {
         <Button
           variant="yellow"
           onClick={() => handleStyleClick('balanced', 10, 4)}
-          className={`flex w-full flex-col items-start p-4 ${
+          className={`flex w-full flex-col items-start p-4 transition-all duration-300 ${
             isBalancedValid || investmentStyle === 'balanced'
               ? 'bg-btn-yellow-color'
               : 'bg-btn-yellow-color/20'
@@ -90,7 +105,7 @@ export const StylePage = () => {
         <Button
           variant="red"
           onClick={() => handleStyleClick('aggressive', 20, 8.5)}
-          className={`flex w-full flex-col items-start p-4 ${
+          className={`flex w-full flex-col items-start p-4 transition-all duration-300 ${
             isAggressiveValid || investmentStyle === 'aggressive'
               ? 'bg-btn-red-color'
               : 'bg-btn-red-color/20'
