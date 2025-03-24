@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
-import { InvalidAccessPage } from '@/routes/pages/algorithmLab/InvalidAccessPage';
+import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 
 export const ConfirmPage = () => {

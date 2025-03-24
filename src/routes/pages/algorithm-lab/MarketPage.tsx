@@ -5,7 +5,7 @@ import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
-import { InvalidAccessPage } from '@/routes/pages/algorithmLab/InvalidAccessPage';
+import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 
 export const MarketPage = () => {

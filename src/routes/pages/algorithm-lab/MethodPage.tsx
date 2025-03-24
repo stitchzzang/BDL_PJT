@@ -4,7 +4,7 @@ import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
-import { InvalidAccessPage } from '@/routes/pages/algorithmLab/InvalidAccessPage';
+import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 
 export const MethodPage = () => {
