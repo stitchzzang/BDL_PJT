@@ -93,43 +93,42 @@ export const ConfirmPage = () => {
             {investmentAmount.toLocaleString()}원
           </p>
         </div>
-        {oneMinuteIncreasePercent ||
+        {(oneMinuteIncreasePercent ||
           oneMinuteDecreasePercent ||
           dailyIncreasePercent ||
-          (dailyDecreasePercent && (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-lg font-semibold text-text-inactive-3-color">시장 반응</h3>
-              <p>{getTimeframeText()}</p>
-              {(oneMinuteIncreasePercent || oneMinuteDecreasePercent) && (
-                <>
-                  <p>
-                    상승 시 반응 강도 : {oneMinuteIncreasePercent}% ({oneMinuteIncreaseAction})
-                  </p>
-                  <p>
-                    하락 시 반응 강도 : {oneMinuteDecreasePercent}% ({oneMinuteDecreaseAction})
-                  </p>
-                </>
-              )}
-              {(dailyIncreasePercent || dailyDecreasePercent) && (
-                <>
-                  <p>
-                    상승 시 반응 강도 : {dailyIncreasePercent}% ({dailyIncreaseAction})
-                  </p>
-                  <p>
-                    하락 시 반응 강도 : {dailyDecreasePercent}% ({dailyDecreaseAction})
-                  </p>
-                </>
-              )}
-            </div>
-          ))}
-        {shortTermMaPeriod ||
-          (longTermMaPeriod && (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-lg font-semibold text-text-inactive-3-color">추세 분석</h3>
-              <p>단기 이동평균선: {shortTermMaPeriod}일</p>
-              <p>장기 이동평균선: {longTermMaPeriod}일</p>
-            </div>
-          ))}
+          dailyDecreasePercent) && (
+          <div className="flex flex-col gap-2">
+            <h3 className="text-lg font-semibold text-text-inactive-3-color">시장 반응</h3>
+            <p>{getTimeframeText()}</p>
+            {(oneMinuteIncreasePercent || oneMinuteDecreasePercent) && (
+              <>
+                <p>
+                  상승 시 반응 강도 : {oneMinuteIncreasePercent}% ({oneMinuteIncreaseAction})
+                </p>
+                <p>
+                  하락 시 반응 강도 : {oneMinuteDecreasePercent}% ({oneMinuteDecreaseAction})
+                </p>
+              </>
+            )}
+            {(dailyIncreasePercent || dailyDecreasePercent) && (
+              <>
+                <p>
+                  상승 시 반응 강도 : {dailyIncreasePercent}% ({dailyIncreaseAction})
+                </p>
+                <p>
+                  하락 시 반응 강도 : {dailyDecreasePercent}% ({dailyDecreaseAction})
+                </p>
+              </>
+            )}
+          </div>
+        )}
+        {(shortTermMaPeriod || longTermMaPeriod) && (
+          <div className="flex flex-col gap-2">
+            <h3 className="text-lg font-semibold text-text-inactive-3-color">추세 분석</h3>
+            <p>단기 이동평균선: {shortTermMaPeriod}일</p>
+            <p>장기 이동평균선: {longTermMaPeriod}일</p>
+          </div>
+        )}
       </div>
       <div className="flex w-full gap-2">
         <Button variant="blue" onClick={() => navigate('/algorithm-lab/market')} className="flex-1">
