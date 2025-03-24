@@ -1,6 +1,7 @@
 import { DayHistory } from '@/components/stock-tutorial/day-history';
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
 import { StockTutorialComment } from '@/components/stock-tutorial/stock-tutorial-comment';
+import { StockTutorialConclusion } from '@/components/stock-tutorial/stock-tutorial-conclusion';
 import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-info';
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
 import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-news';
@@ -47,7 +48,12 @@ export const SimulatedEducationPage = () => {
         <StockTutorialComment />
       </div>
       <div>
-        <StockTutorialNews />
+        <div>
+          <StockTutorialNews />
+        </div>
+        <div>
+          <StockTutorialConclusion />
+        </div>
       </div>
     </div>
   );
