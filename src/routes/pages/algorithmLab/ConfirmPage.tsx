@@ -68,8 +68,7 @@ export const ConfirmPage = () => {
 
   const handleComplete = () => {
     // TODO: API 호출 등 완료 처리
-    resetState();
-    navigate('/member/algorithm');
+    navigate('/member/algorithm', { replace: true });
   };
 
   return (
