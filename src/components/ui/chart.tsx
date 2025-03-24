@@ -1090,6 +1090,15 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             color: 'rgba(255, 255, 255, 0.2)',
             width: 1,
           },
+          label: {
+            show: true,
+            backgroundColor: FALL_COLOR,
+          },
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)',
+            width: 1,
+            type: 'dashed',
+          },
         },
         backgroundColor: 'rgba(19, 23, 34, 0.9)',
         borderColor: '#2e3947',
@@ -1105,6 +1114,20 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           const item = extendedChartData[dataIndex] as ExtendedDataPoint;
           if (!item) return '';
 
+          // 왼쪽 여백 데이터 처리
+          if (dataIndex < 10) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">-</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
           const formattedDate = item.rawDate ? formatDetailDate(item.rawDate) : item.date;
 
           return `
@@ -1117,6 +1140,48 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
               <div>거래량: ${formatVolumeNumber(item.volume)}</div>
             </div>
           `;
+        },
+      },
+      axisPointer: {
+        link: [{ xAxisIndex: 'all' }],
+        label: {
+          backgroundColor: FALL_COLOR,
+          formatter: (params: any) => {
+            // X축 포인터인 경우에만 처리
+            if (params.axisDimension === 'x') {
+              const value = params.value;
+
+              // 빈 값이나 숫자인 경우 처리
+              if (!value || typeof value === 'number') {
+                return value;
+              }
+
+              // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+              const labelIndex = xAxisLabels.findIndex((label) => label === value);
+              if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+                return value; // 원래 레이블 반환
+              }
+
+              // 해당 인덱스의 데이터 찾기
+              const item = extendedChartData[labelIndex];
+              if (!item || !('rawDate' in item) || !item.rawDate) {
+                return value; // 원래 레이블 반환
+              }
+
+              // 기간에 맞는 상세 날짜 포맷으로 변환
+              const rawDate = item.rawDate as Date;
+              return formatDetailDate(rawDate);
+            }
+
+            // Y축 포인터는 기본 숫자 포맷 사용
+            const numValue = Number(params.value);
+            return formatKoreanNumber(Math.floor(numValue));
+          },
+        },
+        lineStyle: {
+          color: 'rgba(255, 255, 255, 0.2)',
+          width: 1,
+          type: 'dashed',
         },
       },
       grid: [
@@ -1183,6 +1248,9 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
           },
           axisLabel: { show: false },
           boundaryGap: true,
+          axisPointer: {
+            label: { show: false },
+          },
         },
         {
           type: 'category',
@@ -1206,6 +1274,28 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             margin: 12,
           },
           boundaryGap: true,
+          axisPointer: {
+            label: {
+              show: true,
+              formatter: (params: any) => {
+                const value = params.value;
+                if (!value || typeof value === 'number') return value;
+
+                const labelIndex = xAxisLabels.findIndex((label) => label === value);
+                if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+                  return value;
+                }
+
+                const item = extendedChartData[labelIndex];
+                if (!item || !('rawDate' in item) || !item.rawDate) {
+                  return value;
+                }
+
+                const rawDate = item.rawDate as Date;
+                return formatDetailDate(rawDate);
+              },
+            },
+          },
         },
       ],
       yAxis: [
@@ -1256,7 +1346,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, da
             color: '#999',
             fontSize: 11,
             padding: [0, 0, 0, 10],
-            formatter: (value: number) => formatVolumeNumber(value),
+            formatter: (value: number) => formatVolumeNumber(Math.floor(value)),
           },
           min: volumeYScale.min,
           max: volumeYScale.max,
