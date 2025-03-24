@@ -3,7 +3,7 @@ import { useState } from 'react';
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
-import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockInfoProps {
   category: CategoryName;
@@ -29,7 +29,7 @@ export const StockTutorialInfo = ({ category }: StockInfoProps) => {
             <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-[18px] sm:flex-row">
                 <h3 className="text-[30px] font-medium text-white">
-                  {formatThousandSeparator(167223)}원
+                  {addCommasToThousand(167223)}원
                 </h3>
                 <div className="flex flex-col gap-[18px] sm:flex-row">
                   <div className="flex items-center justify-center gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
