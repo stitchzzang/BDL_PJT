@@ -2,64 +2,94 @@ import { create } from 'zustand';
 
 interface AlgorithmLabState {
   // 알고리즘 기본 정보
-  name: string;
+  algorithmName: string;
   investmentStyle: 'conservative' | 'balanced' | 'aggressive' | null;
 
   // 투자 방식 설정
   investmentMethod: 'ratio' | 'fixed' | null;
   investmentAmount: number;
 
-  // 시장 반응 설정
-  marketResponse: 'shortTerm' | 'monthlyTrend' | null;
-  riseResponse: number;
-  fallResponse: number;
-  riseAction: 'buy' | 'sell';
-  fallAction: 'buy' | 'sell';
+  // 손익 설정
+  profitPercentToSell: number;
+  lossPercentToSell: number;
+
+  // 1분봉 설정
+  oneMinuteIncreasePercent: number | null;
+  oneMinuteIncreaseAction: 'BUY' | 'SELL' | null;
+  oneMinuteDecreasePercent: number | null;
+  oneMinuteDecreaseAction: 'BUY' | 'SELL' | null;
+
+  // 일봉 설정
+  dailyIncreasePercent: number | null;
+  dailyIncreaseAction: 'BUY' | 'SELL' | null;
+  dailyDecreasePercent: number | null;
+  dailyDecreaseAction: 'BUY' | 'SELL' | null;
 
   // 이동평균선 설정
   shortTermMaPeriod: number | null;
   longTermMaPeriod: number | null;
 
   // 액션
-  setName: (name: string) => void;
+  setAlgorithmName: (name: string) => void;
   setInvestmentStyle: (style: 'conservative' | 'balanced' | 'aggressive' | null) => void;
   setInvestmentMethod: (method: 'ratio' | 'fixed') => void;
   setInvestmentAmount: (amount: number) => void;
-  setMarketResponse: (response: 'shortTerm' | 'monthlyTrend' | null) => void;
-  setRiseResponse: (value: number) => void;
-  setFallResponse: (value: number) => void;
-  setRiseAction: (action: 'buy' | 'sell') => void;
-  setFallAction: (action: 'buy' | 'sell') => void;
+  setProfitPercentToSell: (value: number) => void;
+  setLossPercentToSell: (value: number) => void;
+  setOneMinuteIncreasePercent: (value: number | null) => void;
+  setOneMinuteIncreaseAction: (action: 'BUY' | 'SELL' | null) => void;
+  setOneMinuteDecreasePercent: (value: number | null) => void;
+  setOneMinuteDecreaseAction: (action: 'BUY' | 'SELL' | null) => void;
+  setDailyIncreasePercent: (value: number | null) => void;
+  setDailyIncreaseAction: (action: 'BUY' | 'SELL' | null) => void;
+  setDailyDecreasePercent: (value: number | null) => void;
+  setDailyDecreaseAction: (action: 'BUY' | 'SELL' | null) => void;
   setShortTermMaPeriod: (period: number | null) => void;
   setLongTermMaPeriod: (period: number | null) => void;
   resetState: () => void;
 }
 
 export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
-  name: '',
+  algorithmName: '',
   investmentStyle: null,
   investmentMethod: null,
   investmentAmount: 1,
-  marketResponse: null,
-  riseResponse: 15,
-  fallResponse: 15,
-  riseAction: 'buy',
-  fallAction: 'sell',
+  profitPercentToSell: 15,
+  lossPercentToSell: 15,
+  oneMinuteIncreasePercent: null,
+  oneMinuteIncreaseAction: null,
+  oneMinuteDecreasePercent: null,
+  oneMinuteDecreaseAction: null,
+  dailyIncreasePercent: null,
+  dailyIncreaseAction: null,
+  dailyDecreasePercent: null,
+  dailyDecreaseAction: null,
   shortTermMaPeriod: null,
   longTermMaPeriod: null,
 
-  setName: (name) => set({ name }),
-  // 투자 스타일 선택 시 이익률과 손절매 설정
+  setAlgorithmName: (name) => set({ algorithmName: name }),
   setInvestmentStyle: (style) => {
     switch (style) {
       case 'conservative':
-        set({ investmentStyle: style, riseResponse: 4, fallResponse: 1.5 });
+        set({
+          investmentStyle: style,
+          profitPercentToSell: 4,
+          lossPercentToSell: 1.5,
+        });
         break;
       case 'balanced':
-        set({ investmentStyle: style, riseResponse: 10, fallResponse: 4 });
+        set({
+          investmentStyle: style,
+          profitPercentToSell: 10,
+          lossPercentToSell: 4,
+        });
         break;
       case 'aggressive':
-        set({ investmentStyle: style, riseResponse: 20, fallResponse: 8.5 });
+        set({
+          investmentStyle: style,
+          profitPercentToSell: 20,
+          lossPercentToSell: 8.5,
+        });
         break;
       default:
         set({ investmentStyle: null });
@@ -68,29 +98,38 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   },
   setInvestmentMethod: (method) => set({ investmentMethod: method }),
   setInvestmentAmount: (amount) => set({ investmentAmount: amount }),
-  setMarketResponse: (response) =>
-    set({
-      marketResponse: response,
-      ...(response === null && { shortTermMaPeriod: null, longTermMaPeriod: null }),
-    }),
-  setRiseResponse: (value) => set({ riseResponse: Math.min(Math.max(value, 1), 30) }),
-  setFallResponse: (value) => set({ fallResponse: Math.min(Math.max(value, 1), 30) }),
-  setRiseAction: (action) => set({ riseAction: action }),
-  setFallAction: (action) => set({ fallAction: action }),
+  setProfitPercentToSell: (value) => set({ profitPercentToSell: Math.min(Math.max(value, 1), 30) }),
+  setLossPercentToSell: (value) => set({ lossPercentToSell: Math.min(Math.max(value, 1), 30) }),
+  setOneMinuteIncreasePercent: (value) =>
+    set({ oneMinuteIncreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+  setOneMinuteIncreaseAction: (action) => set({ oneMinuteIncreaseAction: action }),
+  setOneMinuteDecreasePercent: (value) =>
+    set({ oneMinuteDecreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+  setOneMinuteDecreaseAction: (action) => set({ oneMinuteDecreaseAction: action }),
+  setDailyIncreasePercent: (value) =>
+    set({ dailyIncreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+  setDailyIncreaseAction: (action) => set({ dailyIncreaseAction: action }),
+  setDailyDecreasePercent: (value) =>
+    set({ dailyDecreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+  setDailyDecreaseAction: (action) => set({ dailyDecreaseAction: action }),
   setShortTermMaPeriod: (period) => set({ shortTermMaPeriod: period }),
   setLongTermMaPeriod: (period) => set({ longTermMaPeriod: period }),
-  // 알고리즘 랩 초기화
   resetState: () =>
     set({
-      name: '',
+      algorithmName: '',
       investmentStyle: null,
       investmentMethod: null,
       investmentAmount: 1,
-      marketResponse: null,
-      riseResponse: 15,
-      fallResponse: 15,
-      riseAction: 'buy',
-      fallAction: 'sell',
+      profitPercentToSell: 15,
+      lossPercentToSell: 15,
+      oneMinuteIncreasePercent: null,
+      oneMinuteIncreaseAction: null,
+      oneMinuteDecreasePercent: null,
+      oneMinuteDecreaseAction: null,
+      dailyIncreasePercent: null,
+      dailyIncreaseAction: null,
+      dailyDecreasePercent: null,
+      dailyDecreaseAction: null,
       shortTermMaPeriod: null,
       longTermMaPeriod: null,
     }),
