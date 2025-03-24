@@ -45,7 +45,7 @@ const DividerLine: React.FC<DividerLineProps> = ({ initialRatio, onRatioChange, 
       const relativeY = e.clientY - containerRect.top - chartTopOffset;
       const chartRelativeY = Math.max(0, Math.min(relativeY, chartHeight));
 
-      // 차트 내에서의 비율 계산
+      // 차트 내에서의 비율 계산 (위로 올리면 비율이 작아지도록 변경)
       const newRatio = chartRelativeY / chartHeight;
 
       // 비율 제한 (10% ~ 50%)
@@ -1038,10 +1038,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           data: showVolume
             ? extendedChartData.map((item, index) => {
                 if (index < 10) return 0;
-                // 가격 스케일로 거래량 스케일링
+                // 가격 스케일로 거래량 스케일링 - 변경된 volumeRatio 적용
                 const volRatio = item.volume / maxVolume;
-                const dividerPos = (minPrice - pricePadding) * volumeRatio;
-                const scaledVolume = volRatio * dividerPos;
+                // 거래량 영역의 최대 높이는 전체 차트 높이 중 volumeRatio 비율만큼
+                const volumeHeight = (minPrice - pricePadding) * 0.8; // 0.8은 시각적 여유공간
+                const scaledVolume = volRatio * volumeHeight * volumeRatio;
 
                 return {
                   value: scaledVolume,
@@ -1065,7 +1066,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             },
             data: [
               {
-                yAxis: (minPrice - pricePadding) * volumeRatio,
+                yAxis: (minPrice - pricePadding) * volumeRatio * 0.8, // 거래량 영역의 경계선
                 lineStyle: {
                   color: '#2e3947',
                 },
@@ -1168,15 +1169,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         />
         <DividerLine initialRatio={volumeRatio} onRatioChange={setVolumeRatio} height={height} />
 
-        {/* 캔들차트와 거래량 차트 레이블 */}
+        {/* 캔들차트 레이블 - 분할선 위에 위치 */}
         <div
           className="absolute z-10 rounded bg-[#131722]/80 px-2 py-1 text-xs text-gray-300"
-          style={{ left: '85px', top: '65px' }}
+          style={{
+            left: '85px',
+            top: '65px',
+          }}
         >
           캔들차트
         </div>
 
-        {/* 거래량 레이블 */}
+        {/* 거래량 레이블 - 분할선 아래에 위치 */}
         <div
           className="absolute z-10 rounded bg-[#131722]/80 px-2 py-1 text-xs text-gray-300"
           style={{
@@ -1196,11 +1200,10 @@ function calculateDividerPosition(ratio: number, height: number): number {
   const chartBottomOffset = 60; // 하단 여백
   const chartHeight = height - chartTopOffset - chartBottomOffset;
 
-  // 비율에 따른 픽셀 위치 계산
+  // 비율에 따른 픽셀 위치 계산 (새로운 계산 방식)
   const pixelPosition = chartTopOffset + chartHeight * ratio;
 
-  // 전체 높이에 대한 백분율 계산
-  return (pixelPosition / height) * 100;
+  return pixelPosition;
 }
 
 export default ChartComponent;
