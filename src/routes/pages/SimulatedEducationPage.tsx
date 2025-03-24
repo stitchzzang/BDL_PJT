@@ -33,6 +33,11 @@ export const SimulatedEducationPage = () => {
           <TutorialOrderStatus />
         </div>
       </div>
+      <div>
+        <div>
+          <h3>일간 히스토리</h3>
+        </div>
+      </div>
     </div>
   );
 };
