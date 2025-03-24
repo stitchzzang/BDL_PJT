@@ -16,7 +16,7 @@ interface AlgorithmLabState {
 
   // 액션
   setName: (name: string) => void;
-  setInvestmentStyle: (style: 'conservative' | 'balanced' | 'aggressive') => void;
+  setInvestmentStyle: (style: 'conservative' | 'balanced' | 'aggressive' | null) => void;
   setInvestmentMethod: (method: 'ratio' | 'fixed') => void;
   setInvestmentAmount: (amount: number) => void;
   setMarketResponse: (response: 'shortTerm' | 'monthlyTrend') => void;
@@ -29,13 +29,28 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   name: '',
   investmentStyle: null,
   investmentMethod: null,
-  investmentAmount: 0,
+  investmentAmount: 1,
   marketResponse: null,
-  riseResponse: 50,
-  fallResponse: 50,
+  riseResponse: 15,
+  fallResponse: 15,
 
   setName: (name) => set({ name }),
-  setInvestmentStyle: (style) => set({ investmentStyle: style }),
+  setInvestmentStyle: (style) => {
+    switch (style) {
+      case 'conservative':
+        set({ investmentStyle: style, riseResponse: 4, fallResponse: 1.5 });
+        break;
+      case 'balanced':
+        set({ investmentStyle: style, riseResponse: 10, fallResponse: 4 });
+        break;
+      case 'aggressive':
+        set({ investmentStyle: style, riseResponse: 20, fallResponse: 8.5 });
+        break;
+      default:
+        set({ investmentStyle: null });
+        break;
+    }
+  },
   setInvestmentMethod: (method) => set({ investmentMethod: method }),
   setInvestmentAmount: (amount) => set({ investmentAmount: amount }),
   setMarketResponse: (response) => set({ marketResponse: response }),
@@ -46,9 +61,9 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
       name: '',
       investmentStyle: null,
       investmentMethod: null,
-      investmentAmount: 0,
+      investmentAmount: 1,
       marketResponse: null,
-      riseResponse: 50,
-      fallResponse: 50,
+      riseResponse: 15,
+      fallResponse: 15,
     }),
 }));
