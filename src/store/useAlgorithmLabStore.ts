@@ -13,6 +13,8 @@ interface AlgorithmLabState {
   marketResponse: 'shortTerm' | 'monthlyTrend' | null;
   riseResponse: number;
   fallResponse: number;
+  riseAction: 'buy' | 'sell';
+  fallAction: 'buy' | 'sell';
 
   // 액션
   setName: (name: string) => void;
@@ -22,6 +24,8 @@ interface AlgorithmLabState {
   setMarketResponse: (response: 'shortTerm' | 'monthlyTrend') => void;
   setRiseResponse: (value: number) => void;
   setFallResponse: (value: number) => void;
+  setRiseAction: (action: 'buy' | 'sell') => void;
+  setFallAction: (action: 'buy' | 'sell') => void;
   resetState: () => void;
 }
 
@@ -33,6 +37,8 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   marketResponse: null,
   riseResponse: 15,
   fallResponse: 15,
+  riseAction: 'buy',
+  fallAction: 'sell',
 
   setName: (name) => set({ name }),
   // 투자 스타일 선택 시 이익률과 손절매 설정
@@ -55,8 +61,10 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   setInvestmentMethod: (method) => set({ investmentMethod: method }),
   setInvestmentAmount: (amount) => set({ investmentAmount: amount }),
   setMarketResponse: (response) => set({ marketResponse: response }),
-  setRiseResponse: (value) => set({ riseResponse: value }),
-  setFallResponse: (value) => set({ fallResponse: value }),
+  setRiseResponse: (value) => set({ riseResponse: Math.min(Math.max(value, 1), 30) }),
+  setFallResponse: (value) => set({ fallResponse: Math.min(Math.max(value, 1), 30) }),
+  setRiseAction: (action) => set({ riseAction: action }),
+  setFallAction: (action) => set({ fallAction: action }),
   // 알고리즘 랩 초기화
   resetState: () =>
     set({
@@ -67,5 +75,7 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
       marketResponse: null,
       riseResponse: 15,
       fallResponse: 15,
+      riseAction: 'buy',
+      fallAction: 'sell',
     }),
 }));
