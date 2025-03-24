@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { create } from 'zustand';
 
@@ -141,11 +141,16 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
 export const useResetAlgorithmLabStore = () => {
   const location = useLocation();
   const resetState = useAlgorithmLabStore((state) => state.resetState);
+  const prevPath = useRef(location.pathname);
 
   useEffect(() => {
-    // algorithm-lab 경로가 아닌 곳으로 이동할 때 상태 초기화
-    if (!location.pathname.includes('algorithm-lab')) {
+    // 이전 경로가 algorithm-lab을 포함하고, 현재 경로가 다른 경로일 때 초기화
+    if (
+      prevPath.current.includes('algorithm-lab') &&
+      (!location.pathname.includes('algorithm-lab') || location.pathname === '/member/algorithm')
+    ) {
       resetState();
     }
+    prevPath.current = location.pathname;
   }, [location.pathname, resetState]);
 };
