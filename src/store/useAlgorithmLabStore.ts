@@ -144,10 +144,16 @@ export const useResetAlgorithmLabStore = () => {
   const prevPath = useRef(location.pathname);
 
   useEffect(() => {
-    // 이전 경로가 algorithm-lab을 포함하고, 현재 경로가 다른 경로일 때 초기화
+    // 알고리즘 랩으로 들어오거나 나갈 때 초기화
     if (
-      prevPath.current.includes('algorithm-lab') &&
-      (!location.pathname.includes('algorithm-lab') || location.pathname === '/member/algorithm')
+      // 알고리즘 랩에서 다른 페이지로 나갈 때
+      (prevPath.current.includes('algorithm-lab') &&
+        (!location.pathname.includes('algorithm-lab') ||
+          location.pathname === '/member/algorithm')) ||
+      // 다른 페이지에서 알고리즘 랩으로 들어올 때
+      (location.pathname === '/algorithm-lab' && !prevPath.current.includes('algorithm-lab')) ||
+      // 알고리즘 랩 내에서 메인으로 돌아올 때
+      (location.pathname === '/algorithm-lab' && prevPath.current.includes('algorithm-lab/'))
     ) {
       resetState();
     }
