@@ -34,9 +34,9 @@ export const NavBar = () => {
           </button>
           <button
             className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
-            onClick={() => navigate('/simulated-education')}
+            onClick={() => navigate('/tutorial/select')}
           >
-            모의교육
+            주식 튜토리얼
           </button>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">

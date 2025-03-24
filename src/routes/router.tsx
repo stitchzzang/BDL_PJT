@@ -9,14 +9,14 @@ import { MemberAlgorithmPage } from '@/routes/pages/MemberAlgorithmPage';
 import { MemberEditPage } from '@/routes/pages/MemberEditPage';
 import { MemberInvestmentPage } from '@/routes/pages/MemberInvestmentPage';
 import { MemberPasswordEditPage } from '@/routes/pages/MemberPasswordEditPage';
+import { MemberStockResultPage } from '@/routes/pages/MemberStockResultPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
-import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
-import { StockTutorialResultPage } from '@/routes/pages/StockTutorialResultPage';
-import { StockTutorialSelection } from '@/routes/pages/StockTutorialSelection';
+import { SelectPage } from '@/routes/pages/tutorial/SelectPage';
+import { SimulatePage } from '@/routes/pages/tutorial/SimulatePage';
 
 export const router = createBrowserRouter([
   {
@@ -43,7 +43,7 @@ export const router = createBrowserRouter([
           },
           {
             path: '/member/stock-tutorial-result',
-            element: <StockTutorialResultPage />,
+            element: <MemberStockResultPage />,
           },
           {
             path: '/member/algorithm',
@@ -72,16 +72,21 @@ export const router = createBrowserRouter([
         element: <SignUpSuccessPage />,
       },
       {
-        path: '/simulated-education',
-        element: <SimulatedEducationPage />,
+        path: '/tutorial',
+        children: [
+          {
+            path: 'select',
+            element: <SelectPage />,
+          },
+          {
+            path: 'simulate',
+            element: <SimulatePage />,
+          },
+        ],
       },
       {
         path: '/simulated-investment',
         element: <SimulatedInvestmentPage />,
-      },
-      {
-        path: '/stock-tutorial-selection',
-        element: <StockTutorialSelection />,
       },
     ],
   },
