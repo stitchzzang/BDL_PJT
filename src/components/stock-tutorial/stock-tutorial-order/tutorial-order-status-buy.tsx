@@ -66,12 +66,6 @@ export const TutorialOrderStatusBuy = () => {
                 >
                   <p>지정가</p>
                 </div>
-                <div
-                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
-                  onClick={() => isActiveHandler('시장가')}
-                >
-                  <p>시장가</p>
-                </div>
               </div>
             </div>
           </div>
@@ -79,24 +73,8 @@ export const TutorialOrderStatusBuy = () => {
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
-                  >
-                    -
-                  </button>
-                </div>
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
-                  >
-                    +
-                  </button>
-                </div>
+              <div className="pointer-events-none">
+                <NumberInput value={buyCost} setValue={setBuyCost} placeholder="시장가 원" />
               </div>
             </div>
           </div>
