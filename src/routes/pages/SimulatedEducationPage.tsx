@@ -3,6 +3,7 @@ import { StockProgress } from '@/components/stock-tutorial/stock-progress';
 import { StockTutorialComment } from '@/components/stock-tutorial/stock-tutorial-comment';
 import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-info';
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
+import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-news';
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
 import ChartComponent from '@/components/ui/chart';
 import { minuteData } from '@/lib/dummy-data';
@@ -44,6 +45,9 @@ export const SimulatedEducationPage = () => {
       </div>
       <div>
         <StockTutorialComment />
+      </div>
+      <div>
+        <StockTutorialNews />
       </div>
     </div>
   );
