@@ -48,8 +48,8 @@ const DividerLine: React.FC<DividerLineProps> = ({ initialRatio, onRatioChange, 
       // 차트 내에서의 비율 계산 (아래로 내리면 비율이 작아지도록 변경)
       const newRatio = 1 - chartRelativeY / chartHeight;
 
-      // 비율 제한 (10% ~ 50%)
-      const clampedRatio = Math.max(0.1, Math.min(0.5, newRatio));
+      // 비율 제한 (20% ~ 60%) - 거래량 영역 비율 범위 확대
+      const clampedRatio = Math.max(0.2, Math.min(0.6, newRatio));
 
       setRatio(clampedRatio);
       onRatioChange(clampedRatio);
@@ -136,10 +136,19 @@ const FALL_COLOR = '#1976d2'; // 파랑
 const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
   const [showVolume, _setShowVolume] = useState<boolean>(true);
-  const [zoom, setZoom] = useState<{ start: number; end: number }>({ start: 10, end: 100 });
+  // 통합 줌 상태로 변경
+  const [zoom, setZoom] = useState<{ start: number; end: number }>({
+    start: 10,
+    end: 100,
+  });
+  // 통합 Y축 범위 상태
+  const [yRange, setYRange] = useState<{ min: number | null; max: number | null }>({
+    min: null,
+    max: null,
+  });
 
-  // 거래량 차트 비율 상태 추가
-  const [volumeRatio, setVolumeRatio] = useState<number>(0.2);
+  // 거래량 차트 비율 상태 추가 - 초기값을 0.2에서 0.3으로 증가
+  const [volumeRatio, setVolumeRatio] = useState<number>(0.3);
 
   // 차트 컨테이너 참조
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -631,8 +640,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     return labels;
   }, [extendedChartData, period, chartData, formatChartDate]);
 
-  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 2%)
-  const VOLUME_GAP_RATIO = 0.01;
+  // 거래량 차트와 캔들차트 사이의 간격 비율 더 축소
+  const VOLUME_GAP_RATIO = 0.005;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -655,8 +664,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     .flat();
   const minPrice = Math.min(...priceData);
   const maxPrice = Math.max(...priceData);
-  const priceRange = maxPrice - minPrice;
-  const pricePadding = priceRange * 0.1;
 
   // 스케일링된 데이터
   const scaledEMA5Data = ema5Data.map((value, index) => {
@@ -673,14 +680,44 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   const currentData = chartData[chartData.length - 1];
   const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
 
+  // 차트 영역 내에서의 위치 계산 - DividerLine 컴포넌트에서 가져옴
+  const calculateDividerPosition = (ratio: number) => {
+    const chartTopOffset = 50; // 상단 헤더 높이 축소
+    const chartBottomOffset = 50; // 하단 여백 축소
+    const chartHeight = height - chartTopOffset - chartBottomOffset;
+
+    // 비율에 따른 픽셀 위치 계산 (분할선 위치 계산 방식 변경)
+    const pixelPosition = chartTopOffset + chartHeight * (1 - ratio);
+
+    return pixelPosition;
+  };
+
   // ECharts 옵션 설정
   const option: EChartsOption = useMemo(() => {
-    // 거래량 차트와 캔들차트 사이의 비율 계산
-    const candleRatio = 1 - volumeRatio - VOLUME_GAP_RATIO;
-
-    // 거래량 범위 계산
+    // 거래량 데이터 최대값 계산
     const volumeData = extendedChartData.slice(10).map((item) => item.volume);
     const maxVolume = Math.max(...volumeData);
+
+    // 가격 범위 계산
+    const priceData = extendedChartData
+      .slice(10)
+      .map((item) => [item.low, item.high])
+      .flat();
+    const minPrice = Math.min(...priceData);
+    const maxPrice = Math.max(...priceData);
+    const priceRange = maxPrice - minPrice;
+    const pricePadding = priceRange * 0.1;
+
+    // 차트 Y축 범위 계산
+    const yMin = yRange.min !== null ? yRange.min : minPrice - pricePadding;
+    const yMax = yRange.max !== null ? yRange.max : maxPrice + pricePadding;
+
+    // 거래량 Y 좌표 계산 (거래량 데이터를 캔들차트와 같은 Y축 범위에 스케일링하기 위한 계산)
+    const volumeScaleFactor = (yMax - yMin) * volumeRatio * 0.8; // 거래량 차트가 차지할 Y축 범위
+    const volumeBaseY = yMin + volumeScaleFactor * 0.05; // 거래량 차트 바닥 위치 (여유 공간 확보)
+
+    // 구분선 Y축 위치 계산
+    const dividerY = yMin + volumeScaleFactor;
 
     return {
       animation: false,
@@ -714,10 +751,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
           const volumeData = params.find((p: any) => p.seriesName === '거래량');
 
-          if (!candleData) return '';
+          if (!candleData && !volumeData) return '';
 
-          const date = candleData.name;
-          const dataIndex = candleData.dataIndex;
+          const date = candleData ? candleData.name : volumeData ? volumeData.name : '';
+          const dataIndex = candleData
+            ? candleData.dataIndex
+            : volumeData
+              ? volumeData.dataIndex
+              : -1;
 
           // 앞쪽 빈 데이터 처리
           if (dataIndex < 10) {
@@ -737,9 +778,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
           // 유효하지 않은 데이터 처리
           if (
-            !candleData.data ||
-            !Array.isArray(candleData.data) ||
-            candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
+            candleData &&
+            (!candleData.data ||
+              !Array.isArray(candleData.data) ||
+              candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val)))
           ) {
             return `
                 <div style="font-size: 12px;">
@@ -755,30 +797,40 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
               `;
           }
 
-          // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
-          const [open, close, low, high] = candleData.data;
+          // 데이터 추출
+          let openStr = '-',
+            closeStr = '-',
+            lowStr = '-',
+            highStr = '-';
+          let volumeStr = '-',
+            ema5Str = '-',
+            ema20Str = '-';
 
-          // 거래량 데이터 추출
-          const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
+          if (candleData && Array.isArray(candleData.data)) {
+            const [open, close, low, high] = candleData.data;
+            openStr =
+              typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
+            closeStr =
+              typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
+            lowStr = typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
+            highStr =
+              typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
+          }
 
-          // 숫자 여부 확인하고 문자열 포맷팅
-          const openStr =
-            typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
-          const closeStr =
-            typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
-          const lowStr =
-            typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
-          const highStr =
-            typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
-          const volumeStr = volume ? formatVolumeNumber(volume) : '-';
-          const ema5Str =
-            ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
-              ? formatKoreanNumber(ema5Data.value) + '원'
-              : '-';
-          const ema20Str =
-            ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
-              ? formatKoreanNumber(ema20Data.value) + '원'
-              : '-';
+          // 이평선 데이터
+          if (ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)) {
+            ema5Str = formatKoreanNumber(ema5Data.value) + '원';
+          }
+
+          if (ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)) {
+            ema20Str = formatKoreanNumber(ema20Data.value) + '원';
+          }
+
+          // 거래량 데이터
+          if (dataIndex >= 0) {
+            const volume = extendedChartData[dataIndex].volume;
+            volumeStr = volume ? formatVolumeNumber(volume) : '-';
+          }
 
           return `
               <div style="font-size: 12px;">
@@ -794,165 +846,97 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             `;
         },
       },
-      axisPointer: {
-        link: [{ xAxisIndex: 'all' }],
-        label: {
-          backgroundColor: FALL_COLOR,
-        },
-        lineStyle: {
-          color: 'rgba(255, 255, 255, 0.2)',
-          width: 1,
-          type: 'dashed',
-        },
+      // 하나의 통합된 그리드 설정
+      grid: {
+        left: 80,
+        right: 80,
+        top: 30,
+        bottom: 50,
+        show: true,
+        borderColor: '#2e3947',
+        backgroundColor: 'transparent',
+        containLabel: true,
       },
+      // 줌 설정
       dataZoom: [
         {
+          // 내부 줌 (마우스 휠)
           type: 'inside',
-          xAxisIndex: [0],
           start: zoom.start,
           end: zoom.end,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
-          preventDefaultMouseMove: false,
-          rangeMode: ['value', 'value'],
-          throttle: 100,
-          zoomLock: false,
           filterMode: 'filter',
         },
         {
-          type: 'slider',
-          show: false,
-          xAxisIndex: [0],
-          start: zoom.start,
-          end: zoom.end,
-          filterMode: 'filter',
-        },
-        {
+          // Y축 줌
           type: 'inside',
-          yAxisIndex: [0],
+          orient: 'vertical',
           zoomOnMouseWheel: true,
           moveOnMouseMove: false,
-          preventDefaultMouseMove: false,
-          rangeMode: ['value', 'value'],
-          orient: 'vertical',
-          throttle: 100,
-          zoomLock: false,
-          filterMode: 'filter',
         },
       ],
-      grid: [
-        {
-          // 통합 차트 영역
-          left: 80,
-          right: 80,
-          top: 40,
-          bottom: 60,
+      // 하나의 X축 설정
+      xAxis: {
+        type: 'category',
+        data: xAxisLabels,
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        axisLabel: {
           show: true,
-          borderColor: '#2e3947',
-          backgroundColor: 'transparent',
-          containLabel: true,
-          tooltip: {
-            show: true,
-            trigger: 'axis',
-            axisPointer: {
-              type: 'cross',
-            },
+          color: '#CCCCCC',
+          margin: 12,
+          formatter: (value, index) => {
+            const isBold = isFirstOfPeriod(value, index);
+            return isBold ? value : value;
+          },
+          interval: function (index, value) {
+            const zoomRange = zoom.end - zoom.start;
+            if (zoomRange < 30) {
+              return index % Math.max(1, Math.floor((20 / (zoomRange || 100)) * 10)) === 0;
+            }
+            return index % 5 === 0 || isFirstOfPeriod(value, index);
+          },
+          rotate: 0,
+        },
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
+        axisTick: { show: true },
+        boundaryGap: true,
+      },
+      // 하나의 Y축 설정
+      yAxis: {
+        type: 'value',
+        position: 'right',
+        scale: true,
+        min: yMin,
+        max: yMax,
+        axisLine: { lineStyle: { color: '#2e3947' } },
+        splitLine: {
+          show: true,
+          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+        },
+        axisLabel: {
+          color: '#CCCCCC',
+          formatter: (value) => {
+            // 거래량 영역일 경우 포맷 다르게 표시 (실제로는 표시하지 않음)
+            if (value < dividerY) {
+              return '';
+            }
+            return formatKoreanNumber(Math.floor(value));
+          },
+          inside: false,
+          margin: 8,
+          fontSize: 12,
+        },
+        axisPointer: {
+          label: {
+            formatter: (params) => formatKoreanNumber(Math.floor(Number(params.value))),
+            backgroundColor: FALL_COLOR,
           },
         },
-      ],
-      xAxis: [
-        {
-          type: 'category',
-          data: xAxisLabels,
-          gridIndex: 0,
-          axisLine: { lineStyle: { color: '#2e3947' } },
-          axisLabel: {
-            show: true,
-            color: '#CCCCCC',
-            margin: 12,
-            formatter: (value, index) => {
-              const isBold = isFirstOfPeriod(value, index);
-              return isBold ? value : value;
-            },
-            interval: function (index, value) {
-              const dataZoomOpt = option.dataZoom;
-              const zoomRange =
-                Array.isArray(dataZoomOpt) && dataZoomOpt.length > 0
-                  ? (dataZoomOpt[0].end as number) - (dataZoomOpt[0].start as number)
-                  : 100;
-
-              if (zoomRange < 30) {
-                return index % Math.max(1, Math.floor((20 / (zoomRange || 100)) * 10)) === 0;
-              }
-              return index % 5 === 0 || isFirstOfPeriod(value, index);
-            },
-            rotate: 0,
-          },
-          splitLine: {
-            show: true,
-            lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
-          },
-          axisTick: { show: true },
-          boundaryGap: true,
-        },
-      ],
-      yAxis: [
-        {
-          // 가격 Y축 (우측)
-          type: 'value',
-          position: 'right',
-          scale: true,
-          splitNumber: 6,
-          axisLine: { lineStyle: { color: '#2e3947' } },
-          splitLine: {
-            show: true,
-            lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
-          },
-          axisLabel: {
-            color: '#CCCCCC',
-            formatter: (value) => {
-              // 영역에 따라 다른 포맷 사용
-              const dividerPos = (minPrice - pricePadding) * volumeRatio;
-              if (value <= dividerPos) {
-                // 거래량 영역
-                const ratio = value / dividerPos;
-                const volumeValue = ratio * maxVolume;
-                return formatVolumeNumber(Math.floor(volumeValue));
-              } else {
-                // 가격 영역
-                return formatKoreanNumber(Math.floor(value));
-              }
-            },
-            inside: false,
-            margin: 8,
-            fontSize: 12,
-          },
-          axisPointer: {
-            label: {
-              formatter: (params) => {
-                try {
-                  const numValue = Number(params.value);
-                  const dividerPos = (minPrice - pricePadding) * volumeRatio;
-                  if (numValue <= dividerPos) {
-                    // 거래량 영역
-                    const ratio = numValue / dividerPos;
-                    const volumeValue = ratio * maxVolume;
-                    return formatVolumeNumber(Math.floor(volumeValue));
-                  } else {
-                    // 가격 영역
-                    return formatKoreanNumber(Math.floor(numValue));
-                  }
-                } catch (e) {
-                  return '-';
-                }
-              },
-              backgroundColor: FALL_COLOR,
-            },
-          },
-          min: 0,
-          max: maxPrice + pricePadding,
-        },
-      ],
+      },
       visualMap: {
         show: false,
         seriesIndex: 0,
@@ -970,6 +954,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       },
       series: [
         {
+          // 캔들차트
           name: '캔들차트',
           type: 'candlestick',
           data: extendedChartData.map((item, index) => {
@@ -1011,6 +996,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           },
         },
         {
+          // 5일 이평선
           name: '5일 이평선',
           type: 'line',
           showSymbol: false,
@@ -1021,6 +1007,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           },
         },
         {
+          // 20일 이평선
           name: '20일 이평선',
           type: 'line',
           showSymbol: false,
@@ -1031,54 +1018,123 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           },
         },
         {
+          // 거래량 차트
           name: '거래량',
           type: 'bar',
           data: showVolume
             ? extendedChartData.map((item, index) => {
-                if (index < 10) return 0;
-
-                // 가격 스케일로 거래량 스케일링 - volumeRatio를 적용
-                const volRatio = item.volume / maxVolume;
-                // 거래량 영역의 최대 높이는 전체 차트 높이 중 volumeRatio 비율만큼
-                const volumeHeight = (minPrice - pricePadding) * 0.95; // 0.95로 변경하여 여백 감소
-                const scaledVolume = volRatio * volumeHeight * volumeRatio;
+                if (index < 10) return null;
+                // 거래량 데이터 스케일링
+                const volumeRatio = item.volume / maxVolume;
+                const scaledHeight = volumeRatio * volumeScaleFactor * 0.95; // 0.95는 최대값이 딱 붙지 않도록 여유 공간 확보
 
                 return {
-                  value: scaledVolume,
+                  // volume 높이를 스케일링하고 바닥값(volumeBaseY)을 기준으로 설정
+                  value: volumeBaseY + scaledHeight,
                   itemStyle: {
                     color: item.close >= item.open ? RISE_COLOR : FALL_COLOR,
+                    opacity: 0.8,
                   },
+                  // 부가 정보에 원래 거래량 저장 (툴팁 표시용)
+                  originVolume: item.volume,
                 };
               })
             : [],
           barWidth: '60%',
-          markLine: {
-            silent: true,
-            symbol: 'none',
-            lineStyle: {
-              color: '#2e3947',
-              width: 2,
-              type: 'solid',
-            },
-            label: {
-              show: false,
-            },
-            data: [
-              {
-                yAxis: (minPrice - pricePadding) * volumeRatio * 0.95, // 거래량 영역의 경계선
-                lineStyle: {
-                  color: '#2e3947',
-                },
-              },
-            ],
+          // 거래량 바 위치 조정 - 각 데이터 포인트마다 바닥 위치를 volumeBaseY로 설정
+          barGap: 0,
+          large: true,
+          emphasis: { focus: 'none' },
+          // 차트 하단에서부터 위로 그리도록 설정
+          coordinateSystem: 'cartesian2d',
+          emphasis: { focus: 'series' },
+        },
+        {
+          // 구분선 (드래그 영역 표시)
+          name: '구분선',
+          type: 'line',
+          showSymbol: false,
+          silent: true,
+          data: [
+            [xAxisLabels[0], dividerY],
+            [xAxisLabels[xAxisLabels.length - 1], dividerY],
+          ],
+          lineStyle: {
+            color: '#2e3947',
+            width: 1,
+            type: 'solid',
           },
+          z: 5,
+        },
+        // Y축 구분선 오른쪽에 거래량 눈금 추가
+        {
+          name: '거래량 눈금',
+          type: 'custom',
+          renderItem: (params, api) => {
+            // 거래량 영역의 Y축에 눈금 추가
+            const maxVolumeY = volumeBaseY + volumeScaleFactor * 0.95;
+            const middleVolumeY = volumeBaseY + volumeScaleFactor * 0.5;
+
+            const maxPos = api.coord([0, maxVolumeY]);
+            const midPos = api.coord([0, middleVolumeY]);
+            const basePos = api.coord([0, volumeBaseY]);
+
+            const rectWidth = 80; // Y축 레이블 영역 너비
+            // ECharts 5.x 버전의 renderItem API 사용
+            const coordSys = api.getWidth
+              ? {
+                  x: api.getWidth() - rectWidth,
+                  width: rectWidth,
+                }
+              : { x: 0, width: 0 };
+
+            return {
+              type: 'group',
+              children: [
+                // 최대값 레이블
+                {
+                  type: 'text',
+                  style: {
+                    text: formatVolumeNumber(maxVolume),
+                    font: '12px Arial',
+                    fill: '#CCCCCC',
+                    textAlign: 'left',
+                    textVerticalAlign: 'middle',
+                  },
+                  position: [coordSys.x + coordSys.width + 8, maxPos[1]],
+                },
+                // 중간값 레이블
+                {
+                  type: 'text',
+                  style: {
+                    text: formatVolumeNumber(maxVolume * 0.5),
+                    font: '12px Arial',
+                    fill: '#CCCCCC',
+                    textAlign: 'left',
+                    textVerticalAlign: 'middle',
+                  },
+                  position: [coordSys.x + coordSys.width + 8, midPos[1]],
+                },
+                // 최소값 레이블
+                {
+                  type: 'text',
+                  style: {
+                    text: '0',
+                    font: '12px Arial',
+                    fill: '#CCCCCC',
+                    textAlign: 'left',
+                    textVerticalAlign: 'middle',
+                  },
+                  position: [coordSys.x + coordSys.width + 8, basePos[1]],
+                },
+              ],
+            };
+          },
+          z: 10,
         },
       ],
     };
   }, [
-    xAxisLabels,
-    ema5Data,
-    ema20Data,
     extendedChartData,
     volumeRatio,
     height,
@@ -1087,12 +1143,41 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     zoom,
     period,
     showVolume,
-    formatChartDate,
+    xAxisLabels,
+    ema5Data,
+    ema20Data,
     formatKoreanNumber,
     formatVolumeNumber,
     isFirstOfPeriod,
     VOLUME_GAP_RATIO,
+    yRange,
   ]);
+
+  // 차트 이벤트 핸들러
+  const handleChartEvents = {
+    datazoom: (params: { chart?: any }) => {
+      const chart = params.chart;
+      if (!chart) return;
+
+      chart.setOption({ animation: false });
+
+      // 줌 상태 업데이트
+      const dataZoomOpt = chart.getOption().dataZoom;
+      if (dataZoomOpt && dataZoomOpt.length > 0) {
+        // X축 줌 업데이트
+        setZoom({ start: dataZoomOpt[0].start, end: dataZoomOpt[0].end });
+      }
+
+      // Y축 범위 업데이트
+      const yAxisOpt = chart.getOption().yAxis;
+      if (yAxisOpt && yAxisOpt.length > 0) {
+        setYRange({
+          min: yAxisOpt[0].min,
+          max: yAxisOpt[0].max,
+        });
+      }
+    },
+  };
 
   // 볼륨 차트 높이 비율이 변경될 때 차트 재렌더링
   useEffect(() => {
@@ -1114,28 +1199,28 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       className="relative flex h-full w-full flex-col overflow-hidden rounded-2xl"
       style={{ backgroundColor: '#0D192B' }}
     >
-      <div className="flex items-center gap-4 p-4 text-sm text-white">
+      <div className="flex items-center gap-4 p-3 text-sm text-white">
         <div className="ml-auto flex items-center gap-2">
           <button
-            className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-1 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`} /* 버튼 패딩 축소 */
             onClick={() => setPeriod('MINUTE')}
           >
             1분
           </button>
           <button
-            className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-1 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`} /* 버튼 패딩 축소 */
             onClick={() => setPeriod('DAY')}
           >
             일
           </button>
           <button
-            className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-1 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`} /* 버튼 패딩 축소 */
             onClick={() => setPeriod('WEEK')}
           >
             주
           </button>
           <button
-            className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+            className={`rounded px-4 py-1 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`} /* 버튼 패딩 축소 */
             onClick={() => setPeriod('MONTH')}
           >
             월
@@ -1153,18 +1238,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             renderer: 'canvas',
             devicePixelRatio: window.devicePixelRatio,
           }}
-          onEvents={{
-            datazoom: (params: { chart?: any }) => {
-              const chart = params.chart;
-              if (chart) {
-                chart.setOption({
-                  animation: false,
-                });
-                const { start, end } = chart.getOption().dataZoom[0];
-                setZoom({ start, end });
-              }
-            },
-          }}
+          onEvents={handleChartEvents}
         />
         <DividerLine initialRatio={volumeRatio} onRatioChange={setVolumeRatio} height={height} />
 
@@ -1173,7 +1247,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           className="absolute z-10 rounded bg-[#131722]/80 px-2 py-1 text-xs text-gray-300"
           style={{
             left: '85px',
-            top: '65px',
+            top: '35px', // 상단 여백 축소에 맞춰 조정
           }}
         >
           캔들차트
@@ -1184,7 +1258,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           className="absolute z-10 rounded bg-[#131722]/80 px-2 py-1 text-xs text-gray-300"
           style={{
             left: '85px',
-            top: `${calculateDividerPosition(volumeRatio, height) + 15}px`,
+            top: `${calculateDividerPosition(volumeRatio) + 10}px`, // 여백 축소
           }}
         >
           거래량
@@ -1193,16 +1267,5 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     </div>
   );
 };
-
-function calculateDividerPosition(ratio: number, height: number): number {
-  const chartTopOffset = 60; // 상단 헤더 높이
-  const chartBottomOffset = 60; // 하단 여백
-  const chartHeight = height - chartTopOffset - chartBottomOffset;
-
-  // 비율에 따른 픽셀 위치 계산 (분할선 위치 계산 방식 변경)
-  const pixelPosition = chartTopOffset + chartHeight * (1 - ratio);
-
-  return pixelPosition;
-}
 
 export default ChartComponent;
