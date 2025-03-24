@@ -13,10 +13,10 @@ export const StylePage = () => {
   const {
     investmentStyle,
     setInvestmentStyle,
-    riseResponse,
-    fallResponse,
-    setRiseResponse,
-    setFallResponse,
+    profitPercentToSell,
+    lossPercentToSell,
+    setProfitPercentToSell,
+    setLossPercentToSell,
   } = useAlgorithmLabStore();
 
   if (!isValidAccess) {
@@ -25,21 +25,30 @@ export const StylePage = () => {
 
   // 해당 범위 내에 있는지 확인
   const isConservativeValid =
-    riseResponse >= 3 && riseResponse <= 5 && fallResponse >= 1 && fallResponse <= 2;
+    profitPercentToSell >= 3 &&
+    profitPercentToSell <= 5 &&
+    lossPercentToSell >= 1 &&
+    lossPercentToSell <= 2;
   const isBalancedValid =
-    riseResponse >= 8 && riseResponse <= 12 && fallResponse >= 3 && fallResponse <= 5;
+    profitPercentToSell >= 8 &&
+    profitPercentToSell <= 12 &&
+    lossPercentToSell >= 3 &&
+    lossPercentToSell <= 5;
   const isAggressiveValid =
-    riseResponse >= 15 && riseResponse <= 25 && fallResponse >= 7 && fallResponse <= 10;
+    profitPercentToSell >= 15 &&
+    profitPercentToSell <= 25 &&
+    lossPercentToSell >= 7 &&
+    lossPercentToSell <= 10;
 
   // 투자 스타일 클릭 시 이벤트 핸들러
   const handleStyleClick = (
     style: 'conservative' | 'balanced' | 'aggressive',
-    riseValue: number,
-    fallValue: number,
+    profitValue: number,
+    lossValue: number,
   ) => {
     setInvestmentStyle(style);
-    setRiseResponse(riseValue);
-    setFallResponse(fallValue);
+    setProfitPercentToSell(profitValue);
+    setLossPercentToSell(lossValue);
   };
 
   return (
@@ -93,22 +102,22 @@ export const StylePage = () => {
         </Button>
       </div>
       <div className="flex w-full max-w-md flex-col gap-2">
-        <p className="mb-2 text-sm text-gray-600">이익률 ({riseResponse}%)</p>
+        <p className="mb-2 text-sm text-gray-600">이익률 ({profitPercentToSell}%)</p>
         <Slider
-          value={[riseResponse]}
+          value={[profitPercentToSell]}
           onValueChange={(value) => {
-            setRiseResponse(value[0]);
+            setProfitPercentToSell(value[0]);
             setInvestmentStyle(null);
           }}
           min={1}
           max={30}
           step={0.5}
         />
-        <p className="text-sm text-gray-600">손절매 ({fallResponse}%)</p>
+        <p className="text-sm text-gray-600">손절매 ({lossPercentToSell}%)</p>
         <Slider
-          value={[fallResponse]}
+          value={[lossPercentToSell]}
           onValueChange={(value) => {
-            setFallResponse(value[0]);
+            setLossPercentToSell(value[0]);
             setInvestmentStyle(null);
           }}
           min={1}

@@ -10,7 +10,7 @@ import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 export const NamePage = () => {
   const isValidAccess = useAlgorithmLabGuard('name');
   const navigate = useNavigate();
-  const { name, setName } = useAlgorithmLabStore();
+  const { algorithmName, setAlgorithmName } = useAlgorithmLabStore();
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -27,8 +27,8 @@ export const NamePage = () => {
       <div className="w-full">
         <Input
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          value={algorithmName}
+          onChange={(e) => setAlgorithmName(e.target.value)}
           placeholder="알고리즘 이름을 작성하세요."
           className="h-12"
         />
@@ -40,7 +40,7 @@ export const NamePage = () => {
         <Button
           variant="blue"
           onClick={() => navigate('/algorithm-lab/style')}
-          disabled={!name.trim()}
+          disabled={!algorithmName.trim()}
           className="flex-1 disabled:cursor-not-allowed"
         >
           다음

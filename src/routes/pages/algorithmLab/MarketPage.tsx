@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
@@ -11,34 +12,62 @@ export const MarketPage = () => {
   const isValidAccess = useAlgorithmLabGuard('market');
   const navigate = useNavigate();
   const {
-    marketResponse,
-    riseResponse,
-    fallResponse,
-    riseAction,
-    fallAction,
-    setMarketResponse,
-    setRiseResponse,
-    setFallResponse,
-    setRiseAction,
-    setFallAction,
+    oneMinuteIncreasePercent,
+    oneMinuteDecreasePercent,
+    oneMinuteIncreaseAction,
+    oneMinuteDecreaseAction,
+    dailyIncreasePercent,
+    dailyDecreasePercent,
+    dailyIncreaseAction,
+    dailyDecreaseAction,
+    setOneMinuteIncreasePercent,
+    setOneMinuteDecreasePercent,
+    setOneMinuteIncreaseAction,
+    setOneMinuteDecreaseAction,
+    setDailyIncreasePercent,
+    setDailyDecreasePercent,
+    setDailyIncreaseAction,
+    setDailyDecreaseAction,
     setShortTermMaPeriod,
     setLongTermMaPeriod,
     shortTermMaPeriod,
     longTermMaPeriod,
   } = useAlgorithmLabStore();
 
+  const [selectedTimeframe, setSelectedTimeframe] = useState<'oneMinute' | 'daily' | null>(null);
+
   if (!isValidAccess) {
     return <InvalidAccessPage />;
   }
 
-  const handleMarketResponseClick = (response: 'shortTerm' | 'monthlyTrend') => {
-    if (marketResponse === response) {
-      setMarketResponse(null);
+  const handleTimeframeClick = (timeframe: 'oneMinute' | 'daily') => {
+    if (selectedTimeframe === timeframe) {
+      setSelectedTimeframe(null);
+      if (timeframe === 'oneMinute') {
+        setOneMinuteIncreasePercent(null);
+        setOneMinuteDecreasePercent(null);
+        setOneMinuteIncreaseAction(null);
+        setOneMinuteDecreaseAction(null);
+      } else {
+        setDailyIncreasePercent(null);
+        setDailyDecreasePercent(null);
+        setDailyIncreaseAction(null);
+        setDailyDecreaseAction(null);
+      }
     } else {
-      setMarketResponse(response);
-      if (response === 'shortTerm') {
+      setSelectedTimeframe(timeframe);
+      if (timeframe === 'oneMinute') {
         setShortTermMaPeriod(null);
         setLongTermMaPeriod(null);
+        setOneMinuteIncreasePercent(1);
+        setOneMinuteDecreasePercent(1);
+        setOneMinuteIncreaseAction('BUY');
+        setOneMinuteDecreaseAction('SELL');
+      } else {
+        setDailyIncreasePercent(1);
+        setDailyDecreasePercent(1);
+        setDailyIncreaseAction('BUY');
+        setDailyDecreaseAction('SELL');
       }
     }
   };
@@ -55,9 +84,9 @@ export const MarketPage = () => {
       <div className="flex w-full gap-4">
         <Button
           variant="blue"
-          onClick={() => handleMarketResponseClick('shortTerm')}
+          onClick={() => handleTimeframeClick('oneMinute')}
           className={`flex-1 flex-col items-center p-4 ${
-            marketResponse === 'shortTerm' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
+            selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
           }`}
         >
           <p className="text-lg font-bold">
@@ -69,9 +98,9 @@ export const MarketPage = () => {
         </Button>
         <Button
           variant="blue"
-          onClick={() => handleMarketResponseClick('monthlyTrend')}
+          onClick={() => handleTimeframeClick('daily')}
           className={`flex-1 flex-col items-center p-4 ${
-            marketResponse === 'monthlyTrend' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
+            selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
           }`}
         >
           <p className="text-lg font-bold">
@@ -87,74 +116,150 @@ export const MarketPage = () => {
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-sm text-gray-600">상승 시 반응 강도</p>
-              <span className="text-sm font-bold text-primary-color">({riseResponse}%)</span>
+              {selectedTimeframe && (
+                <span className="text-sm font-bold text-primary-color">
+                  (
+                  {selectedTimeframe === 'oneMinute'
+                    ? (oneMinuteIncreasePercent ?? 1)
+                    : (dailyIncreasePercent ?? 1)}
+                  %)
+                </span>
+              )}
             </div>
             <div className="flex gap-2">
               <Button
                 variant="blue"
                 size="sm"
-                onClick={() => setRiseAction('buy')}
-                className={riseAction === 'buy' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
-                disabled={!marketResponse}
+                onClick={() =>
+                  selectedTimeframe === 'oneMinute'
+                    ? setOneMinuteIncreaseAction('BUY')
+                    : setDailyIncreaseAction('BUY')
+                }
+                className={
+                  (selectedTimeframe === 'oneMinute'
+                    ? oneMinuteIncreaseAction
+                    : dailyIncreaseAction) === 'BUY'
+                    ? 'bg-btn-blue-color'
+                    : 'bg-btn-blue-color/20'
+                }
+                disabled={!selectedTimeframe}
               >
                 매수
               </Button>
               <Button
                 variant="blue"
                 size="sm"
-                onClick={() => setRiseAction('sell')}
-                className={riseAction === 'sell' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
-                disabled={!marketResponse}
+                onClick={() =>
+                  selectedTimeframe === 'oneMinute'
+                    ? setOneMinuteIncreaseAction('SELL')
+                    : setDailyIncreaseAction('SELL')
+                }
+                className={
+                  (selectedTimeframe === 'oneMinute'
+                    ? oneMinuteIncreaseAction
+                    : dailyIncreaseAction) === 'SELL'
+                    ? 'bg-btn-blue-color'
+                    : 'bg-btn-blue-color/20'
+                }
+                disabled={!selectedTimeframe}
               >
                 매도
               </Button>
             </div>
           </div>
           <Slider
-            value={[riseResponse]}
-            onValueChange={(value) => setRiseResponse(value[0])}
+            value={[
+              selectedTimeframe === 'oneMinute'
+                ? (oneMinuteIncreasePercent ?? 1)
+                : selectedTimeframe === 'daily'
+                  ? (dailyIncreasePercent ?? 1)
+                  : 1,
+            ]}
+            onValueChange={(value) =>
+              selectedTimeframe === 'oneMinute'
+                ? setOneMinuteIncreasePercent(value[0])
+                : setDailyIncreasePercent(value[0])
+            }
             min={1}
             max={30}
             step={0.5}
-            disabled={!marketResponse}
-            className={!marketResponse ? 'cursor-not-allowed opacity-50' : ''}
+            disabled={!selectedTimeframe}
+            className={!selectedTimeframe ? 'cursor-not-allowed opacity-50' : ''}
           />
         </div>
         <div>
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-sm text-gray-600">하락 시 반응 강도</p>
-              <span className="text-sm font-bold text-primary-color">({fallResponse}%)</span>
+              {selectedTimeframe && (
+                <span className="text-sm font-bold text-primary-color">
+                  (
+                  {selectedTimeframe === 'oneMinute'
+                    ? (oneMinuteDecreasePercent ?? 1)
+                    : (dailyDecreasePercent ?? 1)}
+                  %)
+                </span>
+              )}
             </div>
             <div className="flex gap-2">
               <Button
                 variant="blue"
                 size="sm"
-                onClick={() => setFallAction('buy')}
-                className={fallAction === 'buy' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
-                disabled={!marketResponse}
+                onClick={() =>
+                  selectedTimeframe === 'oneMinute'
+                    ? setOneMinuteDecreaseAction('BUY')
+                    : setDailyDecreaseAction('BUY')
+                }
+                className={
+                  (selectedTimeframe === 'oneMinute'
+                    ? oneMinuteDecreaseAction
+                    : dailyDecreaseAction) === 'BUY'
+                    ? 'bg-btn-blue-color'
+                    : 'bg-btn-blue-color/20'
+                }
+                disabled={!selectedTimeframe}
               >
                 매수
               </Button>
               <Button
                 variant="blue"
                 size="sm"
-                onClick={() => setFallAction('sell')}
-                className={fallAction === 'sell' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
-                disabled={!marketResponse}
+                onClick={() =>
+                  selectedTimeframe === 'oneMinute'
+                    ? setOneMinuteDecreaseAction('SELL')
+                    : setDailyDecreaseAction('SELL')
+                }
+                className={
+                  (selectedTimeframe === 'oneMinute'
+                    ? oneMinuteDecreaseAction
+                    : dailyDecreaseAction) === 'SELL'
+                    ? 'bg-btn-blue-color'
+                    : 'bg-btn-blue-color/20'
+                }
+                disabled={!selectedTimeframe}
               >
                 매도
               </Button>
             </div>
           </div>
           <Slider
-            value={[fallResponse]}
-            onValueChange={(value) => setFallResponse(value[0])}
+            value={[
+              selectedTimeframe === 'oneMinute'
+                ? (oneMinuteDecreasePercent ?? 1)
+                : selectedTimeframe === 'daily'
+                  ? (dailyDecreasePercent ?? 1)
+                  : 1,
+            ]}
+            onValueChange={(value) =>
+              selectedTimeframe === 'oneMinute'
+                ? setOneMinuteDecreasePercent(value[0])
+                : setDailyDecreasePercent(value[0])
+            }
             min={1}
             max={30}
             step={0.5}
-            disabled={!marketResponse}
-            className={!marketResponse ? 'cursor-not-allowed opacity-50' : ''}
+            disabled={!selectedTimeframe}
+            className={!selectedTimeframe ? 'cursor-not-allowed opacity-50' : ''}
           />
         </div>
       </div>
@@ -183,12 +288,12 @@ export const MarketPage = () => {
                 ? 'bg-btn-blue-color'
                 : 'bg-btn-blue-color/20'
             }
-            disabled={!marketResponse || marketResponse === 'shortTerm'}
+            disabled={!selectedTimeframe || selectedTimeframe === 'oneMinute'}
           >
             {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
           </Button>
           <p className="text-base text-btn-primary-active-color">
-            {!marketResponse || marketResponse === 'shortTerm' ? (
+            {!selectedTimeframe || selectedTimeframe === 'oneMinute' ? (
               <>
                 옵션을
                 <span className="font-semibold text-primary-color"> 일간 추세에 반응</span>으로

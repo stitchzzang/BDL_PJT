@@ -9,13 +9,22 @@ export const ConfirmPage = () => {
   const isValidAccess = useAlgorithmLabGuard('confirm');
   const navigate = useNavigate();
   const {
-    name,
+    algorithmName,
     investmentStyle,
     investmentMethod,
     investmentAmount,
-    marketResponse,
-    riseResponse,
-    fallResponse,
+    profitPercentToSell,
+    lossPercentToSell,
+    oneMinuteIncreasePercent,
+    oneMinuteDecreasePercent,
+    oneMinuteIncreaseAction,
+    oneMinuteDecreaseAction,
+    dailyIncreasePercent,
+    dailyDecreasePercent,
+    dailyIncreaseAction,
+    dailyDecreaseAction,
+    shortTermMaPeriod,
+    longTermMaPeriod,
     resetState,
   } = useAlgorithmLabStore();
 
@@ -47,15 +56,14 @@ export const ConfirmPage = () => {
     }
   };
 
-  const getMarketResponseText = (response: string) => {
-    switch (response) {
-      case 'shortTerm':
-        return '단기 변화에 반응';
-      case 'monthlyTrend':
-        return '월간 추세에 반응';
-      default:
-        return '';
+  const getTimeframeText = () => {
+    if (oneMinuteIncreasePercent || oneMinuteDecreasePercent) {
+      return '단기 변화에 반응 (분봉)';
     }
+    if (dailyIncreasePercent || dailyDecreasePercent) {
+      return '일간 추세에 반응 (일봉)';
+    }
+    return '';
   };
 
   const handleComplete = () => {
@@ -70,13 +78,13 @@ export const ConfirmPage = () => {
       <div className="w-full space-y-6 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">알고리즘 이름</h3>
-          <p>{name}</p>
+          <p>{algorithmName}</p>
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 스타일</h3>
           <p>{investmentStyle && getStyleText(investmentStyle)}</p>
-          <p>이익 실현 : {riseResponse}%</p>
-          <p>손절매 : {fallResponse}%</p>
+          <p>이익 실현 : {profitPercentToSell}%</p>
+          <p>손절매 : {lossPercentToSell}%</p>
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 방식</h3>
@@ -87,13 +95,35 @@ export const ConfirmPage = () => {
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">시장 반응</h3>
-          <p>{marketResponse && getMarketResponseText(marketResponse)}</p>
-          <p>상승 시 반응 강도 : {riseResponse}%</p>
-          <p>하락 시 반응 강도 : {fallResponse}%</p>
+          <p>{getTimeframeText()}</p>
+          {(oneMinuteIncreasePercent || oneMinuteDecreasePercent) && (
+            <>
+              <p>
+                상승 시 반응 강도 : {oneMinuteIncreasePercent}% ({oneMinuteIncreaseAction})
+              </p>
+              <p>
+                하락 시 반응 강도 : {oneMinuteDecreasePercent}% ({oneMinuteDecreaseAction})
+              </p>
+            </>
+          )}
+          {(dailyIncreasePercent || dailyDecreasePercent) && (
+            <>
+              <p>
+                상승 시 반응 강도 : {dailyIncreasePercent}% ({dailyIncreaseAction})
+              </p>
+              <p>
+                하락 시 반응 강도 : {dailyDecreasePercent}% ({dailyDecreaseAction})
+              </p>
+            </>
+          )}
         </div>
-        <div>
-          <h3 className="text-lg font-semibold text-text-inactive-3-color">추세 분석</h3>
-        </div>
+        {(shortTermMaPeriod || longTermMaPeriod) && (
+          <div className="flex flex-col gap-2">
+            <h3 className="text-lg font-semibold text-text-inactive-3-color">추세 분석</h3>
+            <p>단기 이동평균선: {shortTermMaPeriod}일</p>
+            <p>장기 이동평균선: {longTermMaPeriod}일</p>
+          </div>
+        )}
       </div>
       <div className="flex w-full gap-2">
         <Button variant="blue" onClick={() => navigate('/algorithm-lab/market')} className="flex-1">
