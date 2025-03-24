@@ -76,19 +76,31 @@ export const ConfirmPage = () => {
       <div className="w-full space-y-6 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">알고리즘 이름</h3>
-          <p>{algorithmName}</p>
+          <p className="font-bold text-btn-blue-color">{algorithmName}</p>
+          <hr className="border border-border-color border-opacity-35" />
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 스타일</h3>
           <p>{investmentStyle && getStyleText(investmentStyle)}</p>
-          <p>이익 실현 : {profitPercentToSell}%</p>
-          <p>손절매 : {lossPercentToSell}%</p>
+          <p>
+            이익 실현 :
+            <span className="text-[18px] font-bold text-btn-blue-color">
+              {' '}
+              {profitPercentToSell}%
+            </span>
+          </p>
+          <p>
+            손절매 :
+            <span className="text-[18px] font-bold text-btn-blue-color"> {lossPercentToSell}%</span>
+          </p>
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 방식</h3>
-          <p>
+          <p className="font-light text-border-color">
             {investmentMethod && getMethodText(investmentMethod)} :{' '}
-            {investmentAmount.toLocaleString()}원
+            <span className="text-[18px] font-bold text-btn-blue-color">
+              {investmentAmount.toLocaleString()}원
+            </span>
           </p>
         </div>
         {(oneMinuteIncreasePercent ||
@@ -97,24 +109,80 @@ export const ConfirmPage = () => {
           dailyDecreasePercent) && (
           <div className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold text-text-inactive-3-color">시장 반응</h3>
-            <p>{getTimeframeText()}</p>
+            <p className="text-base">{getTimeframeText()}</p>
             {(oneMinuteIncreasePercent || oneMinuteDecreasePercent) && (
               <>
                 <p>
-                  상승 시 반응 강도 : {oneMinuteIncreasePercent}% ({oneMinuteIncreaseAction})
+                  <span className="text-border-color">상승 시 반응 강도 : </span>
+                  <span className="font-medium">{oneMinuteIncreasePercent}%</span>
+                  <span className="text-border-color"> (</span>
+                  <span
+                    className={
+                      oneMinuteIncreaseAction === 'BUY'
+                        ? 'font-medium text-red-500'
+                        : oneMinuteIncreaseAction === 'SELL'
+                          ? 'font-medium text-blue-500'
+                          : ''
+                    }
+                  >
+                    {oneMinuteIncreaseAction}
+                  </span>
+                  <span className="text-border-color">)</span>
                 </p>
                 <p>
-                  하락 시 반응 강도 : {oneMinuteDecreasePercent}% ({oneMinuteDecreaseAction})
+                  <span className="text-border-color">하락 시 반응 강도 : </span>
+                  <span className="font-medium">{oneMinuteDecreasePercent}%</span>
+                  <span className="text-border-color"> (</span>
+                  <span
+                    className={
+                      oneMinuteDecreaseAction === 'BUY'
+                        ? 'font-medium text-red-500'
+                        : oneMinuteDecreaseAction === 'SELL'
+                          ? 'font-medium text-blue-500'
+                          : ''
+                    }
+                  >
+                    {oneMinuteDecreaseAction}
+                  </span>
+                  <span className="text-border-color">)</span>
                 </p>
               </>
             )}
             {(dailyIncreasePercent || dailyDecreasePercent) && (
               <>
                 <p>
-                  상승 시 반응 강도 : {dailyIncreasePercent}% ({dailyIncreaseAction})
+                  <span className="text-border-color">상승 시 반응 강도 : </span>
+                  <span className="font-medium">{dailyIncreasePercent}%</span>
+                  <span className="text-border-color"> (</span>
+                  <span
+                    className={
+                      dailyIncreaseAction === 'BUY'
+                        ? 'font-medium text-red-500'
+                        : dailyIncreaseAction === 'SELL'
+                          ? 'font-medium text-blue-500'
+                          : ''
+                    }
+                  >
+                    {dailyIncreaseAction}
+                  </span>
+                  <span className="text-border-color">)</span>
                 </p>
                 <p>
-                  하락 시 반응 강도 : {dailyDecreasePercent}% ({dailyDecreaseAction})
+                  <span className="text-border-color">하락 시 반응 강도 : </span>
+                  <span className="font-medium">{dailyDecreasePercent}%</span>
+                  <span className="text-border-color"> (</span>
+                  <span
+                    className={
+                      dailyDecreaseAction === 'BUY'
+                        ? 'font-medium text-red-500'
+                        : dailyDecreaseAction === 'SELL'
+                          ? 'font-medium text-blue-500'
+                          : ''
+                    }
+                  >
+                    {dailyDecreaseAction}
+                  </span>
+                  <span className="text-border-color">)</span>
                 </p>
               </>
             )}
