@@ -35,6 +35,7 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   fallResponse: 15,
 
   setName: (name) => set({ name }),
+  // 투자 스타일 선택 시 이익률과 손절매 설정
   setInvestmentStyle: (style) => {
     switch (style) {
       case 'conservative':
@@ -56,6 +57,7 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   setMarketResponse: (response) => set({ marketResponse: response }),
   setRiseResponse: (value) => set({ riseResponse: value }),
   setFallResponse: (value) => set({ fallResponse: value }),
+  // 알고리즘 랩 초기화
   resetState: () =>
     set({
       name: '',
