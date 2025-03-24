@@ -25,7 +25,6 @@ export const ConfirmPage = () => {
     dailyDecreaseAction,
     shortTermMaPeriod,
     longTermMaPeriod,
-    resetState,
   } = useAlgorithmLabStore();
 
   if (!isValidAccess) {
