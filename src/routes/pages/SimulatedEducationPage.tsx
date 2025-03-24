@@ -7,6 +7,7 @@ import ChartComponent from '@/components/ui/chart';
 import { minuteData } from '@/lib/dummy-data';
 
 export const SimulatedEducationPage = () => {
+  const h3Style = 'text-[20px] font-bold';
   return (
     <div className="flex h-full w-full flex-col">
       <div>
@@ -35,8 +36,8 @@ export const SimulatedEducationPage = () => {
         </div>
       </div>
       <div>
-        <div>
-          <h3>일간 히스토리</h3>
+        <div className="my-[30px]">
+          <h3 className={`${h3Style} mb-[15px]`}>일간 히스토리</h3>
           <DayHistory />
         </div>
       </div>
