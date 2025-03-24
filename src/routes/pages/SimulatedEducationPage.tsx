@@ -1,3 +1,4 @@
+import { DayHistory } from '@/components/stock-tutorial/day-history';
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
 import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-info';
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
@@ -36,6 +37,7 @@ export const SimulatedEducationPage = () => {
       <div>
         <div>
           <h3>일간 히스토리</h3>
+          <DayHistory />
         </div>
       </div>
     </div>
