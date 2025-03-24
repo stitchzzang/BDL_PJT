@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { create } from 'zustand';
 
 interface AlgorithmLabState {
@@ -134,3 +136,16 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
       longTermMaPeriod: null,
     }),
 }));
+
+// URL 변경 감지 및 상태 초기화를 위한 훅
+export const useResetAlgorithmLabStore = () => {
+  const location = useLocation();
+  const resetState = useAlgorithmLabStore((state) => state.resetState);
+
+  useEffect(() => {
+    // algorithm-lab 경로가 아닌 곳으로 이동할 때 상태 초기화
+    if (!location.pathname.includes('algorithm-lab')) {
+      resetState();
+    }
+  }, [location.pathname, resetState]);
+};
