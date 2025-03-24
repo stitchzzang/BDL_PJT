@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // 허용된 탭 타입을 정의
-type TabType = '구매' | '판매' | '대기';
+type TabType = '구매' | '판매' | '관망';
 
 interface OrderStatusCategoryProps {
   isActiveCategory: TabType;
@@ -48,16 +48,16 @@ export const TutorialOrderStatusCategory: React.FC<OrderStatusCategoryProps> = (
           </button>
         </div>
         <div
-          className={`${orderButtonStyle} ${isActive === '대기' ? 'bg-btn-green-color bg-opacity-20' : ''} hover:bg-btn-green-color hover:bg-opacity-20`}
+          className={`${orderButtonStyle} ${isActive === '관망' ? 'bg-btn-green-color bg-opacity-20' : ''} hover:bg-btn-green-color hover:bg-opacity-20`}
           onClick={() => {
-            setIsActive('대기');
-            changeCategory('대기');
+            setIsActive('관망');
+            changeCategory('관망');
           }}
         >
           <button
-            className={`${isActive === '대기' ? 'font-bold text-btn-green-color' : 'font-bold text-border-color'}`}
+            className={`${isActive === '관망' ? 'font-bold text-btn-green-color' : 'font-bold text-border-color'}`}
           >
-            대기
+            관망
           </button>
         </div>
       </div>

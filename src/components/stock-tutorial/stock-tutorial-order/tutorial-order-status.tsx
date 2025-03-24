@@ -7,7 +7,7 @@ import { TutorialOrderStatusWait } from '@/components/stock-tutorial/stock-tutor
 
 export const TutorialOrderStatus = () => {
   // 허용된 탭 타입을 정의
-  type TabType = '구매' | '판매' | '대기';
+  type TabType = '구매' | '판매' | '관망';
   // 랜더링 유무
   const [isActiveCategory, setIsActiveCategory] = useState<TabType>('구매');
 
@@ -15,7 +15,7 @@ export const TutorialOrderStatus = () => {
   const Components: Record<TabType, React.ReactNode> = {
     구매: <TutorialOrderStatusBuy />,
     판매: <TutorialOrderStatusShell />,
-    대기: <TutorialOrderStatusWait />,
+    관망: <TutorialOrderStatusWait />,
   };
   return (
     <div className="h-full">
