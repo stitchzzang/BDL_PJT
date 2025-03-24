@@ -45,8 +45,8 @@ const DividerLine: React.FC<DividerLineProps> = ({ initialRatio, onRatioChange, 
       const relativeY = e.clientY - containerRect.top - chartTopOffset;
       const chartRelativeY = Math.max(0, Math.min(relativeY, chartHeight));
 
-      // 차트 내에서의 비율 계산 (위로 올리면 비율이 작아지도록 변경)
-      const newRatio = chartRelativeY / chartHeight;
+      // 차트 내에서의 비율 계산 (아래로 내리면 비율이 작아지도록 변경)
+      const newRatio = 1 - chartRelativeY / chartHeight;
 
       // 비율 제한 (10% ~ 50%)
       const clampedRatio = Math.max(0.1, Math.min(0.5, newRatio));
@@ -76,8 +76,8 @@ const DividerLine: React.FC<DividerLineProps> = ({ initialRatio, onRatioChange, 
     const chartBottomOffset = 60; // 하단 여백
     const chartHeight = height - chartTopOffset - chartBottomOffset;
 
-    // 비율에 따른 픽셀 위치 계산
-    const pixelPosition = chartTopOffset + chartHeight * ratio;
+    // 비율에 따른 픽셀 위치 계산 (아래로 내리면 비율이 작아지도록 계산)
+    const pixelPosition = chartTopOffset + chartHeight * (1 - ratio);
 
     // 전체 높이에 대한 백분율 계산
     return (pixelPosition / height) * 100;
@@ -631,10 +631,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     return labels;
   }, [extendedChartData, period, chartData, formatChartDate]);
 
-  // 거래량 차트의 높이 비율 상수를 상태로 변경
-  // const VOLUME_HEIGHT_RATIO = 0.2;
-  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 10%)
-  const VOLUME_GAP_RATIO = 0.02;
+  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 2%)
+  const VOLUME_GAP_RATIO = 0.01;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
@@ -1038,10 +1036,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           data: showVolume
             ? extendedChartData.map((item, index) => {
                 if (index < 10) return 0;
-                // 가격 스케일로 거래량 스케일링 - 변경된 volumeRatio 적용
+
+                // 가격 스케일로 거래량 스케일링 - volumeRatio를 적용
                 const volRatio = item.volume / maxVolume;
                 // 거래량 영역의 최대 높이는 전체 차트 높이 중 volumeRatio 비율만큼
-                const volumeHeight = (minPrice - pricePadding) * 0.8; // 0.8은 시각적 여유공간
+                const volumeHeight = (minPrice - pricePadding) * 0.95; // 0.95로 변경하여 여백 감소
                 const scaledVolume = volRatio * volumeHeight * volumeRatio;
 
                 return {
@@ -1066,7 +1065,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             },
             data: [
               {
-                yAxis: (minPrice - pricePadding) * volumeRatio * 0.8, // 거래량 영역의 경계선
+                yAxis: (minPrice - pricePadding) * volumeRatio * 0.95, // 거래량 영역의 경계선
                 lineStyle: {
                   color: '#2e3947',
                 },
@@ -1200,8 +1199,8 @@ function calculateDividerPosition(ratio: number, height: number): number {
   const chartBottomOffset = 60; // 하단 여백
   const chartHeight = height - chartTopOffset - chartBottomOffset;
 
-  // 비율에 따른 픽셀 위치 계산 (새로운 계산 방식)
-  const pixelPosition = chartTopOffset + chartHeight * ratio;
+  // 비율에 따른 픽셀 위치 계산 (분할선 위치 계산 방식 변경)
+  const pixelPosition = chartTopOffset + chartHeight * (1 - ratio);
 
   return pixelPosition;
 }
