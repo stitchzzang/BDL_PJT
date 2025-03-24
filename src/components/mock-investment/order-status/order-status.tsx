@@ -19,7 +19,7 @@ export const OrderStatus = () => {
   };
   return (
     <div className="h-full">
-      <div className="h-[100%] rounded-md bg-modal-background-color p-5">
+      <div className="h-[100%] rounded-2xl bg-modal-background-color p-5">
         <div className="mb-[25px]">
           <OrderStatusCategory
             isActiveCategory={isActiveCategory}

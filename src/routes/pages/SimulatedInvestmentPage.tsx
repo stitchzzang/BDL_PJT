@@ -8,6 +8,7 @@ import { dummyChartData } from '@/lib/dummy-data';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
+  const todayData = getTodayFormatted();
   return (
     <div className="flex h-full w-full flex-col px-6">
       <div>
@@ -21,7 +22,7 @@ export const SimulatedInvestmentPage = () => {
           <div className="flex items-center gap-3">
             <p className="text-border-color">오늘 날짜</p>
             <div className="rounded-xl bg-modal-background-color px-[20px] py-[16px]">
-              <p>{getTodayFormatted()}</p>
+              <p>{todayData}</p>
             </div>
           </div>
         </div>
