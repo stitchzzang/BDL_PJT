@@ -31,6 +31,18 @@ export const MarketPage = () => {
     return <InvalidAccessPage />;
   }
 
+  const handleMarketResponseClick = (response: 'shortTerm' | 'monthlyTrend') => {
+    if (marketResponse === response) {
+      setMarketResponse(null);
+    } else {
+      setMarketResponse(response);
+      if (response === 'shortTerm') {
+        setShortTermMaPeriod(null);
+        setLongTermMaPeriod(null);
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center gap-8">
       <h2 className="text-3xl font-bold">시장 반응 설정</h2>
@@ -43,7 +55,7 @@ export const MarketPage = () => {
       <div className="flex w-full gap-4">
         <Button
           variant="blue"
-          onClick={() => setMarketResponse('shortTerm')}
+          onClick={() => handleMarketResponseClick('shortTerm')}
           className={`flex-1 flex-col items-center p-4 ${
             marketResponse === 'shortTerm' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
           }`}
@@ -57,7 +69,7 @@ export const MarketPage = () => {
         </Button>
         <Button
           variant="blue"
-          onClick={() => setMarketResponse('monthlyTrend')}
+          onClick={() => handleMarketResponseClick('monthlyTrend')}
           className={`flex-1 flex-col items-center p-4 ${
             marketResponse === 'monthlyTrend' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
           }`}
@@ -83,6 +95,7 @@ export const MarketPage = () => {
                 size="sm"
                 onClick={() => setRiseAction('buy')}
                 className={riseAction === 'buy' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
+                disabled={!marketResponse}
               >
                 매수
               </Button>
@@ -91,6 +104,7 @@ export const MarketPage = () => {
                 size="sm"
                 onClick={() => setRiseAction('sell')}
                 className={riseAction === 'sell' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
+                disabled={!marketResponse}
               >
                 매도
               </Button>
@@ -102,6 +116,8 @@ export const MarketPage = () => {
             min={1}
             max={30}
             step={0.5}
+            disabled={!marketResponse}
+            className={!marketResponse ? 'cursor-not-allowed opacity-50' : ''}
           />
         </div>
         <div>
@@ -116,6 +132,7 @@ export const MarketPage = () => {
                 size="sm"
                 onClick={() => setFallAction('buy')}
                 className={fallAction === 'buy' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
+                disabled={!marketResponse}
               >
                 매수
               </Button>
@@ -124,6 +141,7 @@ export const MarketPage = () => {
                 size="sm"
                 onClick={() => setFallAction('sell')}
                 className={fallAction === 'sell' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'}
+                disabled={!marketResponse}
               >
                 매도
               </Button>
@@ -135,6 +153,8 @@ export const MarketPage = () => {
             min={1}
             max={30}
             step={0.5}
+            disabled={!marketResponse}
+            className={!marketResponse ? 'cursor-not-allowed opacity-50' : ''}
           />
         </div>
       </div>
@@ -163,13 +183,22 @@ export const MarketPage = () => {
                 ? 'bg-btn-blue-color'
                 : 'bg-btn-blue-color/20'
             }
+            disabled={!marketResponse || marketResponse === 'shortTerm'}
           >
             {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
           </Button>
           <p className="text-base text-btn-primary-active-color">
-            {shortTermMaPeriod === 5 && longTermMaPeriod === 20
-              ? '이동평균선이 적용되었습니다.'
-              : '버튼 클릭시 이동평균선 사용이 가능합니다.'}
+            {!marketResponse || marketResponse === 'shortTerm' ? (
+              <>
+                옵션을
+                <span className="font-semibold text-primary-color"> 일간 추세에 반응</span>으로
+                선택해주세요.
+              </>
+            ) : shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? (
+              '이동평균선이 적용되었습니다.'
+            ) : (
+              '버튼 클릭시 이동평균선 사용이 가능합니다.'
+            )}
           </p>
         </div>
       </div>
@@ -180,8 +209,7 @@ export const MarketPage = () => {
         <Button
           variant="blue"
           onClick={() => navigate('/algorithm-lab/confirm')}
-          disabled={!marketResponse}
-          className="flex-1 disabled:cursor-not-allowed"
+          className="flex-1"
         >
           다음
         </Button>
