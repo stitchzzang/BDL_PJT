@@ -2,15 +2,22 @@ import { useState } from 'react';
 
 import { type CategoryName, getCategoryIcon, getCategoryNames } from '@/utils/categoryMapper';
 
-export const CategoryList = () => {
+// props 선택
+export interface CategoryListProps {
+  setCategory: (category: string | '') => void;
+}
+
+export const CategoryList = ({ setCategory }: CategoryListProps) => {
   const categoryNames = getCategoryNames();
   const [isActive, setIsActive] = useState<CategoryName | ''>('');
 
   const isActiveHandler = (name: CategoryName) => {
     if (name === isActive) {
       setIsActive('');
+      setCategory('');
     } else {
       setIsActive(name);
+      setCategory(name);
     }
   };
 
