@@ -2,7 +2,7 @@ import { QuestionsCombobox } from '@/components/member-info/questions-combo-box'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export const MemberPasswordEditPage = () => {
+export const PasswordEditPage = () => {
   return (
     <div className="flex flex-col items-center gap-4">
       <h1 className="mb-4 text-2xl font-bold">비밀번호 수정</h1>

@@ -12,7 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-export const MemberInvestmentPage = () => {
+export const InvestmentResultPage = () => {
   return (
     <div className="flex w-full flex-col gap-4">
       <div className="flex flex-row gap-3">

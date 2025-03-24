@@ -1,6 +1,6 @@
 import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial-result-item';
 
-export const MemberStockResultPage = () => {
+export const TutorialResultPage = () => {
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
       <div className="flex w-full flex-row justify-between">

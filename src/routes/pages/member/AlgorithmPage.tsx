@@ -1,6 +1,6 @@
 import { MyAlgorithmItem } from '@/components/member-info/my-algorithm-item';
 
-export const MemberAlgorithmPage = () => {
+export const AlgorithmPage = () => {
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
       <div className="w-full">

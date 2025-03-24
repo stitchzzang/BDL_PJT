@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AlgorithmLabLayout } from '@/layouts/AlgorithmLabLayout';
 import { MainLayout } from '@/layouts/MainLayout';
@@ -11,11 +11,11 @@ import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
-import { MemberAlgorithmPage } from '@/routes/pages/MemberAlgorithmPage';
-import { MemberEditPage } from '@/routes/pages/MemberEditPage';
-import { MemberInvestmentPage } from '@/routes/pages/MemberInvestmentPage';
-import { MemberPasswordEditPage } from '@/routes/pages/MemberPasswordEditPage';
-import { MemberStockResultPage } from '@/routes/pages/MemberStockResultPage';
+import { AlgorithmPage } from '@/routes/pages/member/AlgorithmPage';
+import { EditPage } from '@/routes/pages/member/EditPage';
+import { InvestmentResultPage } from '@/routes/pages/member/InvestmentResultPage';
+import { PasswordEditPage } from '@/routes/pages/member/PasswordEditPage';
+import { TutorialResultPage } from '@/routes/pages/member/TutorialResultPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
@@ -37,27 +37,32 @@ export const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
+        path: '/member',
         element: <MemberLayout />,
         children: [
           {
-            path: '/member/edit',
-            element: <MemberEditPage />,
+            index: true,
+            element: <Navigate to="/member/stock-tutorial-result" replace />,
           },
           {
-            path: '/member/edit/password',
-            element: <MemberPasswordEditPage />,
+            path: 'edit',
+            element: <EditPage />,
           },
           {
-            path: '/member/stock-tutorial-result',
-            element: <MemberStockResultPage />,
+            path: 'edit/password',
+            element: <PasswordEditPage />,
           },
           {
-            path: '/member/algorithm',
-            element: <MemberAlgorithmPage />,
+            path: 'stock-tutorial-result',
+            element: <TutorialResultPage />,
           },
           {
-            path: '/member/investment',
-            element: <MemberInvestmentPage />,
+            path: 'algorithm',
+            element: <AlgorithmPage />,
+          },
+          {
+            path: 'investment',
+            element: <InvestmentResultPage />,
           },
         ],
       },
@@ -106,6 +111,10 @@ export const router = createBrowserRouter([
       {
         path: '/tutorial',
         children: [
+          {
+            index: true,
+            element: <Navigate to="/tutorial/select" replace />,
+          },
           {
             path: 'select',
             element: <SelectPage />,

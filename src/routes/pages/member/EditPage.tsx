@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export const MemberEditPage = () => {
+export const EditPage = () => {
   return (
     <div className="flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold">프로필 수정</h1>
