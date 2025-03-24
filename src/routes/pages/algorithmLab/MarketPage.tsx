@@ -43,17 +43,16 @@ export const MarketPage = () => {
   const handleTimeframeClick = (timeframe: 'oneMinute' | 'daily') => {
     if (selectedTimeframe === timeframe) {
       setSelectedTimeframe(null);
-      if (timeframe === 'oneMinute') {
-        setOneMinuteIncreasePercent(null);
-        setOneMinuteDecreasePercent(null);
-        setOneMinuteIncreaseAction(null);
-        setOneMinuteDecreaseAction(null);
-      } else {
-        setDailyIncreasePercent(null);
-        setDailyDecreasePercent(null);
-        setDailyIncreaseAction(null);
-        setDailyDecreaseAction(null);
-      }
+      setOneMinuteIncreasePercent(null);
+      setOneMinuteDecreasePercent(null);
+      setOneMinuteIncreaseAction(null);
+      setOneMinuteDecreaseAction(null);
+      setDailyIncreasePercent(null);
+      setDailyDecreasePercent(null);
+      setDailyIncreaseAction(null);
+      setDailyDecreaseAction(null);
+      setShortTermMaPeriod(null);
+      setLongTermMaPeriod(null);
     } else {
       setSelectedTimeframe(timeframe);
       if (timeframe === 'oneMinute') {
@@ -63,11 +62,19 @@ export const MarketPage = () => {
         setOneMinuteDecreasePercent(1);
         setOneMinuteIncreaseAction('BUY');
         setOneMinuteDecreaseAction('SELL');
+        setDailyIncreasePercent(null);
+        setDailyDecreasePercent(null);
+        setDailyIncreaseAction(null);
+        setDailyDecreaseAction(null);
       } else {
         setDailyIncreasePercent(1);
         setDailyDecreasePercent(1);
         setDailyIncreaseAction('BUY');
         setDailyDecreaseAction('SELL');
+        setOneMinuteIncreasePercent(null);
+        setOneMinuteDecreasePercent(null);
+        setOneMinuteIncreaseAction(null);
+        setOneMinuteDecreaseAction(null);
       }
     }
   };
