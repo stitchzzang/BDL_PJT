@@ -1,7 +1,10 @@
+import { useState } from 'react';
+
 import NoneLogo from '/none-img/none-logo.png';
 import { CategoryList } from '@/components/common/category-list';
 
 export const StockTutorialSelection = () => {
+  const [category, setCategory] = useState<string>('');
   return (
     <div className="flex flex-col items-center justify-center gap-3">
       <div className="flex flex-col items-center justify-center gap-3">
@@ -16,7 +19,8 @@ export const StockTutorialSelection = () => {
           </p>
         </div>
         <div>
-          <CategoryList />
+          {category}
+          <CategoryList setCategory={setCategory} />
         </div>
       </div>
       <div className="mt-[50px]">
