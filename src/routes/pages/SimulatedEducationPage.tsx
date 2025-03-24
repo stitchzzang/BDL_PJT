@@ -12,8 +12,16 @@ export const SimulatedEducationPage = () => {
         <div className="my-[25px]">
           <StockProgress />
         </div>
-        <div>
+        <div className="mb-[25px] flex justify-between">
           <StockTutorialMoneyInfo />
+          <div className="flex items-center gap-2">
+            <p className="text-border-color">진행 기간 : </p>
+            <div className="flex gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
+              <p>2024-03-21</p>
+              <span className="font-bold text-border-color"> - </span>
+              <p>2024-11-21</p>
+            </div>
+          </div>
         </div>
       </div>
       <div className="flex-1">
