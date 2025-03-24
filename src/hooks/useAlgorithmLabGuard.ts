@@ -6,13 +6,24 @@ import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 type PageType = 'name' | 'style' | 'method' | 'market' | 'confirm';
 
 export const useAlgorithmLabGuard = (page: PageType): boolean => {
-  const { name, investmentMethod, investmentAmount, marketResponse, riseResponse, fallResponse } =
-    useAlgorithmLabStore();
+  const {
+    algorithmName,
+    investmentMethod,
+    investmentAmount,
+    profitPercentToSell,
+    lossPercentToSell,
+  } = useAlgorithmLabStore();
 
   // 각 페이지별로 필요한 이전 데이터 체크
   switch (page) {
     case 'confirm':
-      if (!marketResponse) {
+      if (
+        !algorithmName ||
+        !investmentMethod ||
+        !investmentAmount ||
+        !profitPercentToSell ||
+        !lossPercentToSell
+      ) {
         return false;
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
@@ -22,12 +33,12 @@ export const useAlgorithmLabGuard = (page: PageType): boolean => {
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
     case 'method':
-      if (!riseResponse || !fallResponse) {
+      if (!algorithmName) {
         return false;
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
     case 'style':
-      if (!name) {
+      if (!algorithmName) {
         return false;
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
