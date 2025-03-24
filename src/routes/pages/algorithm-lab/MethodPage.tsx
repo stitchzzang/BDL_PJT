@@ -1,5 +1,8 @@
+import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
+import graphMotion from '@/assets/lottie/graph-animation.json';
+import moneyMotion from '@/assets/lottie/money-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +49,32 @@ export const MethodPage = () => {
       />
 
       <p className="w-full text-left text-lg font-bold">옵션 중 하나를 선택해주세요.</p>
+      {investmentMethod === 'fixed' ? (
+        <div className="m-[10px]">
+          <Lottie
+            animationData={moneyMotion}
+            loop={true}
+            autoplay={true}
+            style={{ height: 150, width: 150 }}
+            rendererSettings={{
+              preserveAspectRatio: 'xMidYMid slice',
+            }}
+          />
+        </div>
+      ) : (
+        <div>
+          <Lottie
+            animationData={graphMotion}
+            loop={true}
+            autoplay={true}
+            style={{ height: 170, width: 170 }}
+            rendererSettings={{
+              preserveAspectRatio: 'xMidYMid slice',
+            }}
+          />
+        </div>
+      )}
+
       <div className="flex w-full gap-4">
         <Button
           variant="blue"
