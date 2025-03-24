@@ -41,6 +41,7 @@ export const SimulatedEducationPage = () => {
           <DayHistory />
         </div>
       </div>
+      <div>{/* 로봇 */}</div>
     </div>
   );
 };
