@@ -2,7 +2,7 @@ import { StockTutorialNewsDetail } from '@/components/stock-tutorial/stock-tutor
 
 export const StockTutorialNews = () => {
   return (
-    <div className="mt-[25px] rounded-2xl bg-modal-background-color p-[25px]">
+    <div className="h-full rounded-2xl bg-modal-background-color p-[25px] ">
       <div className="flex items-center gap-3">
         <h1 className="text-[22px] font-bold">참고 뉴스</h1>
         <p className="text-[16px] font-light text-border-color">2024-02-23</p>

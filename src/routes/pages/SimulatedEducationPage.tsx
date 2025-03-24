@@ -47,11 +47,11 @@ export const SimulatedEducationPage = () => {
       <div>
         <StockTutorialComment />
       </div>
-      <div>
-        <div>
+      <div className="mt-[25px] grid grid-cols-6 gap-3 ">
+        <div className="col-span-5">
           <StockTutorialNews />
         </div>
-        <div>
+        <div className="col-span-1">
           <StockTutorialConclusion />
         </div>
       </div>

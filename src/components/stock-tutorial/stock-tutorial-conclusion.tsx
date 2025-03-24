@@ -2,7 +2,7 @@ import { StockTutorialConclusionCard } from '@/components/stock-tutorial/stock-t
 
 export const StockTutorialConclusion = () => {
   return (
-    <div className="rounded-xl bg-modal-background-color p-[20px]">
+    <div className="h-full rounded-xl bg-modal-background-color p-[20px]">
       <div className="mb-[15px] flex items-center gap-3">
         <h1 className="text-[18px] font-bold">체결내역</h1>
       </div>
