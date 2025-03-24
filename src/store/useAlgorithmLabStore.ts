@@ -25,7 +25,7 @@ interface AlgorithmLabState {
   setInvestmentStyle: (style: 'conservative' | 'balanced' | 'aggressive' | null) => void;
   setInvestmentMethod: (method: 'ratio' | 'fixed') => void;
   setInvestmentAmount: (amount: number) => void;
-  setMarketResponse: (response: 'shortTerm' | 'monthlyTrend') => void;
+  setMarketResponse: (response: 'shortTerm' | 'monthlyTrend' | null) => void;
   setRiseResponse: (value: number) => void;
   setFallResponse: (value: number) => void;
   setRiseAction: (action: 'buy' | 'sell') => void;
@@ -68,7 +68,11 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   },
   setInvestmentMethod: (method) => set({ investmentMethod: method }),
   setInvestmentAmount: (amount) => set({ investmentAmount: amount }),
-  setMarketResponse: (response) => set({ marketResponse: response }),
+  setMarketResponse: (response) =>
+    set({
+      marketResponse: response,
+      ...(response === null && { shortTermMaPeriod: null, longTermMaPeriod: null }),
+    }),
   setRiseResponse: (value) => set({ riseResponse: Math.min(Math.max(value, 1), 30) }),
   setFallResponse: (value) => set({ fallResponse: Math.min(Math.max(value, 1), 30) }),
   setRiseAction: (action) => set({ riseAction: action }),
