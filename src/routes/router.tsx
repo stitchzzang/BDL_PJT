@@ -16,6 +16,7 @@ import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
 import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
 import { StockTutorialResultPage } from '@/routes/pages/StockTutorialResultPage';
+import { StockTutorialSelection } from '@/routes/pages/StockTutorialSelection';
 
 export const router = createBrowserRouter([
   {
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
       {
         path: '/simulated-investment',
         element: <SimulatedInvestmentPage />,
+      },
+      {
+        path: '/stock-tutorial-selection',
+        element: <StockTutorialSelection />,
       },
     ],
   },
