@@ -1,5 +1,5 @@
 import { DTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
-import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockCostHistoryDayProps {
   dayDataList: DTData[];
@@ -36,10 +36,10 @@ export const StockCostHistoryDay = ({ dayDataList }: StockCostHistoryDayProps) =
                   {item.accumulateVolume}
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {formatThousandSeparator(item.accumulatedTradeAmount)}원
+                  {addCommasToThousand(item.accumulatedTradeAmount)}원
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {formatThousandSeparator(item.openPrice)}원
+                  {addCommasToThousand(item.openPrice)}원
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
                   {item.highPrice} %
