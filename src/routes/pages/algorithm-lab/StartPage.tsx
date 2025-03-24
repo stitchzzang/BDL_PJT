@@ -1,5 +1,7 @@
+import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
+import walkMove from '@/assets/lottie/walk-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 
@@ -7,12 +9,25 @@ export const StartPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-8">
+    <div className="flex w-full flex-col items-center justify-center gap-4">
       <div className="flex flex-col items-center justify-center">
-        <h1 className="text-3xl font-bold">알고리즘 LAB</h1>
+        <h1 className="text-3xl font-bold">
+          <span className="text-btn-blue-color">알고리즘</span> LAB
+        </h1>
         <p className="text-lg">오신 것을 환영합니다.</p>
       </div>
-      <div className="flex w-full flex-col gap-5">
+      <div className="flex w-full flex-col items-center gap-1">
+        <div>
+          <Lottie
+            animationData={walkMove}
+            loop={true}
+            autoplay={true}
+            style={{ height: 170, width: 170 }}
+            rendererSettings={{
+              preserveAspectRatio: 'xMidYMid slice',
+            }}
+          />
+        </div>
         <HelpBadge
           title="주식에 익숙하지 않는 당신"
           description="주식, 알고리즘 모든게 익숙하지 않으신가요? 걱정하지 마세요.
