@@ -1,26 +1,9 @@
+import { useLatestNews } from '@/api/home.api';
 import { NewsChartMain } from '@/components/home-page/news/news-chart-main';
 import { NewsChartSub } from '@/components/home-page/news/news-chart-sub';
 
-export interface NewsList {
-  imgUrl: string | null;
-  title: string;
-  subject: string;
-}
-
-const NewsLists: NewsList[] = [
-  {
-    imgUrl: null,
-    title: 'AI 신흥강자 브로드컴 호실적, 월가 강세 전망 강화…주가 8%↑',
-    subject: '뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 ',
-  },
-  {
-    imgUrl: null,
-    title: 'AI 신흥강자 브로드컴 호실적, 월가 강세 전망 강화…주가 8%↑',
-    subject: '뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 ',
-  },
-];
-
 export const NewsChart = () => {
+  const { data: latestNews } = useLatestNews();
   return (
     <div>
       <div className="mb-[12px] inline-block rounded-xl bg-modal-background-color px-[12px] py-[8px]">
@@ -30,10 +13,10 @@ export const NewsChart = () => {
       </div>
       <div>
         <div className="mb-[10px]">
-          <NewsChartMain newsMainInfo={NewsLists[0]} />
+          <NewsChartMain newsMainInfo={latestNews?.[0]} />
         </div>
         <div>
-          <NewsChartSub newsSubInfo={NewsLists[1]} />
+          <NewsChartSub newsSubInfo={latestNews?.[1]} />
         </div>
       </div>
     </div>
