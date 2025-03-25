@@ -142,7 +142,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     [period],
   );
 
-  // 기간별 날짜 포맷팅 함수 (포인터 및 툴큅용)
+  // 기간별 날짜 포맷팅 함수 (상세 표시용)
   const formatDetailDate = useCallback(
     (date: Date): string => {
       switch (period) {
@@ -803,8 +803,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           type: 'dashed',
         },
       },
-      confine: true, // 툴팁이 차트 영역을 벗어나지 않도록 설정
-      enterable: false, // 툴팁에 마우스 진입 불가능하게 설정
+      confine: true, // 툴팁 영역 제한
+      enterable: false, // 툴팁 마우스 진입 비활성화
       appendToBody: false, // 툴팁을 body에 추가하지 않음
       showContent: true, // 툴팁 콘텐츠 표시 활성화
       alwaysShowContent: false, // 항상 표시 비활성화
@@ -814,139 +814,112 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         color: '#fff',
       },
       formatter: (params: any) => {
-        try {
-          // params가 undefined이거나 배열이 아닌 경우 빈 문자열 반환
-          if (!params || !Array.isArray(params) || params.length === 0) {
-            return '';
-          }
+        const candleData = params.find((p: any) => p.seriesName === '캔들차트');
+        const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
+        const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
+        const volumeData = params.find((p: any) => p.seriesName === '거래량');
 
-          const candleData = params.find((p: any) => p.seriesName === '캔들차트');
-          const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
-          const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
-          const volumeData = params.find((p: any) => p.seriesName === '거래량');
+        if (!candleData) return '';
 
-          if (!candleData) return '';
+        const date = candleData.name;
+        const dataIndex = candleData.dataIndex;
 
-          const date = candleData.name;
-          const dataIndex = candleData.dataIndex;
-
-          // 데이터 인덱스 확인
-          if (dataIndex === undefined || dataIndex < 0 || dataIndex >= extendedChartData.length) {
-            return '';
-          }
-
-          // 왼쪽 여백 데이터 처리
-          if (dataIndex < 10) {
-            return `
-              <div style="font-size: 12px;">
-                <div style="margin-bottom: 4px;">-</div>
-                <div>시가: -</div>
-                <div>고가: -</div>
-                <div>저가: -</div>
-                <div>종가: -</div>
-                <div>5이평선: -</div>
-                <div>20이평선: -</div>
-                <div>거래량: -</div>
-              </div>
-            `;
-          }
-
-          // 유효하지 않은 데이터 처리
-          if (
-            !candleData.data ||
-            !Array.isArray(candleData.data) ||
-            candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
-          ) {
-            return `
-              <div style="font-size: 12px;">
-                <div style="margin-bottom: 4px;">${date || '-'}</div>
-                <div>시가: -</div>
-                <div>고가: -</div>
-                <div>저가: -</div>
-                <div>종가: -</div>
-                <div>5이평선: -</div>
-                <div>20이평선: -</div>
-                <div>거래량: -</div>
-              </div>
-            `;
-          }
-
-          // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
-          if (dataIndex >= 10 + chartData.length) {
-            return `
-              <div style="font-size: 12px;">
-                <div style="margin-bottom: 4px;">${date || '-'}</div>
-                <div>시가: -</div>
-                <div>고가: -</div>
-                <div>저가: -</div>
-                <div>종가: -</div>
-                <div>5이평선: -</div>
-                <div>20이평선: -</div>
-                <div>거래량: -</div>
-              </div>
-            `;
-          }
-
-          // 원본 데이터에서 직접 값을 가져옴
-          const originalItem = extendedChartData[dataIndex];
-          if (!originalItem) return '';
-
-          const open = originalItem.open;
-          const close = originalItem.close;
-          const low = originalItem.low;
-          const high = originalItem.high;
-
-          // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
-          let formattedDate = date;
-          if (originalItem && 'rawDate' in originalItem && originalItem.rawDate) {
-            try {
-              const rawDate = originalItem.rawDate as Date;
-              if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
-                formattedDate = formatDetailDate(rawDate);
-              }
-            } catch (e) {
-              // 날짜 포맷팅 오류 무시
-            }
-          }
-
-          // 거래량 데이터 추출
-          const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
-
-          // 숫자 여부 확인하고 문자열 포맷팅
-          const openStr =
-            typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
-          const closeStr =
-            typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
-          const lowStr =
-            typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
-          const highStr =
-            typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
-          const volumeStr = volume ? formatVolumeNumber(volume) : '-';
-          const ema5Str =
-            ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
-              ? formatKoreanNumber(ema5Data.value) + '원'
-              : '-';
-          const ema20Str =
-            ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
-              ? formatKoreanNumber(ema20Data.value) + '원'
-              : '-';
-
+        // 왼쪽 여백 데이터 처리
+        if (dataIndex < 10) {
           return `
             <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
-              <div>시가: ${openStr}</div>
-              <div>고가: ${highStr}</div>
-              <div>저가: ${lowStr}</div>
-              <div>종가: ${closeStr}</div>
-              <div>5이평선: ${ema5Str}</div>
-              <div>20이평선: ${ema20Str}</div>
-              <div>거래량: ${volumeStr}</div>
+              <div style="margin-bottom: 4px;">-</div>
+              <div>시가: -</div>
+              <div>고가: -</div>
+              <div>저가: -</div>
+              <div>종가: -</div>
+              <div>5이평선: -</div>
+              <div>20이평선: -</div>
+              <div>거래량: -</div>
             </div>
           `;
-        } catch (error) {
-          // 오류 무시
-          return '';
         }
+
+        // 유효하지 않은 데이터 처리
+        if (
+          !candleData.data ||
+          !Array.isArray(candleData.data) ||
+          candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
+        ) {
+          return `
+            <div style="font-size: 12px;">
+              <div style="margin-bottom: 4px;">${date || '-'}</div>
+              <div>시가: -</div>
+              <div>고가: -</div>
+              <div>저가: -</div>
+              <div>종가: -</div>
+              <div>5이평선: -</div>
+              <div>20이평선: -</div>
+              <div>거래량: -</div>
+            </div>
+          `;
+        }
+
+        // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
+        if (dataIndex >= 10 + chartData.length) {
+          return `
+            <div style="font-size: 12px;">
+              <div style="margin-bottom: 4px;">${date || '-'}</div>
+              <div>시가: -</div>
+              <div>고가: -</div>
+              <div>저가: -</div>
+              <div>종가: -</div>
+              <div>5이평선: -</div>
+              <div>20이평선: -</div>
+              <div>거래량: -</div>
+            </div>
+          `;
+        }
+
+        // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
+        const [open, close, low, high] = candleData.data;
+
+        // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
+        let formattedDate = date;
+        const item = extendedChartData[dataIndex];
+        if (item && 'rawDate' in item && item.rawDate instanceof Date) {
+          formattedDate = formatDetailDate(item.rawDate);
+        }
+
+        // 거래량 데이터 추출
+        const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
+
+        // 숫자 여부 확인하고 문자열 포맷팅
+        const openStr =
+          typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
+        const closeStr =
+          typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
+        const lowStr =
+          typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
+        const highStr =
+          typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
+        const volumeStr = volume ? formatVolumeNumber(volume) : '-';
+        const ema5Str =
+          ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
+            ? formatKoreanNumber(ema5Data.value) + '원'
+            : '-';
+        const ema20Str =
+          ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
+            ? formatKoreanNumber(ema20Data.value) + '원'
+            : '-';
+
+        return `
+          <div style="font-size: 12px;">
+            <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
+            <div>시가: ${openStr}</div>
+            <div>고가: ${highStr}</div>
+            <div>저가: ${lowStr}</div>
+            <div>종가: ${closeStr}</div>
+            <div>5이평선: ${ema5Str}</div>
+            <div>20이평선: ${ema20Str}</div>
+            <div>거래량: ${volumeStr}</div>
+          </div>
+        `;
       },
     },
     axisPointer: {
@@ -954,33 +927,36 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       label: {
         backgroundColor: FALL_COLOR,
         formatter: (params: any) => {
-          // X축 포인터인 경우에만 처리
-          if (params.axisDimension === 'x') {
-            const value = params.value;
-
-            // 빈 값이나 숫자인 경우 처리
-            if (!value || typeof value === 'number') {
-              return value;
-            }
-
-            // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-            const labelIndex = xAxisLabels.findIndex((label) => label === value);
-            if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-              return value; // 원래 레이블 반환
-            }
-
-            // 해당 인덱스의 데이터 찾기
-            const item = extendedChartData[labelIndex];
-            if (!item || !('rawDate' in item) || !item.rawDate) {
-              return value; // 원래 레이블 반환
-            }
-
-            // 기간에 맞는 상세 날짜 포맷으로 변환
-            const rawDate = item.rawDate as Date;
-            return formatChartDate(rawDate);
+          // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
+          if (!params.value || typeof params.value === 'number') {
+            return params.value;
           }
 
-          // Y축 포인터는 기본값 사용
+          // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+          const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
+          if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+            return params.value; // 원래 레이블 반환
+          }
+
+          // 해당 인덱스의 데이터 찾기
+          const item = extendedChartData[labelIndex];
+          if (!item) return params.value;
+
+          // rawDate 속성이 있는지 확인 (ExtendedDataPoint 타입인지)
+          if (!('rawDate' in item) || !item.rawDate) {
+            return params.value; // 원래 레이블 반환
+          }
+
+          // 기간에 맞는 상세 날짜 포맷으로 변환
+          try {
+            const rawDate = item.rawDate as Date;
+            if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
+              return formatDetailDate(rawDate);
+            }
+          } catch (e) {
+            // 오류 처리
+          }
+
           return params.value;
         },
       },
@@ -1034,32 +1010,31 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
         axisTick: { show: true },
-        boundaryGap: false,
+        boundaryGap: true,
         axisPointer: {
           label: {
             formatter: (params: any) => {
-              const value = params.value;
-
-              // 빈 값이나 숫자인 경우 처리
-              if (!value || typeof value === 'number') {
-                return value;
+              // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
+              if (!params.value || typeof params.value === 'number') {
+                return params.value;
               }
 
               // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-              const labelIndex = xAxisLabels.findIndex((label) => label === value);
+              const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
               if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-                return value; // 원래 레이블 반환
+                return params.value; // 원래 레이블 반환
               }
 
               // 해당 인덱스의 데이터 찾기
               const item = extendedChartData[labelIndex];
-              if (!item || !('rawDate' in item) || !item.rawDate) {
-                return value; // 원래 레이블 반환
+              if (!item) return params.value;
+
+              // rawDate 속성이 있는지 확인
+              if ('rawDate' in item && item.rawDate instanceof Date) {
+                return formatDetailDate(item.rawDate);
               }
 
-              // 기간에 맞는 상세 날짜 포맷으로 변환
-              const rawDate = item.rawDate as Date;
-              return formatChartDate(rawDate);
+              return params.value;
             },
           },
         },
