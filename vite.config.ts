@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   // API URL 설정
-  const API_LOCAL_URL = 'http://localhost:8080';
+  const API_LOCAL_URL = 'http://192.168.100.198:8080';
   const API_PROD_URL = 'https://j12d202.p.ssafy.io';
   // USE_LOCAL_API 환경변수에 따라 로컬/프로덕션 API 선택
   const API_TARGET = env.USE_PROD_API === 'true' ? API_PROD_URL : API_LOCAL_URL;
