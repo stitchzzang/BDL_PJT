@@ -66,7 +66,7 @@ export const StockCostHistory = ({ tickData }: StockCostHistoryProps) => {
         </div>
         <div>
           {isActive === '실시간' ? (
-            <StockCostHistoryRealTime stockDataList={stockDataList} />
+            <StockCostHistoryRealTime tickData={tickData} />
           ) : (
             <StockCostHistoryDay dayDataList={dayDataList} />
           )}
