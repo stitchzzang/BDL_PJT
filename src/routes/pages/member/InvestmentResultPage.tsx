@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 
 export const InvestmentResultPage = () => {
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-4 px-6">
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
