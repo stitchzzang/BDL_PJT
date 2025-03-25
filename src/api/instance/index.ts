@@ -1,4 +1,4 @@
-import ky, { KyRequest } from 'ky';
+import ky, { HTTPError, KyRequest } from 'ky';
 
 import { ERROR_CODES } from '@/api/instance/errorHandler';
 import { navigate } from '@/lib/navigation';
@@ -8,9 +8,11 @@ interface ExtendedKyRequest extends KyRequest {
   _retry?: boolean;
 }
 
+declare const __API_URL__: string;
+
 // 기본 ky 인스턴스 생성
 const _ky = ky.create({
-  prefixUrl: import.meta.env.VITE_API_BASE_URL,
+  prefixUrl: __API_URL__,
   timeout: 5000,
   credentials: 'include',
   headers: {
@@ -18,7 +20,7 @@ const _ky = ky.create({
   },
   hooks: {
     beforeError: [
-      (error) => {
+      (error: HTTPError) => {
         navigate('/notfound');
         return error;
       },
