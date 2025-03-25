@@ -23,13 +23,83 @@ const RISE_COLOR = '#ef5350'; // 빨강
 const FALL_COLOR = '#1976d2'; // 파랑
 
 const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
-  const [period, setPeriod] = useState<PeriodType>('DAY');
+  const [period, setPeriod] = useState<PeriodType>('MINUTE');
   const chartRef = useRef<ReactECharts>(null);
-  const [dataZoomRange, setDataZoomRange] = useState({ start: 10, end: 90 });
+  const [dataZoomRange, setDataZoomRange] = useState({ start: 30, end: 100 });
   const [visibleDataIndices, setVisibleDataIndices] = useState<{ start: number; end: number }>({
     start: 0,
     end: 0,
   });
+  const [showVolume, _setShowVolume] = useState<boolean>(true);
+
+  // 서비스 동작을 위한 더미 데이터 생성 함수
+  const generateDummyMinuteData = useCallback((): ExtendedDataPoint[] => {
+    const result: ExtendedDataPoint[] = [];
+
+    // 시작 날짜 설정 (오늘 9:00)
+    const startDate = new Date();
+    startDate.setHours(9, 0, 0, 0);
+
+    // 기본 가격 설정
+    let basePrice = 50000;
+    let prevClose = basePrice;
+
+    // 9:01부터 15:30까지 1분 단위로 데이터 생성
+    for (let i = 1; i <= 390; i++) {
+      // 9:01 ~ 15:30까지 390분
+      const currentDate = new Date(startDate);
+      currentDate.setMinutes(currentDate.getMinutes() + i);
+
+      const hours = currentDate.getHours();
+      const minutes = currentDate.getMinutes();
+
+      // 장 운영 시간이 아니면 건너뛰기 (9:01-15:20 및 15:30만 포함)
+      const isValidTime =
+        (hours === 9 && minutes >= 1) ||
+        (hours > 9 && hours < 15) ||
+        (hours === 15 && minutes <= 20) ||
+        (hours === 15 && minutes === 30);
+
+      if (!isValidTime) continue;
+
+      // 동시호가 시간(15:21~15:29)인지 확인
+      const isDynamicAuction = hours === 15 && minutes >= 21 && minutes <= 29;
+
+      // 랜덤 가격 변동 (-200 ~ +200)
+      const priceChange = isDynamicAuction ? 0 : Math.floor(Math.random() * 400) - 200;
+      const close = prevClose + priceChange;
+
+      // 고가와 저가 계산
+      const volatility = isDynamicAuction ? 50 : 500;
+      const high = close + Math.floor(Math.random() * volatility);
+      const low = close - Math.floor(Math.random() * volatility);
+
+      // 거래량 계산 (동시호가 시간에는 0)
+      const volume = isDynamicAuction ? 0 : Math.floor(Math.random() * 10000) + 1000;
+
+      // 시가는 이전 종가를 기준으로 약간의 변동을 줌
+      const open = prevClose + (Math.floor(Math.random() * 100) - 50);
+
+      result.push({
+        date: currentDate.toString(), // 실제 날짜 문자열 저장
+        open,
+        high,
+        low,
+        close,
+        volume,
+        changeType: close >= open ? 'RISE' : 'FALL',
+        rawDate: currentDate,
+        periodType: 'MINUTE' as const,
+      });
+
+      prevClose = close;
+    }
+
+    return result;
+  }, []);
+
+  // 1분봉 더미 데이터 생성 (최초 한 번만)
+  const minuteDummyData = useMemo(() => generateDummyMinuteData(), [generateDummyMinuteData]);
 
   // 차트 X축 라벨 포맷팅 함수
   const formatChartDate = useCallback(
@@ -155,16 +225,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
     switch (period) {
       case 'MINUTE':
-        // 1분봉: props로 전달받은 data 사용 (다른 주기와 동일하게 통일)
-        result = data.map((item) => {
-          const date = new Date(item.date);
-          return {
-            ...item,
-            date: formatChartDate(date),
-            periodType: 'MINUTE' as const,
-            rawDate: date, // 원시 날짜 정보 저장
-          };
-        }) as ExtendedDataPoint[];
+        // 1분봉: 직접 생성한 더미 데이터 사용
+        result = minuteDummyData.map((item) => ({
+          ...item,
+          date: formatChartDate(item.rawDate as Date), // X축 라벨용 포맷팅
+        }));
         break;
 
       case 'WEEK':
@@ -238,7 +303,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     }
 
     return result;
-  }, [period, data, formatChartDate, isValidTimeForMinute, isDynamicAuctionTime]);
+  }, [period, data, minuteDummyData, formatChartDate]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -257,6 +322,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   };
 
   const chartData = getData();
+
+  // 차트 데이터가 비어있는지 확인하고, 분봉의 경우 데이터가 없으면 더미 데이터 사용
+  const effectiveChartData = useMemo(() => {
+    if (period === 'MINUTE' && chartData.length === 0) {
+      return minuteDummyData;
+    }
+    return chartData;
+  }, [period, chartData, minuteDummyData]);
+
   // 앞쪽에 빈 데이터 없이 실제 데이터만 사용
   const extendedChartData = useMemo(() => {
     // 앞쪽에 10개의 빈 데이터 추가
@@ -272,11 +346,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           volume: 0,
           changeType: 'NONE' as const,
         })),
-      ...chartData,
+      ...effectiveChartData,
     ];
 
     return baseData;
-  }, [chartData]);
+  }, [effectiveChartData]);
 
   // X축 레이블 데이터 생성
   const xAxisLabels = useMemo(() => {
@@ -291,8 +365,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       });
 
       // 다음 거래일 데이터 추가 (15:00 이후 9:01부터)
-      if (labels.length > 0 && chartData.length > 0) {
-        const lastItem = chartData[chartData.length - 1];
+      if (labels.length > 0 && effectiveChartData.length > 0) {
+        const lastItem = effectiveChartData[effectiveChartData.length - 1];
         if (lastItem && lastItem.rawDate) {
           const lastDataTime = lastItem.rawDate as Date;
           const nextDay = new Date(lastDataTime);
@@ -321,7 +395,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       });
 
       // 오른쪽 여유 공간 추가 (10개의 레이블)
-      if (labels.length > 0 && chartData.length > 0) {
+      if (labels.length > 0 && effectiveChartData.length > 0) {
         const lastLabel = labels[labels.length - 1];
 
         // 다른 기간의 경우 기존 로직 유지
@@ -391,8 +465,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
                 year = new Date().getFullYear(); // 기본값
 
                 // chartData에서 마지막 데이터의 연도 가져오기 (더 정확함)
-                if (chartData.length > 0 && chartData[chartData.length - 1].rawDate) {
-                  year = (chartData[chartData.length - 1].rawDate as Date).getFullYear();
+                if (
+                  effectiveChartData.length > 0 &&
+                  effectiveChartData[effectiveChartData.length - 1].rawDate
+                ) {
+                  year = (
+                    effectiveChartData[effectiveChartData.length - 1].rawDate as Date
+                  ).getFullYear();
                 }
 
                 // 12월에서 1월로 넘어갈 때 연도 증가
@@ -446,7 +525,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
       return labels;
     }
-  }, [extendedChartData, period, formatChartDate, chartData]);
+  }, [extendedChartData, period, formatChartDate, effectiveChartData]);
 
   // EMA 계산 함수
   const calculateEMA = (data: (number | null | string)[], period: number): (number | null)[] => {
@@ -496,10 +575,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
     // 유효한 데이터만 필터링
-    const validData = chartData.filter((d) => d !== null && d !== undefined);
+    const validData = effectiveChartData.filter((d) => d !== null && d !== undefined);
     if (validData.length === 0) return 0;
     return Math.max(...validData.map((d) => d.volume));
-  }, [chartData]);
+  }, [effectiveChartData]);
 
   // 거래량 범위 계산
   const getVolumeRange = useCallback(() => {
@@ -513,7 +592,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   // 가격 범위 계산
   const getPriceRange = useCallback(() => {
     // 유효한 데이터만 필터링
-    const validData = chartData.filter((d) => d !== null && d !== undefined);
+    const validData = effectiveChartData.filter((d) => d !== null && d !== undefined);
     if (validData.length === 0) return { min: 0, max: 100, volumeMax: 10 };
 
     const prices = validData.flatMap((d) => [d.high, d.low]);
@@ -548,13 +627,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       max: adjustedMax,
       volumeMax,
     };
-  }, [chartData, ema5Data, ema20Data, getVolumeRange]);
+  }, [effectiveChartData, ema5Data, ema20Data, getVolumeRange]);
 
   // 데이터 줌 범위 계산
   const getDataZoomRange = useCallback(() => {
     switch (period) {
       case 'MINUTE':
-        return { start: 70, end: 100 }; // 1분봉은 최근 30% 데이터만 표시
+        return { start: 30, end: 100 }; // 1분봉은 최근 70% 데이터만 표시
       case 'DAY':
         return { start: 50, end: 100 }; // 일봉은 최근 50% 데이터만 표시
       case 'WEEK':
@@ -634,7 +713,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
   // 현재 데이터 (마지막 실제 데이터)
   const currentData = useMemo(() => {
-    const realDataLength = chartData.length;
+    const realDataLength = effectiveChartData.length;
     if (realDataLength === 0) {
       return {
         open: 0,
@@ -644,8 +723,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         volume: 0,
       };
     }
-    return chartData[realDataLength - 1];
-  }, [chartData]);
+    return effectiveChartData[realDataLength - 1];
+  }, [effectiveChartData]);
 
   // 현재 가격 색상 계산
   const currentPriceColor = useMemo(() => {
@@ -1167,7 +1246,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         type: 'bar',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        data: scaledVolumeData,
+        data: showVolume ? scaledVolumeData : [],
         itemStyle: {
           color: (params: any) => {
             const index = params.dataIndex;
