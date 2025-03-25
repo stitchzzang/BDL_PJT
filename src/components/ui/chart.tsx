@@ -540,10 +540,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   const ema5Data = calculateEMA(closePrices, 5);
   const ema20Data = calculateEMA(closePrices, 20);
 
-  // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 20%)
-  const VOLUME_HEIGHT_RATIO = 0.2;
-  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 10%)
-  const VOLUME_GAP_RATIO = 0.1;
+  // 거래량 차트의 높이 비율 상수 정의 (전체 높이의 30%)
+  const VOLUME_HEIGHT_RATIO = 0.3;
+  // 거래량 차트와 캔들차트 사이의 간격 비율 (전체 높이의 5%)
+  const VOLUME_GAP_RATIO = 0.05;
 
   // 거래량 데이터 최대값 계산
   const getMaxVolume = useCallback(() => {
