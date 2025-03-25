@@ -55,7 +55,7 @@ export const SimulatedInvestmentPage = () => {
             <p className="font-bold">차트</p>
           </div>
           <div>
-            <TickInfo />
+            <TickInfo tickData={tickData} />
           </div>
           <div className="flex items-center gap-3">
             <p className="text-border-color">오늘 날짜</p>
