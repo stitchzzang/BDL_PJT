@@ -1,4 +1,4 @@
-import ky, { HTTPError, KyRequest } from 'ky';
+import ky, { KyRequest } from 'ky';
 
 import { ERROR_CODES } from '@/api/instance/errorHandler';
 import { navigate } from '@/lib/navigation';
@@ -17,14 +17,6 @@ const _ky = ky.create({
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',
-  },
-  hooks: {
-    beforeError: [
-      (error: HTTPError) => {
-        navigate('/notfound');
-        return error;
-      },
-    ],
   },
 });
 
