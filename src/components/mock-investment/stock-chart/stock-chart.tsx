@@ -1,4 +1,11 @@
-export const StockChart = () => {
+import { TickData } from '@/api/types/stock';
+
+// 인터페이스 정의
+interface TickInfoProps {
+  TickData: TickData;
+}
+
+export const TickInfo = () => {
   return (
     <div className="flex items-center gap-4">
       <div>
