@@ -160,9 +160,9 @@ export const NavBar = () => {
 
       {/* 로그인/프로필 영역 */}
       <div className="flex items-center gap-2">
-        <Button variant="blue" onClick={() => (window.location.href = '/login')}>
-          로그인
-        </Button>
+        <NavLink to="/login">
+          <Button variant="blue">로그인</Button>
+        </NavLink>
         <NavLink to="/member/stock-tutorial-result">
           <img
             src="/none-img/none_profile_img.png"
