@@ -75,7 +75,7 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="grid grid-cols-10 gap-5">
         <div className="col-span-5">
-          <StockCostHistory />
+          <StockCostHistory tickData={tickData} />
         </div>
         <div className="col-span-3">
           <StockInfoDetail />

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { TickData } from '@/api/types/stock';
 import { StockCostHistoryDay } from '@/components/mock-investment/stock-cost-history/stock-cost-history-day';
 import { StockCostHistoryRealTime } from '@/components/mock-investment/stock-cost-history/stock-cost-history-realtime';
 
@@ -30,6 +31,11 @@ const stockDataList: RTData[] = [
     tradeTime: 'YYYY-MM-DD',
   },
 ];
+
+// 실시간 데이터 - 실제
+interface StockCostHistoryProps {
+  tickData: TickData | null;
+}
 
 // 일별 시세
 export interface dayData {
@@ -67,7 +73,7 @@ const dayDataList: DTData[] = [
   },
 ];
 
-export const StockCostHistory = () => {
+export const StockCostHistory = ({ tickData }: StockCostHistoryProps) => {
   const [isActive, setIsActive] = useState<string>('실시간');
   return (
     <div className="h-full">
