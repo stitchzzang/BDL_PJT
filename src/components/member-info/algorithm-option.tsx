@@ -5,6 +5,17 @@ type AlgorithmOptionProps = {
 };
 
 export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
+  const getActionColor = (action: string | undefined) => {
+    switch (action) {
+      case 'BUY':
+        return 'text-btn-red-color';
+      case 'SELL':
+        return 'text-btn-blue-color';
+      default:
+        return '';
+    }
+  };
+
   const options = [
     {
       optionName: '매수 방법',
@@ -49,7 +60,19 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
       ? [
           {
             optionName: '일간 추세 반응',
-            optionDescription: `상승: ${algorithm.dailyIncreasePercent}% (${algorithm.dailyIncreaseAction}) / 하락: ${algorithm.dailyDecreasePercent}% (${algorithm.dailyDecreaseAction})`,
+            optionDescription: (
+              <>
+                상승: {algorithm.dailyIncreasePercent}% (
+                <span className={getActionColor(algorithm.dailyIncreaseAction)}>
+                  {algorithm.dailyIncreaseAction}
+                </span>
+                ) / 하락: {algorithm.dailyDecreasePercent}% (
+                <span className={getActionColor(algorithm.dailyDecreaseAction)}>
+                  {algorithm.dailyDecreaseAction}
+                </span>
+                )
+              </>
+            ),
           },
         ]
       : []),
