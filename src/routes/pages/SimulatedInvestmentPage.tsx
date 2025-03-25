@@ -4,7 +4,7 @@ import { useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
 import { OrderStatus } from '@/components/mock-investment/order-status/order-status';
 import { SellingPrice } from '@/components/mock-investment/selling-price/selling-price';
-import { StockChart } from '@/components/mock-investment/stock-chart/stock-chart';
+import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { StockCostHistory } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
@@ -55,7 +55,7 @@ export const SimulatedInvestmentPage = () => {
             <p className="font-bold">차트</p>
           </div>
           <div>
-            <StockChart />
+            <TickInfo />
           </div>
           <div className="flex items-center gap-3">
             <p className="text-border-color">오늘 날짜</p>
