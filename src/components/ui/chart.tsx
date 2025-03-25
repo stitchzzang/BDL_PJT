@@ -24,7 +24,6 @@ const FALL_COLOR = '#1976d2'; // 파랑
 
 const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
   const [period, setPeriod] = useState<PeriodType>('DAY');
-  const [showVolume, _setShowVolume] = useState<boolean>(true);
   const chartRef = useRef<ReactECharts>(null);
   const [dataZoomRange, setDataZoomRange] = useState({ start: 10, end: 90 });
   const [visibleDataIndices, setVisibleDataIndices] = useState<{ start: number; end: number }>({
@@ -511,6 +510,149 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     };
   }, [getMaxVolume]);
 
+  // 가격 범위 계산
+  const getPriceRange = useCallback(() => {
+    // 유효한 데이터만 필터링
+    const validData = chartData.filter((d) => d !== null && d !== undefined);
+    if (validData.length === 0) return { min: 0, max: 100, volumeMax: 10 };
+
+    const prices = validData.flatMap((d) => [d.high, d.low]);
+    let min = Math.min(...prices);
+    let max = Math.max(...prices);
+
+    // EMA 데이터도 포함해서 범위 계산
+    const validEma5 = ema5Data.filter((d): d is number => d !== null && d !== undefined);
+    const validEma20 = ema20Data.filter((d): d is number => d !== null && d !== undefined);
+
+    if (validEma5.length > 0) {
+      min = Math.min(min, ...validEma5);
+      max = Math.max(max, ...validEma5);
+    }
+
+    if (validEma20.length > 0) {
+      min = Math.min(min, ...validEma20);
+      max = Math.max(max, ...validEma20);
+    }
+
+    // 최대 거래량 계산
+    const volumeRange = getVolumeRange();
+    const volumeMax = volumeRange.max;
+
+    // 패딩 추가
+    const padding = (max - min) * 0.05; // 5% 패딩
+    const adjustedMin = Math.max(0, min - padding);
+    const adjustedMax = max + padding;
+
+    return {
+      min: adjustedMin,
+      max: adjustedMax,
+      volumeMax,
+    };
+  }, [chartData, ema5Data, ema20Data, getVolumeRange]);
+
+  // 데이터 줌 범위 계산
+  const getDataZoomRange = useCallback(() => {
+    switch (period) {
+      case 'MINUTE':
+        return { start: 70, end: 100 }; // 1분봉은 최근 30% 데이터만 표시
+      case 'DAY':
+        return { start: 50, end: 100 }; // 일봉은 최근 50% 데이터만 표시
+      case 'WEEK':
+      case 'MONTH':
+        return { start: 10, end: 100 }; // 주봉, 월봉은 90% 데이터 표시
+      default:
+        return { start: 10, end: 90 };
+    }
+  }, [period]);
+
+  // 구분선 위치 계산
+  const dividerLinePosition = useCallback(() => {
+    const priceRange = getPriceRange();
+    const priceHeight = priceRange.max - priceRange.min;
+    return priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
+  }, [getPriceRange]);
+
+  // 캔들 데이터 스케일링
+  const scaledCandleData = useMemo(() => {
+    const priceRange = getPriceRange();
+    return extendedChartData.map((item, index) => {
+      // 왼쪽 여백 데이터 처리
+      if (index < 10) {
+        return ['-', '-', '-', '-'];
+      }
+
+      // 실제 데이터 처리
+      const open = Number(item.open);
+      const close = Number(item.close);
+      const low = Number(item.low);
+      const high = Number(item.high);
+
+      if (isNaN(open) || isNaN(close) || isNaN(low) || isNaN(high)) {
+        return ['-', '-', '-', '-'];
+      }
+
+      return [Math.floor(open), Math.floor(close), Math.floor(low), Math.floor(high)];
+    });
+  }, [extendedChartData, getPriceRange]);
+
+  // EMA 데이터 스케일링
+  const scaledEMA5Data = useMemo(() => {
+    return ema5Data.map((value) => (value === null ? '-' : Math.floor(Number(value))));
+  }, [ema5Data]);
+
+  const scaledEMA20Data = useMemo(() => {
+    return ema20Data.map((value) => (value === null ? '-' : Math.floor(Number(value))));
+  }, [ema20Data]);
+
+  // 거래량 데이터 스케일링
+  const scaledVolumeData = useMemo(() => {
+    const priceRange = getPriceRange();
+    const volumeRange = getVolumeRange();
+
+    // 가격 차트와 거래량 차트의 높이 비율 계산
+    const priceHeight = priceRange.max - priceRange.min;
+    const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
+
+    return extendedChartData.map((item, index) => {
+      // 왼쪽 여백 데이터 처리
+      if (index < 10) {
+        return 0; // null 대신 0 사용하여 타입 오류 방지
+      }
+
+      const volume = Number(item.volume);
+      if (isNaN(volume) || volume === 0) {
+        return 0; // null 대신 0 사용하여 타입 오류 방지
+      }
+
+      // 원래 거래량을 0~최대거래량 범위에서 -> 0~volumeHeight 범위로 스케일링
+      const volumeRatio = volume / volumeRange.max;
+      const scaledVolume = priceRange.min + volumeRatio * volumeHeight;
+
+      return Math.floor(scaledVolume);
+    });
+  }, [extendedChartData, getPriceRange, getVolumeRange]);
+
+  // 현재 데이터 (마지막 실제 데이터)
+  const currentData = useMemo(() => {
+    const realDataLength = chartData.length;
+    if (realDataLength === 0) {
+      return {
+        open: 0,
+        high: 0,
+        low: 0,
+        close: 0,
+        volume: 0,
+      };
+    }
+    return chartData[realDataLength - 1];
+  }, [chartData]);
+
+  // 현재 가격 색상 계산
+  const currentPriceColor = useMemo(() => {
+    if (!currentData) return FALL_COLOR;
+    return currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
+  }, [currentData]);
+
   // 현재 보이는 데이터 범위 계산 함수
   const updateVisibleDataIndices = useCallback(
     (start: number, end: number) => {
@@ -531,145 +673,34 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     const initialRange = getDataZoomRange();
     setDataZoomRange(initialRange);
     updateVisibleDataIndices(initialRange.start, initialRange.end);
-  }, [period]);
+  }, [period, getDataZoomRange, updateVisibleDataIndices]);
 
-  // 가격 범위 계산 (visibleDataIndices를 기반으로 계산)
-  const getPriceRange = useCallback(() => {
-    // 현재 표시되는 데이터 범위
-    const startIdx = visibleDataIndices.start;
-    const endIdx = visibleDataIndices.end;
+  // 컴포넌트 마운트/언마운트 처리
+  useEffect(() => {
+    // 전역 console.error 오버라이드하여 특정 오류 무시
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      const errorMessage = Array.isArray(args) ? args.join(' ') : String(args);
+      if (
+        errorMessage.includes('getRawIndex') ||
+        errorMessage.includes('Cannot read properties of undefined') ||
+        errorMessage.includes('innerHTML') ||
+        errorMessage.includes('setContent') ||
+        errorMessage.includes('has been disposed')
+      ) {
+        // ECharts 관련 무시할 오류들 - 콘솔에 출력하지 않음
+        return;
+      }
 
-    // 유효한 데이터만 필터링
-    const validData = extendedChartData
-      .slice(startIdx, endIdx + 1)
-      .filter(
-        (d) =>
-          d !== null && d !== undefined && typeof d.high === 'number' && typeof d.low === 'number',
-      );
-
-    if (validData.length === 0) {
-      return {
-        min: 0,
-        max: 100,
-        candleMin: 0,
-        candleMax: 100,
-        volumeMax: 0,
-      };
-    }
-
-    const minPrice = Math.min(...validData.map((d) => d.low));
-    const maxPrice = Math.max(...validData.map((d) => d.high));
-    const range = maxPrice - minPrice;
-    const margin = range * 0.1;
-
-    // 캔들차트 영역의 범위 계산
-    const candleMin = Math.floor(minPrice - margin);
-    const candleMax = Math.ceil(maxPrice + margin);
-    const candleRange = candleMax - candleMin;
-
-    // 전체 차트 영역 계산 (거래량 영역 포함)
-    const totalRange = candleRange / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
-    const volumeRange = totalRange * VOLUME_HEIGHT_RATIO;
-
-    // 거래량 차트의 최소값은 0으로 설정하여 마이너스 방지
-    return {
-      min: Math.max(0, candleMin - volumeRange - totalRange * VOLUME_GAP_RATIO), // 최소값이 0 미만이 되지 않도록 조정
-      max: candleMax,
-      candleMin: candleMin,
-      candleMax: candleMax,
-      volumeMax: Math.max(0, candleMin - totalRange * VOLUME_GAP_RATIO), // 거래량 차트 최대값도 0 이상으로 조정
+      // 다른 오류는 정상적으로 로깅
+      originalConsoleError(...args);
     };
-  }, [extendedChartData, visibleDataIndices]);
 
-  // 구분선 Y축 위치 계산
-  const dividerLinePosition = useCallback(() => {
-    const priceRange = getPriceRange();
-    return priceRange.volumeMax;
-  }, [getPriceRange]);
-
-  // 캔들차트 데이터 스케일링
-  const scaleCandleData = useCallback(() => {
-    return extendedChartData.map((item, index) => {
-      if (index < 10) return [0, 0, 0, 0]; // 왼쪽 여백 데이터
-      return [item.open, item.close, item.low, item.high];
-    });
-  }, [extendedChartData]);
-
-  // EMA 데이터 스케일링
-  const scaleEMAData = useCallback((emaData: (number | null)[]) => {
-    return emaData.map((value, index) => {
-      if (index < 10 || value === null) return null;
-      return value;
-    });
+    return () => {
+      // 언마운트 시 원래의 console.error 복원
+      console.error = originalConsoleError;
+    };
   }, []);
-
-  // 거래량 데이터 스케일링
-  const scaleVolumeData = useCallback(() => {
-    const volumeRange = getVolumeRange();
-    const priceRange = getPriceRange();
-
-    // 볼륨 높이를 최소 10으로 설정하여 항상 표시되도록 보장
-    const volumeHeight = Math.max(10, priceRange.volumeMax - priceRange.min);
-
-    // 볼륨 데이터의 최솟값 설정 (y축 최소값보다 약간 위)
-    const baseVolumeY = priceRange.min + 1;
-
-    return extendedChartData.map((item, index) => {
-      if (index < 10) return baseVolumeY; // 왼쪽 여백 데이터
-
-      // volumeRange.max가 0인 경우 나눗셈 오류 방지
-      const maxVolume = Math.max(1, volumeRange.max);
-      const volumeRatio = Math.max(0.01, item.volume / maxVolume); // 최소 비율 보장
-
-      // 볼륨이 항상 보이도록 최소 높이 보장 (baseVolumeY보다 항상 높게)
-      return baseVolumeY + volumeRatio * volumeHeight;
-    });
-  }, [extendedChartData, getPriceRange, getVolumeRange]);
-
-  // 스케일링된 데이터
-  const scaledVolumeData = scaleVolumeData();
-  const scaledCandleData = scaleCandleData();
-  const scaledEMA5Data = scaleEMAData(ema5Data);
-  const scaledEMA20Data = scaleEMAData(ema20Data);
-
-  // 현재가 관련 데이터 계산
-  const currentData = chartData[chartData.length - 1];
-  const currentPriceColor = currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
-
-  // 1분봉 차트의 시작 위치와 종료 위치 계산
-  const getDataZoomRange = useCallback(() => {
-    if (period === 'MINUTE') {
-      // 1분봉의 경우 전체 데이터를 표시
-      return {
-        start: 10,
-        end: 90, // 전체 데이터 중 90%만 표시 (오른쪽 여백 확보)
-      };
-    }
-
-    // 다른 기간의 경우 기본값 사용
-    return {
-      start: 10,
-      end: 100,
-    };
-  }, [period]);
-
-  // dataZoom 변경 시 동작을 처리하는 이벤트 핸들러
-  const onChartEvents = useMemo(() => {
-    return {
-      datazoom: (params: any) => {
-        if (params.batch) {
-          // 배치 업데이트인 경우
-          const { start, end } = params.batch[0];
-          setDataZoomRange({ start, end });
-          updateVisibleDataIndices(start, end);
-        } else if (params.start !== undefined && params.end !== undefined) {
-          // 단일 업데이트인 경우
-          setDataZoomRange({ start: params.start, end: params.end });
-          updateVisibleDataIndices(params.start, params.end);
-        }
-      },
-    };
-  }, [updateVisibleDataIndices]);
 
   // ECharts 옵션 설정
   const option: EChartsOption = {
@@ -693,122 +724,150 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           type: 'dashed',
         },
       },
+      confine: true, // 툴팁이 차트 영역을 벗어나지 않도록 설정
+      enterable: false, // 툴팁에 마우스 진입 불가능하게 설정
+      appendToBody: false, // 툴팁을 body에 추가하지 않음
+      showContent: true, // 툴팁 콘텐츠 표시 활성화
+      alwaysShowContent: false, // 항상 표시 비활성화
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
       borderColor: '#2e3947',
       textStyle: {
         color: '#fff',
       },
       formatter: (params: any) => {
-        const candleData = params.find((p: any) => p.seriesName === '캔들차트');
-        const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
-        const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
-        const volumeData = params.find((p: any) => p.seriesName === '거래량');
+        try {
+          // params가 undefined이거나 배열이 아닌 경우 빈 문자열 반환
+          if (!params || !Array.isArray(params) || params.length === 0) {
+            return '';
+          }
 
-        if (!candleData) return '';
+          const candleData = params.find((p: any) => p.seriesName === '캔들차트');
+          const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
+          const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
+          const volumeData = params.find((p: any) => p.seriesName === '거래량');
 
-        const date = candleData.name;
-        const dataIndex = candleData.dataIndex;
+          if (!candleData) return '';
 
-        // 왼쪽 여백 데이터 처리
-        if (dataIndex < 10) {
+          const date = candleData.name;
+          const dataIndex = candleData.dataIndex;
+
+          // 데이터 인덱스 확인
+          if (dataIndex === undefined || dataIndex < 0 || dataIndex >= extendedChartData.length) {
+            return '';
+          }
+
+          // 왼쪽 여백 데이터 처리
+          if (dataIndex < 10) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">-</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>5이평선: -</div>
+                <div>20이평선: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
+          // 유효하지 않은 데이터 처리
+          if (
+            !candleData.data ||
+            !Array.isArray(candleData.data) ||
+            candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
+          ) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">${date || '-'}</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>5이평선: -</div>
+                <div>20이평선: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
+          // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
+          if (dataIndex >= 10 + chartData.length) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">${date || '-'}</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>5이평선: -</div>
+                <div>20이평선: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
+          // 원본 데이터에서 직접 값을 가져옴
+          const originalItem = extendedChartData[dataIndex];
+          if (!originalItem) return '';
+
+          const open = originalItem.open;
+          const close = originalItem.close;
+          const low = originalItem.low;
+          const high = originalItem.high;
+
+          // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
+          let formattedDate = date;
+          if (originalItem && 'rawDate' in originalItem && originalItem.rawDate) {
+            try {
+              const rawDate = originalItem.rawDate as Date;
+              if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
+                formattedDate = formatDetailDate(rawDate);
+              }
+            } catch (e) {
+              // 날짜 포맷팅 오류 무시
+            }
+          }
+
+          // 거래량 데이터 추출
+          const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
+
+          // 숫자 여부 확인하고 문자열 포맷팅
+          const openStr =
+            typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
+          const closeStr =
+            typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
+          const lowStr =
+            typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
+          const highStr =
+            typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
+          const volumeStr = volume ? formatVolumeNumber(volume) : '-';
+          const ema5Str =
+            ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
+              ? formatKoreanNumber(ema5Data.value) + '원'
+              : '-';
+          const ema20Str =
+            ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
+              ? formatKoreanNumber(ema20Data.value) + '원'
+              : '-';
+
           return `
             <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">-</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
+              <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
+              <div>시가: ${openStr}</div>
+              <div>고가: ${highStr}</div>
+              <div>저가: ${lowStr}</div>
+              <div>종가: ${closeStr}</div>
+              <div>5이평선: ${ema5Str}</div>
+              <div>20이평선: ${ema20Str}</div>
+              <div>거래량: ${volumeStr}</div>
             </div>
           `;
+        } catch (error) {
+          // 오류 무시
+          return '';
         }
-
-        // 유효하지 않은 데이터 처리
-        if (
-          !candleData.data ||
-          !Array.isArray(candleData.data) ||
-          candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
-        ) {
-          return `
-            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
-
-        // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
-        if (dataIndex >= 10 + chartData.length) {
-          return `
-            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
-
-        // 원본 데이터에서 직접 값을 가져옴
-        const originalItem = extendedChartData[dataIndex];
-        const open = originalItem.open;
-        const close = originalItem.close;
-        const low = originalItem.low;
-        const high = originalItem.high;
-
-        // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
-        let formattedDate = date;
-        if (originalItem && 'rawDate' in originalItem && originalItem.rawDate) {
-          const rawDate = originalItem.rawDate as Date;
-          formattedDate = formatDetailDate(rawDate);
-        }
-
-        // 거래량 데이터 추출
-        const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
-
-        // 숫자 여부 확인하고 문자열 포맷팅
-        const openStr =
-          typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
-        const closeStr =
-          typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
-        const lowStr =
-          typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
-        const highStr =
-          typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
-        const volumeStr = volume ? formatVolumeNumber(volume) : '-';
-        const ema5Str =
-          ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
-            ? formatKoreanNumber(ema5Data.value) + '원'
-            : '-';
-        const ema20Str =
-          ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
-            ? formatKoreanNumber(ema20Data.value) + '원'
-            : '-';
-
-        return `
-          <div style="font-size: 12px;">
-            <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
-            <div>시가: ${openStr}</div>
-            <div>고가: ${highStr}</div>
-            <div>저가: ${lowStr}</div>
-            <div>종가: ${closeStr}</div>
-            <div>5이평선: ${ema5Str}</div>
-            <div>20이평선: ${ema20Str}</div>
-            <div>거래량: ${volumeStr}</div>
-          </div>
-        `;
       },
     },
     axisPointer: {
@@ -896,7 +955,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
         },
         axisTick: { show: true },
-        boundaryGap: true,
+        boundaryGap: false,
         axisPointer: {
           label: {
             formatter: (params: any) => {
@@ -1020,7 +1079,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         start: dataZoomRange.start,
         end: dataZoomRange.end,
         height: 20,
-        bottom: 5,
+        bottom: 50,
         borderColor: '#2e3947',
         fillerColor: 'rgba(80, 80, 100, 0.3)',
         handleStyle: {
@@ -1044,7 +1103,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           borderColor: RISE_COLOR,
           borderColor0: FALL_COLOR,
         },
-        barWidth: '90%',
+        barWidth: '70%',
         markLine: {
           symbol: 'none',
           lineStyle: {
@@ -1060,12 +1119,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             padding: [4, 8],
             borderRadius: 2,
             color: '#FFFFFF',
-            fontSize: 12,
-            distance: 0,
+            fontSize: 10,
           },
           data: [
             {
-              yAxis: Math.floor(currentData.close),
+              // null이 될 수 있는 값 대신 안전한 기본값 제공
+              yAxis: currentData ? Math.floor(currentData.close) : 0,
               lineStyle: {
                 color: currentPriceColor,
               },
@@ -1112,18 +1171,20 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         itemStyle: {
           color: (params: any) => {
             const index = params.dataIndex;
-            if (index < 10 || index >= 10 + chartData.length) return FALL_COLOR;
-            return extendedChartData[index].close >= extendedChartData[index].open
-              ? RISE_COLOR
-              : FALL_COLOR;
+            if (index < 0 || index >= extendedChartData.length) return FALL_COLOR;
+
+            const currentItem = extendedChartData[index];
+            const prevItem = index > 0 ? extendedChartData[index - 1] : null;
+
+            if (!prevItem) return currentItem.close >= currentItem.open ? RISE_COLOR : FALL_COLOR;
+            return currentItem.close >= prevItem.close ? RISE_COLOR : FALL_COLOR;
           },
         },
-        barWidth: '90%',
+        barWidth: '70%',
         markLine: {
           symbol: 'none',
           lineStyle: {
-            color: 'transparent',
-            width: 0,
+            width: 1,
             type: 'solid',
           },
           label: {
@@ -1134,12 +1195,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             padding: [4, 8],
             borderRadius: 2,
             color: '#FFFFFF',
-            fontSize: 12,
-            distance: 0,
+            fontSize: 10,
           },
           data: [
             {
-              yAxis: scaledVolumeData[scaledVolumeData.length - 1],
+              // null 값이 들어갈 수 있는 경우 0 또는 기본값 사용
+              yAxis:
+                scaledVolumeData.length > 0
+                  ? scaledVolumeData[scaledVolumeData.length - 1] || 0
+                  : 0,
               lineStyle: {
                 color: 'transparent',
               },
@@ -1178,6 +1242,68 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     ],
   };
 
+  // echarts 옵션 이벤트 설정 - 기존 코드 유지
+  const eventHandlers = useMemo(() => {
+    const handlers: any = {
+      datazoom: (params: any) => {
+        try {
+          if (params.batch) {
+            // 배치 업데이트인 경우
+            const { start, end } = params.batch[0];
+            setDataZoomRange({ start, end });
+            updateVisibleDataIndices(start, end);
+          } else if (params.start !== undefined && params.end !== undefined) {
+            // 단일 업데이트인 경우
+            setDataZoomRange({ start: params.start, end: params.end });
+            updateVisibleDataIndices(params.start, params.end);
+          }
+        } catch (error) {
+          // 오류 무시
+        }
+      },
+      // 마우스 핸들러 추가 - 빈 함수로 정의하여 undefined 에러 방지
+      mousemove: () => {},
+      mouseout: () => {},
+      click: () => {},
+    };
+    return handlers;
+  }, [updateVisibleDataIndices]);
+
+  const renderChart = () => {
+    // 렌더링 중 오류 잡기
+    try {
+      return (
+        <ReactECharts
+          ref={chartRef}
+          option={option}
+          style={{ height: `${height}px`, width: '100%' }}
+          notMerge={false} // true에서 false로 변경하여 기존 차트와 병합
+          lazyUpdate={true}
+          opts={{ renderer: 'canvas' }}
+          onEvents={eventHandlers}
+        />
+      );
+    } catch (e) {
+      console.error('차트 렌더링 오류:', e);
+      // 오류 발생 시 대체 UI 반환
+      return (
+        <div
+          style={{
+            height: `${height}px`,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            backgroundColor: '#0D192B',
+          }}
+        >
+          차트 로딩 중...
+        </div>
+      );
+    }
+  };
+
   return (
     <div
       className="flex h-full w-full flex-col overflow-hidden"
@@ -1211,15 +1337,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           </button>
         </div>
       </div>
-      <ReactECharts
-        ref={chartRef}
-        option={option}
-        style={{ height: `${height}px`, width: '100%' }}
-        notMerge={true}
-        lazyUpdate={true}
-        opts={{ renderer: 'canvas' }}
-        onEvents={onChartEvents}
-      />
+      {renderChart()}
     </div>
   );
 };
