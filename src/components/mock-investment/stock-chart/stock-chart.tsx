@@ -168,20 +168,10 @@ export const StockChart = () => {
   };
 
   return (
-    <div>
-      <h2>종목코드 000660 거래 데이터</h2>
+    <div className="border">
       <div>
-        <p>연결 상태: {connected ? '연결됨' : '연결 안됨'}</p>
-        {!connected && <button onClick={handleReconnect}>재연결</button>}
-      </div>
-
-      <div>
-        <h3>최근 거래 내역</h3>
         <h1>{message === null ? <span>none</span> : <span>{message.ccldDvsn}</span>} </h1>
         {tradeData.length === 0 ? <p>데이터를 기다리는 중...</p> : <ul>{tradeData[0].stckPrpr}</ul>}
-      </div>
-      <div>
-        <h1>chart</h1>
       </div>
     </div>
   );
