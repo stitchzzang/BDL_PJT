@@ -25,3 +25,22 @@ src/
 │   └── index.css
 └── utils/          # 유틸리티 함수 (only js, ts)
 ```
+
+## 개발 환경 설정
+
+1. 환경 변수 설정
+
+```bash
+# 환경 변수 파일 생성
+cp .env.development.example .env.development
+
+# .env.development 파일을 열어서 필요한 설정 수정
+# USE_PROD_API=true : 개발 서버 사용 (https://j12d202.p.ssafy.io)
+# USE_PROD_API=false : 로컬 서버 사용 (http://localhost:8080)
+```
+
+2. 개발 서버 실행
+
+```bash
+pnpm dev
+```
