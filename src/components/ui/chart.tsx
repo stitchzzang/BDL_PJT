@@ -658,12 +658,22 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   const scaleVolumeData = useCallback(() => {
     const volumeRange = getVolumeRange();
     const priceRange = getPriceRange();
-    const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min); // 음수가 되지 않도록 보장
+
+    // 볼륨 높이를 최소 10으로 설정하여 항상 표시되도록 보장
+    const volumeHeight = Math.max(10, priceRange.volumeMax - priceRange.min);
+
+    // 볼륨 데이터의 최솟값 설정 (y축 최소값보다 약간 위)
+    const baseVolumeY = priceRange.min + 1;
 
     return extendedChartData.map((item, index) => {
-      if (index < 10) return priceRange.min; // 왼쪽 여백 데이터
-      const volumeRatio = item.volume / volumeRange.max;
-      return priceRange.min + volumeRatio * volumeHeight;
+      if (index < 10) return baseVolumeY; // 왼쪽 여백 데이터
+
+      // volumeRange.max가 0인 경우 나눗셈 오류 방지
+      const maxVolume = Math.max(1, volumeRange.max);
+      const volumeRatio = Math.max(0.01, item.volume / maxVolume); // 최소 비율 보장
+
+      // 볼륨이 항상 보이도록 최소 높이 보장 (baseVolumeY보다 항상 높게)
+      return baseVolumeY + volumeRatio * volumeHeight;
     });
   }, [extendedChartData, getPriceRange, getVolumeRange]);
 
@@ -1050,7 +1060,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
         rangeMode: ['value', 'value'], // 범위 모드를 'value'로 설정하여 데이터 값 기준으로 줌 적용
-        minSpan: 1, // 최소 확대 범위 설정
+        minSpan: 5, // 최소 확대 범위 설정
         maxSpan: 100, // 최대 확대 범위 설정
       },
       // 추가적인 슬라이더 데이터줌 컨트롤을 위해 추가
@@ -1068,7 +1078,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           color: '#8392A5',
         },
         rangeMode: ['value', 'value'], // 범위 모드를 'value'로 설정
-        minSpan: 1, // 최소 확대 범위 설정
+        minSpan: 5, // 최소 확대 범위 설정
         maxSpan: 100, // 최대 확대 범위 설정
       },
     ],
@@ -1149,7 +1159,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         type: 'bar',
         xAxisIndex: 0,
         yAxisIndex: 0,
-        data: showVolume ? scaledVolumeData : [],
+        data: scaledVolumeData,
         itemStyle: {
           color: (params: any) => {
             const index = params.dataIndex;
@@ -1207,6 +1217,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           data: [
             {
               yAxis: dividerLinePosition(),
+              lineStyle: {
+                width: 2,
+                color: '#2e3947',
+                type: 'solid',
+              },
             },
           ],
         },
