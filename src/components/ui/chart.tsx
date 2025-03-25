@@ -840,19 +840,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       snap: true,
       triggerTooltip: false,
     },
-    grid: [
-      {
-        // 통합 차트 영역
-        left: 80,
-        right: 80,
-        top: 40,
-        bottom: 60,
-        show: true,
-        borderColor: '#2e3947',
-        backgroundColor: 'transparent',
-        containLabel: false,
-      },
-    ],
+    grid: {
+      left: '5%',
+      right: '15%',
+      top: '8%',
+      bottom: '15%',
+      containLabel: true,
+      show: true,
+      borderColor: '#2e3947',
+      backgroundColor: 'transparent',
+    },
     xAxis: [
       {
         type: 'category',
@@ -981,23 +978,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     dataZoom: [
       {
         type: 'inside',
-        xAxisIndex: [0],
+        filterMode: 'none',
         start: dataZoomRange.start,
         end: dataZoomRange.end,
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
-      },
-      {
-        type: 'inside',
-        yAxisIndex: [0],
-        start: 0,
-        end: 100,
-        zoomOnMouseWheel: true,
-        moveOnMouseMove: false,
-        zoomLock: false,
-        throttle: 100,
-        orient: 'vertical',
       },
     ],
     series: [
