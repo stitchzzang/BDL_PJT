@@ -9,6 +9,8 @@ export const algorithmAPI = {
     _ky.post(`algorithm/${memberId}`, { json: algorithm }).json<ApiResponse<Algorithm>>(),
   getAlgorithm: (memberId: string) =>
     _ky.get(`algorithm/${memberId}`).json<ApiResponse<Algorithm[]>>(),
+  deleteAlgorithm: (memberId: string, algorithmId: string) =>
+    _ky.delete(`algorithm/${memberId}/${algorithmId}`).json<ApiResponse<void>>(),
 };
 
 export const useCreateAlgorithm = () => {
@@ -22,5 +24,12 @@ export const useGetAlgorithm = (memberId: string) => {
   return useQuery<Algorithm[]>({
     queryKey: ['algorithms'],
     queryFn: () => algorithmAPI.getAlgorithm(memberId).then((res) => res.result),
+  });
+};
+
+export const useDeleteAlgorithm = () => {
+  return useMutation({
+    mutationFn: ({ memberId, algorithmId }: { memberId: string; algorithmId: string }) =>
+      algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
   });
 };
