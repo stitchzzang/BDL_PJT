@@ -622,9 +622,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     const adjustedMin = Math.max(0, min - padding);
     const adjustedMax = max + padding;
 
+    // 가격 차트와 거래량 차트 사이의 간격을 위한
+    // 전체 Y축 높이를 늘려 각 차트가 별도의 영역을 갖도록 함
+    const totalRangeHeight =
+      (adjustedMax - adjustedMin) / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
+    const newMax = adjustedMin + totalRangeHeight;
+
     return {
       min: adjustedMin,
-      max: adjustedMax,
+      max: newMax,
       volumeMax,
     };
   }, [effectiveChartData, ema5Data, ema20Data, getVolumeRange]);
@@ -654,6 +660,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   // 캔들 데이터 스케일링
   const scaledCandleData = useMemo(() => {
     const priceRange = getPriceRange();
+    const priceHeight = priceRange.max - priceRange.min;
+    // 캔들차트 표시 영역 (구분선 위)
+    const candleChartMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
+
     return extendedChartData.map((item, index) => {
       // 왼쪽 여백 데이터 처리
       if (index < 10) {
@@ -670,18 +680,103 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         return ['-', '-', '-', '-'];
       }
 
-      return [Math.floor(open), Math.floor(close), Math.floor(low), Math.floor(high)];
+      // 기존 값 범위에서 캔들차트 영역으로 스케일링
+      const originalRange = max(high) - min(low);
+      const chartRange = priceRange.max - candleChartMin;
+      const scaleFactor = chartRange / (originalRange || 1); // 0으로 나누기 방지
+
+      const scaledOpen = candleChartMin + (open - min(low)) * scaleFactor;
+      const scaledClose = candleChartMin + (close - min(low)) * scaleFactor;
+      const scaledLow = candleChartMin + (low - min(low)) * scaleFactor;
+      const scaledHigh = candleChartMin + (high - min(low)) * scaleFactor;
+
+      return [
+        Math.floor(scaledOpen),
+        Math.floor(scaledClose),
+        Math.floor(scaledLow),
+        Math.floor(scaledHigh),
+      ];
     });
-  }, [extendedChartData, getPriceRange]);
+
+    // 스케일링을 위한 최소값 계산 함수
+    function min(val: number) {
+      const minValues = effectiveChartData
+        .filter((d) => d !== null && d !== undefined)
+        .map((d) => Math.min(d.low, d.high, d.open, d.close));
+      return Math.min(...minValues);
+    }
+
+    // 스케일링을 위한 최대값 계산 함수
+    function max(val: number) {
+      const maxValues = effectiveChartData
+        .filter((d) => d !== null && d !== undefined)
+        .map((d) => Math.max(d.low, d.high, d.open, d.close));
+      return Math.max(...maxValues);
+    }
+  }, [extendedChartData, getPriceRange, effectiveChartData]);
 
   // EMA 데이터 스케일링
   const scaledEMA5Data = useMemo(() => {
-    return ema5Data.map((value) => (value === null ? '-' : Math.floor(Number(value))));
-  }, [ema5Data]);
+    const priceRange = getPriceRange();
+    const priceHeight = priceRange.max - priceRange.min;
+    // EMA 표시 영역 (구분선 위)
+    const emaMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
+
+    return ema5Data.map((value, index) => {
+      if (value === null) return '-';
+
+      // 원본 데이터에서 EMA 영역으로 스케일링
+      const originalMin = Math.min(
+        ...effectiveChartData
+          .filter((d) => d !== null && d !== undefined)
+          .map((d) => Math.min(d.low, d.open, d.close)),
+      );
+
+      const originalMax = Math.max(
+        ...effectiveChartData
+          .filter((d) => d !== null && d !== undefined)
+          .map((d) => Math.max(d.high, d.open, d.close)),
+      );
+
+      const originalRange = originalMax - originalMin;
+      const chartRange = priceRange.max - emaMin;
+      const scaleFactor = chartRange / (originalRange || 1);
+
+      const scaledValue = emaMin + (value - originalMin) * scaleFactor;
+      return Math.floor(scaledValue);
+    });
+  }, [ema5Data, getPriceRange, effectiveChartData]);
 
   const scaledEMA20Data = useMemo(() => {
-    return ema20Data.map((value) => (value === null ? '-' : Math.floor(Number(value))));
-  }, [ema20Data]);
+    const priceRange = getPriceRange();
+    const priceHeight = priceRange.max - priceRange.min;
+    // EMA 표시 영역 (구분선 위)
+    const emaMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
+
+    return ema20Data.map((value, index) => {
+      if (value === null) return '-';
+
+      // 원본 데이터에서 EMA 영역으로 스케일링
+      const originalMin = Math.min(
+        ...effectiveChartData
+          .filter((d) => d !== null && d !== undefined)
+          .map((d) => Math.min(d.low, d.open, d.close)),
+      );
+
+      const originalMax = Math.max(
+        ...effectiveChartData
+          .filter((d) => d !== null && d !== undefined)
+          .map((d) => Math.max(d.high, d.open, d.close)),
+      );
+
+      const originalRange = originalMax - originalMin;
+      const chartRange = priceRange.max - emaMin;
+      const scaleFactor = chartRange / (originalRange || 1);
+
+      const scaledValue = emaMin + (value - originalMin) * scaleFactor;
+      return Math.floor(scaledValue);
+    });
+  }, [ema20Data, getPriceRange, effectiveChartData]);
 
   // 거래량 데이터 스케일링
   const scaledVolumeData = useMemo(() => {
@@ -705,6 +800,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
       // 원래 거래량을 0~최대거래량 범위에서 -> 0~volumeHeight 범위로 스케일링
       const volumeRatio = volume / volumeRange.max;
+      // 거래량은 구분선 아래에만 표시
       const scaledVolume = priceRange.min + volumeRatio * volumeHeight;
 
       return Math.floor(scaledVolume);
@@ -1177,8 +1273,32 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           },
           data: [
             {
-              // null이 될 수 있는 값 대신 안전한 기본값 제공
-              yAxis: currentData ? Math.floor(currentData.close) : 0,
+              // 현재가를 캔들차트 영역으로 스케일링
+              yAxis: (() => {
+                if (!currentData) return 0;
+                const priceRange = getPriceRange();
+                const priceHeight = priceRange.max - priceRange.min;
+                const candleChartMin =
+                  priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
+
+                const originalMin = Math.min(
+                  ...effectiveChartData
+                    .filter((d) => d !== null && d !== undefined)
+                    .map((d) => Math.min(d.low, d.open, d.close)),
+                );
+
+                const originalMax = Math.max(
+                  ...effectiveChartData
+                    .filter((d) => d !== null && d !== undefined)
+                    .map((d) => Math.max(d.high, d.open, d.close)),
+                );
+
+                const originalRange = originalMax - originalMin;
+                const chartRange = priceRange.max - candleChartMin;
+                const scaleFactor = chartRange / (originalRange || 1);
+
+                return Math.floor(candleChartMin + (currentData.close - originalMin) * scaleFactor);
+              })(),
               lineStyle: {
                 color: currentPriceColor,
               },
