@@ -9,7 +9,10 @@ const __dirname = dirname(__filename);
 // https://vite.dev/config/
 export default defineConfig({
   define: {
-    global: {},
+    global: 'window',
+  },
+  optimizeDeps: {
+    include: ['sockjs-client'],
   },
   plugins: [react()],
   resolve: {
