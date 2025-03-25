@@ -12,9 +12,9 @@ export const StockApi = {
       .json<ApiResponse<StockMinuteData[]>>(),
 };
 
-export const useStockMinuteData = () => {
+export const useStockMinuteData = (stockId: string, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData'],
-    queryFn: () => StockApi.getStockInitMinuteData('000660', 50).then((res) => res.result),
+    queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
   });
 };
