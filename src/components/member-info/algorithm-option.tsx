@@ -52,7 +52,19 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
       ? [
           {
             optionName: '단기 변화 반응',
-            optionDescription: `상승: ${algorithm.oneMinuteIncreasePercent}% (${algorithm.oneMinuteIncreaseAction}) / 하락: ${algorithm.oneMinuteDecreasePercent}% (${algorithm.oneMinuteDecreaseAction})`,
+            optionDescription: (
+              <>
+                상승: {algorithm.oneMinuteIncreasePercent}% (
+                <span className={getActionColor(algorithm.oneMinuteIncreaseAction)}>
+                  {algorithm.oneMinuteIncreaseAction}
+                </span>
+                ) / 하락: {algorithm.oneMinuteDecreasePercent}% (
+                <span className={getActionColor(algorithm.oneMinuteDecreaseAction)}>
+                  {algorithm.oneMinuteDecreaseAction}
+                </span>
+                )
+              </>
+            ),
           },
         ]
       : []),
@@ -86,7 +98,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
           className="rounded-[10px] bg-background-color p-2 text-text-inactive-3-color"
         >
           <span>{option.optionName} : </span>
-          <span>{option.optionDescription}</span>
+          <span className="text-text-main-color">{option.optionDescription}</span>
         </p>
       ))}
     </div>
