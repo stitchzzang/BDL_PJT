@@ -1,10 +1,10 @@
-import { RTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
+import { TickData } from '@/api/types/stock';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockCostHistoryRealTimeProps {
-  stockDataList: RTData[];
+  tickData: TickData | null;
 }
-export const StockCostHistoryRealTime = ({ stockDataList }: StockCostHistoryRealTimeProps) => {
+export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeProps) => {
   return (
     <div>
       <div className="w-full">
