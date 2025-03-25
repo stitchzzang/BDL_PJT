@@ -1,28 +1,10 @@
 import { Client, Frame, Message } from '@stomp/stompjs';
+import { useQuery } from '@tanstack/react-query';
 import React, { useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 
-// 그래프 데이터
-export interface DataPoint {
-  stckCntgHour: string; // 이전의 date
-  stckOprc: number; // 이전의 open
-  stckHgpr: number; // 이전의 highw
-  stckLwpr: number; // 이전의 low
-  stckPrpr: number; // 이전의 close
-  prevClose?: number; // 그대로 유지
-  change?: number; // 그대로 유지
-  changeType?: 'RISE' | 'FALL' | 'NONE'; // 그대로 유지
-  cntgVol: number; // 이전의 volume
-  acmlVol?: number; // 이전의 accVolume
-  amount?: number; // 그대로 유지
-  acmlTrPbm?: number; // 이전의 accAmount
-  periodType?: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR' | 'MINUTE'; // 그대로 유지
-  ema5?: number; // 그대로 유지
-  ema20?: number; // 그대로 유지
-  stockName?: string; // 그대로 유지
-  stockCode: string; // 선택적에서 필수로 변경됨
-  ccldDvsn: string; // 새로 추가 (TradeData에는 있지만 DataPoint에는 없음)
-}
+import { _ky } from '@/api/instance';
+import { ApiResponse } from '@/api/types/common';
 
 // 메시지 데이터 구조에 대한 타입 정의
 interface TradeData {
@@ -57,11 +39,45 @@ interface TradeData {
   ccldDvsn: string;
 }
 
+//api 테스트
+interface StockCandleData {
+  stockCandleMinuteId: number;
+  companyId: string;
+  openPrice: number;
+  openPricePercent: number;
+  highPrice: number;
+  highPricePercent: number;
+  lowPrice: number;
+  lowPricePercent: number;
+  closePrice: number;
+  closePricePercent: number;
+  contractingVolume: number;
+  accumulatedTradeAmount: number;
+  tradingTime: string;
+  fiveAverage: number;
+  twentyAverage: number;
+}
+
+const stockChartApi = {
+  getStockChart: () =>
+    _ky.get('stocks/000660/minute/initial?limit=50').json<ApiResponse<StockCandleData[]>>(),
+};
+
+const useStockChart = () => {
+  return useQuery({
+    queryKey: ['StockChart'],
+    queryFn: () => stockChartApi.getStockChart().then((res) => res.result),
+  });
+};
+
 export const StockChart = () => {
   const [tradeData, setTradeData] = useState<TradeData[]>([]);
   const [message, setMessage] = useState<TradeData | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
   const stompClient = useRef<Client | null>(null);
+
+  const { data: StockChart } = useStockChart();
+  console.log(StockChart);
 
   useEffect(() => {
     // 컴포넌트가 마운트될 때 WebSocket 연결 설정
@@ -75,7 +91,7 @@ export const StockChart = () => {
 
   const connectWebSocket = () => {
     // SockJS 인스턴스 생성
-    const socket = new SockJS('http://192.168.100.198:8080/ws');
+    const socket = new SockJS('https://j12d202.p.ssafy.io/ws');
 
     // STOMP 클라이언트 생성
     const client = new Client({
@@ -161,20 +177,11 @@ export const StockChart = () => {
 
       <div>
         <h3>최근 거래 내역</h3>
-        <h1>{message === null ? <span>none</span> : <span>{message.stckCntgHour}</span>} </h1>
-        {tradeData.length === 0 ? (
-          <p>데이터를 기다리는 중...</p>
-        ) : (
-          <ul>
-            {tradeData.map((data, index) => (
-              <li key={index}>
-                종목코드: {data.stockCode}, 현재가: {data.stckPrpr.toLocaleString()}원, 시간:{' '}
-                {data.stckCntgHour}, 거래량: {data.cntgVol.toLocaleString()}, 체결구분:{' '}
-                {data.ccldDvsn === '1' ? '매수' : data.ccldDvsn === '5' ? '매도' : data.ccldDvsn}
-              </li>
-            ))}
-          </ul>
-        )}
+        <h1>{message === null ? <span>none</span> : <span>{message.ccldDvsn}</span>} </h1>
+        {tradeData.length === 0 ? <p>데이터를 기다리는 중...</p> : <ul>{tradeData[0].stckPrpr}</ul>}
+      </div>
+      <div>
+        <h1>chart</h1>
       </div>
     </div>
   );

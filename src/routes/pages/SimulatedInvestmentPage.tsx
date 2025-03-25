@@ -20,6 +20,9 @@ export const SimulatedInvestmentPage = () => {
           <div className="rounded-2xl bg-modal-background-color px-[24px] py-[20px]">
             <p className="font-bold">차트</p>
           </div>
+          <div>
+            <StockChart />
+          </div>
           <div className="flex items-center gap-3">
             <p className="text-border-color">오늘 날짜</p>
             <div className="rounded-xl bg-modal-background-color px-[20px] py-[16px]">
@@ -46,9 +49,6 @@ export const SimulatedInvestmentPage = () => {
         <div className="col-span-2">
           <SellingPrice />
         </div>
-      </div>
-      <div>
-        <StockChart />
       </div>
     </div>
   );
