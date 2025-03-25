@@ -14,7 +14,7 @@ export const NavBar = () => {
   };
 
   return (
-    <nav className="mb-[60px] flex items-center justify-between bg-[#030D1B] px-4 py-2 webapp:px-10">
+    <nav className="mb-[60px] flex items-center justify-between bg-[#030D1B] px-4 py-3 shadow-xl shadow-white/10 webapp:px-10">
       <button className="duration-300 hover:scale-110" onClick={() => navigate('/')}>
         <MainLogoIcon className="h-8 w-8 webapp:h-10 webapp:w-10" color="white" />
       </button>
