@@ -4,34 +4,6 @@ import { TickData } from '@/api/types/stock';
 import { StockCostHistoryDay } from '@/components/mock-investment/stock-cost-history/stock-cost-history-day';
 import { StockCostHistoryRealTime } from '@/components/mock-investment/stock-cost-history/stock-cost-history-realtime';
 
-// 실시간 시세
-export interface realTimeData {
-  tradePrice: number;
-  tradeVolume: number;
-  fluctuationRate: number;
-  tradingVolume: number;
-  tradeTime: string;
-}
-export type RTData = realTimeData;
-
-// 더미데이터 2개
-const stockDataList: RTData[] = [
-  {
-    tradePrice: 50000,
-    tradeVolume: 100,
-    fluctuationRate: 2.5,
-    tradingVolume: 10000,
-    tradeTime: 'YYYY-MM-DD',
-  },
-  {
-    tradePrice: 50000,
-    tradeVolume: 100,
-    fluctuationRate: 2.5,
-    tradingVolume: 10000,
-    tradeTime: 'YYYY-MM-DD',
-  },
-];
-
 // 실시간 데이터 - 실제
 interface StockCostHistoryProps {
   tickData: TickData | null;
