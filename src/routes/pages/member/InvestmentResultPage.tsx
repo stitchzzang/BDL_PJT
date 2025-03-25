@@ -11,7 +11,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 export const InvestmentResultPage = () => {
   return (
     <div className="flex w-full flex-col gap-4 px-6">
@@ -84,6 +91,37 @@ export const InvestmentResultPage = () => {
           <span>12개</span>
         </div>
       </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>종목명</TableHead>
+            <TableHead>총 수익률</TableHead>
+            <TableHead>총 수익금</TableHead>
+            <TableHead>1주 평균 금액</TableHead>
+            <TableHead>현재가</TableHead>
+            <TableHead>보유수량</TableHead>
+            <TableHead>평가금</TableHead>
+            <TableHead>원금</TableHead>
+            <TableHead>일간 수익률</TableHead>
+            <TableHead>일간 수익금</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <div className="h-5"></div>
+          <TableRow>
+            <TableCell>1 엔비디아</TableCell>
+            <TableCell>+32.12%</TableCell>
+            <TableCell>50,000,000원</TableCell>
+            <TableCell>10,000원</TableCell>
+            <TableCell>10,000원</TableCell>
+            <TableCell>10,000원</TableCell>
+            <TableCell>10,000원</TableCell>
+            <TableCell>+32.12%</TableCell>
+            <TableCell>-5,000원</TableCell>
+            <TableCell>10,000원</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     </div>
   );
 };
