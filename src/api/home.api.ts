@@ -10,7 +10,7 @@ export const homeApi = {
 
 export const useLatestNews = () => {
   return useQuery({
-    queryKey: ['news', 'latest'],
+    queryKey: ['latestNews'],
     queryFn: () => homeApi.getLatestNews().then((res) => res.result),
   });
 };
