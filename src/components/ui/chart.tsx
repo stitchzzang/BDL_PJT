@@ -32,66 +32,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     end: 0,
   });
 
-  // 서비스 동작을 위한 더미 데이터 생성 함수
-  const generateDummyMinuteData = useCallback((): ExtendedDataPoint[] => {
-    const result: ExtendedDataPoint[] = [];
-
-    // 시작 날짜 설정 (오늘 9:00)
-    const startDate = new Date();
-    startDate.setHours(9, 0, 0, 0);
-
-    // 기본 가격 설정
-    let basePrice = 50000;
-    let prevClose = basePrice;
-
-    // 9:01부터 15:30까지 1분 단위로 데이터 생성
-    for (let i = 1; i <= 390; i++) {
-      // 9:01 ~ 15:30까지 390분
-      const currentDate = new Date(startDate);
-      currentDate.setMinutes(currentDate.getMinutes() + i);
-
-      const hours = currentDate.getHours();
-      const minutes = currentDate.getMinutes();
-
-      // 동시호가 시간(15:21~15:29)인지 확인
-      const isDynamicAuction = hours === 15 && minutes >= 21 && minutes <= 29;
-
-      // 랜덤 가격 변동 (-200 ~ +200)
-      const priceChange = isDynamicAuction ? 0 : Math.floor(Math.random() * 400) - 200;
-      const close = prevClose + priceChange;
-
-      // 고가와 저가 계산
-      const volatility = isDynamicAuction ? 50 : 500;
-      const high = close + Math.floor(Math.random() * volatility);
-      const low = close - Math.floor(Math.random() * volatility);
-
-      // 거래량 계산 (동시호가 시간에는 0)
-      const volume = isDynamicAuction ? 0 : Math.floor(Math.random() * 10000) + 1000;
-
-      // 시가는 이전 종가를 기준으로 약간의 변동을 줌
-      const open = prevClose + (Math.floor(Math.random() * 100) - 50);
-
-      result.push({
-        date: currentDate.toString(), // 실제 날짜 문자열 저장
-        open,
-        high,
-        low,
-        close,
-        volume,
-        changeType: close >= open ? 'RISE' : 'FALL',
-        rawDate: currentDate,
-        periodType: 'MINUTE' as const,
-      });
-
-      prevClose = close;
-    }
-
-    return result;
-  }, []);
-
-  // 1분봉 더미 데이터 생성 (최초 한 번만)
-  const minuteDummyData = useMemo(() => generateDummyMinuteData(), [generateDummyMinuteData]);
-
   // 차트 X축 라벨 포맷팅 함수
   const formatChartDate = useCallback(
     (date: Date): string => {
@@ -128,6 +68,27 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         }
         default:
           return '';
+      }
+    },
+    [period],
+  );
+
+  // 기간별 날짜 포맷팅 함수 (포인터 및 툴큅용)
+  const formatDetailDate = useCallback(
+    (date: Date): string => {
+      switch (period) {
+        case 'MINUTE':
+          // YYYY-MM-DD HH:MM 형식
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        case 'DAY':
+        case 'WEEK':
+          // YYYY-MM-DD 형식
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        case 'MONTH':
+          // YYYY-MM 형식
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        default:
+          return date.toISOString().split('T')[0];
       }
     },
     [period],
@@ -195,11 +156,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
     switch (period) {
       case 'MINUTE':
-        // 1분봉: 직접 생성한 더미 데이터 사용
-        result = minuteDummyData.map((item) => ({
-          ...item,
-          date: formatChartDate(item.rawDate as Date), // X축 라벨용 포맷팅
-        }));
+        // 1분봉: props로 전달받은 data 사용 (다른 주기와 동일하게 통일)
+        result = data.map((item) => {
+          const date = new Date(item.date);
+          return {
+            ...item,
+            date: formatChartDate(date),
+            periodType: 'MINUTE' as const,
+            rawDate: date, // 원시 날짜 정보 저장
+          };
+        }) as ExtendedDataPoint[];
         break;
 
       case 'WEEK':
@@ -273,7 +239,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     }
 
     return result;
-  }, [period, data, minuteDummyData, formatChartDate, isValidTimeForMinute, isDynamicAuctionTime]);
+  }, [period, data, formatChartDate, isValidTimeForMinute, isDynamicAuctionTime]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -289,57 +255,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     } else {
       return formatKoreanNumber(value);
     }
-  };
-
-  // 기간별 날짜 포맷팅 함수 (포인터 및 툴큅용)
-  const formatDetailDate = (date: Date): string => {
-    switch (period) {
-      case 'MINUTE':
-        // YYYY-MM-DD HH:MM 형식
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-      case 'DAY':
-      case 'WEEK':
-        // YYYY-MM-DD 형식
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-      case 'MONTH':
-        // YYYY-MM 형식
-        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      default:
-        return date.toISOString().split('T')[0];
-    }
-  };
-
-  const calculateEMA = (data: (number | null | string)[], period: number): (number | null)[] => {
-    const k = 2 / (period + 1);
-    const emaData: (number | null)[] = [];
-    // 첫 번째 유효한 값 찾기
-    let firstValidIndex = 0;
-    while (
-      firstValidIndex < data.length &&
-      (data[firstValidIndex] === null ||
-        data[firstValidIndex] === undefined ||
-        data[firstValidIndex] === '-')
-    ) {
-      firstValidIndex++;
-    }
-
-    let prevEma = typeof data[firstValidIndex] === 'number' ? (data[firstValidIndex] as number) : 0;
-
-    for (let i = 0; i < data.length; i++) {
-      const currentPrice = data[i];
-      if (currentPrice === null || currentPrice === undefined || currentPrice === '-') {
-        emaData.push(null);
-        continue;
-      }
-
-      const numericPrice = Number(currentPrice);
-      const currentEma =
-        i === firstValidIndex ? numericPrice : Math.floor(numericPrice * k + prevEma * (1 - k));
-      emaData.push(currentEma);
-      prevEma = currentEma;
-    }
-
-    return emaData;
   };
 
   const chartData = getData();
@@ -533,6 +448,40 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       return labels;
     }
   }, [extendedChartData, period, formatChartDate, chartData]);
+
+  // EMA 계산 함수
+  const calculateEMA = (data: (number | null | string)[], period: number): (number | null)[] => {
+    const k = 2 / (period + 1);
+    const emaData: (number | null)[] = [];
+    // 첫 번째 유효한 값 찾기
+    let firstValidIndex = 0;
+    while (
+      firstValidIndex < data.length &&
+      (data[firstValidIndex] === null ||
+        data[firstValidIndex] === undefined ||
+        data[firstValidIndex] === '-')
+    ) {
+      firstValidIndex++;
+    }
+
+    let prevEma = typeof data[firstValidIndex] === 'number' ? (data[firstValidIndex] as number) : 0;
+
+    for (let i = 0; i < data.length; i++) {
+      const currentPrice = data[i];
+      if (currentPrice === null || currentPrice === undefined || currentPrice === '-') {
+        emaData.push(null);
+        continue;
+      }
+
+      const numericPrice = Number(currentPrice);
+      const currentEma =
+        i === firstValidIndex ? numericPrice : Math.floor(numericPrice * k + prevEma * (1 - k));
+      emaData.push(currentEma);
+      prevEma = currentEma;
+    }
+
+    return emaData;
+  };
 
   const closePrices = extendedChartData.map((item, index) =>
     index < 10 ? null : Math.floor(item.close),
@@ -890,7 +839,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
             // 기간에 맞는 상세 날짜 포맷으로 변환
             const rawDate = item.rawDate as Date;
-            return formatDetailDate(rawDate);
+            return formatChartDate(rawDate);
           }
 
           // Y축 포인터는 기본값 사용
@@ -972,7 +921,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
               // 기간에 맞는 상세 날짜 포맷으로 변환
               const rawDate = item.rawDate as Date;
-              return formatDetailDate(rawDate);
+              return formatChartDate(rawDate);
             },
           },
         },
