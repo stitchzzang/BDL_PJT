@@ -36,10 +36,10 @@ export const SimulatedInvestmentPage = () => {
         </div>
       </div>
       <div className="grid grid-cols-10 gap-5">
-        <div className="col-span-4">
+        <div className="col-span-5">
           <StockCostHistory />
         </div>
-        <div className="col-span-4">
+        <div className="col-span-3">
           <StockInfoDetail />
         </div>
         <div className="col-span-2">

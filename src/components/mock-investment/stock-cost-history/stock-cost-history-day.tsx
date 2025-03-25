@@ -1,5 +1,5 @@
 import { DTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryDayProps {
   dayDataList: DTData[];
@@ -36,10 +36,10 @@ export const StockCostHistoryDay = ({ dayDataList }: StockCostHistoryDayProps) =
                   {item.accumulateVolume}
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {addCommasToThousand(item.accumulatedTradeAmount)}원
+                  {formatKoreanMoney(item.accumulatedTradeAmount)}원
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {addCommasToThousand(item.openPrice)}원
+                  {formatKoreanMoney(item.openPrice)}원
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
                   {item.highPrice} %
