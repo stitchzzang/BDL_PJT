@@ -988,13 +988,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
       },
-      {
-        type: 'slider',
-        show: false,
-        xAxisIndex: [0],
-        start: dataZoomRange.start,
-        end: dataZoomRange.end,
-      },
     ],
     series: [
       {
