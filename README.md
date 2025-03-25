@@ -35,8 +35,8 @@ src/
 cp .env.development.example .env.development
 
 # .env.development 파일을 열어서 필요한 설정 수정
-# USE_LOCAL_API=true : 로컬 백엔드 서버 사용 (http://localhost:8080)
-# USE_LOCAL_API=false : 개발 서버 사용 (https://j12d202.p.ssafy.io)
+# USE_PROD_API=true : 개발 서버 사용 (https://j12d202.p.ssafy.io)
+# USE_PROD_API=false : 로컬 서버 사용 (http://localhost:8080)
 ```
 
 2. 개발 서버 실행
