@@ -1,7 +1,10 @@
+import { useNavigate } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export const EditPage = () => {
+  const navigate = useNavigate();
   return (
     <div className="flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold">프로필 수정</h1>
@@ -21,7 +24,11 @@ export const EditPage = () => {
           <p className="text-sm text-text-inactive-2-color">변경할 닉네임을 입력해주세요.</p>
         </div>
         <div className="flex w-full flex-col gap-4">
-          <Button variant="gray" className="w-full">
+          <Button
+            variant="gray"
+            className="w-full"
+            onClick={() => navigate('/member/edit/password')}
+          >
             비밀번호 변경
           </Button>
           <Button variant="blue" className="w-full">
