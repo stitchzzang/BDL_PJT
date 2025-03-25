@@ -168,10 +168,19 @@ export const StockChart = () => {
   };
 
   return (
-    <div className="border">
+    <div className="">
       <div>
-        <h1>{message === null ? <span>none</span> : <span>{message.ccldDvsn}</span>} </h1>
-        {tradeData.length === 0 ? <p>데이터를 기다리는 중...</p> : <ul>{tradeData[0].stckPrpr}</ul>}
+        {message === null ? (
+          <p>none</p>
+        ) : (
+          <div
+            className={`rounded-2xl bg-opacity-60 p-3 transition-all duration-200 ${message.ccldDvsn === '1' ? 'bg-btn-red-color' : 'bg-btn-blue-color'}`}
+          >
+            <h1>{message.stckPrpr}</h1>
+            <h1>{message.ccldDvsn}</h1>
+          </div>
+        )}
+        {tradeData.length === 0 ? <p>데이터를 기다리는 중...</p> : <ul></ul>}
       </div>
     </div>
   );
