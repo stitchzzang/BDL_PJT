@@ -595,13 +595,39 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     const validData = effectiveChartData.filter((d) => d !== null && d !== undefined);
     if (validData.length === 0) return { min: 0, max: 100, volumeMax: 10 };
 
-    const prices = validData.flatMap((d) => [d.high, d.low]);
+    // 데이터 줌 상태에 따라 현재 보이는 데이터만 사용
+    let visibleData = validData;
+    if (visibleDataIndices.end > visibleDataIndices.start) {
+      // 왼쪽 패딩 영역(10개 항목)을 고려하여 인덱스 조정
+      const adjustedStart = Math.max(0, visibleDataIndices.start - 10);
+      const adjustedEnd = Math.min(effectiveChartData.length - 1, visibleDataIndices.end - 10);
+
+      if (adjustedEnd >= adjustedStart) {
+        visibleData = effectiveChartData
+          .slice(adjustedStart, adjustedEnd + 1)
+          .filter((d) => d !== null && d !== undefined);
+      }
+    }
+
+    // 빈 배열 확인
+    if (visibleData.length === 0) visibleData = validData;
+
+    const prices = visibleData.flatMap((d) => [d.high, d.low]);
     let min = Math.min(...prices);
     let max = Math.max(...prices);
 
-    // EMA 데이터도 포함해서 범위 계산
-    const validEma5 = ema5Data.filter((d): d is number => d !== null && d !== undefined);
-    const validEma20 = ema20Data.filter((d): d is number => d !== null && d !== undefined);
+    // EMA 데이터도 포함해서 범위 계산 (현재 보이는 부분만)
+    let visibleEma5Data = ema5Data;
+    let visibleEma20Data = ema20Data;
+
+    if (visibleDataIndices.end > visibleDataIndices.start) {
+      // ema 데이터는 effectiveChartData와 길이가 같도록 맞춰져 있음
+      visibleEma5Data = ema5Data.slice(visibleDataIndices.start, visibleDataIndices.end + 1);
+      visibleEma20Data = ema20Data.slice(visibleDataIndices.start, visibleDataIndices.end + 1);
+    }
+
+    const validEma5 = visibleEma5Data.filter((d): d is number => d !== null && d !== undefined);
+    const validEma20 = visibleEma20Data.filter((d): d is number => d !== null && d !== undefined);
 
     if (validEma5.length > 0) {
       min = Math.min(min, ...validEma5);
@@ -613,9 +639,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       max = Math.max(max, ...validEma20);
     }
 
-    // 최대 거래량 계산
-    const volumeRange = getVolumeRange();
-    const volumeMax = volumeRange.max;
+    // 최대 거래량 계산 (현재 보이는 부분만)
+    const visibleVolumeMax = Math.max(...visibleData.map((d) => d.volume));
+    const volumeMax = visibleVolumeMax * 1.1; // 10% 여유 공간
 
     // 패딩 추가
     const padding = (max - min) * 0.05; // 5% 패딩
@@ -633,7 +659,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       max: newMax,
       volumeMax,
     };
-  }, [effectiveChartData, ema5Data, ema20Data, getVolumeRange]);
+  }, [effectiveChartData, ema5Data, ema20Data, visibleDataIndices]);
 
   // 데이터 줌 범위 계산
   const getDataZoomRange = useCallback(() => {
@@ -874,6 +900,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     return () => {
       // 언마운트 시 원래의 console.error 복원
       console.error = originalConsoleError;
+
+      // 안전하게 차트 인스턴스 삭제
+      if (chartRef.current && chartRef.current.getEchartsInstance) {
+        try {
+          const chartInstance = chartRef.current.getEchartsInstance();
+          if (chartInstance && !chartInstance.isDisposed()) {
+            chartInstance.dispose();
+          }
+        } catch (e) {
+          // dispose 과정에서 오류가 발생하더라도 무시
+        }
+      }
     };
   }, []);
 
@@ -899,10 +937,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           type: 'dashed',
         },
       },
-      confine: true, // 툴팁 영역 제한
-      enterable: false, // 툴팁 마우스 진입 비활성화
-      appendToBody: false, // 툴팁을 body에 추가하지 않음
-      showContent: true, // 툴팁 콘텐츠 표시 활성화
+      confine: true, // 툴크 영역 제한
+      enterable: false, // 툴크 마우스 진입 비활성화
+      appendToBody: false, // 툴크를 body에 추가하지 않음
+      showContent: true, // 툴크 콘텐츠 표시 활성화
       alwaysShowContent: false, // 항상 표시 비활성화
       backgroundColor: 'rgba(19, 23, 34, 0.9)',
       borderColor: '#2e3947',
@@ -1138,8 +1176,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     ],
     yAxis: [
       {
-        type: 'value',
-        position: 'right',
+        type: 'value' as const,
+        position: 'right' as const,
         scale: true,
         splitNumber: 8,
         gridIndex: 0,
@@ -1150,9 +1188,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         },
         axisLabel: {
           color: '#CCCCCC',
-          formatter: (value) => {
+          formatter: (value: number) => {
             const priceRange = getPriceRange();
-            const volumeRange = getVolumeRange();
             const priceHeight = priceRange.max - priceRange.min;
             const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
@@ -1166,7 +1203,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
               if (volumeHeight <= 0) return '0';
 
               const volumeRatio = (value - priceRange.min) / volumeHeight;
-              const originalVolume = volumeRatio * volumeRange.max;
+              const originalVolume = volumeRatio * priceRange.volumeMax;
               return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
             }
           },
@@ -1176,11 +1213,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         },
         axisPointer: {
           label: {
-            formatter: (params) => {
+            formatter: (params: any) => {
               try {
                 const numValue = Number(params.value);
                 const priceRange = getPriceRange();
-                const volumeRange = getVolumeRange();
                 const priceHeight = priceRange.max - priceRange.min;
                 const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
@@ -1194,7 +1230,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
                   if (volumeHeight <= 0) return '0';
 
                   const volumeRatio = (numValue - priceRange.min) / volumeHeight;
-                  const originalVolume = volumeRatio * volumeRange.max;
+                  const originalVolume = volumeRatio * priceRange.volumeMax;
                   return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
                 }
               } catch (e) {
@@ -1211,21 +1247,20 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     dataZoom: [
       {
         type: 'inside',
-        filterMode: 'filter', // 'none'에서 'filter'로 변경하여 그리드 내에서만 확대/축소되도록 함
+        filterMode: 'filter',
         start: dataZoomRange.start,
         end: dataZoomRange.end,
         zoomOnMouseWheel: true,
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
-        rangeMode: ['value', 'value'], // 범위 모드를 'value'로 설정하여 데이터 값 기준으로 줌 적용
-        minSpan: 5, // 최소 확대 범위 설정
-        maxSpan: 100, // 최대 확대 범위 설정
+        rangeMode: ['value', 'value'],
+        minSpan: 5,
+        maxSpan: 100,
       },
-      // 추가적인 슬라이더 데이터줌 컨트롤을 위해 추가
       {
         type: 'slider',
         show: true,
-        filterMode: 'filter', // 'none'에서 'filter'로 변경
+        filterMode: 'filter',
         start: dataZoomRange.start,
         end: dataZoomRange.end,
         height: 20,
@@ -1235,9 +1270,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         handleStyle: {
           color: '#8392A5',
         },
-        rangeMode: ['value', 'value'], // 범위 모드를 'value'로 설정
-        minSpan: 5, // 최소 확대 범위 설정
-        maxSpan: 100, // 최대 확대 범위 설정
+        rangeMode: ['value', 'value'],
+        minSpan: 5,
+        maxSpan: 100,
       },
     ],
     series: [
@@ -1416,32 +1451,72 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     ],
   };
 
-  // echarts 옵션 이벤트 설정 - 기존 코드 유지
+  // 메모이제이션된 차트 옵션 생성
+  const memoizedOption = useMemo(
+    () => option,
+    [
+      xAxisLabels,
+      scaledCandleData,
+      scaledEMA5Data,
+      scaledEMA20Data,
+      scaledVolumeData,
+      dataZoomRange,
+      currentPriceColor,
+      effectiveChartData.length,
+      dividerLinePosition,
+      showVolume,
+      getPriceRange,
+    ],
+  );
+
+  // 데이터 줌 이벤트 핸들러 최적화
+  const handleDataZoom = useCallback(
+    (params: any) => {
+      try {
+        let start, end;
+        if (params.batch) {
+          // 배치 업데이트인 경우
+          ({ start, end } = params.batch[0]);
+        } else if (params.start !== undefined && params.end !== undefined) {
+          // 단일 업데이트인 경우
+          start = params.start;
+          end = params.end;
+        } else {
+          return; // 유효하지 않은 파라미터
+        }
+
+        // 상태 업데이트를 한 번만 수행
+        setDataZoomRange({ start, end });
+        updateVisibleDataIndices(start, end);
+      } catch (error) {
+        // 오류 무시
+      }
+    },
+    [updateVisibleDataIndices],
+  );
+
+  // echarts 옵션 이벤트 설정 최적화
   const eventHandlers = useMemo(() => {
     const handlers: any = {
-      datazoom: (params: any) => {
-        try {
-          if (params.batch) {
-            // 배치 업데이트인 경우
-            const { start, end } = params.batch[0];
-            setDataZoomRange({ start, end });
-            updateVisibleDataIndices(start, end);
-          } else if (params.start !== undefined && params.end !== undefined) {
-            // 단일 업데이트인 경우
-            setDataZoomRange({ start: params.start, end: params.end });
-            updateVisibleDataIndices(params.start, params.end);
-          }
-        } catch (error) {
-          // 오류 무시
-        }
-      },
-      // 마우스 핸들러 추가 - 빈 함수로 정의하여 undefined 에러 방지
+      datazoom: handleDataZoom,
+      // 마우스 핸들러는 필수적인 기능만 유지
       mousemove: () => {},
       mouseout: () => {},
       click: () => {},
     };
     return handlers;
-  }, [updateVisibleDataIndices]);
+  }, [handleDataZoom]);
+
+  // 차트 옵션 업데이트 효과
+  useEffect(() => {
+    if (chartRef.current) {
+      const chartInstance = chartRef.current.getEchartsInstance();
+      if (chartInstance && !chartInstance.isDisposed()) {
+        // replaceMerge를 series만으로 제한하여 불필요한 diff 연산 감소
+        chartInstance.setOption(memoizedOption, { replaceMerge: ['series'] });
+      }
+    }
+  }, [memoizedOption, period]);
 
   const renderChart = () => {
     // 렌더링 중 오류 잡기
@@ -1449,12 +1524,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       return (
         <ReactECharts
           ref={chartRef}
-          option={option}
+          option={memoizedOption}
           style={{ height: `${height}px`, width: '100%' }}
-          notMerge={false} // true에서 false로 변경하여 기존 차트와 병합
+          notMerge={false}
           lazyUpdate={true}
           opts={{ renderer: 'canvas' }}
           onEvents={eventHandlers}
+          // key를 최소화하여 불필요한 리렌더링 방지
+          key={`chart-${period}`}
         />
       );
     } catch (e) {
