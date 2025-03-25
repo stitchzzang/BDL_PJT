@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { TickData } from '@/api/types/stock';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
@@ -5,6 +7,7 @@ interface StockCostHistoryRealTimeProps {
   tickData: TickData | null;
 }
 export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeProps) => {
+  const [tickDataLists, setTickDataLists] = useState<TickData | null>(null);
   return (
     <div>
       <div className="w-full">
