@@ -1,3 +1,7 @@
+import { useEffect, useState } from 'react';
+
+import { useStockMinuteData } from '@/api/stock.api';
+import { TickData } from '@/api/types/stock';
 import { OrderStatus } from '@/components/mock-investment/order-status/order-status';
 import { SellingPrice } from '@/components/mock-investment/selling-price/selling-price';
 import { StockChart } from '@/components/mock-investment/stock-chart/stock-chart';
@@ -6,10 +10,40 @@ import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import ChartComponent from '@/components/ui/chart';
 import { dummyChartData } from '@/lib/dummy-data';
+import { useTickConnection } from '@/services/SocketStockTickData';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
+  //초기 데이터 설정 및 소켓 연결
+  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData('000660', 50);
+
+  // 소켓 연결 관련 훅
+  const { IsConnected, connectTick, disconnectTick } = useTickConnection();
+  const [tickData, setTickData] = useState<TickData | null>(null);
+
+  // 정적 데이터 확인 후 소켓 연결 시작
+  useEffect(() => {
+    // 데이터 확인 후 진행
+    if (isSuccess && minuteData) {
+      // 소켓 연결 시작
+      console.log('테스트 - 제발 되라');
+      connectTick('000660', setTickData);
+
+      //컴포넌트 언마운트 시 해제
+      return () => {
+        disconnectTick();
+      };
+    }
+  }, [isSuccess, minuteData, connectTick, disconnectTick]);
+
+  if (isLoading) {
+    return (
+      <div>
+        <h1>loding</h1>
+      </div>
+    );
+  }
   return (
     <div className="flex h-full w-full flex-col px-6">
       <div>
