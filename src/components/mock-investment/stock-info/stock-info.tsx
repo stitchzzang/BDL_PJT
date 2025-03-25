@@ -1,7 +1,7 @@
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
-import { addCommasToThousand } from '@/utils/numberFormatter';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockInfoProps {
   category: CategoryName;
@@ -41,7 +41,7 @@ export const StockInfo = ({ category }: StockInfoProps) => {
               </div>
             </div>
             <div>
-              <Button className="max-w-[225px]" variant={'red'} size={'lg'}>
+              <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
                 알고리즘 선택
               </Button>
             </div>
