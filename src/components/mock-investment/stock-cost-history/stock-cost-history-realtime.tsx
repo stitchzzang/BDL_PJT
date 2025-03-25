@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TickData } from '@/api/types/stock';
 import { addCommasToThousand } from '@/utils/numberFormatter';
@@ -7,7 +7,12 @@ interface StockCostHistoryRealTimeProps {
   tickData: TickData | null;
 }
 export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeProps) => {
-  const [tickDataLists, setTickDataLists] = useState<TickData | null>(null);
+  const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
+  useEffect(() => {
+    if (tickData) {
+      setTickDataLists((prevData) => [...prevData, tickData]);
+    }
+  }, [tickData]);
   return (
     <div>
       <div className="w-full">
@@ -24,7 +29,7 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
             </div>
 
             {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
-            {stockDataList.map((item, index) => (
+            {tickDataLists.map((item, index) => (
               <div
                 key={index}
                 className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
