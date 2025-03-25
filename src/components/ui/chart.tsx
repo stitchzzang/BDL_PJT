@@ -988,6 +988,17 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         moveOnMouseMove: true,
         preventDefaultMouseMove: false,
       },
+      {
+        type: 'inside',
+        yAxisIndex: [0],
+        start: 0,
+        end: 100,
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: false,
+        zoomLock: false,
+        throttle: 100,
+        orient: 'vertical',
+      },
     ],
     series: [
       {
