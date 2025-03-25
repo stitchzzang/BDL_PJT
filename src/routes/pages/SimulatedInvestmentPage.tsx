@@ -1,5 +1,6 @@
 import { OrderStatus } from '@/components/mock-investment/order-status/order-status';
 import { SellingPrice } from '@/components/mock-investment/selling-price/selling-price';
+import { StockChart } from '@/components/mock-investment/stock-chart/stock-chart';
 import { StockCostHistory } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
@@ -45,6 +46,9 @@ export const SimulatedInvestmentPage = () => {
         <div className="col-span-2">
           <SellingPrice />
         </div>
+      </div>
+      <div>
+        <StockChart />
       </div>
     </div>
   );
