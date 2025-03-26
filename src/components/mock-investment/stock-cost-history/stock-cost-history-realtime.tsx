@@ -1,45 +1,93 @@
-import { RTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import { TickData } from '@/api/types/stock';
+import { getFormatTime } from '@/utils/getTimeFormatted';
+import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryRealTimeProps {
-  stockDataList: RTData[];
+  tickDataLists: TickData[];
+  animationKey: number;
 }
-export const StockCostHistoryRealTime = ({ stockDataList }: StockCostHistoryRealTimeProps) => {
+
+export const StockCostHistoryRealTime = ({
+  tickDataLists,
+  animationKey,
+}: StockCostHistoryRealTimeProps) => {
+  // 스크롤바 스타일을 객체로 정의
+  const scrollbarStyle = {
+    scrollbarWidth: 'thin', // Firefox
+    scrollbarColor: '#718096 #1a202c', // Firefox
+    msOverflowStyle: 'auto', // IE and Edge
+    '&::-webkit-scrollbar': {
+      width: '15px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#1a202c',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: '#718096',
+      borderRadius: '6px',
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      background: '#5a6887',
+    },
+  };
+
   return (
     <div>
-      <div className="w-full">
-        <div className="flex flex-col space-y-4">
-          <div>{/* 실시간, 일별 */}</div>
-          <div className="flex flex-col space-y-2">
-            {/* 테이블 헤더 */}
-            <div className="rounded-lgp-2 flex flex-row">
-              <div className="w-[20%] text-[16px] text-border-color">채결가</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">체결량(주)</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">등락률률</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">거래량 (주)</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">시간</div>
-            </div>
-
-            {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
-            {stockDataList.map((item, index) => (
-              <div
-                key={index}
-                className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
-              >
-                <div className="w-[20%] font-medium">{addCommasToThousand(item.tradePrice)}원</div>
-                <div className="w-[20%] text-right text-btn-blue-color">{item.tradeVolume}</div>
-                <div className="w-[20%] text-right text-btn-red-color">{item.fluctuationRate}%</div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.tradingVolume}
+      {!tickDataLists.length ? (
+        <div>
+          <h1>현재 데이터가 없습니다</h1>
+        </div>
+      ) : (
+        <div className="w-full">
+          <div className="flex flex-col space-y-4">
+            <div>{/* 실시간, 일별 */}</div>
+            <div className="flex flex-col space-y-2">
+              {/* 테이블 헤더 */}
+              <div className="rounded-lgp-2 flex flex-row">
+                <div className="w-[20%] text-[16px] text-border-color">채결가</div>
+                <div className="w-[20%] text-right text-[16px] text-border-color">체결량(주)</div>
+                <div className="w-[20%] text-right text-[16px] text-border-color">누적 거래량</div>
+                <div className="w-[20%] text-right text-[16px] text-border-color">
+                  누적 거래대금
                 </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.tradeTime}
-                </div>
+                <div className="w-[20%] text-right text-[16px] text-border-color">시간</div>
               </div>
-            ))}
+              <div
+                className="max-h-[450px] animate-fadeIn overflow-y-auto"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#718096 #1a202c',
+                }}
+              >
+                {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
+                {tickDataLists.map((item, index) => (
+                  <div
+                    // 첫 번째 항목에는 변경되는 키를, 나머지는 인덱스 키를 사용
+                    key={index === 0 ? `item-${animationKey}` : index}
+                    className={`my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color ${index === 0 ? 'animate-fadeIn' : ''}`}
+                  >
+                    <div className="w-[20%] font-medium">
+                      {addCommasToThousand(item.stckPrpr)}원
+                    </div>
+                    <div
+                      className={`w-[20%] text-right text-btn-blue-color ${item.ccldDvsn === '1' ? 'text-btn-red-color' : 'text-btn-blue-color'}`}
+                    >
+                      {item.cntgVol}
+                    </div>
+                    <div className="w-[20%] text-right">{addCommasToThousand(item.acmlVol)}</div>
+                    <div className="w-[20%] text-right font-light text-border-color">
+                      {formatKoreanMoney(item.acmlTrPbm)}원
+                    </div>
+                    <div className="w-[20%] text-right font-light text-border-color">
+                      {getFormatTime(item.stckCntgHour)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
