@@ -10,7 +10,7 @@ export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListPr
   const categoryNames = getCategoryNames();
 
   const handleCategoryClick = (name: CategoryName, index: number) => {
-      setCategoryId(index.toString());
+    setCategoryId(index.toString());
   };
 
   const AllCompaniesIcon = getCategoryIcon('전체');
@@ -34,15 +34,17 @@ export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListPr
           >
             전체
           </p>
-        </div>
+        </button>
       </div>
       <div className="grid max-w-[660px] grid-cols-5 gap-[10px]">
         {categoryNames.slice(1).map((name, index) => {
           const IconComponent = getCategoryIcon(name);
           const currentId = (index + 1).toString();
           return (
-            <div
-              className={`${isActive === name ? 'bg-btn-blue-color' : 'bg-modal-background-color'} group flex cursor-pointer items-center justify-center gap-2 rounded-xl px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color`}
+            <button
+              className={`group flex items-center justify-center gap-2 rounded-xl ${
+                activeCategoryId === currentId ? 'bg-btn-blue-color' : 'bg-modal-background-color'
+              } px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color`}
               key={index}
               onClick={() => handleCategoryClick(name, index + 1)}
             >
@@ -56,7 +58,7 @@ export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListPr
               >
                 {name}
               </p>
-            </div>
+            </button>
           );
         })}
       </div>
