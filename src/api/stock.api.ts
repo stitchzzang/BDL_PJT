@@ -11,6 +11,11 @@ export const StockApi = {
       .get(`stocks/${stockId}/minute/initial?limit=${limit}`)
       .json<ApiResponse<StockMinuteData[]>>(),
 
+  //Order API
+  // 유저 현재 보유 자산
+  getUserAsset: (memberId: number) =>
+    _ky.get(`member/${memberId}/money`).json<ApiResponse<number>>(),
+
   // 지정가 post
   postStockLimitOrder: (
     memberId: number, // 회원 ID
@@ -36,6 +41,14 @@ export const useStockMinuteData = (stockId: string, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData'],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
+  });
+};
+
+//orderAPI
+export const useUserAssetData = (memberId: number) => {
+  return useQuery({
+    queryKey: ['userAssetData'],
+    queryFn: () => StockApi.getUserAsset(memberId).then((res) => res.result),
   });
 };
 
