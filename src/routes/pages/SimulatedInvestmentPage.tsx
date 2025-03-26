@@ -48,7 +48,7 @@ export const SimulatedInvestmentPage = () => {
     <div className="flex h-full w-full flex-col px-6">
       <div>
         <div>
-          <StockInfo category="반도체" />
+          <StockInfo category="반도체" tickData={tickData} />
         </div>
         <div className="mb-[16px] mt-[30px] flex justify-between">
           <div className="flex items-center gap-2">
