@@ -1224,17 +1224,24 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
               const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
               if (value >= dividerPos) {
+                // 가격 차트 영역 (구분선 위)
                 return formatKoreanNumber(Math.floor(value));
               } else {
                 // 음수 값이나 0 미만인 경우 처리
                 if (value < 0) return '0';
 
-                const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min);
-                if (volumeHeight <= 0) return '0';
+                // 거래량 차트 영역 (구분선 아래)
+                // 거래량 범위 가져오기
+                const volumeRange = getVolumeRange();
+                // 거래량 영역 높이 계산
+                const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
+                // 값이 Y축에서 차지하는 비율 계산 (0 ~ volumeHeight)
+                const ratio = (value - priceRange.min) / volumeHeight;
+                // 비율을 기반으로 실제 거래량 값 계산
+                const originalVolume = ratio * volumeRange.max;
 
-                const volumeRatio = (value - priceRange.min) / volumeHeight;
-                const originalVolume = volumeRatio * priceRange.volumeMax;
-                return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
+                if (originalVolume <= 0) return '0';
+                return formatVolumeNumber(Math.floor(originalVolume));
               }
             },
             inside: false,
@@ -1251,17 +1258,24 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
                   const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
 
                   if (numValue >= dividerPos) {
+                    // 가격 차트 영역 (구분선 위)
                     return formatKoreanNumber(Math.floor(numValue));
                   } else {
                     // 음수 값이나 0 미만인 경우 처리
                     if (numValue < 0) return '0';
 
-                    const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min);
-                    if (volumeHeight <= 0) return '0';
+                    // 거래량 차트 영역 (구분선 아래)
+                    // 거래량 범위 가져오기
+                    const volumeRange = getVolumeRange();
+                    // 거래량 영역 높이 계산
+                    const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
+                    // 값이 Y축에서 차지하는 비율 계산
+                    const ratio = (numValue - priceRange.min) / volumeHeight;
+                    // 비율을 기반으로 실제 거래량 값 계산
+                    const originalVolume = ratio * volumeRange.max;
 
-                    const volumeRatio = (numValue - priceRange.min) / volumeHeight;
-                    const originalVolume = volumeRatio * priceRange.volumeMax;
-                    return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
+                    if (originalVolume <= 0) return '0';
+                    return formatVolumeNumber(Math.floor(originalVolume));
                   }
                 } catch {
                   // 오류 무시
