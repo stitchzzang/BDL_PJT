@@ -102,11 +102,16 @@ export const router = createBrowserRouter([
       },
       {
         path: '/signup',
-        element: <SignUpPage />,
-      },
-      {
-        path: '/signup-success',
-        element: <SignUpSuccessPage />,
+        children: [
+          {
+            index: true,
+            element: <SignUpPage />,
+          },
+          {
+            path: 'success',
+            element: <SignUpSuccessPage />,
+          },
+        ],
       },
       {
         path: '/tutorial',
