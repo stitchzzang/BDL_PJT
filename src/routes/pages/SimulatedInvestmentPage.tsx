@@ -77,7 +77,7 @@ export const SimulatedInvestmentPage = () => {
           <ChartComponent data={dummyChartData} height={600} />
         </div>
         <div className="col-span-1 lg:col-span-2">
-          <OrderStatus />
+          <OrderStatus closePrice={closePrice} />
         </div>
       </div>
       <div className="grid grid-cols-10 gap-5">

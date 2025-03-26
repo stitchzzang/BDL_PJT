@@ -6,9 +6,10 @@ import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface OrderStatusBuyProps {
   userAssetData: number | undefined;
+  closePrice: number;
 }
 
-export const OrderStatusBuy = ({ userAssetData }: OrderStatusBuyProps) => {
+export const OrderStatusBuy = ({ userAssetData, closePrice }: OrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
