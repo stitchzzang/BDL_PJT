@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-
 import { TickData } from '@/api/types/stock';
 import { getFormatTime } from '@/utils/getTimeFormatted';
 import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryRealTimeProps {
-  tickData: TickData | null;
+  tickDataLists: TickData[];
+  animationKey: number;
 }
-export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeProps) => {
-  const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
-  const [animationKey, setAnimationKey] = useState<number>(0);
 
+export const StockCostHistoryRealTime = ({
+  tickDataLists,
+  animationKey,
+}: StockCostHistoryRealTimeProps) => {
   // 스크롤바 스타일을 객체로 정의
   const scrollbarStyle = {
     scrollbarWidth: 'thin', // Firefox
@@ -31,13 +31,6 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
     },
   };
 
-  useEffect(() => {
-    if (tickData) {
-      setTickDataLists((prevData) => [tickData, ...prevData]);
-      // 애니메이션을 위한 코드
-      setAnimationKey((prev) => prev + 1);
-    }
-  }, [tickData]);
   return (
     <div>
       {!tickDataLists.length ? (

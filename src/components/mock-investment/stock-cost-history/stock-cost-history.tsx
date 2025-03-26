@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { TickData } from '@/api/types/stock';
 import { StockCostHistoryDay } from '@/components/mock-investment/stock-cost-history/stock-cost-history-day';
@@ -47,6 +47,17 @@ const dayDataList: DTData[] = [
 
 export const StockCostHistory = ({ tickData }: StockCostHistoryProps) => {
   const [isActive, setIsActive] = useState<string>('실시간');
+  // 실시간 정보 관리
+  const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
+  const [animationKey, setAnimationKey] = useState<number>(0);
+
+  // tickData가 변경될 때마다 리스트에 추가 (실시간 정보)
+  useEffect(() => {
+    if (tickData) {
+      setTickDataLists((prevData) => [tickData, ...prevData]);
+      setAnimationKey((prev) => prev + 1);
+    }
+  }, [tickData]);
   return (
     <div className="h-full">
       <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
@@ -66,7 +77,7 @@ export const StockCostHistory = ({ tickData }: StockCostHistoryProps) => {
         </div>
         <div>
           {isActive === '실시간' ? (
-            <StockCostHistoryRealTime tickData={tickData} />
+            <StockCostHistoryRealTime tickDataLists={tickDataLists} animationKey={animationKey} />
           ) : (
             <StockCostHistoryDay dayDataList={dayDataList} />
           )}
