@@ -16,6 +16,13 @@ export interface StockMinuteData {
   twentyAverage: number; // 20 이평선
 }
 
+export interface StockMinuteDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockMinuteData[];
+}
+
 // 메시지 데이터 구조에 대한 타입 정의
 export interface TickData {
   /** 종목 코드 (예: "005930") */
