@@ -11,13 +11,9 @@ export const NewsChart = () => {
           <h3 className="text-[16px]">현재뉴스</h3>
         </div>
       </div>
-      <div>
-        <div className="mb-[10px]">
-          <NewsChartMain newsMainInfo={latestNews?.[0]} />
-        </div>
-        <div>
-          <NewsChartSub newsSubInfo={latestNews?.[1]} />
-        </div>
+      <div className="flex flex-col gap-3">
+        <NewsChartMain newsMainInfo={latestNews?.[0]} />
+        <NewsChartSub newsSubInfo={latestNews?.[1]} />
       </div>
     </div>
   );

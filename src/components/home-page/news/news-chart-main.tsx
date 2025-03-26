@@ -7,7 +7,7 @@ interface NewsChartMainProps {
 export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
   return (
     <div className="w-full">
-      <div className="inline-block max-h-[260px] overflow-hidden rounded-2xl">
+      <div className="inline-block max-h-[250px] overflow-hidden rounded-2xl">
         {newsMainInfo?.newsThumbnailUrl === null ? (
           <img
             src="/none-img/none_news_img.png"
@@ -26,7 +26,7 @@ export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
         <h3 className="whitespace-normal break-words text-[20px] font-bold">
           {newsMainInfo?.newsTitle}
         </h3>
-        <p className="whitespace-normal break-words text-[15px] font-light">
+        <p className="line-clamp-2 whitespace-normal break-words text-[15px] font-light">
           {newsMainInfo?.newsContent}
         </p>
       </div>

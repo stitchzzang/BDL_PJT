@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 
+import { Footer } from '@/components/common/footer';
 import { NavBar } from '@/components/common/nav-bar';
 import { useResetAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 
@@ -13,6 +14,7 @@ export const MainLayout = () => {
       <main className="flex-1">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 };
