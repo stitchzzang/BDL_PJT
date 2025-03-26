@@ -69,17 +69,17 @@ export const StockCostHistory = ({ tickData }: StockCostHistoryProps) => {
             실시간
           </button>
           <button
-            onClick={() => setIsActive('하루')}
-            className={`${isActive === '하루' ? 'bg-btn-primary-active-color' : 'text-border-color'} rounded-lg p-2 transition-all duration-300`}
+            onClick={() => setIsActive('일별')}
+            className={`${isActive === '일별' ? 'bg-btn-primary-active-color' : 'text-border-color'} rounded-lg p-2 transition-all duration-300`}
           >
-            하루
+            일별
           </button>
         </div>
         <div>
           {isActive === '실시간' ? (
             <StockCostHistoryRealTime tickDataLists={tickDataLists} animationKey={animationKey} />
           ) : (
-            <StockCostHistoryDay dayDataList={dayDataList} />
+            <StockCostHistoryDay dayDataList={dayDataList} tickData={tickData} />
           )}
         </div>
       </div>
