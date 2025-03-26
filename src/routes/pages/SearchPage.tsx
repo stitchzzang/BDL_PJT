@@ -65,7 +65,7 @@ export const SearchPage = () => {
             <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
           </button>
         </div>
-        <CategoryList setCategoryId={setCategoryId} />
+        <CategoryList setCategoryId={setCategoryId} activeCategoryId={categoryId} />
         <p className="my-3 text-lg text-[#718096]">카테고리 선택으로도 검색이 가능합니다.</p>
         <CompanySelectButton />
       </div>
