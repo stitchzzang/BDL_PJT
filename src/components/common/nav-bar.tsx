@@ -177,13 +177,13 @@ export const NavBar = () => {
           </>
         ) : (
           <>
-            <Button variant="blue" onClick={() => navigate('/login')}>
-              로그인
-            </Button>
+            <NavLink to="/login" className="text-text-inactive-color hover:text-text-main-color">
+              <Button variant="blue">로그인</Button>
+            </NavLink>
           </>
         )}
 
-        <button onClick={() => navigate('/member/stock-tutorial-result')}>
+        <NavLink to="/member">
           <img
             src="/none-img/none_profile_img.png"
             alt="profile"
