@@ -50,12 +50,14 @@ export const SimulatedInvestmentPage = () => {
         <div>
           <StockInfo category="반도체" />
         </div>
-        <div className="mb-[16px] mt-[30px] flex items-center justify-between">
-          <div className="rounded-2xl bg-modal-background-color px-[24px] py-[20px]">
-            <p className="font-bold">차트</p>
-          </div>
-          <div>
-            <TickInfo tickData={tickData} />
+        <div className="mb-[16px] mt-[30px] flex justify-between">
+          <div className="flex items-center gap-2">
+            <div className="rounded-2xl bg-modal-background-color px-[24px] py-[20px]">
+              <p className="font-bold">차트</p>
+            </div>
+            <div>
+              <TickInfo tickData={tickData} />
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <p className="text-border-color">오늘 날짜</p>
