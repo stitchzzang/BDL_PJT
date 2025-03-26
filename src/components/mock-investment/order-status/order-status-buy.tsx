@@ -159,14 +159,29 @@ export const OrderStatusBuy = ({ userAssetData }: OrderStatusBuyProps) => {
             </h3>
           </div>
           <div className="flex items-center justify-between">
-            <h3 className={h3Style}>충 주문 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+            {isActive === '지정가' ? (
+              <>
+                <h3 className={h3Style}>충 주문 금액</h3>
+                <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+              </>
+            ) : (
+              <>
+                <h3 className={h3Style}>예상 충 주문 금액</h3>
+                <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+              </>
+            )}
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button variant="red" className="w-full" size="lg">
-            <p className=" text-[18px] font-medium text-white">구매하기</p>
-          </Button>
+          {isActive === '지정가' ? (
+            <Button variant="red" className="w-full" size="lg">
+              <p className=" text-[18px] font-medium text-white">구매하기</p>
+            </Button>
+          ) : (
+            <Button variant="red" className="w-full" size="lg">
+              <p className=" text-[18px] font-medium text-white">구매하기</p>
+            </Button>
+          )}
           <p className="text-[14px] font-light text-[#718096]">
             결제 수수료는 결제 금액의 0.004% 입니다.
           </p>
