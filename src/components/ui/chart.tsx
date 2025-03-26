@@ -1050,28 +1050,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             `;
           }
 
-          // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
-          const [open, close, low, high] = candleData.data;
+          // 원본 데이터에서 직접 값을 가져옴
+          const originalItem = extendedChartData[dataIndex];
+          const open = originalItem.open;
+          const close = originalItem.close;
+          const low = originalItem.low;
+          const high = originalItem.high;
+          const volume = originalItem.volume;
 
           // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
           let formattedDate = date;
-          const item = extendedChartData[dataIndex];
-          if (item && 'rawDate' in item && item.rawDate instanceof Date) {
-            formattedDate = formatDetailDate(item.rawDate);
+          if ('rawDate' in originalItem && originalItem.rawDate instanceof Date) {
+            formattedDate = formatDetailDate(originalItem.rawDate);
           }
 
-          // 거래량 데이터 추출
-          const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
-
           // 숫자 여부 확인하고 문자열 포맷팅
-          const openStr =
-            typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
-          const closeStr =
-            typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
-          const lowStr =
-            typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
-          const highStr =
-            typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
+          const openStr = open ? formatKoreanNumber(open) + '원' : '-';
+          const closeStr = close ? formatKoreanNumber(close) + '원' : '-';
+          const lowStr = low ? formatKoreanNumber(low) + '원' : '-';
+          const highStr = high ? formatKoreanNumber(high) + '원' : '-';
           const volumeStr = volume ? formatVolumeNumber(volume) : '-';
           const ema5Str =
             ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
