@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 export const NavBar = () => {
   const navigate = useNavigate();
-  const { isLogin, logoutAuth } = useAuthStore();
+  const { isLogin } = useAuthStore();
   const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -149,7 +149,6 @@ export const NavBar = () => {
               variant="blue"
               onClick={() => {
                 logout();
-                logoutAuth();
               }}
             >
               로그아웃

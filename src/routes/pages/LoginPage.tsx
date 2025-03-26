@@ -5,35 +5,19 @@ import { useLogin } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuthStore } from '@/store/useAuthStore';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { mutateAsync: login, isPending } = useLogin();
-  const loginAuth = useAuthStore((state) => state.loginAuth);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // 로그인 요청
-      const result = await login({ email, password });
-      // 쿠키에서 accessToken 추출
-      const accessToken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('Authorization='))
-        ?.split('=')[1];
-      // accessToken이 있으면 로그인 성공
-      if (accessToken) {
-        // 로그인 정보 저장
-        loginAuth(accessToken, { nickname: result.nickname, profile: result.profile });
-        // 회원가입 성공 페이지로 이동
-        navigate('/signup/success');
-      }
+      await login({ email, password });
     } catch (error) {
-      // 로그인 실패
-      alert('로그인 실패');
+      console.error('로그인 실패:', error);
     }
   };
 
