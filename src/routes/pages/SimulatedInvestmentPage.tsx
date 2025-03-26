@@ -10,7 +10,7 @@ import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import ChartComponent from '@/components/ui/chart';
 import { dummyChartData } from '@/lib/dummy-data';
-import { useTickConnection } from '@/services/SocketStockTickData';
+import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
