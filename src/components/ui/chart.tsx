@@ -3,6 +3,77 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { DataPoint } from '@/mocks/dummy-data';
 
+// ResizeObserver 패치를 위한 타입 확장
+declare global {
+  interface Window {
+    __RESIZE_OBSERVERS__?: ResizeObserver[];
+    __PATCHED_RESIZE_OBSERVER__?: boolean;
+    ResizeObserver: {
+      new (callback: ResizeObserverCallback): ResizeObserver;
+      prototype: ResizeObserver;
+    };
+  }
+}
+
+// echarts-for-react 라이브러리 내부의 ResizeObserver 오류 패치
+// disconnect 메서드 호출 시 undefined 참조 오류를 방지
+if (typeof window !== 'undefined' && !window.__PATCHED_RESIZE_OBSERVER__) {
+  try {
+    // 기존 ResizeObserver 저장
+    const OriginalResizeObserver = window.ResizeObserver;
+
+    if (OriginalResizeObserver) {
+      // 전역 객체에 저장되는 모든 ResizeObserver 참조를 저장
+      window.__RESIZE_OBSERVERS__ = [];
+
+      // ResizeObserver 재정의
+      window.ResizeObserver = class PatchedResizeObserver extends OriginalResizeObserver {
+        constructor(callback: ResizeObserverCallback) {
+          super(callback);
+
+          // 인스턴스 추적을 위해 배열에 저장
+          if (window.__RESIZE_OBSERVERS__) {
+            window.__RESIZE_OBSERVERS__.push(this);
+          }
+        }
+
+        // disconnect 메서드 오버라이드 - 안전하게 처리
+        disconnect() {
+          try {
+            // 원본 메서드 호출
+            super.disconnect();
+          } catch (e) {
+            // 오류 무시 - disconnect가 undefined일 경우 발생하는 오류 처리
+          }
+        }
+
+        // observe 메서드 오버라이드
+        observe(target: Element, options?: ResizeObserverOptions) {
+          try {
+            return super.observe(target, options);
+          } catch (e) {
+            // 오류 무시
+          }
+        }
+
+        // unobserve 메서드 오버라이드
+        unobserve(target: Element) {
+          try {
+            return super.unobserve(target);
+          } catch (e) {
+            // 오류 무시
+          }
+        }
+      } as unknown as typeof ResizeObserver;
+
+      // 패치 적용 표시
+      window.__PATCHED_RESIZE_OBSERVER__ = true;
+    }
+  } catch (e) {
+    // ResizeObserver 패치 중 오류 무시
+  }
+}
+
 // 기존 DataPoint 확장 인터페이스 (rawDate 속성 추가)
 interface ExtendedDataPoint extends DataPoint {
   rawDate?: Date;
@@ -1434,41 +1505,118 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
   // 컴포넌트 마운트/언마운트 처리
   useEffect(() => {
-    // 컴포넌트 마운트 시에는 아무 작업도 수행하지 않음
-    return () => {
-      // 안전하게 차트 인스턴스 삭제
+    // 차트 인스턴스 참조 저장
+    let chartInstance: any = null;
+    let isDestroyed = false;
+
+    // 차트 인스턴스 가져오기
+    if (chartRef.current) {
       try {
-        if (chartRef.current && chartRef.current.getEchartsInstance) {
-          const chartInstance = chartRef.current.getEchartsInstance();
-          if (chartInstance && !chartInstance.isDisposed()) {
-            // dispose 호출 전에 인스턴스가 유효한지 다시 확인
-            chartInstance.dispose();
-          }
-        }
+        chartInstance = chartRef.current.getEchartsInstance();
       } catch (e) {
-        // 오류 무시
+        // 차트 인스턴스 가져오기 실패 오류 무시
       }
+    }
+
+    // 성능 최적화를 위한 리사이즈 이벤트 처리
+    const handleResize = () => {
+      if (chartInstance && !isDestroyed && !chartInstance.isDisposed()) {
+        try {
+          chartInstance.resize();
+        } catch (e) {
+          // 차트 리사이즈 중 오류 무시
+        }
+      }
+    };
+
+    // 윈도우 리사이즈 이벤트 등록
+    window.addEventListener('resize', handleResize);
+
+    // echarts-for-react 내부의 resize-detector가 ResizeObserver를 사용하면서 오류가 발생하므로
+    // 이를 패치하기 위한 함수
+    const patchEChartsResizeObserver = () => {
+      // 전역 참조가 없다면 추가
+      if (!window.__PATCHED_RESIZE_OBSERVER__) {
+        // echarts-for-react의 내부 함수에 접근하기 위한 시도
+        if (chartRef.current) {
+          const echartsElement = chartRef.current as any;
+
+          // 원래 dispose 함수를 저장하고 덮어쓰기
+          if (echartsElement && echartsElement.dispose) {
+            const originalDispose = echartsElement.dispose;
+            echartsElement.dispose = function (...args: unknown[]) {
+              isDestroyed = true;
+              try {
+                return originalDispose.apply(this, args);
+              } catch (e) {
+                // echartsElement.dispose 오류 무시
+              }
+            };
+          }
+
+          window.__PATCHED_RESIZE_OBSERVER__ = true;
+        }
+      }
+    };
+
+    // 패치 적용
+    patchEChartsResizeObserver();
+
+    // 언마운트 시 정리
+    return () => {
+      // 플래그 설정
+      isDestroyed = true;
+
+      // 윈도우 리사이즈 이벤트 제거
+      window.removeEventListener('resize', handleResize);
+
+      // 모든 ResizeObserver 관련 작업 전에 약간의 지연을 줌
+      setTimeout(() => {
+        try {
+          // 차트 인스턴스 정리
+          if (chartInstance && !chartInstance.isDisposed()) {
+            try {
+              // 모든 이벤트 핸들러 제거
+              chartInstance.off();
+              // 차트 내용 정리
+              chartInstance.clear();
+            } catch (e) {
+              // 차트 정리 중 오류 무시
+            }
+
+            try {
+              // dispose 호출
+              chartInstance.dispose();
+            } catch (e) {
+              // 차트 dispose 중 오류 무시
+            }
+          }
+        } catch (e) {
+          // 차트 정리 중 오류 무시
+        }
+      }, 0);
     };
   }, []);
 
   // 기본 렌더 함수
-  const renderChart = () => {
-    // 간단하고 기본적인 설정으로 차트 렌더링
+  const renderChart = useCallback(() => {
     return (
       <ReactECharts
         ref={chartRef}
         option={memoizedOption}
         style={{ height: `${height}px`, width: '100%' }}
-        notMerge={true}
+        notMerge={false}
         lazyUpdate={true}
         opts={{
           renderer: 'canvas',
+          devicePixelRatio: window.devicePixelRatio || 1,
         }}
-        // 기간이 변경될 때마다 차트를 완전히 새로 렌더링 + 랜덤 요소 추가
-        key={`chart-${period}-${Math.random().toString(36).substring(2, 9)}`}
+        onEvents={eventHandlers}
+        // 기간 변경 시에만 키가 변경되도록 설정
+        key={`chart-${period}`}
       />
     );
-  };
+  }, [memoizedOption, height, eventHandlers, period]);
 
   return (
     <div
