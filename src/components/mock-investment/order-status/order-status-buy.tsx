@@ -83,25 +83,40 @@ export const OrderStatusBuy = ({ userAssetData }: OrderStatusBuyProps) => {
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
-                  >
-                    -
-                  </button>
-                </div>
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+              {isActive === '지정가' ? (
+                <>
+                  <NumberInput
+                    value={buyCost}
+                    setValue={setBuyCost}
+                    placeholder="값을 입력하세요."
+                  />
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+                    <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                      <button
+                        className="text-[22px]"
+                        onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
+                      >
+                        -
+                      </button>
+                    </div>
+                    <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                      <button
+                        className="text-[22px]"
+                        onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <NumberInput
+                  value={buyCost}
+                  setValue={setBuyCost}
+                  placeholder="최대한 빠른 가격"
+                  className="pointer-events-none bg-background-color"
+                />
+              )}
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
