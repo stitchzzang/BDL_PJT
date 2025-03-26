@@ -1,7 +1,14 @@
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { DataPoint } from '@/mocks/dummy-data';
+import {
+  CandleResponse,
+  ChartDataPoint,
+  convertMinuteCandleToChartData,
+  convertPeriodCandleToChartData,
+  MinuteCandleData,
+  PeriodCandleData,
+} from '@/mocks/dummy-data';
 
 // ResizeObserver 패치를 위한 타입 확장
 declare global {
@@ -74,15 +81,11 @@ if (typeof window !== 'undefined' && !window.__PATCHED_RESIZE_OBSERVER__) {
   }
 }
 
-// 기존 DataPoint 확장 인터페이스 (rawDate 속성 추가)
-interface ExtendedDataPoint extends DataPoint {
-  rawDate?: Date;
-}
-
 interface ChartComponentProps {
   readonly height?: number;
   readonly ratio?: number;
-  readonly data: DataPoint[];
+  readonly minuteData?: CandleResponse<MinuteCandleData>;
+  readonly periodData?: CandleResponse<PeriodCandleData>;
 }
 
 type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
@@ -90,7 +93,11 @@ type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
 const RISE_COLOR = '#ef5350'; // 빨강
 const FALL_COLOR = '#1976d2'; // 파랑
 
-const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) => {
+const ChartComponent: React.FC<ChartComponentProps> = ({
+  height = 700,
+  minuteData,
+  periodData,
+}) => {
   const [period, setPeriod] = useState<PeriodType>('MINUTE');
   const chartRef = useRef<ReactECharts>(null);
   const [dataZoomRange, setDataZoomRange] = useState({ start: 30, end: 100 });
@@ -100,74 +107,23 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   });
   const [showVolume, _setShowVolume] = useState<boolean>(true);
 
-  // 서비스 동작을 위한 더미 데이터 생성 함수
-  const generateDummyMinuteData = useCallback((): ExtendedDataPoint[] => {
-    const result: ExtendedDataPoint[] = [];
-
-    // 시작 날짜 설정 (오늘 9:00)
-    const startDate = new Date();
-    startDate.setHours(9, 0, 0, 0);
-
-    // 기본 가격 설정
-    const basePrice = 50000;
-    let prevClose = basePrice;
-
-    // 9:01부터 15:30까지 1분 단위로 데이터 생성
-    for (let i = 1; i <= 390; i++) {
-      // 9:01 ~ 15:30까지 390분
-      const currentDate = new Date(startDate);
-      currentDate.setMinutes(currentDate.getMinutes() + i);
-
-      const hours = currentDate.getHours();
-      const minutes = currentDate.getMinutes();
-
-      // 장 운영 시간이 아니면 건너뛰기 (9:01-15:20 및 15:30만 포함)
-      const isValidTime =
-        (hours === 9 && minutes >= 1) ||
-        (hours > 9 && hours < 15) ||
-        (hours === 15 && minutes <= 20) ||
-        (hours === 15 && minutes === 30);
-
-      if (!isValidTime) continue;
-
-      // 동시호가 시간(15:21~15:29)인지 확인
-      const isDynamicAuction = hours === 15 && minutes >= 21 && minutes <= 29;
-
-      // 랜덤 가격 변동 (-200 ~ +200)
-      const priceChange = isDynamicAuction ? 0 : Math.floor(Math.random() * 400) - 200;
-      const close = prevClose + priceChange;
-
-      // 고가와 저가 계산
-      const volatility = isDynamicAuction ? 50 : 500;
-      const high = close + Math.floor(Math.random() * volatility);
-      const low = close - Math.floor(Math.random() * volatility);
-
-      // 거래량 계산 (동시호가 시간에는 0)
-      const volume = isDynamicAuction ? 0 : Math.floor(Math.random() * 10000) + 1000;
-
-      // 시가는 이전 종가를 기준으로 약간의 변동을 줌
-      const open = prevClose + (Math.floor(Math.random() * 100) - 50);
-
-      result.push({
-        date: currentDate.toString(), // 실제 날짜 문자열 저장
-        open,
-        high,
-        low,
-        close,
-        volume,
-        changeType: close >= open ? 'RISE' : 'FALL',
-        rawDate: currentDate,
-        periodType: 'MINUTE' as const,
-      });
-
-      prevClose = close;
+  // API 데이터를 차트 데이터로 변환
+  const transformedChartData = useMemo(() => {
+    if (period === 'MINUTE' && minuteData?.data) {
+      return minuteData.data.map(convertMinuteCandleToChartData);
+    } else if (periodData?.data) {
+      return periodData.data.map(convertPeriodCandleToChartData);
     }
+    return [];
+  }, [period, minuteData, periodData]);
 
-    return result;
-  }, []);
-
-  // 1분봉 더미 데이터 생성 (최초 한 번만)
-  const minuteDummyData = useMemo(() => generateDummyMinuteData(), [generateDummyMinuteData]);
+  // 차트 데이터가 비어있는지 확인
+  const effectiveChartData = useMemo(() => {
+    if (transformedChartData.length === 0) {
+      return [];
+    }
+    return transformedChartData;
+  }, [transformedChartData]);
 
   // 차트 X축 라벨 포맷팅 함수
   const formatChartDate = useCallback(
@@ -258,91 +214,44 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   const getData = useCallback(() => {
     const now = new Date();
     const startDate = new Date(now);
-    startDate.setHours(9, 0, 0, 0); // 오전 9시로 설정
+    startDate.setHours(9, 0, 0, 0);
 
-    let result: ExtendedDataPoint[];
+    let result: ChartDataPoint[];
 
     switch (period) {
       case 'MINUTE':
-        // 1분봉: 직접 생성한 더미 데이터 사용
-        result = minuteDummyData.map((item) => ({
-          ...item,
-          date: formatChartDate(item.rawDate as Date), // X축 라벨용 포맷팅
-        }));
+        if (!minuteData?.data) return [];
+        result = minuteData.data.map(convertMinuteCandleToChartData);
         break;
 
       case 'WEEK':
+        if (!periodData?.data) return [];
         // 주봉: 월~금 5일 단위로 데이터 그룹화
-        result = data.reduce<DataPoint[]>((acc, curr, i) => {
-          if (i % 5 === 0) {
-            const weekData = data.slice(i, i + 5);
-            if (weekData.length > 0) {
-              const weekDate = new Date(weekData[0].date);
-              acc.push({
-                ...curr,
-                periodType: 'WEEK' as const,
-                volume: weekData.reduce((sum, item) => sum + item.volume, 0),
-                high: Math.max(...weekData.map((item) => item.high)),
-                low: Math.min(...weekData.map((item) => item.low)),
-                open: weekData[0].open,
-                close: weekData[weekData.length - 1].close,
-                date: formatChartDate(weekDate),
-                rawDate: weekDate, // 원시 날짜 정보 저장
-              });
-            }
-          }
-          return acc;
-        }, []) as ExtendedDataPoint[];
+        result = periodData.data
+          .filter((item) => item.periodType === '2')
+          .map(convertPeriodCandleToChartData);
         break;
 
-      case 'MONTH': {
+      case 'MONTH':
+        if (!periodData?.data) return [];
         // 월봉: 실제 월 단위로 데이터 그룹화
-        const monthlyGroups = data.reduce<Record<string, DataPoint[]>>((groups, item) => {
-          const date = new Date(item.date);
-          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-          if (!groups[key]) {
-            groups[key] = [];
-          }
-          groups[key].push(item);
-          return groups;
-        }, {});
-
-        result = Object.entries(monthlyGroups)
-          .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-          .map(([_key, group]) => {
-            const monthDate = new Date(group[0].date);
-            return {
-              ...group[0],
-              periodType: 'MONTH' as const,
-              volume: group.reduce((sum, item) => sum + item.volume, 0),
-              high: Math.max(...group.map((item) => item.high)),
-              low: Math.min(...group.map((item) => item.low)),
-              open: group[0].open,
-              close: group[group.length - 1].close,
-              date: formatChartDate(monthDate),
-              rawDate: monthDate, // 원시 날짜 정보 저장
-            };
-          }) as ExtendedDataPoint[];
+        result = periodData.data
+          .filter((item) => item.periodType === '3')
+          .map(convertPeriodCandleToChartData);
         break;
-      }
 
       case 'DAY':
       default:
+        if (!periodData?.data) return [];
         // 일봉: 하루 단위 데이터 그대로 사용
-        result = data.map((item) => {
-          const date = new Date(item.date);
-          return {
-            ...item,
-            date: formatChartDate(date),
-            periodType: 'DAY' as const,
-            rawDate: date, // 원시 날짜 정보 저장
-          };
-        }) as ExtendedDataPoint[];
+        result = periodData.data
+          .filter((item) => item.periodType === '1')
+          .map(convertPeriodCandleToChartData);
         break;
     }
 
     return result;
-  }, [period, data, minuteDummyData, formatChartDate]);
+  }, [period, minuteData, periodData]);
 
   const formatKoreanNumber = (value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -359,16 +268,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       return formatKoreanNumber(value);
     }
   };
-
-  const chartData = getData();
-
-  // 차트 데이터가 비어있는지 확인하고, 분봉의 경우 데이터가 없으면 더미 데이터 사용
-  const effectiveChartData = useMemo(() => {
-    if (period === 'MINUTE' && chartData.length === 0) {
-      return minuteDummyData;
-    }
-    return chartData;
-  }, [period, chartData, minuteDummyData]);
 
   // 앞쪽에 빈 데이터 없이 실제 데이터만 사용
   const extendedChartData = useMemo(() => {
@@ -570,6 +469,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
   const calculateEMA = (data: (number | null | string)[], period: number): (number | null)[] => {
     const k = 2 / (period + 1);
     const emaData: (number | null)[] = [];
+
     // 첫 번째 유효한 값 찾기
     let firstValidIndex = 0;
     while (
@@ -1035,7 +935,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           }
 
           // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
-          if (dataIndex >= 10 + chartData.length) {
+          if (dataIndex >= 10 + transformedChartData.length) {
             return `
               <div style="font-size: 12px;">
                 <div style="margin-bottom: 4px;">${date || '-'}</div>
