@@ -9,6 +9,27 @@ interface StockCostHistoryRealTimeProps {
 }
 export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeProps) => {
   const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
+
+  // 스크롤바 스타일을 객체로 정의
+  const scrollbarStyle = {
+    scrollbarWidth: 'thin', // Firefox
+    scrollbarColor: '#718096 #1a202c', // Firefox
+    msOverflowStyle: 'auto', // IE and Edge
+    '&::-webkit-scrollbar': {
+      width: '15px',
+    },
+    '&::-webkit-scrollbar-track': {
+      background: '#1a202c',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      background: '#718096',
+      borderRadius: '6px',
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      background: '#5a6887',
+    },
+  };
+
   useEffect(() => {
     if (tickData) {
       setTickDataLists((prevData) => [tickData, ...prevData]);
@@ -35,7 +56,13 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
                 </div>
                 <div className="w-[20%] text-right text-[16px] text-border-color">시간</div>
               </div>
-              <div className="max-h-[500px] overflow-y-auto">
+              <div
+                className="max-h-[500px] overflow-y-auto"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#718096 #1a202c',
+                }}
+              >
                 {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
                 {tickDataLists.map((item, index) => (
                   <div
