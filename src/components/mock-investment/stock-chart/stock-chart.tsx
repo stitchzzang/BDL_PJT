@@ -13,7 +13,7 @@ export const TickInfo = ({ tickData }: TickInfoProps) => {
           <p>none</p>
         ) : (
           <div
-            className={`flex gap-3 rounded-2xl border-2 bg-opacity-40 p-3 px-6 transition-all duration-200 ${tickData.ccldDvsn === '1' ? 'border-btn-red-color text-btn-red-color' : 'border-btn-blue-color text-btn-blue-color'}`}
+            className={`duration-400 flex gap-3 rounded-2xl border-2 bg-opacity-40 p-3 px-6 transition-all ${tickData.ccldDvsn === '1' ? 'border-btn-red-color bg-btn-red-color bg-opacity-10 text-btn-red-color' : 'border-btn-blue-color bg-btn-blue-color  bg-opacity-10 text-btn-blue-color'}`}
           >
             <h1>{tickData.stckPrpr}</h1>
             <h1 className="text-white opacity-60">{tickData.cntgVol}</h1>
