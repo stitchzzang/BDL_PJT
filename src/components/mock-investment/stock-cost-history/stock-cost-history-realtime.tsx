@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { TickData } from '@/api/types/stock';
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryRealTimeProps {
   tickData: TickData | null;
@@ -10,7 +10,7 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
   const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
   useEffect(() => {
     if (tickData) {
-      setTickDataLists((prevData) => [...prevData, tickData]);
+      setTickDataLists((prevData) => [tickData, ...prevData]);
     }
   }, [tickData]);
   return (
@@ -43,9 +43,11 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
                 >
                   <div className="w-[20%] font-medium">{addCommasToThousand(item.stckPrpr)}원</div>
                   <div className="w-[20%] text-right text-btn-blue-color">{item.cntgVol}</div>
-                  <div className="w-[20%] text-right text-btn-red-color">{item.acmlVol}%</div>
+                  <div className="w-[20%] text-right text-btn-red-color">
+                    {addCommasToThousand(item.acmlVol)}
+                  </div>
                   <div className="w-[20%] text-right font-light text-border-color">
-                    {item.acmlTrPbm}
+                    {formatKoreanMoney(item.acmlTrPbm)}원
                   </div>
                   <div className="w-[20%] text-right font-light text-border-color">
                     {item.stckCntgHour}
