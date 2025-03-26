@@ -1,4 +1,4 @@
-export const formatTime = (timeInput: string | number): string => {
+export const getFormatTime = (timeInput: string | number): string => {
   // 입력값을 문자열로 변환
   const timeString: string = String(timeInput);
 
