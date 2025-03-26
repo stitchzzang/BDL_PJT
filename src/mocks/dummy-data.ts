@@ -120,3 +120,135 @@ export const convertPeriodCandleToChartData = (data: PeriodCandleData): ChartDat
     periodType,
   };
 };
+
+// 임시 더미 데이터 생성 함수
+const generateDummyMinuteData = (count: number): MinuteCandleData[] => {
+  const now = new Date();
+  const data: MinuteCandleData[] = [];
+  let basePrice = 50000; // 시작 가격
+
+  for (let i = 0; i < count; i++) {
+    const time = new Date(now);
+    time.setMinutes(time.getMinutes() - (count - i - 1));
+
+    // 가격 변동 (랜덤하게)
+    const priceChange = (Math.random() - 0.5) * 1000;
+    basePrice += priceChange;
+
+    data.push({
+      stockCandleId: `dummy-${i}`,
+      companyId: 'dummy-company',
+      openPrice: basePrice,
+      openPricePercent: (priceChange / basePrice) * 100,
+      highPrice: basePrice + Math.random() * 500,
+      highPricePercent: ((Math.random() * 500) / basePrice) * 100,
+      lowPrice: basePrice - Math.random() * 500,
+      lowPricePercent: -((Math.random() * 500) / basePrice) * 100,
+      closePrice: basePrice + (Math.random() - 0.5) * 1000,
+      closePricePercent: (((Math.random() - 0.5) * 1000) / basePrice) * 100,
+      contractingVolume: Math.floor(Math.random() * 100000),
+      accumulatedTradeAmount: Math.floor(Math.random() * 1000000000),
+      tradingTime: time.toISOString(),
+      fiveAverage: basePrice + (Math.random() - 0.5) * 500,
+      twentyAverage: basePrice + (Math.random() - 0.5) * 1000,
+    });
+  }
+
+  return data;
+};
+
+const generateDummyPeriodData = (count: number): PeriodCandleData[] => {
+  const now = new Date();
+  const data: PeriodCandleData[] = [];
+  let basePrice = 50000; // 시작 가격
+
+  for (let i = 0; i < count; i++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - (count - i - 1));
+
+    // 가격 변동 (랜덤하게)
+    const priceChange = (Math.random() - 0.5) * 2000;
+    basePrice += priceChange;
+
+    // 일/주/월봉 데이터 생성
+    data.push({
+      stockCandleId: `dummy-day-${i}`,
+      companyId: 'dummy-company',
+      openPrice: basePrice,
+      openPricePercent: (priceChange / basePrice) * 100,
+      highPrice: basePrice + Math.random() * 1000,
+      highPricePercent: ((Math.random() * 1000) / basePrice) * 100,
+      lowPrice: basePrice - Math.random() * 1000,
+      lowPricePercent: -((Math.random() * 1000) / basePrice) * 100,
+      closePrice: basePrice + (Math.random() - 0.5) * 2000,
+      closePricePercent: (((Math.random() - 0.5) * 2000) / basePrice) * 100,
+      accumulatedVolume: Math.floor(Math.random() * 1000000),
+      accumulatedTradeAmount: Math.floor(Math.random() * 10000000000),
+      tradingDate: date.toISOString(),
+      periodType: '1',
+      fiveAverage: basePrice + (Math.random() - 0.5) * 1000,
+      twentyAverage: basePrice + (Math.random() - 0.5) * 2000,
+    });
+
+    // 주봉 데이터 (5일마다)
+    if (i % 5 === 0) {
+      data.push({
+        stockCandleId: `dummy-week-${i}`,
+        companyId: 'dummy-company',
+        openPrice: basePrice,
+        openPricePercent: (priceChange / basePrice) * 100,
+        highPrice: basePrice + Math.random() * 2000,
+        highPricePercent: ((Math.random() * 2000) / basePrice) * 100,
+        lowPrice: basePrice - Math.random() * 2000,
+        lowPricePercent: -((Math.random() * 2000) / basePrice) * 100,
+        closePrice: basePrice + (Math.random() - 0.5) * 3000,
+        closePricePercent: (((Math.random() - 0.5) * 3000) / basePrice) * 100,
+        accumulatedVolume: Math.floor(Math.random() * 5000000),
+        accumulatedTradeAmount: Math.floor(Math.random() * 50000000000),
+        tradingDate: date.toISOString(),
+        periodType: '2',
+        fiveAverage: basePrice + (Math.random() - 0.5) * 2000,
+        twentyAverage: basePrice + (Math.random() - 0.5) * 3000,
+      });
+    }
+
+    // 월봉 데이터 (30일마다)
+    if (i % 30 === 0) {
+      data.push({
+        stockCandleId: `dummy-month-${i}`,
+        companyId: 'dummy-company',
+        openPrice: basePrice,
+        openPricePercent: (priceChange / basePrice) * 100,
+        highPrice: basePrice + Math.random() * 3000,
+        highPricePercent: ((Math.random() * 3000) / basePrice) * 100,
+        lowPrice: basePrice - Math.random() * 3000,
+        lowPricePercent: -((Math.random() * 3000) / basePrice) * 100,
+        closePrice: basePrice + (Math.random() - 0.5) * 4000,
+        closePricePercent: (((Math.random() - 0.5) * 4000) / basePrice) * 100,
+        accumulatedVolume: Math.floor(Math.random() * 20000000),
+        accumulatedTradeAmount: Math.floor(Math.random() * 200000000000),
+        tradingDate: date.toISOString(),
+        periodType: '3',
+        fiveAverage: basePrice + (Math.random() - 0.5) * 3000,
+        twentyAverage: basePrice + (Math.random() - 0.5) * 4000,
+      });
+    }
+  }
+
+  return data;
+};
+
+// 임시 더미 데이터 export
+export const dummyMinuteData: CandleResponse<MinuteCandleData> = {
+  companyId: 'dummy-company',
+  limit: 100,
+  cursor: null,
+  data: generateDummyMinuteData(100),
+};
+
+export const dummyPeriodData: CandleResponse<PeriodCandleData> = {
+  companyId: 'dummy-company',
+  limit: 100,
+  cursor: null,
+  data: generateDummyPeriodData(100),
+};

@@ -1033,7 +1033,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         left: '5%',
         right: '15%',
         top: '8%',
-        bottom: '15%',
+        bottom: '25%',
         containLabel: true,
         show: true,
         borderColor: '#2e3947',
@@ -1206,7 +1206,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           start: dataZoomRange.start,
           end: dataZoomRange.end,
           height: 20,
-          bottom: 50,
+          bottom: 60,
           borderColor: '#2e3947',
           fillerColor: 'rgba(80, 80, 100, 0.3)',
           handleStyle: {
