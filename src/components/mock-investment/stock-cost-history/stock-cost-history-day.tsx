@@ -30,24 +30,34 @@ export const StockCostHistoryDay = ({ dayDataList, tickData }: StockCostHistoryD
               <div className="w-[20%] text-[14px] font-light text-border-color">
                 {getTodayFormatted()}
               </div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
+              <div
+                className={`w-[20%] text-right text-[16px] text-border-color ${
+                  tickData?.ccldDvsn === '1'
+                    ? 'text-btn-red-color'
+                    : tickData?.ccldDvsn === '2'
+                      ? 'text-btn-blue-color'
+                      : 'text-border-color'
+                }`}
+              >
                 {tickData ? formatKoreanMoney(tickData.stckPrpr) : ''}
               </div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">등락률</div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
+              <div className="w-[20%] text-right text-[16px] font-light text-border-color">
+                등락률
+              </div>
+              <div className="w-[20%] text-right text-[16px] font-light text-border-color">
                 {tickData ? formatKoreanMoney(tickData.acmlVol) : ''}
               </div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
-                {tickData ? formatKoreanMoney(tickData.acmlTrPbm) : ''}
+              <div className="w-[20%] text-right text-[16px] font-light text-border-color">
+                {tickData ? formatKoreanMoney(tickData.acmlTrPbm) : ''} 원
               </div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
-                {tickData ? formatKoreanMoney(tickData.stckOprc) : ''}
+              <div className="w-[20%] text-right text-[16px] font-light text-border-color">
+                {tickData ? formatKoreanMoney(tickData.stckOprc) : ''} 원
               </div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
-                {tickData ? formatKoreanMoney(tickData.stckHgpr) : ''}
+              <div className="w-[20%] text-right text-[16px] font-light text-border-color">
+                {tickData ? formatKoreanMoney(tickData.stckHgpr) : ''} 원
               </div>
-              <div className="w-[20%] text-right text-[16px] text-border-color">
-                {tickData ? formatKoreanMoney(tickData.stckLwpr) : ''}
+              <div className="w-[20%] text-right text-[16px] font-light text-border-color">
+                {tickData ? formatKoreanMoney(tickData.stckLwpr) : ''} 원
               </div>
             </div>
             {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
