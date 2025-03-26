@@ -17,6 +17,7 @@ export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
   const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData('000660', 50);
+  const [closePrice, setClosePrice] = useState<number>(0);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
@@ -24,6 +25,10 @@ export const SimulatedInvestmentPage = () => {
 
   // 정적 데이터 확인 후 소켓 연결 시작
   useEffect(() => {
+    //장 마감을 위한 1분 데이터 종가 가져오기
+    if (minuteData) {
+      setClosePrice(minuteData.data[0].closePrice);
+    }
     // 데이터 확인 후 진행
     if (isSuccess && minuteData) {
       // 소켓 연결 시작
@@ -48,7 +53,7 @@ export const SimulatedInvestmentPage = () => {
     <div className="flex h-full w-full flex-col px-6">
       <div>
         <div>
-          <StockInfo category="반도체" tickData={tickData} />
+          <StockInfo category="반도체" tickData={tickData} closePrice={closePrice} />
         </div>
         <div className="mb-[16px] mt-[30px] flex justify-between">
           <div className="flex items-center gap-2">
