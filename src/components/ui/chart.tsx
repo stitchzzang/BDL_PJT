@@ -1100,7 +1100,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           },
           splitLine: {
             show: true,
-            lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+            lineStyle: { color: 'rgba(100, 100, 100, 0.2)' },
           },
           axisTick: { show: true },
           boundaryGap: true,
@@ -1143,7 +1143,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           axisLine: { lineStyle: { color: '#2e3947' } },
           splitLine: {
             show: true,
-            lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+            lineStyle: { color: 'rgba(100, 100, 100, 0.2)' },
           },
           axisLabel: {
             color: '#CCCCCC',
