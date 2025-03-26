@@ -1,5 +1,3 @@
-'use client';
-
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -845,31 +843,45 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     updateVisibleDataIndices(initialRange.start, initialRange.end);
   }, [period, getDataZoomRange, updateVisibleDataIndices]);
 
-  // 컴포넌트 마운트/언마운트 처리
-  useEffect(() => {
-    const customLogger = () => {
-      // 모든 콘솔 오류를 무시
-    };
-
-    // eslint-disable-next-line no-console
-    console.error = customLogger;
-
-    const chartInstanceRef = chartRef.current;
-
-    return () => {
-      // 안전하게 차트 인스턴스 삭제
-      if (chartInstanceRef && chartInstanceRef.getEchartsInstance) {
-        try {
-          const chartInstance = chartInstanceRef.getEchartsInstance();
-          if (chartInstance && !chartInstance.isDisposed()) {
-            chartInstance.dispose();
-          }
-        } catch {
-          // 오류 무시
+  // 데이터 줌 이벤트 핸들러 최적화
+  const handleDataZoom = useCallback(
+    (params: any) => {
+      try {
+        let start, end;
+        if (params.batch) {
+          // 배치 업데이트인 경우
+          ({ start, end } = params.batch[0]);
+        } else if (params.start !== undefined && params.end !== undefined) {
+          // 단일 업데이트인 경우
+          start = params.start;
+          end = params.end;
+        } else {
+          return; // 유효하지 않은 파라미터
         }
+
+        // 상태 업데이트를 한 번만 수행
+        setDataZoomRange({ start, end });
+        updateVisibleDataIndices(start, end);
+      } catch {
+        // 오류 무시
       }
+    },
+    [updateVisibleDataIndices],
+  );
+
+  // echarts 옵션 이벤트 설정 최적화 - 최소화
+  const eventHandlers = useMemo(() => {
+    // 최소화된 이벤트 핸들러 - 오류 방지를 위해 datazoom만 유지
+    return {
+      datazoom: handleDataZoom,
     };
-  }, []);
+  }, [handleDataZoom]);
+
+  // 기간 선택 핸들러 단순화
+  const handlePeriodChange = (newPeriod: PeriodType) => {
+    if (newPeriod === period) return;
+    setPeriod(newPeriod);
+  };
 
   // ECharts 옵션 설정
   const memoizedOption = useMemo(() => {
@@ -1033,19 +1045,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
             const item = extendedChartData[labelIndex];
             if (!item) return params.value;
 
-            // rawDate 속성이 있는지 확인 (ExtendedDataPoint 타입인지)
-            if (!('rawDate' in item) || !item.rawDate) {
-              return params.value; // 원래 레이블 반환
-            }
-
-            // 기간에 맞는 상세 날짜 포맷으로 변환
-            try {
-              const rawDate = item.rawDate as Date;
-              if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
-                return formatDetailDate(rawDate);
-              }
-            } catch {
-              // 오류 무시
+            // rawDate 속성이 있는지 확인
+            if ('rawDate' in item && item.rawDate instanceof Date) {
+              return formatDetailDate(item.rawDate);
             }
 
             return params.value;
@@ -1430,89 +1432,42 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     dividerLinePosition,
   ]);
 
-  // 데이터 줌 이벤트 핸들러 최적화
-  const handleDataZoom = useCallback(
-    (params: any) => {
+  // 컴포넌트 마운트/언마운트 처리
+  useEffect(() => {
+    // 컴포넌트 마운트 시에는 아무 작업도 수행하지 않음
+    return () => {
+      // 안전하게 차트 인스턴스 삭제
       try {
-        let start, end;
-        if (params.batch) {
-          // 배치 업데이트인 경우
-          ({ start, end } = params.batch[0]);
-        } else if (params.start !== undefined && params.end !== undefined) {
-          // 단일 업데이트인 경우
-          start = params.start;
-          end = params.end;
-        } else {
-          return; // 유효하지 않은 파라미터
+        if (chartRef.current && chartRef.current.getEchartsInstance) {
+          const chartInstance = chartRef.current.getEchartsInstance();
+          if (chartInstance && !chartInstance.isDisposed()) {
+            // dispose 호출 전에 인스턴스가 유효한지 다시 확인
+            chartInstance.dispose();
+          }
         }
-
-        // 상태 업데이트를 한 번만 수행
-        setDataZoomRange({ start, end });
-        updateVisibleDataIndices(start, end);
-      } catch {
+      } catch (e) {
         // 오류 무시
       }
-    },
-    [updateVisibleDataIndices],
-  );
-
-  // echarts 옵션 이벤트 설정 최적화
-  const eventHandlers = useMemo(() => {
-    const handlers: any = {
-      datazoom: handleDataZoom,
-      // 마우스 핸들러는 필수적인 기능만 유지
-      mousemove: () => {},
-      mouseout: () => {},
-      click: () => {},
     };
-    return handlers;
-  }, [handleDataZoom]);
+  }, []);
 
-  // 차트 옵션 업데이트 효과
-  useEffect(() => {
-    if (chartRef.current) {
-      const chartInstance = chartRef.current.getEchartsInstance();
-      if (chartInstance && !chartInstance.isDisposed()) {
-        // replaceMerge를 series만으로 제한하여 불필요한 diff 연산 감소
-        chartInstance.setOption(memoizedOption, { replaceMerge: ['series'] });
-      }
-    }
-  }, [memoizedOption, period]);
-
+  // 기본 렌더 함수
   const renderChart = () => {
-    // 렌더링 중 오류 잡기
-    try {
-      return (
-        <ReactECharts
-          ref={chartRef}
-          option={memoizedOption}
-          style={{ height: `${height}px`, width: '100%' }}
-          notMerge={false}
-          lazyUpdate={true}
-          opts={{ renderer: 'canvas' }}
-          onEvents={eventHandlers}
-          // key를 최소화하여 불필요한 리렌더링 방지
-          key={`chart-${period}`}
-        />
-      );
-    } catch {
-      // 오류 무시
-      return (
-        <div
-          style={{
-            height: `${height}px`,
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            backgroundColor: '#0D192B',
-          }}
-        >
-          차트 로딩 중...
-        </div>
-      );
-    }
+    // 간단하고 기본적인 설정으로 차트 렌더링
+    return (
+      <ReactECharts
+        ref={chartRef}
+        option={memoizedOption}
+        style={{ height: `${height}px`, width: '100%' }}
+        notMerge={true}
+        lazyUpdate={true}
+        opts={{
+          renderer: 'canvas',
+        }}
+        // 기간이 변경될 때마다 차트를 완전히 새로 렌더링 + 랜덤 요소 추가
+        key={`chart-${period}-${Math.random().toString(36).substring(2, 9)}`}
+      />
+    );
   };
 
   return (
@@ -1524,25 +1479,29 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         <div className="ml-auto flex items-center gap-2">
           <button
             className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => setPeriod('MINUTE')}
+            onClick={() => handlePeriodChange('MINUTE')}
+            type="button"
           >
             1분
           </button>
           <button
             className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => setPeriod('DAY')}
+            onClick={() => handlePeriodChange('DAY')}
+            type="button"
           >
             일
           </button>
           <button
             className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => setPeriod('WEEK')}
+            onClick={() => handlePeriodChange('WEEK')}
+            type="button"
           >
             주
           </button>
           <button
             className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => setPeriod('MONTH')}
+            onClick={() => handlePeriodChange('MONTH')}
+            type="button"
           >
             월
           </button>
