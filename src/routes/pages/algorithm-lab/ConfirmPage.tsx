@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
+import { useCreateAlgorithm } from '@/api/algorithm.api';
 import { Button } from '@/components/ui/button';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
@@ -8,6 +9,7 @@ import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 export const ConfirmPage = () => {
   const isValidAccess = useAlgorithmLabGuard('confirm');
   const navigate = useNavigate();
+  const createAlgorithm = useCreateAlgorithm();
   const {
     algorithmName,
     investmentStyle,
@@ -66,7 +68,32 @@ export const ConfirmPage = () => {
   };
 
   const handleComplete = () => {
-    // TODO: API 호출 등 완료 처리
+    createAlgorithm.mutate({
+      memberId: '1',
+      algorithm: {
+        algorithmName,
+        entryMethod: 'ONCE',
+        exitMethod: 'ONCE',
+        entryInvestmentMethod: investmentMethod === 'fixed' ? 'FIXED_AMOUNT' : 'FIXED_PERCENTAGE',
+        entryFixedAmount: investmentMethod === 'fixed' ? investmentAmount : undefined,
+        entryFixedPercentage: investmentMethod === 'ratio' ? investmentAmount : 100,
+        exitInvestmentMethod: undefined,
+        exitFixedAmount: undefined,
+        exitFixedPercentage: undefined,
+        profitPercentToSell: profitPercentToSell ?? undefined,
+        lossPercentToSell: lossPercentToSell ?? undefined,
+        oneMinuteIncreasePercent: oneMinuteIncreasePercent ?? undefined,
+        oneMinuteDecreasePercent: oneMinuteDecreasePercent ?? undefined,
+        oneMinuteIncreaseAction: oneMinuteIncreaseAction ?? undefined,
+        oneMinuteDecreaseAction: oneMinuteDecreaseAction ?? undefined,
+        dailyIncreasePercent: dailyIncreasePercent ?? undefined,
+        dailyDecreasePercent: dailyDecreasePercent ?? undefined,
+        dailyIncreaseAction: dailyIncreaseAction ?? undefined,
+        dailyDecreaseAction: dailyDecreaseAction ?? undefined,
+        shortTermMaPeriod: shortTermMaPeriod ?? undefined,
+        longTermMaPeriod: longTermMaPeriod ?? undefined,
+      },
+    });
     navigate('/member/algorithm', { replace: true });
   };
 
