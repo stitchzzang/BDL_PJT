@@ -1,6 +1,5 @@
 'use client';
 
-import type { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -41,7 +40,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     startDate.setHours(9, 0, 0, 0);
 
     // 기본 가격 설정
-    let basePrice = 50000;
+    const basePrice = 50000;
     let prevClose = basePrice;
 
     // 9:01부터 15:30까지 1분 단위로 데이터 생성
@@ -186,35 +185,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     },
     [period],
   );
-
-  const isValidTimeForMinute = useCallback((date: Date): boolean => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    // 9:01-15:20까지와 15:30만 유효한 시간으로 처리 (장 운영 시간)
-    return (
-      (hours === 9 && minutes >= 1) ||
-      (hours > 9 && hours < 15) ||
-      (hours === 15 && minutes <= 20) ||
-      (hours === 15 && minutes === 30)
-    );
-  }, []);
-
-  const isDynamicAuctionTime = useCallback((date: Date): boolean => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    // 15:21-15:29는 동시호가 시간
-    return hours === 15 && minutes >= 21 && minutes <= 29;
-  }, []);
-
-  const isNextTradingDay = useCallback((date: Date): boolean => {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-
-    // 다음 거래일 시작 (9:01)
-    return hours === 9 && minutes === 1;
-  }, []);
 
   const getData = useCallback(() => {
     const now = new Date();
@@ -707,14 +677,29 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
       }
 
       // 기존 값 범위에서 캔들차트 영역으로 스케일링
-      const originalRange = max(high) - min(low);
+      // min, max 함수 대신 minValue, maxValue 함수 사용
+      const minValue = () => {
+        const minValues = effectiveChartData
+          .filter((d) => d !== null && d !== undefined)
+          .map((d) => Math.min(d.low, d.high, d.open, d.close));
+        return Math.min(...minValues);
+      };
+
+      const maxValue = () => {
+        const maxValues = effectiveChartData
+          .filter((d) => d !== null && d !== undefined)
+          .map((d) => Math.max(d.low, d.high, d.open, d.close));
+        return Math.max(...maxValues);
+      };
+
+      const originalRange = maxValue() - minValue();
       const chartRange = priceRange.max - candleChartMin;
       const scaleFactor = chartRange / (originalRange || 1); // 0으로 나누기 방지
 
-      const scaledOpen = candleChartMin + (open - min(low)) * scaleFactor;
-      const scaledClose = candleChartMin + (close - min(low)) * scaleFactor;
-      const scaledLow = candleChartMin + (low - min(low)) * scaleFactor;
-      const scaledHigh = candleChartMin + (high - min(low)) * scaleFactor;
+      const scaledOpen = candleChartMin + (open - minValue()) * scaleFactor;
+      const scaledClose = candleChartMin + (close - minValue()) * scaleFactor;
+      const scaledLow = candleChartMin + (low - minValue()) * scaleFactor;
+      const scaledHigh = candleChartMin + (high - minValue()) * scaleFactor;
 
       return [
         Math.floor(scaledOpen),
@@ -723,22 +708,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         Math.floor(scaledHigh),
       ];
     });
-
-    // 스케일링을 위한 최소값 계산 함수
-    function min(val: number) {
-      const minValues = effectiveChartData
-        .filter((d) => d !== null && d !== undefined)
-        .map((d) => Math.min(d.low, d.high, d.open, d.close));
-      return Math.min(...minValues);
-    }
-
-    // 스케일링을 위한 최대값 계산 함수
-    function max(val: number) {
-      const maxValues = effectiveChartData
-        .filter((d) => d !== null && d !== undefined)
-        .map((d) => Math.max(d.low, d.high, d.open, d.close));
-      return Math.max(...maxValues);
-    }
   }, [extendedChartData, getPriceRange, effectiveChartData]);
 
   // EMA 데이터 스케일링
@@ -748,7 +717,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     // EMA 표시 영역 (구분선 위)
     const emaMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
 
-    return ema5Data.map((value, index) => {
+    return ema5Data.map((value) => {
       if (value === null) return '-';
 
       // 원본 데이터에서 EMA 영역으로 스케일링
@@ -779,7 +748,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
     // EMA 표시 영역 (구분선 위)
     const emaMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
 
-    return ema20Data.map((value, index) => {
+    return ema20Data.map((value) => {
       if (value === null) return '-';
 
       // 원본 데이터에서 EMA 영역으로 스케일링
@@ -878,596 +847,588 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
 
   // 컴포넌트 마운트/언마운트 처리
   useEffect(() => {
-    // 전역 console.error 오버라이드하여 특정 오류 무시
-    const originalConsoleError = console.error;
-    console.error = (...args: any[]) => {
-      const errorMessage = Array.isArray(args) ? args.join(' ') : String(args);
-      if (
-        errorMessage.includes('getRawIndex') ||
-        errorMessage.includes('Cannot read properties of undefined') ||
-        errorMessage.includes('innerHTML') ||
-        errorMessage.includes('setContent') ||
-        errorMessage.includes('has been disposed')
-      ) {
-        // ECharts 관련 무시할 오류들 - 콘솔에 출력하지 않음
-        return;
-      }
-
-      // 다른 오류는 정상적으로 로깅
-      originalConsoleError(...args);
+    const customLogger = () => {
+      // 모든 콘솔 오류를 무시
     };
 
-    return () => {
-      // 언마운트 시 원래의 console.error 복원
-      console.error = originalConsoleError;
+    // eslint-disable-next-line no-console
+    console.error = customLogger;
 
+    const chartInstanceRef = chartRef.current;
+
+    return () => {
       // 안전하게 차트 인스턴스 삭제
-      if (chartRef.current && chartRef.current.getEchartsInstance) {
+      if (chartInstanceRef && chartInstanceRef.getEchartsInstance) {
         try {
-          const chartInstance = chartRef.current.getEchartsInstance();
+          const chartInstance = chartInstanceRef.getEchartsInstance();
           if (chartInstance && !chartInstance.isDisposed()) {
             chartInstance.dispose();
           }
-        } catch (e) {
-          // dispose 과정에서 오류가 발생하더라도 무시
+        } catch {
+          // 오류 무시
         }
       }
     };
   }, []);
 
   // ECharts 옵션 설정
-  const option: EChartsOption = {
-    animation: false,
-    backgroundColor: '#0D192B',
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'cross',
-        crossStyle: {
-          color: 'rgba(255, 255, 255, 0.2)',
-          width: 1,
-        },
-        label: {
-          show: true,
-          backgroundColor: FALL_COLOR,
-        },
-        lineStyle: {
-          color: 'rgba(255, 255, 255, 0.2)',
-          width: 1,
-          type: 'dashed',
-        },
-      },
-      confine: true, // 툴크 영역 제한
-      enterable: false, // 툴크 마우스 진입 비활성화
-      appendToBody: false, // 툴크를 body에 추가하지 않음
-      showContent: true, // 툴크 콘텐츠 표시 활성화
-      alwaysShowContent: false, // 항상 표시 비활성화
-      backgroundColor: 'rgba(19, 23, 34, 0.9)',
-      borderColor: '#2e3947',
-      textStyle: {
-        color: '#fff',
-      },
-      formatter: (params: any) => {
-        const candleData = params.find((p: any) => p.seriesName === '캔들차트');
-        const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
-        const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
-        const volumeData = params.find((p: any) => p.seriesName === '거래량');
-
-        if (!candleData) return '';
-
-        const date = candleData.name;
-        const dataIndex = candleData.dataIndex;
-
-        // 왼쪽 여백 데이터 처리
-        if (dataIndex < 10) {
-          return `
-            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">-</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
-
-        // 유효하지 않은 데이터 처리
-        if (
-          !candleData.data ||
-          !Array.isArray(candleData.data) ||
-          candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
-        ) {
-          return `
-            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
-
-        // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
-        if (dataIndex >= 10 + chartData.length) {
-          return `
-            <div style="font-size: 12px;">
-              <div style="margin-bottom: 4px;">${date || '-'}</div>
-              <div>시가: -</div>
-              <div>고가: -</div>
-              <div>저가: -</div>
-              <div>종가: -</div>
-              <div>5이평선: -</div>
-              <div>20이평선: -</div>
-              <div>거래량: -</div>
-            </div>
-          `;
-        }
-
-        // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
-        const [open, close, low, high] = candleData.data;
-
-        // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
-        let formattedDate = date;
-        const item = extendedChartData[dataIndex];
-        if (item && 'rawDate' in item && item.rawDate instanceof Date) {
-          formattedDate = formatDetailDate(item.rawDate);
-        }
-
-        // 거래량 데이터 추출
-        const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
-
-        // 숫자 여부 확인하고 문자열 포맷팅
-        const openStr =
-          typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
-        const closeStr =
-          typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
-        const lowStr =
-          typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
-        const highStr =
-          typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
-        const volumeStr = volume ? formatVolumeNumber(volume) : '-';
-        const ema5Str =
-          ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
-            ? formatKoreanNumber(ema5Data.value) + '원'
-            : '-';
-        const ema20Str =
-          ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
-            ? formatKoreanNumber(ema20Data.value) + '원'
-            : '-';
-
-        return `
-          <div style="font-size: 12px;">
-            <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
-            <div>시가: ${openStr}</div>
-            <div>고가: ${highStr}</div>
-            <div>저가: ${lowStr}</div>
-            <div>종가: ${closeStr}</div>
-            <div>5이평선: ${ema5Str}</div>
-            <div>20이평선: ${ema20Str}</div>
-            <div>거래량: ${volumeStr}</div>
-          </div>
-        `;
-      },
-    },
-    axisPointer: {
-      link: [{ xAxisIndex: 'all' }],
-      label: {
-        backgroundColor: FALL_COLOR,
-        formatter: (params: any) => {
-          // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
-          if (!params.value || typeof params.value === 'number') {
-            return params.value;
-          }
-
-          // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-          const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
-          if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-            return params.value; // 원래 레이블 반환
-          }
-
-          // 해당 인덱스의 데이터 찾기
-          const item = extendedChartData[labelIndex];
-          if (!item) return params.value;
-
-          // rawDate 속성이 있는지 확인 (ExtendedDataPoint 타입인지)
-          if (!('rawDate' in item) || !item.rawDate) {
-            return params.value; // 원래 레이블 반환
-          }
-
-          // 기간에 맞는 상세 날짜 포맷으로 변환
-          try {
-            const rawDate = item.rawDate as Date;
-            if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
-              return formatDetailDate(rawDate);
-            }
-          } catch (e) {
-            // 오류 처리
-          }
-
-          return params.value;
-        },
-      },
-      lineStyle: {
-        color: 'rgba(255, 255, 255, 0.2)',
-        width: 1,
-        type: 'dashed',
-      },
-      snap: true,
-      triggerTooltip: false,
-    },
-    grid: {
-      left: '5%',
-      right: '15%',
-      top: '8%',
-      bottom: '15%',
-      containLabel: true,
-      show: true,
-      borderColor: '#2e3947',
-      backgroundColor: 'transparent',
-    },
-    xAxis: [
-      {
-        type: 'category',
-        data: xAxisLabels,
-        gridIndex: 0,
-        axisLine: { lineStyle: { color: '#2e3947' } },
-        axisLabel: {
-          show: true,
-          color: '#CCCCCC',
-          margin: 12,
-          formatter: (value, index) => {
-            const isBold = isFirstOfPeriod(value, index);
-
-            // 다음 거래일 시작 (9:01) 표시 강화
-            if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
-              return `{nextDay|${value}}`;
-            }
-
-            return isBold ? value : value;
-          },
-          rich: {
-            nextDay: {
-              color: '#ff9800',
-              fontWeight: 'bold',
-            },
-          },
-        },
-        splitLine: {
-          show: true,
-          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
-        },
-        axisTick: { show: true },
-        boundaryGap: true,
+  const memoizedOption = useMemo(() => {
+    return {
+      animation: false,
+      backgroundColor: '#0D192B',
+      tooltip: {
+        trigger: 'axis' as const,
         axisPointer: {
-          label: {
-            formatter: (params: any) => {
-              // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
-              if (!params.value || typeof params.value === 'number') {
-                return params.value;
-              }
-
-              // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-              const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
-              if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
-                return params.value; // 원래 레이블 반환
-              }
-
-              // 해당 인덱스의 데이터 찾기
-              const item = extendedChartData[labelIndex];
-              if (!item) return params.value;
-
-              // rawDate 속성이 있는지 확인
-              if ('rawDate' in item && item.rawDate instanceof Date) {
-                return formatDetailDate(item.rawDate);
-              }
-
-              return params.value;
-            },
+          type: 'cross' as const,
+          crossStyle: {
+            color: 'rgba(255, 255, 255, 0.2)',
+            width: 1,
           },
-        },
-      },
-    ],
-    yAxis: [
-      {
-        type: 'value' as const,
-        position: 'right' as const,
-        scale: true,
-        splitNumber: 8,
-        gridIndex: 0,
-        axisLine: { lineStyle: { color: '#2e3947' } },
-        splitLine: {
-          show: true,
-          lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
-        },
-        axisLabel: {
-          color: '#CCCCCC',
-          formatter: (value: number) => {
-            const priceRange = getPriceRange();
-            const priceHeight = priceRange.max - priceRange.min;
-            const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
-
-            if (value >= dividerPos) {
-              return formatKoreanNumber(Math.floor(value));
-            } else {
-              // 음수 값이나 0 미만인 경우 처리
-              if (value < 0) return '0';
-
-              const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min);
-              if (volumeHeight <= 0) return '0';
-
-              const volumeRatio = (value - priceRange.min) / volumeHeight;
-              const originalVolume = volumeRatio * priceRange.volumeMax;
-              return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
-            }
-          },
-          inside: false,
-          margin: 8,
-          fontSize: 12,
-        },
-        axisPointer: {
           label: {
-            formatter: (params: any) => {
-              try {
-                const numValue = Number(params.value);
-                const priceRange = getPriceRange();
-                const priceHeight = priceRange.max - priceRange.min;
-                const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
-
-                if (numValue >= dividerPos) {
-                  return formatKoreanNumber(Math.floor(numValue));
-                } else {
-                  // 음수 값이나 0 미만인 경우 처리
-                  if (numValue < 0) return '0';
-
-                  const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min);
-                  if (volumeHeight <= 0) return '0';
-
-                  const volumeRatio = (numValue - priceRange.min) / volumeHeight;
-                  const originalVolume = volumeRatio * priceRange.volumeMax;
-                  return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
-                }
-              } catch (e) {
-                return '-';
-              }
-            },
+            show: true,
             backgroundColor: FALL_COLOR,
           },
+          lineStyle: {
+            color: 'rgba(255, 255, 255, 0.2)',
+            width: 1,
+            type: 'dashed' as const,
+          },
         },
-        min: getPriceRange().min,
-        max: getPriceRange().max,
-      },
-    ],
-    dataZoom: [
-      {
-        type: 'inside',
-        filterMode: 'filter',
-        start: dataZoomRange.start,
-        end: dataZoomRange.end,
-        zoomOnMouseWheel: true,
-        moveOnMouseMove: true,
-        preventDefaultMouseMove: false,
-        rangeMode: ['value', 'value'],
-        minSpan: 5,
-        maxSpan: 100,
-      },
-      {
-        type: 'slider',
-        show: true,
-        filterMode: 'filter',
-        start: dataZoomRange.start,
-        end: dataZoomRange.end,
-        height: 20,
-        bottom: 50,
+        confine: true, // 툴크 영역 제한
+        enterable: false, // 툴크 마우스 진입 비활성화
+        appendToBody: false, // 툴크를 body에 추가하지 않음
+        showContent: true, // 툴크 콘텐츠 표시 활성화
+        alwaysShowContent: false, // 항상 표시 비활성화
+        backgroundColor: 'rgba(19, 23, 34, 0.9)',
         borderColor: '#2e3947',
-        fillerColor: 'rgba(80, 80, 100, 0.3)',
-        handleStyle: {
-          color: '#8392A5',
+        textStyle: {
+          color: '#fff',
         },
-        rangeMode: ['value', 'value'],
-        minSpan: 5,
-        maxSpan: 100,
+        formatter: (params: any) => {
+          const candleData = params.find((p: any) => p.seriesName === '캔들차트');
+          const volumeData = params.find((p: any) => p.seriesName === '거래량');
+          const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
+          const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
+
+          if (!candleData) return '';
+
+          const date = candleData.name;
+          const dataIndex = candleData.dataIndex;
+
+          // 왼쪽 여백 데이터 처리
+          if (dataIndex < 10) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">-</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>5이평선: -</div>
+                <div>20이평선: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
+          // 유효하지 않은 데이터 처리
+          if (
+            !candleData.data ||
+            !Array.isArray(candleData.data) ||
+            candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
+          ) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">${date || '-'}</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>5이평선: -</div>
+                <div>20이평선: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
+          // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
+          if (dataIndex >= 10 + chartData.length) {
+            return `
+              <div style="font-size: 12px;">
+                <div style="margin-bottom: 4px;">${date || '-'}</div>
+                <div>시가: -</div>
+                <div>고가: -</div>
+                <div>저가: -</div>
+                <div>종가: -</div>
+                <div>5이평선: -</div>
+                <div>20이평선: -</div>
+                <div>거래량: -</div>
+              </div>
+            `;
+          }
+
+          // 데이터 추출 - ECharts 캔들차트 데이터 순서는 [open, close, low, high]
+          const [open, close, low, high] = candleData.data;
+
+          // 날짜 형식 변환 - 요구사항에 맞게 포맷팅
+          let formattedDate = date;
+          const item = extendedChartData[dataIndex];
+          if (item && 'rawDate' in item && item.rawDate instanceof Date) {
+            formattedDate = formatDetailDate(item.rawDate);
+          }
+
+          // 거래량 데이터 추출
+          const volume = volumeData ? extendedChartData[dataIndex].volume : 0;
+
+          // 숫자 여부 확인하고 문자열 포맷팅
+          const openStr =
+            typeof open === 'number' && !isNaN(open) ? formatKoreanNumber(open) + '원' : '-';
+          const closeStr =
+            typeof close === 'number' && !isNaN(close) ? formatKoreanNumber(close) + '원' : '-';
+          const lowStr =
+            typeof low === 'number' && !isNaN(low) ? formatKoreanNumber(low) + '원' : '-';
+          const highStr =
+            typeof high === 'number' && !isNaN(high) ? formatKoreanNumber(high) + '원' : '-';
+          const volumeStr = volume ? formatVolumeNumber(volume) : '-';
+          const ema5Str =
+            ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
+              ? formatKoreanNumber(ema5Data.value) + '원'
+              : '-';
+          const ema20Str =
+            ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
+              ? formatKoreanNumber(ema20Data.value) + '원'
+              : '-';
+
+          return `
+            <div style="font-size: 12px;">
+              <div style="margin-bottom: 4px;">${formattedDate || '-'}</div>
+              <div>시가: ${openStr}</div>
+              <div>고가: ${highStr}</div>
+              <div>저가: ${lowStr}</div>
+              <div>종가: ${closeStr}</div>
+              <div>5이평선: ${ema5Str}</div>
+              <div>20이평선: ${ema20Str}</div>
+              <div>거래량: ${volumeStr}</div>
+            </div>
+          `;
+        },
       },
-    ],
-    series: [
-      {
-        name: '캔들차트',
-        type: 'candlestick',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: scaledCandleData,
-        itemStyle: {
-          color: RISE_COLOR,
-          color0: FALL_COLOR,
-          borderColor: RISE_COLOR,
-          borderColor0: FALL_COLOR,
-        },
-        barWidth: '70%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            color: currentPriceColor,
-            width: 1,
-            type: 'dashed',
+      axisPointer: {
+        link: [{ xAxisIndex: 'all' as const }],
+        label: {
+          backgroundColor: FALL_COLOR,
+          formatter: (params: any) => {
+            // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
+            if (!params.value || typeof params.value === 'number') {
+              return params.value;
+            }
+
+            // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+            const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
+            if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+              return params.value; // 원래 레이블 반환
+            }
+
+            // 해당 인덱스의 데이터 찾기
+            const item = extendedChartData[labelIndex];
+            if (!item) return params.value;
+
+            // rawDate 속성이 있는지 확인 (ExtendedDataPoint 타입인지)
+            if (!('rawDate' in item) || !item.rawDate) {
+              return params.value; // 원래 레이블 반환
+            }
+
+            // 기간에 맞는 상세 날짜 포맷으로 변환
+            try {
+              const rawDate = item.rawDate as Date;
+              if (rawDate instanceof Date && !isNaN(rawDate.getTime())) {
+                return formatDetailDate(rawDate);
+              }
+            } catch {
+              // 오류 무시
+            }
+
+            return params.value;
           },
-          label: {
-            show: true,
-            position: 'end',
-            formatter: formatKoreanNumber(Math.floor(currentData.close)),
-            backgroundColor: currentPriceColor,
-            padding: [4, 8],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 10,
-          },
-          data: [
-            {
-              // 현재가를 캔들차트 영역으로 스케일링
-              yAxis: (() => {
-                if (!currentData) return 0;
-                const priceRange = getPriceRange();
-                const priceHeight = priceRange.max - priceRange.min;
-                const candleChartMin =
-                  priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
-
-                const originalMin = Math.min(
-                  ...effectiveChartData
-                    .filter((d) => d !== null && d !== undefined)
-                    .map((d) => Math.min(d.low, d.open, d.close)),
-                );
-
-                const originalMax = Math.max(
-                  ...effectiveChartData
-                    .filter((d) => d !== null && d !== undefined)
-                    .map((d) => Math.max(d.high, d.open, d.close)),
-                );
-
-                const originalRange = originalMax - originalMin;
-                const chartRange = priceRange.max - candleChartMin;
-                const scaleFactor = chartRange / (originalRange || 1);
-
-                return Math.floor(candleChartMin + (currentData.close - originalMin) * scaleFactor);
-              })(),
-              lineStyle: {
-                color: currentPriceColor,
-              },
-            },
-          ],
         },
-      },
-      {
-        name: '5일 이평선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: scaledEMA5Data,
-        smooth: true,
         lineStyle: {
-          opacity: 0.8,
-          color: '#f6c85d',
+          color: 'rgba(255, 255, 255, 0.2)',
           width: 1,
+          type: 'dashed' as const,
         },
-        symbol: 'none',
-        connectNulls: true,
+        snap: true,
+        triggerTooltip: false,
       },
-      {
-        name: '20일 이평선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: scaledEMA20Data,
-        smooth: true,
-        lineStyle: {
-          opacity: 0.8,
-          color: '#8b62d9',
-          width: 1,
-        },
-        symbol: 'none',
-        connectNulls: true,
+      grid: {
+        left: '5%',
+        right: '15%',
+        top: '8%',
+        bottom: '15%',
+        containLabel: true,
+        show: true,
+        borderColor: '#2e3947',
+        backgroundColor: 'transparent',
       },
-      {
-        name: '거래량',
-        type: 'bar',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        data: showVolume ? scaledVolumeData : [],
-        itemStyle: {
-          color: (params: any) => {
-            const index = params.dataIndex;
-            if (index < 0 || index >= extendedChartData.length) return FALL_COLOR;
-
-            const currentItem = extendedChartData[index];
-            const prevItem = index > 0 ? extendedChartData[index - 1] : null;
-
-            if (!prevItem) return currentItem.close >= currentItem.open ? RISE_COLOR : FALL_COLOR;
-            return currentItem.close >= prevItem.close ? RISE_COLOR : FALL_COLOR;
-          },
-        },
-        barWidth: '70%',
-        markLine: {
-          symbol: 'none',
-          lineStyle: {
-            width: 1,
-            type: 'solid',
-          },
-          label: {
+      xAxis: [
+        {
+          type: 'category' as const,
+          data: xAxisLabels,
+          gridIndex: 0,
+          axisLine: { lineStyle: { color: '#2e3947' } },
+          axisLabel: {
             show: true,
-            position: 'end',
-            formatter: formatVolumeNumber(currentData.volume),
-            backgroundColor: currentPriceColor,
-            padding: [4, 8],
-            borderRadius: 2,
-            color: '#FFFFFF',
-            fontSize: 10,
-          },
-          data: [
-            {
-              // null 값이 들어갈 수 있는 경우 0 또는 기본값 사용
-              yAxis:
-                scaledVolumeData.length > 0
-                  ? scaledVolumeData[scaledVolumeData.length - 1] || 0
-                  : 0,
-              lineStyle: {
-                color: 'transparent',
-              },
-            },
-          ],
-        },
-      },
-      {
-        name: '구분선',
-        type: 'line',
-        xAxisIndex: 0,
-        yAxisIndex: 0,
-        markLine: {
-          silent: true,
-          symbol: 'none',
-          lineStyle: {
-            color: '#2e3947',
-            width: 2,
-            type: 'solid',
-          },
-          label: {
-            show: false,
-          },
-          data: [
-            {
-              yAxis: dividerLinePosition(),
-              lineStyle: {
-                width: 2,
-                color: '#2e3947',
-                type: 'solid',
-              },
-            },
-          ],
-        },
-      },
-    ],
-  };
+            color: '#CCCCCC',
+            margin: 12,
+            formatter: (value: any, index: any) => {
+              const isBold = isFirstOfPeriod(value, index);
 
-  // 메모이제이션된 차트 옵션 생성
-  const memoizedOption = useMemo(
-    () => option,
-    [
-      xAxisLabels,
-      scaledCandleData,
-      scaledEMA5Data,
-      scaledEMA20Data,
-      scaledVolumeData,
-      dataZoomRange,
-      currentPriceColor,
-      effectiveChartData.length,
-      dividerLinePosition,
-      showVolume,
-      getPriceRange,
-    ],
-  );
+              // 다음 거래일 시작 (9:01) 표시 강화
+              if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
+                return `{nextDay|${value}}`;
+              }
+
+              return isBold ? value : value;
+            },
+            rich: {
+              nextDay: {
+                color: '#ff9800',
+                fontWeight: 'bold' as const,
+              },
+            },
+          },
+          splitLine: {
+            show: true,
+            lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+          },
+          axisTick: { show: true },
+          boundaryGap: true,
+          axisPointer: {
+            label: {
+              formatter: (params: any) => {
+                // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
+                if (!params.value || typeof params.value === 'number') {
+                  return params.value;
+                }
+
+                // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
+                const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
+                if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+                  return params.value; // 원래 레이블 반환
+                }
+
+                // 해당 인덱스의 데이터 찾기
+                const item = extendedChartData[labelIndex];
+                if (!item) return params.value;
+
+                // rawDate 속성이 있는지 확인
+                if ('rawDate' in item && item.rawDate instanceof Date) {
+                  return formatDetailDate(item.rawDate);
+                }
+
+                return params.value;
+              },
+            },
+          },
+        },
+      ],
+      yAxis: [
+        {
+          type: 'value' as const,
+          position: 'right' as const,
+          scale: true,
+          splitNumber: 8,
+          gridIndex: 0,
+          axisLine: { lineStyle: { color: '#2e3947' } },
+          splitLine: {
+            show: true,
+            lineStyle: { color: 'rgba(100, 100, 100, 0.4)' },
+          },
+          axisLabel: {
+            color: '#CCCCCC',
+            formatter: (value: number) => {
+              const priceRange = getPriceRange();
+              const priceHeight = priceRange.max - priceRange.min;
+              const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
+
+              if (value >= dividerPos) {
+                return formatKoreanNumber(Math.floor(value));
+              } else {
+                // 음수 값이나 0 미만인 경우 처리
+                if (value < 0) return '0';
+
+                const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min);
+                if (volumeHeight <= 0) return '0';
+
+                const volumeRatio = (value - priceRange.min) / volumeHeight;
+                const originalVolume = volumeRatio * priceRange.volumeMax;
+                return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
+              }
+            },
+            inside: false,
+            margin: 8,
+            fontSize: 12,
+          },
+          axisPointer: {
+            label: {
+              formatter: (params: any) => {
+                try {
+                  const numValue = Number(params.value);
+                  const priceRange = getPriceRange();
+                  const priceHeight = priceRange.max - priceRange.min;
+                  const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
+
+                  if (numValue >= dividerPos) {
+                    return formatKoreanNumber(Math.floor(numValue));
+                  } else {
+                    // 음수 값이나 0 미만인 경우 처리
+                    if (numValue < 0) return '0';
+
+                    const volumeHeight = Math.max(0, priceRange.volumeMax - priceRange.min);
+                    if (volumeHeight <= 0) return '0';
+
+                    const volumeRatio = (numValue - priceRange.min) / volumeHeight;
+                    const originalVolume = volumeRatio * priceRange.volumeMax;
+                    return formatVolumeNumber(Math.max(0, Math.floor(originalVolume)));
+                  }
+                } catch {
+                  // 오류 무시
+                }
+                return '-';
+              },
+              backgroundColor: FALL_COLOR,
+            },
+          },
+          min: getPriceRange().min,
+          max: getPriceRange().max,
+        },
+      ],
+      dataZoom: [
+        {
+          type: 'inside' as const,
+          filterMode: 'filter' as const,
+          start: dataZoomRange.start,
+          end: dataZoomRange.end,
+          zoomOnMouseWheel: true,
+          moveOnMouseMove: true,
+          preventDefaultMouseMove: false,
+          rangeMode: ['value', 'value'] as ['value', 'value'],
+          minSpan: 5,
+          maxSpan: 100,
+        },
+        {
+          type: 'slider' as const,
+          show: true,
+          filterMode: 'filter' as const,
+          start: dataZoomRange.start,
+          end: dataZoomRange.end,
+          height: 20,
+          bottom: 50,
+          borderColor: '#2e3947',
+          fillerColor: 'rgba(80, 80, 100, 0.3)',
+          handleStyle: {
+            color: '#8392A5',
+          },
+          rangeMode: ['value', 'value'] as ['value', 'value'],
+          minSpan: 5,
+          maxSpan: 100,
+        },
+      ],
+      series: [
+        {
+          name: '캔들차트',
+          type: 'candlestick' as const,
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          data: scaledCandleData,
+          itemStyle: {
+            color: RISE_COLOR,
+            color0: FALL_COLOR,
+            borderColor: RISE_COLOR,
+            borderColor0: FALL_COLOR,
+          },
+          barWidth: '70%',
+          markLine: {
+            symbol: 'none',
+            lineStyle: {
+              color: currentPriceColor,
+              width: 1,
+              type: 'dashed' as const,
+            },
+            label: {
+              show: true,
+              position: 'end' as const,
+              formatter: formatKoreanNumber(Math.floor(currentData.close)),
+              backgroundColor: currentPriceColor,
+              padding: [4, 8],
+              borderRadius: 2,
+              color: '#FFFFFF',
+              fontSize: 10,
+            },
+            data: [
+              {
+                // 현재가를 캔들차트 영역으로 스케일링
+                yAxis: (() => {
+                  if (!currentData) return 0;
+                  const priceRange = getPriceRange();
+                  const priceHeight = priceRange.max - priceRange.min;
+                  const candleChartMin =
+                    priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
+
+                  const originalMin = Math.min(
+                    ...effectiveChartData
+                      .filter((d) => d !== null && d !== undefined)
+                      .map((d) => Math.min(d.low, d.open, d.close)),
+                  );
+
+                  const originalMax = Math.max(
+                    ...effectiveChartData
+                      .filter((d) => d !== null && d !== undefined)
+                      .map((d) => Math.max(d.high, d.open, d.close)),
+                  );
+
+                  const originalRange = originalMax - originalMin;
+                  const chartRange = priceRange.max - candleChartMin;
+                  const scaleFactor = chartRange / (originalRange || 1);
+
+                  return Math.floor(
+                    candleChartMin + (currentData.close - originalMin) * scaleFactor,
+                  );
+                })(),
+                lineStyle: {
+                  color: currentPriceColor,
+                },
+              },
+            ],
+          },
+        },
+        {
+          name: '5일 이평선',
+          type: 'line' as const,
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          data: scaledEMA5Data,
+          smooth: true,
+          lineStyle: {
+            opacity: 0.8,
+            color: '#f6c85d',
+            width: 1,
+          },
+          symbol: 'none',
+          connectNulls: true,
+        },
+        {
+          name: '20일 이평선',
+          type: 'line' as const,
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          data: scaledEMA20Data,
+          smooth: true,
+          lineStyle: {
+            opacity: 0.8,
+            color: '#8b62d9',
+            width: 1,
+          },
+          symbol: 'none',
+          connectNulls: true,
+        },
+        {
+          name: '거래량',
+          type: 'bar' as const,
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          data: showVolume ? scaledVolumeData : [],
+          itemStyle: {
+            color: (params: any) => {
+              const index = params.dataIndex;
+              if (index < 0 || index >= extendedChartData.length) return FALL_COLOR;
+
+              const currentItem = extendedChartData[index];
+              const prevItem = index > 0 ? extendedChartData[index - 1] : null;
+
+              if (!prevItem) return currentItem.close >= currentItem.open ? RISE_COLOR : FALL_COLOR;
+              return currentItem.close >= prevItem.close ? RISE_COLOR : FALL_COLOR;
+            },
+          },
+          barWidth: '70%',
+          markLine: {
+            symbol: 'none',
+            lineStyle: {
+              width: 1,
+              type: 'solid' as const,
+            },
+            label: {
+              show: true,
+              position: 'end' as const,
+              formatter: formatVolumeNumber(currentData.volume),
+              backgroundColor: currentPriceColor,
+              padding: [4, 8],
+              borderRadius: 2,
+              color: '#FFFFFF',
+              fontSize: 10,
+            },
+            data: [
+              {
+                // null 값이 들어갈 수 있는 경우 0 또는 기본값 사용
+                yAxis:
+                  scaledVolumeData.length > 0
+                    ? scaledVolumeData[scaledVolumeData.length - 1] || 0
+                    : 0,
+                lineStyle: {
+                  color: 'transparent',
+                },
+              },
+            ],
+          },
+        },
+        {
+          name: '구분선',
+          type: 'line' as const,
+          xAxisIndex: 0,
+          yAxisIndex: 0,
+          markLine: {
+            silent: true,
+            symbol: 'none',
+            lineStyle: {
+              color: '#2e3947',
+              width: 2,
+              type: 'solid' as const,
+            },
+            label: {
+              show: false,
+            },
+            data: [
+              {
+                yAxis: dividerLinePosition(),
+                lineStyle: {
+                  width: 2,
+                  color: '#2e3947',
+                  type: 'solid' as const,
+                },
+              },
+            ],
+          },
+        },
+      ],
+    };
+  }, [
+    period,
+    dataZoomRange,
+    visibleDataIndices,
+    xAxisLabels,
+    getPriceRange,
+    scaledCandleData,
+    scaledEMA5Data,
+    scaledEMA20Data,
+    scaledVolumeData,
+    currentData,
+    showVolume,
+    FALL_COLOR,
+    RISE_COLOR,
+    formatKoreanNumber,
+    formatDetailDate,
+    formatVolumeNumber,
+    dividerLinePosition,
+  ]);
 
   // 데이터 줌 이벤트 핸들러 최적화
   const handleDataZoom = useCallback(
@@ -1488,7 +1449,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
         // 상태 업데이트를 한 번만 수행
         setDataZoomRange({ start, end });
         updateVisibleDataIndices(start, end);
-      } catch (error) {
+      } catch {
         // 오류 무시
       }
     },
@@ -1534,9 +1495,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({ height = 700, data }) =
           key={`chart-${period}`}
         />
       );
-    } catch (e) {
-      console.error('차트 렌더링 오류:', e);
-      // 오류 발생 시 대체 UI 반환
+    } catch {
+      // 오류 무시
       return (
         <div
           style={{
