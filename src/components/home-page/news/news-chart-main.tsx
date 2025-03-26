@@ -1,4 +1,4 @@
-import { LatestNews } from '@/api/home.api';
+import { LatestNews } from '@/api/types/home';
 
 interface NewsChartMainProps {
   newsMainInfo?: LatestNews;

@@ -1,3 +1,4 @@
+// 알고리즘 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
@@ -33,3 +34,4 @@ export const useDeleteAlgorithm = () => {
       algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
   });
 };
+
