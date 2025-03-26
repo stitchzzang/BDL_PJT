@@ -2,7 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 
-import { _ky } from '@/api/instance';
+import { _ky, _kyAuth } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 
 interface LoginResult {
@@ -17,11 +17,18 @@ export const authApi = {
         json: { email, password },
       })
       .json<ApiResponse<LoginResult>>(),
+  logout: () => _kyAuth.post('member/logout').json<ApiResponse<void>>(),
 };
 
 export const useLogin = () => {
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.login(email, password).then((res) => res.result),
+  });
+};
+
+export const useLogout = () => {
+  return useMutation({
+    mutationFn: () => authApi.logout().then((res) => res.result),
   });
 };

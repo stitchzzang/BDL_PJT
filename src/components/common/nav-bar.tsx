@@ -2,11 +2,15 @@ import { Bars3Icon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/o
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useLogout } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const NavBar = () => {
   const navigate = useNavigate();
+  const { isLogin, logoutAuth } = useAuthStore();
+  const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -139,9 +143,26 @@ export const NavBar = () => {
 
       {/* 로그인/프로필 영역 */}
       <div className="flex items-center gap-2">
-        <Button variant="blue" onClick={() => navigate('/login')}>
-          로그인
-        </Button>
+        {isLogin ? (
+          <>
+            <Button
+              variant="blue"
+              onClick={() => {
+                logout();
+                logoutAuth();
+              }}
+            >
+              로그아웃
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="blue" onClick={() => navigate('/login')}>
+              로그인
+            </Button>
+          </>
+        )}
+
         <button onClick={() => navigate('/member/stock-tutorial-result')}>
           <img
             src="/none-img/none_profile_img.png"
