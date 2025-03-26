@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
-import { LimitOrderData, StockMinuteData } from '@/api/types/stock';
+import { LimitOrderData, MarketOrderData, StockMinuteData } from '@/api/types/stock';
 
 export const StockApi = {
   // 분봉 데이터 가져오기 (limit 값은 직접 입력)
@@ -12,6 +12,7 @@ export const StockApi = {
       .json<ApiResponse<StockMinuteData[]>>(),
 
   //Order API
+
   // 유저 현재 보유 자산
   getUserAsset: (memberId: number) =>
     _ky.get(`member/${memberId}/money`).json<ApiResponse<number>>(),
@@ -32,6 +33,24 @@ export const StockApi = {
           tradeType: tradeType,
           quantity: quantity,
           price: price,
+        },
+      })
+      .json<ApiResponse<string>>(),
+
+  // 시장가 post
+  postStockMarketOrder: (
+    memberId: number,
+    companyId: number,
+    tradeType: number,
+    quantity: number,
+  ) =>
+    _ky
+      .post(`simulated/marketorder`, {
+        json: {
+          memberId: memberId,
+          companyId: companyId,
+          tradeType: tradeType,
+          quantity: quantity,
         },
       })
       .json<ApiResponse<string>>(),
@@ -58,5 +77,13 @@ export const usePostStockLimitOrder = () => {
   return useMutation({
     mutationFn: ({ memberId, companyId, tradeType, quantity, price }: LimitOrderData) =>
       StockApi.postStockLimitOrder(memberId, companyId, tradeType, quantity, price),
+  });
+};
+
+// 시장가 판매,구매 api
+export const usePostStockMarketOrder = () => {
+  return useMutation({
+    mutationFn: ({ memberId, companyId, tradeType, quantity }: MarketOrderData) =>
+      StockApi.postStockMarketOrder(memberId, companyId, tradeType, quantity),
   });
 };
