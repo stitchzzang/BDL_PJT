@@ -9,6 +9,7 @@ interface StockCostHistoryRealTimeProps {
 }
 export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeProps) => {
   const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
+  const [animationKey, setAnimationKey] = useState<number>(0);
 
   // 스크롤바 스타일을 객체로 정의
   const scrollbarStyle = {
@@ -33,6 +34,8 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
   useEffect(() => {
     if (tickData) {
       setTickDataLists((prevData) => [tickData, ...prevData]);
+      // 애니메이션을 위한 코드
+      setAnimationKey((prev) => prev + 1);
     }
   }, [tickData]);
   return (
@@ -57,7 +60,7 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
                 <div className="w-[20%] text-right text-[16px] text-border-color">시간</div>
               </div>
               <div
-                className="max-h-[500px] overflow-y-auto"
+                className="max-h-[450px] animate-fadeIn overflow-y-auto"
                 style={{
                   scrollbarWidth: 'thin',
                   scrollbarColor: '#718096 #1a202c',
@@ -66,8 +69,9 @@ export const StockCostHistoryRealTime = ({ tickData }: StockCostHistoryRealTimeP
                 {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
                 {tickDataLists.map((item, index) => (
                   <div
-                    key={index}
-                    className="my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
+                    // 첫 번째 항목에는 변경되는 키를, 나머지는 인덱스 키를 사용
+                    key={index === 0 ? `item-${animationKey}` : index}
+                    className={`my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color ${index === 0 ? 'animate-fadeIn' : ''}`}
                   >
                     <div className="w-[20%] font-medium">
                       {addCommasToThousand(item.stckPrpr)}원
