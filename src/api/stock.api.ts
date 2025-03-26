@@ -45,6 +45,7 @@ export const useStockMinuteData = (stockId: string, limit: number) => {
 };
 
 //orderAPI
+// 유저 자산 가져오기
 export const useUserAssetData = (memberId: number) => {
   return useQuery({
     queryKey: ['userAssetData'],
