@@ -74,3 +74,28 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* 스크롤바 스타일 */
+html {
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+/* Webkit 브라우저(Chrome, Safari 등) 스크롤바 스타일 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
