@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
-import { MemberInfo, MemberTutorialResults } from '@/api/types/member';
+import { MemberInfo, MemberPassword, MemberTutorialResults } from '@/api/types/member';
 
 export const memberApi = {
   getMemberInfo: ({ memberId }: { memberId: string }) =>
@@ -12,6 +12,9 @@ export const memberApi = {
 
   updateMemberInfo: ({ memberId, data }: { memberId: string; data: MemberInfo }) =>
     _ky.put<ApiResponse<MemberInfo>>(`member/${memberId}`, { json: data }).json(),
+
+  updateMemberPassword: ({ memberId, data }: { memberId: string; data: MemberPassword }) =>
+    _ky.put<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
 
   getTutorialResults: ({ memberId }: { memberId: string }) =>
     _ky.get<ApiResponse<MemberTutorialResults>>(`member/tutorial/${memberId}`).json(),
@@ -48,6 +51,30 @@ export const useUpdateMemberInfo = ({
     },
     onError: () => {
       alert('프로필 업데이트에 실패했습니다. 다시 시도해주세요.');
+      onError?.();
+    },
+  });
+};
+
+export const useUpdateMemberPassword = ({
+  memberId,
+  data,
+  onSuccess,
+  onError,
+}: {
+  memberId: string;
+  data: MemberPassword;
+  onSuccess?: () => void;
+  onError?: () => void;
+}) => {
+  return useMutation({
+    mutationFn: () => memberApi.updateMemberPassword({ memberId, data }),
+    onSuccess: () => {
+      alert('비밀번호가 성공적으로 업데이트되었습니다.');
+      onSuccess?.();
+    },
+    onError: () => {
+      alert('비밀번호 업데이트에 실패했습니다. 다시 시도해주세요.');
       onError?.();
     },
   });
