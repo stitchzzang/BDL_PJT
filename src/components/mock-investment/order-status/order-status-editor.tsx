@@ -31,6 +31,12 @@ export const OrderStatusEditor = ({
 
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (tradeType === 1 && stockCount > userAssetData) {
+      setStockCount(userAssetData);
+    }
+  }, [stockCount, userAssetData, tradeType]);
   // 구매가격
   const [shellCost, setShellCost] = useState<number>(0);
   const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
