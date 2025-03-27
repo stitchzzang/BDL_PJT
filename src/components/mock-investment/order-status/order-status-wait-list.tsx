@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useDeleteUserSimulated } from '@/api/stock.api';
+import { useChangeUserSimulated, useDeleteUserSimulated } from '@/api/stock.api';
 import { UserSimulatedData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
 import { queryClient } from '@/lib/queryClient';
@@ -32,6 +32,35 @@ export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListPr
         console.log('주문 취소 요청 완료');
       },
     });
+  };
+  // 주문 정정
+  const changeSimulatedMutation = useChangeUserSimulated();
+  const handleChangeOrder = (
+    memberId: number,
+    companyId: number,
+    tradeType: number,
+    quantity: number,
+    price: number,
+    orderId: number,
+  ) => {
+    changeSimulatedMutation.mutate(
+      {
+        memberId,
+        companyId,
+        tradeType,
+        quantity,
+        price,
+        orderId,
+      },
+      {
+        onSuccess: () => {
+          alert('주문이 성공적으로 수정되었습니다.');
+        },
+        onError: (error) => {
+          alert('주문 수정에 실패했습니다.');
+        },
+      },
+    );
   };
   // 클릭시 반응형 추가
   const [isActive, setIsActive] = useState<boolean>(false);
@@ -81,3 +110,13 @@ export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListPr
     </div>
   );
 };
+
+
+// onClick={() => handleChangeSimulatedMutation({
+//   memberId: user.id,
+//   companyId: stock.id,
+//   tradeType: 0, // 매수
+//   quantity: 10,
+//   price: 50000,
+//   orderId: order.id
+// })}
