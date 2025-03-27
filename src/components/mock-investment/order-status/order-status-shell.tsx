@@ -64,6 +64,13 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
     const printTotalPrice: number = shellCost * stockCount;
     return printTotalPrice;
   };
+  // 예상 총 판매 금액
+  const estimatedTotalPrice = (estimatedPrice: number | undefined) => {
+    if (estimatedPrice) {
+      const prtinEstimeatedTotalPrice: number = estimatedPrice * stockCount;
+      return prtinEstimeatedTotalPrice;
+    }
+  };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -163,10 +170,25 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
         </div>
         <hr className="border border-border-color border-opacity-20" />
         <div className="mt-[20px] flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className={h3Style}>총 판매 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
-          </div>
+          {isActive === '지정가' ? (
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>총 판매 금액</h3>
+              <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>예상 판매 금액</h3>
+              {realTime ? (
+                <h3 className={h3Style}>
+                  {formatKoreanMoney(estimatedTotalPrice(realTime) ?? 0)} 원
+                </h3>
+              ) : (
+                <h3 className={h3Style}>
+                  {formatKoreanMoney(estimatedTotalPrice(closePrice) ?? 0)} 원
+                </h3>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>보유 주식 개수</h3>
             <h3 className={h3Style}>{userAssetData} 개</h3>
