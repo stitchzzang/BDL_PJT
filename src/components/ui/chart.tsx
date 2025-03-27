@@ -347,11 +347,17 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           crossStyle: {
             color: '#999',
           },
+          label: {
+            backgroundColor: '#1976d2',
+          },
         },
         formatter: tooltipFormatter,
       },
       axisPointer: {
         link: [{ xAxisIndex: 'all' }],
+        label: {
+          backgroundColor: '#1976d2',
+        },
       },
       grid: [
         {
