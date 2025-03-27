@@ -1,6 +1,6 @@
 import { Bars3Icon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 import { useLogout } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
@@ -11,9 +11,24 @@ export const NavBar = () => {
   const { isLogin } = useAuthStore();
   const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleSearch = () => {
+    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+    setSearchValue('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+      setIsOpen(false);
+      setSearchValue('');
+    }
   };
 
   return (
@@ -67,23 +82,20 @@ export const NavBar = () => {
           </NavLink>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
-          <NavLink
-            to="/search"
+          <button
+            onClick={handleSearch}
             className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
           >
             <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
-          </NavLink>
+          </button>
           <input
             className="w-32 bg-transparent text-[#718096] focus:outline-none md:w-40"
             type="text"
             name="search"
-            id="search"
             placeholder="기업을 검색하세요."
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                window.location.href = '/search';
-              }
-            }}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
         </div>
       </div>
@@ -137,22 +149,22 @@ export const NavBar = () => {
               주식 튜토리얼
             </NavLink>
             <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
-              <NavLink
-                to="/search"
+              <button
+                onClick={handleSearch}
                 className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
-                onClick={() => setIsOpen(false)}
               >
                 <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
-              </NavLink>
+              </button>
               <input
                 className="w-full bg-transparent text-[#718096] focus:outline-none"
                 type="text"
                 name="search-mobile"
-                id="search-mobile"
                 placeholder="기업을 검색하세요."
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
-                    window.location.href = '/search';
+                    handleSearch();
                     setIsOpen(false);
                   }
                 }}

@@ -6,3 +6,8 @@ export interface LatestNews {
   newsDate: string;
   newsThumbnailUrl: string | null;
 }
+
+export interface SearchedCompany {
+  categoryId: string;
+  companyName: string;
+}
