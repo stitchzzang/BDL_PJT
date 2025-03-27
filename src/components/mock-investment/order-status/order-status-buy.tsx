@@ -179,7 +179,7 @@ export const OrderStatusBuy = ({
                 </>
               ) : (
                 <NumberInput
-                  value={buyCost}
+                  value={0}
                   setValue={setBuyCost}
                   placeholder="최대한 빠른 가격"
                   className="pointer-events-none bg-background-color"
