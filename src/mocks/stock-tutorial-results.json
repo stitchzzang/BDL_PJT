@@ -1,0 +1,36 @@
+{
+  "tutorials": [
+    {
+      "companyName": "삼성전자",
+      "startMoney": 50000000,
+      "endMoney": 55000000,
+      "changeRate": 10,
+      "startDate": "2023-01-01",
+      "endDate": "2023-12-31"
+    },
+    {
+      "companyName": "현대자동차",
+      "startMoney": 30000000,
+      "endMoney": 27000000,
+      "changeRate": -10,
+      "startDate": "2023-02-01", 
+      "endDate": "2023-12-31"
+    },
+    {
+      "companyName": "SK하이닉스",
+      "startMoney": 40000000,
+      "endMoney": 48000000,
+      "changeRate": 20,
+      "startDate": "2023-03-01",
+      "endDate": "2023-12-31"
+    },
+    {
+      "companyName": "LG에너지솔루션",
+      "startMoney": 35000000,
+      "endMoney": 31500000,
+      "changeRate": -10,
+      "startDate": "2023-04-01",
+      "endDate": "2023-12-31"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 import { useTutorialResults } from '@/api/member.api';
 import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial-result-item';
+import stockTutorialResults from '@/mocks/stock-tutorial-results.json';
 
 export const TutorialResultPage = () => {
   const { data: tutorialResults } = useTutorialResults({ memberId: '1' });
@@ -11,7 +12,7 @@ export const TutorialResultPage = () => {
         <p className="text-text-inactive-2-color">{new Date().toISOString().split('T')[0]}</p>
       </div>
       <hr className="my-3 w-full border-t border-btn-primary-inactive-color" />
-      {tutorialResults?.tutorials.map((result) => (
+      {stockTutorialResults.tutorials.map((result) => (
         <StockTutorialResultItem key={result.companyName} result={result} />
       ))}
     </div>
