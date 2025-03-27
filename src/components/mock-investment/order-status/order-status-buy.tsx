@@ -4,6 +4,8 @@ import { usePostStockLimitOrder, usePostStockMarketOrder } from '@/api/stock.api
 import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
+import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { getAdjustToTickSize } from '@/utils/getAdjustToTickSize';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface OrderStatusBuyProps {
@@ -36,6 +38,9 @@ export const OrderStatusBuy = ({
   }, []);
   useEffect(() => {
     setPrintCost(buyCost + ' 원');
+    if (buyCost > 0) {
+      setBuyCost(getAdjustToTickSize(buyCost, tickSize, 'ceil'));
+    }
   }, [buyCost]);
   // +,- 기능 (구매가격)
   const CostButtonHandler = (
@@ -153,10 +158,12 @@ export const OrderStatusBuy = ({
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               {isActive === '지정가' ? (
                 <>
-                  <NumberInput
-                    value={buyCost}
+                  <NumberPriceInput
+                    value={0}
                     setValue={setBuyCost}
-                    placeholder="값을 입력하세요."
+                    placeholder={`${closePrice.toLocaleString()}원`}
+                    tickSize={tickSize}
+                    roundingMethod="ceil"
                   />
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
                     <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
