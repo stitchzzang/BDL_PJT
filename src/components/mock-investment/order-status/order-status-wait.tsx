@@ -5,7 +5,13 @@ import { LoadingAnimation } from '@/components/common/loading-animation';
 import { OrderStatusWaitList } from '@/components/mock-investment/order-status/order-status-wait-list';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
-export const OrderStatusWait = () => {
+interface OrderStatusWaitProps {
+  closePrice: number; // 종가
+  realTime?: number; // 실시간 값
+  tickSize: number; // 호가 단위
+}
+
+export const OrderStatusWait = ({ closePrice, realTime, tickSize }: OrderStatusWaitProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   // 유저 판매 리스트 가져오기
   const { data: userSimulated, isLoading, isError } = useUserSimulatedData(2);
@@ -38,7 +44,13 @@ export const OrderStatusWait = () => {
     <div>
       <h3 className={h3Style}>대기 주문</h3>
       {userSimulated?.map((UserSimulatedData, index) => (
-        <OrderStatusWaitList UserSimulatedData={UserSimulatedData} key={index} />
+        <OrderStatusWaitList
+          UserSimulatedData={UserSimulatedData}
+          closePrice={closePrice}
+          realTime={realTime}
+          tickSize={tickSize}
+          key={index}
+        />
       ))}
       <hr className="mb-[20px] mt-[30px] border border-border-color border-opacity-20" />
       <div className="flex flex-col gap-2">

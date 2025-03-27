@@ -2,15 +2,24 @@ import { useState } from 'react';
 
 import { useChangeUserSimulated, useDeleteUserSimulated } from '@/api/stock.api';
 import { UserSimulatedData } from '@/api/types/stock';
+import { OrderStatusEditor } from '@/components/mock-investment/order-status/order-status-editor';
 import { Button } from '@/components/ui/button';
 import { queryClient } from '@/lib/queryClient';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface OrderStatusWaitListProps {
   UserSimulatedData: UserSimulatedData; // test 객체를 prop으로 받기
+  closePrice: number; // 종가
+  realTime?: number; // 실시간 값
+  tickSize: number; // 호가 단위
 }
 
-export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListProps) => {
+export const OrderStatusWaitList = ({
+  UserSimulatedData,
+  closePrice,
+  realTime,
+  tickSize,
+}: OrderStatusWaitListProps) => {
   const h3Style = 'text-[16px] font-medium text-white';
   // 주문 취소
   const deleteSimulatedMutation = useDeleteUserSimulated();
@@ -117,9 +126,14 @@ export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListPr
           )}
         </div>
       ) : (
-        // <OrderStatusEditor />
         <div>
-          <p>test</p>
+          <OrderStatusEditor
+            closePrice={closePrice}
+            realTime={realTime}
+            tickSize={tickSize}
+            userAssetData={UserSimulatedData.quantity}
+            tradeType={UserSimulatedData.tradeType}
+          />
         </div>
       )}
     </>

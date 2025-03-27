@@ -40,7 +40,7 @@ export const OrderStatus = ({ closePrice, realTime }: orderStatusProps) => {
       />
     ),
     판매: <OrderStatusShell closePrice={closePrice} realTime={realTime} tickSize={tickSize} />,
-    대기: <OrderStatusWait />,
+    대기: <OrderStatusWait closePrice={closePrice} realTime={realTime} tickSize={tickSize} />,
   };
   return (
     <div className="h-full">
