@@ -38,7 +38,6 @@ export const EditPage = () => {
       };
       reader.readAsDataURL(resizedFile);
     } catch (error) {
-      console.error('이미지 처리 중 오류가 발생했습니다:', error);
       alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
