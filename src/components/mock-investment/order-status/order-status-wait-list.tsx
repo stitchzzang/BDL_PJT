@@ -111,7 +111,6 @@ export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListPr
   );
 };
 
-
 // onClick={() => handleChangeSimulatedMutation({
 //   memberId: user.id,
 //   companyId: stock.id,
