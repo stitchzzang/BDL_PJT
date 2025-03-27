@@ -126,12 +126,6 @@ export const OrderStatusEditor = ({
                   >
                     <p>지정가</p>
                   </div>
-                  <div
-                    className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
-                    onClick={() => isActiveHandler('시장가')}
-                  >
-                    <p>시장가</p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -139,25 +133,14 @@ export const OrderStatusEditor = ({
               {/* 값 입력 구역 */}
               <div className="min-w-[74px]" />
               <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-                {isActive === '지정가' ? (
-                  <>
-                    <NumberPriceInput
-                      value={0}
-                      setValue={setShellCost}
-                      placeholder={`${shellCost.toLocaleString()}원`}
-                      tickSize={tickSize}
-                      roundingMethod="ceil"
-                      closePrice={closePrice}
-                    />
-                  </>
-                ) : (
-                  <NumberInput
-                    value={0}
-                    setValue={setShellCost}
-                    placeholder="최대한 빠른 가격"
-                    className="pointer-events-none bg-background-color"
-                  />
-                )}
+                <NumberPriceInput
+                  value={0}
+                  setValue={setShellCost}
+                  placeholder={`${shellCost.toLocaleString()}원`}
+                  tickSize={tickSize}
+                  roundingMethod="ceil"
+                  closePrice={closePrice}
+                />
               </div>
             </div>
             <div className="flex items-center justify-between gap-4">
