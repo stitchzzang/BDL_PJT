@@ -9,7 +9,7 @@ export interface MemberPassword {
   newPassword: string; // 새비밀번호
 }
 
-export interface MemberTutorialResult {
+export interface MemberTutorialResults {
   tutorials: {
     companyName: string; // 회사명
     startMoney: number; // 시작 금액
