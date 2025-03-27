@@ -4,13 +4,9 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 
 import { _ky, _kyAuth } from '@/api/instance';
+import { LoginResponse, SignupRequest } from '@/api/types/auth';
 import { ApiResponse } from '@/api/types/common';
 import { useAuthStore } from '@/store/useAuthStore';
-
-interface LoginResult {
-  nickname: string;
-  profile: string;
-}
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -18,9 +14,15 @@ export const authApi = {
       .post('member/login', {
         json: { email, password },
       })
-      .json<ApiResponse<LoginResult>>(),
+      .json<ApiResponse<LoginResponse>>(),
 
   logout: () => _kyAuth.post('member/logout', {}).json<ApiResponse<void>>(),
+  signup: (data: SignupRequest) =>
+    _ky
+      .post('member/signup', {
+        json: data,
+      })
+      .json<ApiResponse<void>>(),
 };
 
 export const useLogin = () => {
@@ -60,6 +62,18 @@ export const useLogout = () => {
     },
     onError: () => {
       alert('로그아웃 실패');
+    },
+  });
+};
+
+export const useSignup = () => {
+  return useMutation({
+    mutationFn: (data: SignupRequest) => authApi.signup(data),
+    onSuccess: () => {
+      alert('회원가입 성공');
+    },
+    onError: () => {
+      alert('회원가입 실패');
     },
   });
 };
