@@ -5,6 +5,7 @@ import { useUpdateMemberInfo } from '@/api/member.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/useAuthStore';
+import { getResizeImage } from '@/utils/getResizeImage';
 
 export const EditPage = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export const EditPage = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -25,13 +26,21 @@ export const EditPage = () => {
       return;
     }
 
-    setSelectedImage(file);
-    // 미리보기 URL 생성
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setTempProfile(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // 이미지 리사이즈
+      const resizedFile = await getResizeImage(file, 400, 400);
+      setSelectedImage(resizedFile);
+
+      // 미리보기 URL 생성
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTempProfile(reader.result as string);
+      };
+      reader.readAsDataURL(resizedFile);
+    } catch (error) {
+      console.error('이미지 처리 중 오류가 발생했습니다:', error);
+      alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
   };
 
   const { mutate: updateMemberInfo, isPending: updatePending } = useUpdateMemberInfo({
