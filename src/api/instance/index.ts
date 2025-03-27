@@ -8,21 +8,15 @@ interface ExtendedKyRequest extends KyRequest {
   _retry?: boolean;
 }
 
+declare const __API_URL__: string;
+
 // 기본 ky 인스턴스 생성
 const _ky = ky.create({
-  prefixUrl: import.meta.env.VITE_API_BASE_URL,
+  prefixUrl: __API_URL__,
   timeout: 5000,
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',
-  },
-  hooks: {
-    beforeError: [
-      (error) => {
-        navigate('/notfound');
-        return error;
-      },
-    ],
   },
 });
 
@@ -55,7 +49,9 @@ const _kyAuth = _ky.extend({
                 ?.substring(BEARER_PREFIX.length);
 
               if (newAccessToken) {
-                useAuthStore.getState().loginAuth(newAccessToken);
+                useAuthStore
+                  .getState()
+                  .loginAuth(newAccessToken, { nickname: null, profile: null });
                 request.headers.set('Authorization', `Bearer ${newAccessToken}`);
               }
 

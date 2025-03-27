@@ -6,6 +6,15 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+      animation: {
+        fadeIn: 'fadeIn 300ms ease-in forwards',
+      },
       colors: {
         'primary-color': '#3485FA',
         'point-color': '#03369D',
@@ -67,6 +76,9 @@ export default {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      screens: {
+        webapp: '860px',
       },
     },
   },

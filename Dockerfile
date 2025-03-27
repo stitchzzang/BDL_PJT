@@ -1,5 +1,5 @@
 # Dockerfile
-FROM node:22.12.0-alpine as builder
+FROM node:22.12.0-alpine AS builder
 
 WORKDIR /app
 

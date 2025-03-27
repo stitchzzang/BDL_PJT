@@ -7,6 +7,7 @@ import {
   PaintBrushIcon,
   QueueListIcon,
   RocketLaunchIcon,
+  Squares2X2Icon,
   TruckIcon,
   TvIcon,
 } from '@heroicons/react/24/solid';
@@ -17,6 +18,7 @@ import { type ComponentType } from 'react';
  * 각 카테고리는 특정 산업 분야를 나타냄
  */
 export type CategoryName =
+  | '전체' // 전체 회사
   | '자동차' // 자동차 산업
   | '화장품' // 화장품 산업
   | '방위' // 방위 산업
@@ -33,6 +35,7 @@ export type CategoryName =
  * @type {Record<CategoryName, ComponentType>} 각 카테고리 이름을 키로, 해당 아이콘 컴포넌트를 값으로 가짐
  */
 const categoryIconMap: Record<CategoryName, ComponentType> = {
+  전체: Squares2X2Icon,
   자동차: TruckIcon,
   화장품: EyeDropperIcon,
   방위: RocketLaunchIcon,

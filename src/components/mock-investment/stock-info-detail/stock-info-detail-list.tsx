@@ -1,50 +1,45 @@
 import { stockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
-import { formatThousandSeparator } from '@/utils/formatThousandSeparator';
+import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockInfoDetailListProps {
   data: stockInfoDetail; // 타입 이름을 맞춰야 함
 }
 
 export const StockInfoDetailList = ({ data }: StockInfoDetailListProps) => {
-  const divStyle = 'flex justify-between rounded-2xl bg-[#102038] px-[20px] py-[10px]';
+  const divStyle =
+    'flex justify-between rounded-2xl bg-[#102038] px-[20px] py-[10px] hover:bg-modal-background-color';
   return (
-    <div className="flex flex-col gap-[20px]">
+    <div className="flex flex-col gap-[10px]">
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">자본금:</span>
-        <span className="text-[20px] font-light">{formatThousandSeparator(data.capital)} 원</span>
+        <span className="text-[20px] font-light">{formatKoreanMoney(data.capital)} 원</span>
       </div>
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">상장주식수:</span>
-        <span className="text-[20px] font-light">
-          {formatThousandSeparator(data.listedSharesCnt)} 원
-        </span>
+        <span className="text-[20px] font-light">{formatKoreanMoney(data.listedSharesCnt)} 원</span>
       </div>
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">상장시가총액:</span>
         <span className="text-[18px] font-light">
-          {formatThousandSeparator(data.listedCapitalAmount)} 원
+          {formatKoreanMoney(data.listedCapitalAmount)} 원
         </span>
       </div>
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">액면가:</span>
-        <span className="text-[18px] font-light">{formatThousandSeparator(data.parValue)} 원</span>
+        <span className="text-[18px] font-light">{formatKoreanMoney(data.parValue)} 원</span>
       </div>
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">발행가:</span>
-        <span className="text-[18px] font-light">
-          {formatThousandSeparator(data.issuePrice)} 원
-        </span>
+        <span className="text-[18px] font-light">{formatKoreanMoney(data.issuePrice)} 원</span>
       </div>
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">종가:</span>
-        <span className="text-[18px] font-light">
-          {formatThousandSeparator(data.closePrice)} 원
-        </span>
+        <span className="text-[18px] font-light">{formatKoreanMoney(data.closePrice)} 원</span>
       </div>
       <div className={divStyle}>
         <span className="text-[18px] text-border-color">전일종가:</span>
         <span className="text-[18px] font-light">
-          {formatThousandSeparator(data.previousClosePrice)} 원
+          {addCommasToThousand(data.previousClosePrice)} 원
         </span>
       </div>
       <div className={divStyle}>
