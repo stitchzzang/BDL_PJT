@@ -12,6 +12,8 @@ export interface OrderStatusShellProps {
   userAssetData: number; // 주식 갯수
   tradeType: number; // 판매,구매 판단
   price: number;
+  setEditor: React.Dispatch<React.SetStateAction<boolean>>;
+  editor: boolean;
 }
 
 export const OrderStatusEditor = ({
@@ -21,6 +23,8 @@ export const OrderStatusEditor = ({
   userAssetData,
   tradeType,
   price,
+  editor,
+  setEditor,
 }: OrderStatusShellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
@@ -214,7 +218,19 @@ export const OrderStatusEditor = ({
             </div>
           </div>
           <div className="mt-[25px] flex flex-col items-center gap-2">
-            <Button>일단 비워두기</Button>
+            <div className="flex w-full gap-2">
+              <Button
+                onClick={() => setEditor(!editor)}
+                variant="black"
+                className="w-full"
+                size="default"
+              >
+                뒤로가기
+              </Button>
+              <Button variant="green" className="w-full" size="default">
+                수정하기
+              </Button>
+            </div>
             <p className="text-[14px] font-light text-[#718096]">
               결제 수수료는 결제 금액의 0.004% 입니다.
             </p>
