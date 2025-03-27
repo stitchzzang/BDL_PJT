@@ -4,32 +4,36 @@ import { useNavigate } from 'react-router-dom';
 import { useUpdateMemberInfo } from '@/api/member.api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/store/useAuthStore';
+
 export const EditPage = () => {
   const navigate = useNavigate();
-
-  const [nickname, setNickname] = useState(''); // 추후 useAuthStore에서 가져오기
-  const [profileImage, setProfileImage] = useState(''); // 추후 useAuthStore에서 가져오기
+  const { userData, updateAuth: updateUserData } = useAuthStore();
+  const [tempNickname, setTempNickname] = useState(userData.nickname || '');
+  const [tempProfile, setTempProfile] = useState(userData.profile || '');
 
   const { mutate: updateMemberInfo, isPending: updatePending } = useUpdateMemberInfo({
     memberId: '1', // 추후 useAuthStore에서 가져오기
     data: {
-      nickname,
-      profileImage,
+      nickname: tempNickname,
+      profileImage: tempProfile,
     },
     onSuccess: () => {
+      updateUserData({ nickname: tempNickname, profile: tempProfile });
       navigate('/member');
     },
     onError: () => {
       // 에러 처리는 member.api.ts에서 처리
     },
   });
+
   return (
     <div className="flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold">프로필 수정</h1>
       <div className="flex min-w-[400px] flex-col items-center gap-5 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex flex-col items-center gap-4">
           <img
-            src={profileImage || '/none-img/none_profile_img.png'}
+            src={tempProfile || '/none-img/none_profile_img.png'}
             alt="profile"
             className="h-32 w-32 rounded-full"
           />
@@ -42,8 +46,8 @@ export const EditPage = () => {
             type="text"
             className="h-14"
             placeholder="이름"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
+            value={tempNickname}
+            onChange={(e) => setTempNickname(e.target.value)}
           />
           <p className="text-sm text-text-inactive-2-color">변경할 닉네임을 입력해주세요.</p>
         </div>
