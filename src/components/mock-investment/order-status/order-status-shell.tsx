@@ -12,9 +12,9 @@ import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 interface OrderStatusShellProps {
-  closePrice: number;
-  realTime?: number;
-  tickSize: number;
+  closePrice: number; // 종가
+  realTime?: number; // 실시간 값
+  tickSize: number; // 호가 단위
 }
 
 export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatusShellProps) => {
