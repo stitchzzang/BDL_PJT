@@ -73,7 +73,7 @@ export const OrderStatusBuy = ({
     return printTotalPrice;
   };
   // 예상 총 주문 금액
-  const estimatedTotalPrice = (estimatedPrice: number) => {
+  const estimatedTotalPrice = (estimatedPrice: number | undefined) => {
     if (estimatedPrice) {
       const prtinEstimeatedTotalPrice: number = estimatedPrice * stockCount;
       return prtinEstimeatedTotalPrice;
@@ -118,7 +118,15 @@ export const OrderStatusBuy = ({
         price: price,
       },
       {
-        onSuccess: () => {
+        onSuccess: (res) => {
+          console.log(res);
+          if (res.isSuccess === false) {
+            //에러 처리
+            console.log('에러 체크');
+            if (res.code === 5100) {
+              alert(`${res.message}`);
+            }
+          }
           alert(
             `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
           );
@@ -230,9 +238,13 @@ export const OrderStatusBuy = ({
               <>
                 <h3 className={h3Style}>예상 충 주문 금액</h3>
                 {realTime ? (
-                  <h3 className={h3Style}>{estimatedTotalPrice(realTime)} 원</h3>
+                  <h3 className={h3Style}>
+                    {formatKoreanMoney(estimatedTotalPrice(realTime) ?? 0)} 원
+                  </h3>
                 ) : (
-                  <h3 className={h3Style}>{estimatedTotalPrice(closePrice)} 원</h3>
+                  <h3 className={h3Style}>
+                    {formatKoreanMoney(estimatedTotalPrice(closePrice) ?? 0)} 원
+                  </h3>
                 )}
               </>
             )}
