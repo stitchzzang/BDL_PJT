@@ -17,6 +17,10 @@ export const StockApi = {
   getUserAsset: (memberId: number) =>
     _ky.get(`member/${memberId}/money`).json<ApiResponse<number>>(),
 
+  // 종목별 주식 소유 개수
+  getUserStockAccount: (memberId: number, companyId: number) =>
+    _ky.get(`simulated/account/${memberId}/${companyId}`).json<ApiResponse<number>>(),
+
   // 지정가 post
   postStockLimitOrder: (
     memberId: number, // 회원 ID
@@ -69,6 +73,14 @@ export const useUserAssetData = (memberId: number) => {
   return useQuery({
     queryKey: ['userAssetData'],
     queryFn: () => StockApi.getUserAsset(memberId).then((res) => res.result),
+  });
+};
+
+// 종목별 주식 개수 가져오기
+export const useUserStockAccountData = (memberId: number, companyId: number) => {
+  return useQuery({
+    queryKey: ['stockAccount'],
+    queryFn: () => StockApi.getUserStockAccount(memberId, companyId).then((res) => res.result),
   });
 };
 
