@@ -5,7 +5,7 @@ import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
-interface OrderStatusShellProps {
+export interface OrderStatusShellProps {
   closePrice: number; // 종가
   realTime?: number; // 실시간 값
   tickSize: number; // 호가 단위
