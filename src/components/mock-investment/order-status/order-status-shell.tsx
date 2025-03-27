@@ -35,11 +35,19 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
   ) => {
     if (check === '+') {
       const checkValue = value + chagneValue;
-      if (checkValue < 0) {
+      if (checkValue > 0) {
+        if (userAssetData) {
+          // alert(checkValue);
+          if (checkValue > userAssetData) {
+            return;
+          } else {
+            setValue(value + chagneValue);
+            return;
+          }
+        }
         setValue(0);
         return;
       }
-      setValue(value + chagneValue);
     } else if (check === '-') {
       const checkValue = value - chagneValue;
       if (checkValue < 0) {
