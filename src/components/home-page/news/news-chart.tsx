@@ -18,14 +18,22 @@ export const NewsChart = () => {
         </div>
       ) : (
         <div>
-          <div className="mb-[12px] inline-block rounded-xl bg-modal-background-color px-[12px] py-[8px]">
-            <div className="rounded-xl bg-btn-blue-color bg-opacity-40 p-[12px]">
-              <h3 className="text-[16px]">현재뉴스</h3>
-            </div>
-          </div>
           <div className="flex flex-col gap-3">
-            <NewsChartMain newsMainInfo={latestNews?.[0]} />
-            <NewsChartSub newsSubInfo={latestNews?.[1]} />
+            {latestNews && latestNews.length > 0 ? (
+              <>
+                <div className="mb-[12px] inline-block rounded-xl bg-modal-background-color px-[12px] py-[8px]">
+                  <div className="rounded-xl bg-btn-blue-color bg-opacity-40 p-[12px]">
+                    <h3 className="text-[16px]">현재뉴스</h3>
+                  </div>
+                </div>
+                <NewsChartMain newsMainInfo={latestNews[0]} />
+                <NewsChartSub newsSubInfo={latestNews[1]} />
+              </>
+            ) : (
+              <div className="p-5 text-center text-text-inactive-2-color">
+                뉴스 데이터가 없습니다.
+              </div>
+            )}
           </div>
         </div>
       )}
