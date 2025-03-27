@@ -28,7 +28,7 @@ export const StockApi = {
 
   // 주문 대기 목록
   getUserSimulated: (memberId: number) =>
-    _ky.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData>>(),
+    _ky.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData[]>>(),
 
   // 지정가 post
   postStockLimitOrder: (
