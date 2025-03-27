@@ -313,8 +313,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         {
           type: 'category',
           data: xAxisLabels,
-          boundaryGap: false,
-          axisLine: { onZero: false },
+          boundaryGap: true,
+          axisLine: {
+            onZero: false,
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.3)',
+              width: 2,
+            },
+          },
           axisTick: { show: false },
           splitLine: {
             show: true,
@@ -326,6 +332,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           splitNumber: 20,
           min: 'dataMin',
           max: 'dataMax',
+          maxInterval: 3600 * 24 * 1000 * 5,
           axisPointer: {
             label: {
               formatter: (params) => {
@@ -336,14 +343,23 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           axisLabel: {
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            hideOverlap: true,
+            interval: 'auto',
+            align: 'center',
           },
         },
         {
           type: 'category',
           gridIndex: 1,
           data: xAxisLabels,
-          boundaryGap: false,
-          axisLine: { onZero: false },
+          boundaryGap: true,
+          axisLine: {
+            onZero: false,
+            lineStyle: {
+              color: 'rgba(255, 255, 255, 0.3)',
+              width: 2,
+            },
+          },
           axisTick: { show: false },
           splitLine: {
             show: true,
@@ -356,6 +372,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           splitNumber: 20,
           min: 'dataMin',
           max: 'dataMax',
+          maxInterval: 3600 * 24 * 1000 * 5,
         },
       ],
       yAxis: [
@@ -368,6 +385,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            formatter: (value: number) => formatKoreanNumber(value),
           },
           position: 'right',
           splitLine: {
@@ -379,10 +397,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           axisLine: {
             show: true,
+            onZero: false,
             lineStyle: {
               color: 'rgba(255, 255, 255, 0.3)',
+              width: 2,
             },
           },
+          axisTick: { show: false },
+          scale: true,
+          offset: 0,
         },
         {
           scale: true,
@@ -393,11 +416,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            formatter: (value: number) => formatVolumeNumber(value),
           },
           axisLine: {
             show: true,
             lineStyle: {
               color: 'rgba(255, 255, 255, 0.3)',
+              width: 2,
             },
           },
           axisTick: { show: false },
@@ -405,6 +430,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             show: false,
           },
           position: 'right',
+          offset: 0,
         },
       ],
       dataZoom: [
@@ -413,6 +439,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           xAxisIndex: [0, 1],
           start: dataZoomRange.start,
           end: dataZoomRange.end,
+          filterMode: 'filter',
         },
         {
           show: true,
@@ -421,6 +448,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           bottom: 0,
           start: dataZoomRange.start,
           end: dataZoomRange.end,
+          filterMode: 'filter',
         },
       ],
       series: [
@@ -434,6 +462,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             borderColor: RISE_COLOR,
             borderColor0: FALL_COLOR,
           },
+          clip: true,
+          barWidth: '70%',
+          barCategoryGap: '20%',
         },
         {
           name: 'Volume',
@@ -444,6 +475,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           itemStyle: {
             color: getItemStyle,
           },
+          clip: true,
+          barWidth: '70%',
+          barCategoryGap: '20%',
         },
         {
           name: 'MA5',
@@ -452,8 +486,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           smooth: true,
           lineStyle: {
             opacity: 0.5,
+            width: 2,
           },
           symbol: 'none',
+          clip: true,
+          connectNulls: true,
         },
         {
           name: 'MA20',
@@ -462,8 +499,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           smooth: true,
           lineStyle: {
             opacity: 0.5,
+            width: 2,
           },
           symbol: 'none',
+          clip: true,
+          connectNulls: true,
         },
       ],
     }),
