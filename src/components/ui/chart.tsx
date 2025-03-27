@@ -261,18 +261,88 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
       if (!item) return 'No data';
 
+      // 빈 데이터 구간은 제외
+      if (dataIndex < EMPTY_DATA_COUNT || !item.date) {
+        return 'No data';
+      }
+
+      // 차트데이터와 원본 데이터 매핑
+      // 실제 인덱스 계산 (emptyData 개수만큼 빼기)
+      const realIndex = dataIndex - EMPTY_DATA_COUNT;
+
+      // 원본 데이터 찾기
+      let originalData;
+      if (
+        period === 'MINUTE' &&
+        minuteData?.data &&
+        realIndex >= 0 &&
+        realIndex < minuteData.data.length
+      ) {
+        originalData = minuteData.data[realIndex];
+      } else if (periodData?.data && realIndex >= 0) {
+        // 필터링된 데이터 중에서 해당 인덱스 찾기
+        const filteredData = periodData.data.filter((d) => d.periodType === '1');
+        if (realIndex < filteredData.length) {
+          originalData = filteredData[realIndex];
+        }
+      }
+
+      // 기본 정보 가져오기
       const { date, open, close, low, high, volume } = item;
 
+      // 추가 정보 설정 (원본 데이터가 있는 경우)
+      let openPercent = '0.00%';
+      let closePercent = '0.00%';
+      let lowPercent = '0.00%';
+      let highPercent = '0.00%';
+      let ma5 = 0;
+      let ma20 = 0;
+
+      if (originalData) {
+        if (period === 'MINUTE') {
+          // MinuteCandleData
+          openPercent = `${originalData.openPricePercent?.toFixed(2)}%`;
+          closePercent = `${originalData.closePricePercent?.toFixed(2)}%`;
+          lowPercent = `${originalData.lowPricePercent?.toFixed(2)}%`;
+          highPercent = `${originalData.highPricePercent?.toFixed(2)}%`;
+          ma5 = originalData.fiveAverage;
+          ma20 = originalData.twentyAverage;
+        } else {
+          // PeriodCandleData
+          openPercent = `${originalData.openPricePercent?.toFixed(2)}%`;
+          closePercent = `${originalData.closePricePercent?.toFixed(2)}%`;
+          lowPercent = `${originalData.lowPricePercent?.toFixed(2)}%`;
+          highPercent = `${originalData.highPricePercent?.toFixed(2)}%`;
+          ma5 = originalData.fiveAverage;
+          ma20 = originalData.twentyAverage;
+        }
+      } else {
+        // 원본 데이터가 없는 경우 차트 데이터의 이평선 값 사용
+        ma5 = item.fiveAverage || 0;
+        ma20 = item.twentyAverage || 0;
+      }
+
+      // 요청한 포맷대로 툴팁 구성
       return `
-            ${date}<br />
-            시가: ${formatKoreanNumber(open)}<br />
-            종가: ${formatKoreanNumber(close)}<br />
-            저가: ${formatKoreanNumber(low)}<br />
-            고가: ${formatKoreanNumber(high)}<br />
-            거래량: ${formatVolumeNumber(volume)}
-        `;
+          ${date}<br />
+          시가: ${formatKoreanNumber(open)}원 (${openPercent})<br />
+          종가: ${formatKoreanNumber(close)}원 (${closePercent})<br />
+          저가: ${formatKoreanNumber(low)}원 (${lowPercent})<br />
+          고가: ${formatKoreanNumber(high)}원 (${highPercent})<br />
+          거래량: ${formatVolumeNumber(volume)}<br />
+          5이평선: ${formatKoreanNumber(ma5)}원<br />
+          20이평선: ${formatKoreanNumber(ma20)}원
+      `;
     },
-    [chartData, formatKoreanNumber, formatVolumeNumber],
+    [
+      chartData,
+      formatKoreanNumber,
+      formatVolumeNumber,
+      period,
+      minuteData,
+      periodData,
+      EMPTY_DATA_COUNT,
+    ],
   );
 
   const option: EChartsOption = useMemo(
@@ -313,14 +383,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         {
           type: 'category',
           data: xAxisLabels,
-          boundaryGap: true,
-          axisLine: {
-            onZero: false,
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
-              width: 2,
-            },
-          },
+          boundaryGap: false,
+          axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: {
             show: true,
@@ -332,7 +396,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           splitNumber: 20,
           min: 'dataMin',
           max: 'dataMax',
-          maxInterval: 3600 * 24 * 1000 * 5,
           axisPointer: {
             label: {
               formatter: (params) => {
@@ -343,23 +406,14 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           axisLabel: {
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
-            hideOverlap: true,
-            interval: 'auto',
-            align: 'center',
           },
         },
         {
           type: 'category',
           gridIndex: 1,
           data: xAxisLabels,
-          boundaryGap: true,
-          axisLine: {
-            onZero: false,
-            lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
-              width: 2,
-            },
-          },
+          boundaryGap: false,
+          axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: {
             show: true,
@@ -372,7 +426,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           splitNumber: 20,
           min: 'dataMin',
           max: 'dataMax',
-          maxInterval: 3600 * 24 * 1000 * 5,
         },
       ],
       yAxis: [
@@ -385,7 +438,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
-            formatter: (value: number) => formatKoreanNumber(value),
           },
           position: 'right',
           splitLine: {
@@ -397,15 +449,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           axisLine: {
             show: true,
-            onZero: false,
             lineStyle: {
               color: 'rgba(255, 255, 255, 0.3)',
-              width: 2,
             },
           },
-          axisTick: { show: false },
-          scale: true,
-          offset: 0,
         },
         {
           scale: true,
@@ -416,13 +463,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
-            formatter: (value: number) => formatVolumeNumber(value),
           },
           axisLine: {
             show: true,
             lineStyle: {
               color: 'rgba(255, 255, 255, 0.3)',
-              width: 2,
             },
           },
           axisTick: { show: false },
@@ -430,7 +475,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             show: false,
           },
           position: 'right',
-          offset: 0,
         },
       ],
       dataZoom: [
@@ -439,7 +483,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           xAxisIndex: [0, 1],
           start: dataZoomRange.start,
           end: dataZoomRange.end,
-          filterMode: 'filter',
         },
         {
           show: true,
@@ -448,7 +491,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           bottom: 0,
           start: dataZoomRange.start,
           end: dataZoomRange.end,
-          filterMode: 'filter',
         },
       ],
       series: [
@@ -462,9 +504,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             borderColor: RISE_COLOR,
             borderColor0: FALL_COLOR,
           },
-          clip: true,
-          barWidth: '70%',
-          barCategoryGap: '20%',
         },
         {
           name: 'Volume',
@@ -475,9 +514,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           itemStyle: {
             color: getItemStyle,
           },
-          clip: true,
-          barWidth: '70%',
-          barCategoryGap: '20%',
         },
         {
           name: 'MA5',
@@ -486,11 +522,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           smooth: true,
           lineStyle: {
             opacity: 0.5,
-            width: 2,
           },
           symbol: 'none',
-          clip: true,
-          connectNulls: true,
         },
         {
           name: 'MA20',
@@ -499,11 +532,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           smooth: true,
           lineStyle: {
             opacity: 0.5,
-            width: 2,
           },
           symbol: 'none',
-          clip: true,
-          connectNulls: true,
         },
       ],
     }),
