@@ -6,7 +6,13 @@ import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
-export const OrderStatusShell = () => {
+interface OrderStatusShellProps {
+  closePrice: number;
+  realTime?: number;
+  tickSize: number;
+}
+
+export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatusShellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
