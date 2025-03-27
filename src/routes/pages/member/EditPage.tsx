@@ -16,6 +16,12 @@ export const EditPage = () => {
       nickname,
       profileImage,
     },
+    onSuccess: () => {
+      navigate('/member');
+    },
+    onError: () => {
+      // 에러 처리는 member.api.ts에서 처리
+    },
   });
   return (
     <div className="flex flex-col items-center gap-4">
