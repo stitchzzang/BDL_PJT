@@ -333,15 +333,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         거래량: ${formatVolumeNumber(volume)}<br />
       `;
     },
-    [
-      chartData,
-      formatKoreanNumber,
-      formatVolumeNumber,
-      period,
-      minuteData,
-      periodData,
-      EMPTY_DATA_COUNT,
-    ],
+    [chartData, formatKoreanNumber, formatVolumeNumber, period, minuteData, periodData],
   );
 
   const option: EChartsOption = useMemo(
