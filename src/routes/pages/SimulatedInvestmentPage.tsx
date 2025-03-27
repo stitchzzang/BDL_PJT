@@ -11,7 +11,7 @@ import { StockCostHistory } from '@/components/mock-investment/stock-cost-histor
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import ChartComponent from '@/components/ui/chart';
-import { dummyChartData } from '@/lib/dummy-data';
+import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
@@ -76,7 +76,7 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="mb-[20px] grid grid-cols-1 gap-5 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
-          <ChartComponent data={dummyChartData} height={600} />
+          <ChartComponent minuteData={dummyMinuteData} periodData={dummyPeriodData} height={600} />
         </div>
         <div className="col-span-1 lg:col-span-2">
           <OrderStatus />
