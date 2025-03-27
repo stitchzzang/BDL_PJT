@@ -73,3 +73,17 @@ export interface MarketOrderData {
   tradeType: number; // 0: 매수(구매), 1:매도(판매)
   quantity: number; // 시장가 - 가격(현재 가격을 가져와야 함)
 }
+
+// 주문 대기목록
+export interface UserSimulatedData {
+  orderId: number;
+  memberId: number;
+  companyId: number;
+  companyName: string;
+  tradeType: number;
+  quantity: number;
+  price: number;
+  tradingTime: string;
+  auto: boolean;
+  confirm: boolean;
+}

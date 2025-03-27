@@ -2,7 +2,12 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
-import { LimitOrderData, MarketOrderData, StockMinuteDefaultData } from '@/api/types/stock';
+import {
+  LimitOrderData,
+  MarketOrderData,
+  StockMinuteDefaultData,
+  UserSimulatedData,
+} from '@/api/types/stock';
 
 export const StockApi = {
   // 분봉 데이터 가져오기 (limit 값은 직접 입력)
@@ -20,6 +25,10 @@ export const StockApi = {
   // 종목별 주식 소유 개수
   getUserStockAccount: (memberId: number, companyId: number) =>
     _ky.get(`simulated/account/${memberId}/${companyId}`).json<ApiResponse<number>>(),
+
+  // 주문 대기 목록
+  getUserSimulated: (memberId: number) =>
+    _ky.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData>>(),
 
   // 지정가 post
   postStockLimitOrder: (
@@ -81,6 +90,14 @@ export const useUserStockAccountData = (memberId: number, companyId: number) => 
   return useQuery({
     queryKey: ['stockAccount'],
     queryFn: () => StockApi.getUserStockAccount(memberId, companyId).then((res) => res.result),
+  });
+};
+
+// 주문 대기 목록
+export const useUserSimulatedData = (memberId: number) => {
+  return useQuery({
+    queryKey: ['userSimulated'],
+    queryFn: () => StockApi.getUserSimulated(memberId).then((res) => res.result),
   });
 };
 
