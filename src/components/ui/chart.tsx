@@ -1275,7 +1275,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           filterMode: 'filter' as const,
           start: dataZoomRange.start,
           end: dataZoomRange.end,
-          height: 20,
+          height: 30,
           bottom: 60,
           borderColor: '#2e3947',
           fillerColor: 'rgba(80, 80, 100, 0.3)',
