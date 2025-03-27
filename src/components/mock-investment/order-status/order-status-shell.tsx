@@ -4,6 +4,7 @@ import { useUserStockAccountData } from '@/api/stock.api';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
+import { NumberPriceInput } from '@/components/ui/number-price-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface OrderStatusShellProps {
@@ -20,11 +21,11 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
   const { data: userAssetData, isLoading, isError } = useUserStockAccountData(2, 1);
 
   // 구매가격
-  const [buyCost, setBuyCost] = useState<number>(0);
-  const [printCost, setPrintCost] = useState<string>(buyCost + ' 원');
+  const [shellCost, setShellCost] = useState<number>(0);
+  const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
   useEffect(() => {
-    setPrintCost(buyCost + ' 원');
-  }, [buyCost]);
+    setPrintCost(shellCost + ' 원');
+  }, [shellCost]);
   // +,- 기능 (구매가격)
   const CostButtonHandler = (
     check: string,
@@ -50,14 +51,15 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
   };
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
-  // 총 주문 금액
+  // 총 판매 금액
   const totalPrice = () => {
-    const printTotalPrice: number = buyCost * stockCount;
+    const printTotalPrice: number = shellCost * stockCount;
     return printTotalPrice;
   };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
+  // 에러,로딩 처리
   if (isLoading) {
     <>
       <LoadingAnimation />
@@ -99,25 +101,25 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
-                  >
-                    -
-                  </button>
-                </div>
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+              {isActive === '지정가' ? (
+                <>
+                  <NumberPriceInput
+                    value={0}
+                    setValue={setShellCost}
+                    placeholder={`${closePrice.toLocaleString()}원`}
+                    tickSize={tickSize}
+                    roundingMethod="ceil"
+                    closePrice={closePrice}
+                  />
+                </>
+              ) : (
+                <NumberInput
+                  value={0}
+                  setValue={setShellCost}
+                  placeholder="최대한 빠른 가격"
+                  className="pointer-events-none bg-background-color"
+                />
+              )}
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -154,11 +156,11 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
         <hr className="border border-border-color border-opacity-20" />
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <h3 className={h3Style}>총 주문 금액</h3>
+            <h3 className={h3Style}>총 판매 금액</h3>
             <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
           </div>
           <div className="flex items-center justify-between">
-            <h3 className={h3Style}>보유 주식 개수수</h3>
+            <h3 className={h3Style}>보유 주식 개수</h3>
             <h3 className={h3Style}>{userAssetData} 개</h3>
           </div>
         </div>
