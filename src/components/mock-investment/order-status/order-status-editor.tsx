@@ -198,7 +198,7 @@ export const OrderStatusEditor = ({
             )}
             <div className="flex items-center justify-between">
               <h3 className={h3Style}>{tradeType === 1 ? '판매' : '구매'} 주식 개수</h3>
-              <h3 className={h3Style}>{userAssetData} 개</h3>
+              <h3 className={h3Style}>{stockCount} 개</h3>
             </div>
           </div>
           <div className="mt-[25px] flex flex-col items-center gap-2">
