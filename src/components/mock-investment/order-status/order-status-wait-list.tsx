@@ -1,26 +1,27 @@
-import { TestItem } from '@/components/mock-investment/order-status/order-status-wait'; // TestItem 타입을 임포트
+import { UserSimulatedData } from '@/api/types/stock';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 interface OrderStatusWaitListProps {
-  test: TestItem; // test 객체를 prop으로 받기
+  UserSimulatedData: UserSimulatedData; // test 객체를 prop으로 받기
 }
 
-export const OrderStatusWaitList = ({ test }: OrderStatusWaitListProps) => {
+export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListProps) => {
   const h3Style = 'text-[16px] font-medium text-white';
   return (
     <div
-      className={`mb-3 mt-[12px] flex justify-between rounded-xl p-3 ${test.status === '판매' ? 'bg-btn-blue-color bg-opacity-20' : 'bg-btn-red-color bg-opacity-20'}`}
+      className={`mb-3 mt-[12px] flex justify-between rounded-xl p-3 ${UserSimulatedData.tradeType === 0 ? 'bg-btn-red-color bg-opacity-20' : 'bg-btn-blue-color bg-opacity-20'}`}
     >
       <div className="flex items-center gap-3">
-        <h3 className={h3Style}>{test.name}</h3>
+        <h3 className={h3Style}>{UserSimulatedData.companyName}</h3>
         <p className="text-border-color">
-          {formatKoreanMoney(test.price)}원 <span>|</span> {test.quantity}주
+          {formatKoreanMoney(UserSimulatedData.price)}원 <span>|</span> {UserSimulatedData.quantity}
+          주
         </p>
       </div>
       <div>
-        {test.status === '판매' ? (
-          <p className="text-btn-blue-color">{test.status}</p>
+        {UserSimulatedData.tradeType === 1 ? (
+          <p className="text-btn-blue-color">판매</p>
         ) : (
-          <p className="text-btn-red-color ">{test.status}</p>
+          <p className="text-btn-red-color ">구매</p>
         )}
       </div>
     </div>
