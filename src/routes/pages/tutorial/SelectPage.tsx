@@ -19,7 +19,7 @@ export const SelectPage = () => {
           </p>
         </div>
         <div>
-          <CategoryList setCategoryId={setCategoryId} />
+          <CategoryList setCategoryId={setCategoryId} activeCategoryId={categoryId} />
         </div>
       </div>
       <div className="mt-[50px]">

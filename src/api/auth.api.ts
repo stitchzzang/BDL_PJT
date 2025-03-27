@@ -21,6 +21,7 @@ export const authApi = {
       .json<ApiResponse<LoginResult>>(),
 
   logout: () => _kyAuth.post('member/logout', {}).json<ApiResponse<void>>(),
+  signout: () => _kyAuth.patch('member/register', {}).json<ApiResponse<void>>(),
 };
 
 export const useLogin = () => {
@@ -60,6 +61,23 @@ export const useLogout = () => {
     },
     onError: () => {
       alert('로그아웃 실패');
+    },
+  });
+};
+
+export const useSignout = () => {
+  const logoutAuth = useAuthStore((state) => state.logoutAuth);
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: () => authApi.signout(),
+    onSuccess: () => {
+      logoutAuth();
+      alert('회원탈퇴 성공');
+      navigate('/');
+    },
+    onError: () => {
+      alert('회원탈퇴 실패');
     },
   });
 };
