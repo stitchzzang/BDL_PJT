@@ -164,25 +164,8 @@ export const OrderStatusBuy = ({
                     placeholder={`${closePrice.toLocaleString()}원`}
                     tickSize={tickSize}
                     roundingMethod="ceil"
+                    closePrice={closePrice}
                   />
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                    <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                      <button
-                        className="text-[22px]"
-                        onClick={() => CostButtonHandler('-', buyCost, setBuyCost, tickSize)}
-                      >
-                        -
-                      </button>
-                    </div>
-                    <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                      <button
-                        className="text-[22px]"
-                        onClick={() => CostButtonHandler('+', buyCost, setBuyCost, tickSize)}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
                 </>
               ) : (
                 <NumberInput

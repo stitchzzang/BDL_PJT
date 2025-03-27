@@ -15,7 +15,7 @@ export const getAdjustToTickSize = (
     throw new Error('가격은 0 이상이어야 합니다.');
   }
 
-  if (tickSize <= 0) {
+  if (tickSize < 0) {
     throw new Error('호가 단위는 양수여야 합니다.');
   }
 
