@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { useChangeUserSimulated, useDeleteUserSimulated } from '@/api/stock.api';
+import { useDeleteUserSimulated } from '@/api/stock.api';
 import { UserSimulatedData } from '@/api/types/stock';
 import { OrderStatusEditor } from '@/components/mock-investment/order-status/order-status-editor';
 import { Button } from '@/components/ui/button';
@@ -42,35 +42,7 @@ export const OrderStatusWaitList = ({
       },
     });
   };
-  // 주문 정정
-  const changeSimulatedMutation = useChangeUserSimulated();
-  const handleChangeOrder = (
-    memberId: number,
-    companyId: number,
-    tradeType: number,
-    quantity: number,
-    price: number,
-    orderId: number,
-  ) => {
-    changeSimulatedMutation.mutate(
-      {
-        memberId,
-        companyId,
-        tradeType,
-        quantity,
-        price,
-        orderId,
-      },
-      {
-        onSuccess: () => {
-          alert('주문이 성공적으로 수정되었습니다.');
-        },
-        onError: () => {
-          alert('주문 수정에 실패했습니다.');
-        },
-      },
-    );
-  };
+
   // 클릭시 반응형 추가
   const [isActive, setIsActive] = useState<boolean>(false);
   const [editor, setEditor] = useState<boolean>(true);
@@ -136,6 +108,9 @@ export const OrderStatusWaitList = ({
             price={UserSimulatedData.price}
             setEditor={setEditor}
             editor={editor}
+            orderId={UserSimulatedData.orderId}
+            memberId={UserSimulatedData.memberId}
+            companyId={UserSimulatedData.companyId}
           />
         </div>
       )}
@@ -151,3 +126,14 @@ export const OrderStatusWaitList = ({
 //   price: 50000,
 //   orderId: order.id
 // })}
+
+// "orderId": 6,
+// "memberId": 2,
+// "companyId": 1,
+// "companyName": "SK하이닉스",
+// "tradeType": 0,
+// "quantity": 1,
+// "price": 210000,
+// "tradingTime": "2025-03-27T10:33:44.874409",
+// "auto": false,
+// "confirm": false

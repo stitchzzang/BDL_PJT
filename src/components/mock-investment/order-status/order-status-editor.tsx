@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
+import { useChangeUserSimulated } from '@/api/stock.api';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
-
 export interface OrderStatusShellProps {
   closePrice: number; // 종가
   realTime?: number; // 실시간 값
@@ -14,6 +14,9 @@ export interface OrderStatusShellProps {
   price: number;
   setEditor: React.Dispatch<React.SetStateAction<boolean>>;
   editor: boolean;
+  orderId: number;
+  memberId: number;
+  companyId: number;
 }
 
 export const OrderStatusEditor = ({
@@ -25,7 +28,40 @@ export const OrderStatusEditor = ({
   price,
   editor,
   setEditor,
+  orderId,
+  memberId,
+  companyId,
 }: OrderStatusShellProps) => {
+  // 주문 정정
+  const changeSimulatedMutation = useChangeUserSimulated();
+  const handleChangeOrder = (
+    memberId: number,
+    companyId: number,
+    tradeType: number,
+    quantity: number,
+    price: number,
+    orderId: number,
+  ) => {
+    changeSimulatedMutation.mutate(
+      {
+        memberId,
+        companyId,
+        tradeType,
+        quantity,
+        price,
+        orderId,
+      },
+      {
+        onSuccess: () => {
+          alert('주문이 성공적으로 수정되었습니다.');
+        },
+        onError: () => {
+          alert('주문 수정에 실패했습니다.');
+        },
+      },
+    );
+  };
+
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
   // isActive 핸들러
@@ -210,7 +246,14 @@ export const OrderStatusEditor = ({
               >
                 뒤로가기
               </Button>
-              <Button variant="green" className="w-full" size="default">
+              <Button
+                onClick={() =>
+                  handleChangeOrder(memberId, companyId, tradeType, stockCount, shellCost, orderId)
+                }
+                variant="green"
+                className="w-full"
+                size="default"
+              >
                 수정하기
               </Button>
             </div>
