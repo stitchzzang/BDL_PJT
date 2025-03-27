@@ -105,6 +105,10 @@ export const OrderStatusBuy = ({
     quantity,
     price,
   }: LimitOrderData) => {
+    if (price <= 0 || quantity <= 0) {
+      alert('가격,수량 입력하세요');
+      return;
+    }
     limitOrderMutation.mutate(
       {
         memberId: memberId,
