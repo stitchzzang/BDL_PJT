@@ -320,7 +320,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       const highColor = getChangeColor(highPercent);
 
       return `
-        ${date}<br />
+        📆 ${date}<br />
         <br />
         시가: ${formatKoreanNumber(open)}원 (<span style="color: ${openColor};">${openPercent.toFixed(2)}%</span>)<br />
         종가: ${formatKoreanNumber(close)}원 (<span style="color: ${closeColor};">${closePercent.toFixed(2)}%</span>)<br />
