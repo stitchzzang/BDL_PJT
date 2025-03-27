@@ -9,7 +9,7 @@ import {
   convertPeriodCandleToChartData,
   MinuteCandleData,
   PeriodCandleData,
-} from '@/mocks/dummy-data'; // dummy-data 파일 경로 수정
+} from '@/mocks/dummy-data';
 
 // 타입 정의
 interface ChartComponentProps {
@@ -254,20 +254,20 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       firstValidIndex++;
     }
 
-    if (firstValidIndex < data.length) {
-      ema = data[firstValidIndex];
+    if (firstValidIndex < data.length && data[firstValidIndex] !== null) {
+      ema = data[firstValidIndex] as number;
       emaData[firstValidIndex] = ema;
-    }
 
-    // EMA 계산
-    for (let i = firstValidIndex + 1; i < data.length; i++) {
-      const currentValue = data[i];
-      if (currentValue === null) {
+      // EMA 계산
+      for (let i = firstValidIndex + 1; i < data.length; i++) {
+        const currentValue = data[i];
+        if (currentValue === null) {
+          emaData[i] = ema;
+          continue;
+        }
+        ema = currentValue * k + ema * (1 - k);
         emaData[i] = ema;
-        continue;
       }
-      ema = currentValue * k + ema * (1 - k);
-      emaData[i] = ema;
     }
 
     return emaData;
