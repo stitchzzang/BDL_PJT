@@ -429,6 +429,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            formatter: (value: number | string) =>
+              new Intl.NumberFormat('ko-KR').format(Math.floor(Number(value))),
           },
           position: 'right',
           splitLine: {
