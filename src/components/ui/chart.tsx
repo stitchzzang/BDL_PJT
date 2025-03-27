@@ -306,22 +306,56 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         return item.date;
       });
 
-      // 다음 거래일 데이터 추가 (15:00 이후 9:01부터)
+      // 다음 거래일 데이터 추가 (마지막 데이터 이후부터 연속적으로)
       if (labels.length > 0 && effectiveChartData.length > 0) {
         const lastItem = effectiveChartData[effectiveChartData.length - 1];
         if (lastItem && lastItem.rawDate) {
-          const lastDataTime = lastItem.rawDate as Date;
-          const nextDay = new Date(lastDataTime);
+          const lastDataTime = new Date(lastItem.rawDate as Date);
 
-          // 다음 날 9:01부터 표시
-          nextDay.setDate(nextDay.getDate() + 1);
-          nextDay.setHours(9, 1, 0, 0);
+          // 장 마감 시간 계산
+          const endTime = new Date(lastDataTime);
+          endTime.setHours(15, 30, 0, 0);
 
-          // 여유 공간 추가 (다음 거래일 9:01 ~ 9:30)
-          for (let i = 0; i < 30; i++) {
-            const newTime = new Date(nextDay);
-            newTime.setMinutes(newTime.getMinutes() + i);
-            labels.push(formatChartDate(newTime));
+          // 1. 현재 거래일 내 남은 시간 추가 (현재 시간부터 15:30까지)
+          if (lastDataTime < endTime) {
+            // 거래 시간 내 연속 추가 (장 종료 시간까지)
+            const nextMinute = new Date(lastDataTime);
+            nextMinute.setMinutes(nextMinute.getMinutes() + 1);
+
+            while (nextMinute <= endTime) {
+              labels.push(formatChartDate(nextMinute));
+              nextMinute.setMinutes(nextMinute.getMinutes() + 1);
+            }
+          }
+
+          // 2. 다음 거래일 데이터 추가 (09:01부터 시작)
+          // 다음 거래일 설정
+          const nextTradingDay = new Date(lastDataTime);
+          nextTradingDay.setDate(nextTradingDay.getDate() + 1);
+
+          // 주말 건너뛰기
+          const dayOfWeek = nextTradingDay.getDay();
+          if (dayOfWeek === 6) {
+            // 토요일
+            nextTradingDay.setDate(nextTradingDay.getDate() + 2); // 월요일로
+          } else if (dayOfWeek === 0) {
+            // 일요일
+            nextTradingDay.setDate(nextTradingDay.getDate() + 1); // 월요일로
+          }
+
+          // 다음 거래일 시작 시간 (09:01)으로 설정
+          nextTradingDay.setHours(9, 1, 0, 0);
+          const nextDayEnd = new Date(nextTradingDay);
+          nextDayEnd.setHours(15, 30, 0, 0);
+
+          // 다음 거래일 시간 추가 (09:01 ~ 15:30)
+          const tradingMinutes = new Date(nextTradingDay);
+          while (tradingMinutes <= nextDayEnd) {
+            labels.push(formatChartDate(tradingMinutes));
+            tradingMinutes.setMinutes(tradingMinutes.getMinutes() + 1);
+
+            // 충분한 여백 데이터만 추가 (30개 정도)
+            if (labels.length > extendedChartData.length + 30) break;
           }
         }
       }
@@ -944,9 +978,108 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
           // 실제 데이터 범위를 벗어난 경우 (다음 거래일 데이터)
           if (dataIndex >= 10 + transformedChartData.length) {
+            // 미래 데이터일 경우 올바른 날짜 표시
+            let formattedDate = date || '-';
+
+            if (period === 'MINUTE' && date) {
+              // 마지막 실제 데이터 가져오기
+              const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+              if (lastRealData && lastRealData.rawDate) {
+                const lastDate = new Date(lastRealData.rawDate as Date);
+                const endTime = new Date(lastDate);
+                endTime.setHours(15, 30, 0, 0);
+
+                // 시간 정보 추출 (HH:MM 형식)
+                const timeParts = date.split(':');
+                if (timeParts.length === 2) {
+                  const hour = Number(timeParts[0]);
+                  const minute = Number(timeParts[1]);
+
+                  // 시간이 거래 시간 범위 내인지 확인 (09:01 ~ 15:30)
+                  if (
+                    (hour === 9 && minute >= 1) ||
+                    (hour > 9 && hour < 15) ||
+                    (hour === 15 && minute <= 30)
+                  ) {
+                    // 날짜 계산
+                    const targetDate = new Date(lastDate);
+
+                    // 시간이 마지막 데이터 시간보다 이전인 경우, 다음 거래일로 설정
+                    if (
+                      hour < lastDate.getHours() ||
+                      (hour === lastDate.getHours() && minute <= lastDate.getMinutes())
+                    ) {
+                      targetDate.setDate(targetDate.getDate() + 1);
+
+                      // 주말 건너뛰기
+                      const dayOfWeek = targetDate.getDay();
+                      if (dayOfWeek === 6) {
+                        // 토요일
+                        targetDate.setDate(targetDate.getDate() + 2); // 월요일로
+                      } else if (dayOfWeek === 0) {
+                        // 일요일
+                        targetDate.setDate(targetDate.getDate() + 1); // 월요일로
+                      }
+                    } else if (lastDate >= endTime) {
+                      // 마지막 데이터가 15:30이거나 그 이후인 경우, 다음 거래일로 설정
+                      targetDate.setDate(targetDate.getDate() + 1);
+
+                      // 주말 건너뛰기
+                      const dayOfWeek = targetDate.getDay();
+                      if (dayOfWeek === 6) {
+                        // 토요일
+                        targetDate.setDate(targetDate.getDate() + 2); // 월요일로
+                      } else if (dayOfWeek === 0) {
+                        // 일요일
+                        targetDate.setDate(targetDate.getDate() + 1); // 월요일로
+                      }
+                    }
+
+                    // 시간 설정
+                    targetDate.setHours(hour, minute, 0, 0);
+                    formattedDate = formatDetailDate(targetDate);
+                  }
+                }
+              }
+            } else if ((period === 'DAY' || period === 'WEEK' || period === 'MONTH') && date) {
+              // 일봉/주봉/월봉의 경우 날짜 포맷팅
+              const dayMatch = date.match(/(\d+)일/);
+              const monthMatch = date.match(/(\d+)월/);
+              const yearMatch = date.match(/(\d+)년/);
+
+              if (dayMatch || monthMatch || yearMatch) {
+                const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+                if (lastRealData && lastRealData.rawDate) {
+                  const lastDate = new Date(lastRealData.rawDate as Date);
+                  const newDate = new Date(lastDate);
+
+                  // 연도 처리
+                  if (yearMatch) {
+                    const year = Number(yearMatch[1]);
+                    newDate.setFullYear(year);
+                    newDate.setMonth(0);
+                    newDate.setDate(1);
+                  }
+                  // 월 처리
+                  else if (monthMatch) {
+                    const month = Number(monthMatch[1]) - 1;
+                    newDate.setMonth(month);
+                    newDate.setDate(1);
+                  }
+                  // 일 처리
+                  else if (dayMatch) {
+                    const day = Number(dayMatch[1]);
+                    newDate.setDate(day);
+                  }
+
+                  formattedDate = formatDetailDate(newDate);
+                }
+              }
+            }
+
             return `
               <div style="font-size: 12px;">
-                <div style="margin-bottom: 4px;">${date || '-'}</div>
+                <div style="margin-bottom: 4px;">${formattedDate}</div>
                 <div>시가: -</div>
                 <div>고가: -</div>
                 <div>저가: -</div>
@@ -1057,17 +1190,142 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
             // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
             const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
-            if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+
+            // 유효하지 않은 인덱스 또는 왼쪽 여백 영역인 경우
+            if (labelIndex < 0 || labelIndex < 10) {
               return params.value; // 원래 레이블 반환
             }
 
-            // 해당 인덱스의 데이터 찾기
-            const item = extendedChartData[labelIndex];
-            if (!item) return params.value;
+            // 실제 데이터 영역 - extendedChartData 범위 내
+            if (labelIndex < extendedChartData.length) {
+              const item = extendedChartData[labelIndex];
+              if (!item) return params.value;
 
-            // rawDate 속성이 있는지 확인
-            if ('rawDate' in item && item.rawDate instanceof Date) {
-              return formatDetailDate(item.rawDate);
+              // rawDate 속성이 있는지 확인
+              if ('rawDate' in item && item.rawDate instanceof Date) {
+                return formatDetailDate(item.rawDate);
+              }
+              return params.value;
+            }
+
+            // 여기서부터는 오른쪽 여백 영역 (미래 데이터)
+            if (period === 'MINUTE') {
+              // 마지막 실제 데이터 가져오기
+              const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+              if (lastRealData && lastRealData.rawDate) {
+                const lastDate = new Date(lastRealData.rawDate as Date);
+                const endTime = new Date(lastDate);
+                endTime.setHours(15, 30, 0, 0);
+
+                // 시간 정보 추출 (HH:MM 형식)
+                const timeParts = params.value.split(':');
+                if (timeParts.length === 2) {
+                  const hour = Number(timeParts[0]);
+                  const minute = Number(timeParts[1]);
+
+                  // 현재 거래일 내 시간인지 확인 (09:01 ~ 15:30)
+                  if (
+                    (hour === 9 && minute >= 1) ||
+                    (hour > 9 && hour < 15) ||
+                    (hour === 15 && minute <= 30)
+                  ) {
+                    // 날짜 계산
+                    const targetDate = new Date(lastDate);
+
+                    // 시간이 마지막 데이터 시간보다 이전인 경우, 다음 거래일로 설정
+                    if (
+                      hour < lastDate.getHours() ||
+                      (hour === lastDate.getHours() && minute <= lastDate.getMinutes())
+                    ) {
+                      targetDate.setDate(targetDate.getDate() + 1);
+
+                      // 주말 건너뛰기
+                      const dayOfWeek = targetDate.getDay();
+                      if (dayOfWeek === 6) {
+                        // 토요일
+                        targetDate.setDate(targetDate.getDate() + 2); // 월요일로
+                      } else if (dayOfWeek === 0) {
+                        // 일요일
+                        targetDate.setDate(targetDate.getDate() + 1); // 월요일로
+                      }
+                    } else if (lastDate >= endTime) {
+                      // 마지막 데이터가 15:30이거나 그 이후인 경우, 다음 거래일로 설정
+                      targetDate.setDate(targetDate.getDate() + 1);
+
+                      // 주말 건너뛰기
+                      const dayOfWeek = targetDate.getDay();
+                      if (dayOfWeek === 6) {
+                        // 토요일
+                        targetDate.setDate(targetDate.getDate() + 2); // 월요일로
+                      } else if (dayOfWeek === 0) {
+                        // 일요일
+                        targetDate.setDate(targetDate.getDate() + 1); // 월요일로
+                      }
+                    }
+
+                    // 시간 설정
+                    targetDate.setHours(hour, minute, 0, 0);
+                    return formatDetailDate(targetDate);
+                  }
+                }
+              }
+              return params.value;
+            } else if (period === 'DAY') {
+              // 날짜 정보 추출
+              const dayMatch = params.value.match(/(\d+)일/);
+              const monthMatch = params.value.match(/(\d+)월/);
+
+              if (dayMatch || monthMatch) {
+                // 마지막 실제 데이터 가져오기
+                const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+                if (lastRealData && lastRealData.rawDate) {
+                  const lastDate = new Date(lastRealData.rawDate as Date);
+                  const newDate = new Date(lastDate);
+
+                  // 월 처리
+                  if (monthMatch) {
+                    const month = Number(monthMatch[1]) - 1; // JavaScript의 월은 0부터 시작
+                    newDate.setMonth(month);
+                    // 해당 월의 1일로 설정
+                    newDate.setDate(1);
+                  }
+                  // 일 처리
+                  else if (dayMatch) {
+                    const day = Number(dayMatch[1]);
+                    newDate.setDate(day);
+                  }
+
+                  return formatDetailDate(newDate);
+                }
+              }
+            } else if (period === 'WEEK' || period === 'MONTH') {
+              // 주봉/월봉의 경우도 유사하게 처리
+              const monthMatch = params.value.match(/(\d+)월/);
+              const yearMatch = params.value.match(/(\d+)년/);
+
+              if (monthMatch || yearMatch) {
+                const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+                if (lastRealData && lastRealData.rawDate) {
+                  const baseDate = new Date(lastRealData.rawDate as Date);
+                  const newDate = new Date(baseDate);
+
+                  // 연도 처리
+                  if (yearMatch) {
+                    const year = Number(yearMatch[1]);
+                    newDate.setFullYear(year);
+                    newDate.setMonth(0); // 1월로 설정
+                    newDate.setDate(1); // 1일로 설정
+                  }
+                  // 월 처리
+                  else if (monthMatch) {
+                    const month = Number(monthMatch[1]) - 1;
+                    newDate.setMonth(month);
+                    newDate.setDate(1); // 1일로 설정
+                  }
+
+                  return formatDetailDate(newDate);
+                }
+              }
             }
 
             return params.value;
@@ -1152,17 +1410,142 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
                 // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
                 const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
-                if (labelIndex < 0 || labelIndex < 10 || labelIndex >= extendedChartData.length) {
+
+                // 유효하지 않은 인덱스 또는 왼쪽 여백 영역인 경우
+                if (labelIndex < 0 || labelIndex < 10) {
                   return params.value; // 원래 레이블 반환
                 }
 
-                // 해당 인덱스의 데이터 찾기
-                const item = extendedChartData[labelIndex];
-                if (!item) return params.value;
+                // 실제 데이터 영역 - extendedChartData 범위 내
+                if (labelIndex < extendedChartData.length) {
+                  const item = extendedChartData[labelIndex];
+                  if (!item) return params.value;
 
-                // rawDate 속성이 있는지 확인
-                if ('rawDate' in item && item.rawDate instanceof Date) {
-                  return formatDetailDate(item.rawDate);
+                  // rawDate 속성이 있는지 확인
+                  if ('rawDate' in item && item.rawDate instanceof Date) {
+                    return formatDetailDate(item.rawDate);
+                  }
+                  return params.value;
+                }
+
+                // 여기서부터는 오른쪽 여백 영역 (미래 데이터)
+                if (period === 'MINUTE') {
+                  // 마지막 실제 데이터 가져오기
+                  const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+                  if (lastRealData && lastRealData.rawDate) {
+                    const lastDate = new Date(lastRealData.rawDate as Date);
+                    const endTime = new Date(lastDate);
+                    endTime.setHours(15, 30, 0, 0);
+
+                    // 시간 정보 추출 (HH:MM 형식)
+                    const timeParts = params.value.split(':');
+                    if (timeParts.length === 2) {
+                      const hour = Number(timeParts[0]);
+                      const minute = Number(timeParts[1]);
+
+                      // 현재 거래일 내 시간인지 확인 (09:01 ~ 15:30)
+                      if (
+                        (hour === 9 && minute >= 1) ||
+                        (hour > 9 && hour < 15) ||
+                        (hour === 15 && minute <= 30)
+                      ) {
+                        // 날짜 계산
+                        const targetDate = new Date(lastDate);
+
+                        // 시간이 마지막 데이터 시간보다 이전인 경우, 다음 거래일로 설정
+                        if (
+                          hour < lastDate.getHours() ||
+                          (hour === lastDate.getHours() && minute <= lastDate.getMinutes())
+                        ) {
+                          targetDate.setDate(targetDate.getDate() + 1);
+
+                          // 주말 건너뛰기
+                          const dayOfWeek = targetDate.getDay();
+                          if (dayOfWeek === 6) {
+                            // 토요일
+                            targetDate.setDate(targetDate.getDate() + 2); // 월요일로
+                          } else if (dayOfWeek === 0) {
+                            // 일요일
+                            targetDate.setDate(targetDate.getDate() + 1); // 월요일로
+                          }
+                        } else if (lastDate >= endTime) {
+                          // 마지막 데이터가 15:30이거나 그 이후인 경우, 다음 거래일로 설정
+                          targetDate.setDate(targetDate.getDate() + 1);
+
+                          // 주말 건너뛰기
+                          const dayOfWeek = targetDate.getDay();
+                          if (dayOfWeek === 6) {
+                            // 토요일
+                            targetDate.setDate(targetDate.getDate() + 2); // 월요일로
+                          } else if (dayOfWeek === 0) {
+                            // 일요일
+                            targetDate.setDate(targetDate.getDate() + 1); // 월요일로
+                          }
+                        }
+
+                        // 시간 설정
+                        targetDate.setHours(hour, minute, 0, 0);
+                        return formatDetailDate(targetDate);
+                      }
+                    }
+                  }
+                  return params.value;
+                } else if (period === 'DAY') {
+                  // 날짜 정보 추출
+                  const dayMatch = params.value.match(/(\d+)일/);
+                  const monthMatch = params.value.match(/(\d+)월/);
+
+                  if (dayMatch || monthMatch) {
+                    // 마지막 실제 데이터 가져오기
+                    const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+                    if (lastRealData && lastRealData.rawDate) {
+                      const lastDate = new Date(lastRealData.rawDate as Date);
+                      const newDate = new Date(lastDate);
+
+                      // 월 처리
+                      if (monthMatch) {
+                        const month = Number(monthMatch[1]) - 1; // JavaScript의 월은 0부터 시작
+                        newDate.setMonth(month);
+                        // 해당 월의 1일로 설정
+                        newDate.setDate(1);
+                      }
+                      // 일 처리
+                      else if (dayMatch) {
+                        const day = Number(dayMatch[1]);
+                        newDate.setDate(day);
+                      }
+
+                      return formatDetailDate(newDate);
+                    }
+                  }
+                } else if (period === 'WEEK' || period === 'MONTH') {
+                  // 주봉/월봉의 경우도 유사하게 처리
+                  const monthMatch = params.value.match(/(\d+)월/);
+                  const yearMatch = params.value.match(/(\d+)년/);
+
+                  if (monthMatch || yearMatch) {
+                    const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+                    if (lastRealData && lastRealData.rawDate) {
+                      const baseDate = new Date(lastRealData.rawDate as Date);
+                      const newDate = new Date(baseDate);
+
+                      // 연도 처리
+                      if (yearMatch) {
+                        const year = Number(yearMatch[1]);
+                        newDate.setFullYear(year);
+                        newDate.setMonth(0); // 1월로 설정
+                        newDate.setDate(1); // 1일로 설정
+                      }
+                      // 월 처리
+                      else if (monthMatch) {
+                        const month = Number(monthMatch[1]) - 1;
+                        newDate.setMonth(month);
+                        newDate.setDate(1); // 1일로 설정
+                      }
+
+                      return formatDetailDate(newDate);
+                    }
+                  }
                 }
 
                 return params.value;
