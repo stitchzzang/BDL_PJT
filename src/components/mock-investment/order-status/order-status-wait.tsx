@@ -42,7 +42,9 @@ export const OrderStatusWait = ({ closePrice, realTime, tickSize }: OrderStatusW
   }
   return (
     <div>
-      <h3 className={h3Style}>대기 주문</h3>
+      <div className="mb-1">
+        <h3 className={h3Style}>대기 주문</h3>
+      </div>
       {userSimulated?.map((UserSimulatedData, index) => (
         <OrderStatusWaitList
           UserSimulatedData={UserSimulatedData}

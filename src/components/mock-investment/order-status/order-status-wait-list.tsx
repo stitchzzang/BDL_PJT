@@ -65,7 +65,7 @@ export const OrderStatusWaitList = ({
         onSuccess: () => {
           alert('주문이 성공적으로 수정되었습니다.');
         },
-        onError: (error) => {
+        onError: () => {
           alert('주문 수정에 실패했습니다.');
         },
       },

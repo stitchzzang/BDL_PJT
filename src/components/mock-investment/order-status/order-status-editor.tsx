@@ -92,9 +92,15 @@ export const OrderStatusEditor = ({
     }
   };
   return (
-    <div>
-      <div>
-        <h3 className={h3Style}>{tradeType === 1 ? '판매' : '구매'} 정정</h3>
+    <div className="my-3">
+      <div
+        className={`rounded-xl  bg-opacity-20 p-2 ${tradeType === 1 ? 'bg-btn-blue-color' : 'bg-btn-red-color'}`}
+      >
+        <div className="my-3">
+          <h3 className="text-[16px] font-bold text-border-color">
+            {tradeType === 1 ? '판매' : '구매'} 정정
+          </h3>
+        </div>
         <div>
           <div className="mb-[25px] flex w-full flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
