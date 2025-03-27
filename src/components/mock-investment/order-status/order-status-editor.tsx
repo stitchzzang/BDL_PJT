@@ -10,6 +10,7 @@ export interface OrderStatusShellProps {
   realTime?: number; // 실시간 값
   tickSize: number; // 호가 단위
   userAssetData: number; // 주식 갯수
+  tradeType: number; // 판매,구매 판단
 }
 
 export const OrderStatusEditor = ({
@@ -17,6 +18,7 @@ export const OrderStatusEditor = ({
   realTime,
   tickSize,
   userAssetData,
+  tradeType,
 }: OrderStatusShellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
@@ -27,6 +29,11 @@ export const OrderStatusEditor = ({
 
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
+  useEffect(() => {
+    if (userAssetData) {
+      setStockCount(userAssetData);
+    }
+  }, [userAssetData]);
 
   // 총 판매 금액
   const totalPrice = () => {
@@ -57,7 +64,7 @@ export const OrderStatusEditor = ({
     if (check === '+') {
       const checkValue = value + chagneValue;
       if (checkValue > 0) {
-        if (userAssetData) {
+        if (userAssetData && tradeType === 1) {
           // alert(checkValue);
           if (checkValue > userAssetData) {
             return;
@@ -66,13 +73,12 @@ export const OrderStatusEditor = ({
             return;
           }
         }
-        setValue(0);
+        setValue(checkValue);
         return;
       }
     } else if (check === '-') {
       const checkValue = value - chagneValue;
-      if (checkValue < 0) {
-        setValue(0);
+      if (checkValue <= 0) {
         return;
       }
       setValue(value - chagneValue);
@@ -81,7 +87,7 @@ export const OrderStatusEditor = ({
   return (
     <div>
       <div>
-        <h3 className={h3Style}>정정 하기</h3>
+        <h3 className={h3Style}>{tradeType === 1 ? '판매' : '구매'} 정정</h3>
         <div>
           <div className="mb-[25px] flex w-full flex-col gap-4">
             <div className="flex items-center justify-between gap-4">
@@ -166,12 +172,12 @@ export const OrderStatusEditor = ({
           <div className="mt-[20px] flex flex-col gap-4">
             {isActive === '지정가' ? (
               <div className="flex items-center justify-between">
-                <h3 className={h3Style}>총 판매 금액</h3>
+                <h3 className={h3Style}>총 {tradeType === 1 ? '판매' : '구매'} 금액</h3>
                 <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
               </div>
             ) : (
               <div className="flex items-center justify-between">
-                <h3 className={h3Style}>예상 판매 금액</h3>
+                <h3 className={h3Style}>예상 {tradeType === 1 ? '판매' : '구매'} 금액</h3>
                 {realTime ? (
                   <h3 className={h3Style}>
                     {formatKoreanMoney(estimatedTotalPrice(realTime) ?? 0)} 원
@@ -184,7 +190,7 @@ export const OrderStatusEditor = ({
               </div>
             )}
             <div className="flex items-center justify-between">
-              <h3 className={h3Style}>보유 주식 개수</h3>
+              <h3 className={h3Style}>{tradeType === 1 ? '판매' : '구매'} 주식 개수</h3>
               <h3 className={h3Style}>{userAssetData} 개</h3>
             </div>
           </div>
