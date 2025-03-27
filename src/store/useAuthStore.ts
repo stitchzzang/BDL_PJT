@@ -12,6 +12,7 @@ interface AuthState {
   loginAuth: (token: string, userData: UserData) => void;
   logoutAuth: () => void;
   initializeAuth: () => void;
+  updateAuth: (userData: Partial<UserData>) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -27,6 +28,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   logoutAuth: () => {
     localStorage.removeItem('accessToken');
     set({ userData: { nickname: null, profile: null }, isLogin: false });
+  },
+
+  updateAuth: (newUserData: Partial<UserData>) => {
+    set((state) => ({
+      userData: { ...state.userData, ...newUserData },
+    }));
   },
 
   // 토큰 및 userData 초기화 함수 (App.jsx에서 호출 됨에 따라 앱 마운트가 될 때 토큰으로 userData 업데이트)

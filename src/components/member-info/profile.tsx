@@ -1,11 +1,19 @@
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { NavLink } from 'react-router-dom';
 
+import { useAuthStore } from '@/store/useAuthStore';
+
 export const Profile = () => {
+  const { userData } = useAuthStore();
+
   return (
     <div className="flex flex-col items-center gap-2">
-      <img src="/none-img/none_profile_img.png" alt="profile" className="h-10 w-10 rounded-full" />
-      <p className="text-2xl font-medium">홍길동</p>
+      <img
+        src={userData.profile || '/none-img/none_profile_img.png'}
+        alt="profile"
+        className="h-10 w-10 rounded-full"
+      />
+      <p className="text-2xl font-medium">{userData.nickname || '현재 닉네임이 없습니다.'}</p>
       <NavLink
         to="/member/edit"
         className={({ isActive }) =>
