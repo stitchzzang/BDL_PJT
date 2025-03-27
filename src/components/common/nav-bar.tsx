@@ -2,10 +2,14 @@ import { Bars3Icon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/o
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
+import { useLogout } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const NavBar = () => {
+  const { isLogin } = useAuthStore();
+  const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -160,10 +164,26 @@ export const NavBar = () => {
 
       {/* 로그인/프로필 영역 */}
       <div className="flex items-center gap-2">
-        <NavLink to="/login">
-          <Button variant="blue">로그인</Button>
-        </NavLink>
-        <NavLink to="/member/stock-tutorial-result">
+        {isLogin ? (
+          <>
+            <Button
+              variant="blue"
+              onClick={() => {
+                logout();
+              }}
+            >
+              로그아웃
+            </Button>
+          </>
+        ) : (
+          <>
+            <NavLink to="/login" className="text-text-inactive-color hover:text-text-main-color">
+              <Button variant="blue">로그인</Button>
+            </NavLink>
+          </>
+        )}
+
+        <NavLink to="/member">
           <img
             src="/none-img/none_profile_img.png"
             alt="profile"
