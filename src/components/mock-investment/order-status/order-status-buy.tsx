@@ -82,7 +82,7 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
   };
   // 지정가 구매 api
   const limitOrderMutation = usePostStockLimitOrder();
-  const handleLimitOrderMutaion = ({
+  const handleLimitOrder = ({
     memberId,
     companyId,
     tradeType,
@@ -235,7 +235,20 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
           {isActive === '지정가' ? (
-            <Button variant="red" className="w-full" size="lg">
+            <Button
+              variant="red"
+              className="w-full"
+              size="lg"
+              onClick={() =>
+                handleLimitOrder({
+                  memberId: 2,
+                  companyId: 1,
+                  tradeType: 0,
+                  quantity: stockCount,
+                  price: buyCost,
+                })
+              }
+            >
               <p className=" text-[18px] font-medium text-white">구매하기</p>
             </Button>
           ) : (
