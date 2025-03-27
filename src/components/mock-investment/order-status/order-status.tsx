@@ -8,9 +8,10 @@ import { OrderStatusWait } from '@/components/mock-investment/order-status/order
 
 interface orderStatusProps {
   closePrice: number;
+  realTime?: number;
 }
 
-export const OrderStatus = ({ closePrice }: orderStatusProps) => {
+export const OrderStatus = ({ closePrice, realTime }: orderStatusProps) => {
   // 유저 자산 가져오기
   const { data: userAssetData } = useUserAssetData(2);
   // 허용된 탭 타입을 정의
@@ -20,7 +21,9 @@ export const OrderStatus = ({ closePrice }: orderStatusProps) => {
 
   // React.ReactElement 타입 사용
   const Components: Record<TabType, React.ReactNode> = {
-    구매: <OrderStatusBuy userAssetData={userAssetData} closePrice={closePrice} />,
+    구매: (
+      <OrderStatusBuy userAssetData={userAssetData} closePrice={closePrice} realTime={realTime} />
+    ),
     판매: <OrderStatusShell />,
     대기: <OrderStatusWait />,
   };
