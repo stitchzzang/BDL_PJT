@@ -41,7 +41,11 @@ const frameworks = [
   },
 ];
 
-export function QuestionsCombobox() {
+interface QuestionsComboboxProps {
+  onSelect?: (question: string) => void;
+}
+
+export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState('');
 
@@ -72,6 +76,9 @@ export function QuestionsCombobox() {
                   onSelect={(currentValue) => {
                     setValue(currentValue === value ? '' : currentValue);
                     setOpen(false);
+                    if (currentValue !== value) {
+                      onSelect?.(framework.label);
+                    }
                   }}
                 >
                   <Check
