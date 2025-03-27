@@ -10,14 +10,16 @@ export interface MemberPassword {
 }
 
 export interface MemberTutorialResults {
-  tutorials: {
-    companyName: string; // 회사명
-    startMoney: number; // 시작 금액
-    endMoney: number; // 종료 금액
-    changeRate: number; // 변화율
-    startDate: string; // 시작일
-    endDate: string; // 종료일
-  }[];
+  tutorials: MemberTutorialResult[];
+}
+
+export interface MemberTutorialResult {
+  companyName: string; // 회사명
+  startMoney: number; // 시작 금액
+  endMoney: number; // 종료 금액
+  changeRate: number; // 변화율
+  startDate: string; // 시작일
+  endDate: string; // 종료일
 }
 
 export interface MemberInvestedStock {
