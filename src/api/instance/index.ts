@@ -49,7 +49,9 @@ const _kyAuth = _ky.extend({
                 ?.substring(BEARER_PREFIX.length);
 
               if (newAccessToken) {
-                useAuthStore.getState().loginAuth(newAccessToken);
+                useAuthStore
+                  .getState()
+                  .loginAuth(newAccessToken, { nickname: null, profile: null });
                 request.headers.set('Authorization', `Bearer ${newAccessToken}`);
               }
 

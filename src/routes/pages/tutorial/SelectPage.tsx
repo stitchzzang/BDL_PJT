@@ -4,7 +4,7 @@ import NoneLogo from '/none-img/none-logo.png';
 import { CategoryList } from '@/components/common/category-list';
 
 export const SelectPage = () => {
-  const [category, setCategory] = useState<string>('');
+  const [categoryId, setCategoryId] = useState<string>('');
   return (
     <div className="flex flex-col items-center justify-center gap-3">
       <div className="flex flex-col items-center justify-center gap-3">
@@ -19,7 +19,7 @@ export const SelectPage = () => {
           </p>
         </div>
         <div>
-          <CategoryList setCategory={setCategory} />
+          <CategoryList setCategoryId={setCategoryId} />
         </div>
       </div>
       <div className="mt-[50px]">

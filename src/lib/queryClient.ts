@@ -10,7 +10,7 @@ export const queryClient = new QueryClient({
       // 쿼리 실패시 재시도 횟수
       // false: 재시도 안함, true: 무한 재시도, number: 지정된 횟수만큼 재시도
       // 기본값: 3
-      retry: 1,
+      retry: false,
 
       // 데이터가 'fresh'에서 'stale'로 전환되는 시간 (밀리초)
       // 0: 항상 새로운 데이터로 취급
@@ -22,7 +22,7 @@ export const queryClient = new QueryClient({
       // false: 자동 갱신 비활성화
       // number: 설정된 시간마다 데이터 갱신
       // 기본값: false (자동 갱신 안함)
-      refetchInterval: 10000,
+      refetchInterval: false,
 
       // 윈도우가 다시 포커스될 때 데이터 자동 갱신 여부
       // 기본값: true
