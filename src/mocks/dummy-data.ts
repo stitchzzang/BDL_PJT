@@ -45,7 +45,6 @@ export interface CandleResponse<T> {
   data: T[];
 }
 
-// 차트 컴포넌트에서 사용할 통합 데이터 타입
 export interface ChartDataPoint {
   date: string;
   open: number;

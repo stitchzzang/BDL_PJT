@@ -22,7 +22,7 @@ declare global {
   }
 }
 
-// echarts-for-react 라이브러리 내부의 ResizeObserver 오류 패치
+// echarts-for-react 라이브러리 내부의  오류 패치
 // disconnect 메서드 호출 시 undefined 참조 오류를 방지
 if (typeof window !== 'undefined' && !window.__PATCHED_RESIZE_OBSERVER__) {
   try {
@@ -47,9 +47,8 @@ if (typeof window !== 'undefined' && !window.__PATCHED_RESIZE_OBSERVER__) {
         // disconnect 메서드 오버라이드 - 안전하게 처리
         disconnect() {
           try {
-            // 원본 메서드 호출
             super.disconnect();
-          } catch (e) {
+          } catch {
             // 오류 무시 - disconnect가 undefined일 경우 발생하는 오류 처리
           }
         }
@@ -65,18 +64,14 @@ if (typeof window !== 'undefined' && !window.__PATCHED_RESIZE_OBSERVER__) {
 
         // unobserve 메서드 오버라이드
         unobserve(target: Element) {
-          try {
-            return super.unobserve(target);
-          } catch (e) {
-            // 오류 무시
-          }
+          return super.unobserve(target);
         }
       } as unknown as typeof ResizeObserver;
 
       // 패치 적용 표시
       window.__PATCHED_RESIZE_OBSERVER__ = true;
     }
-  } catch (e) {
+  } catch {
     // ResizeObserver 패치 중 오류 무시
   }
 }
@@ -93,6 +88,13 @@ type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
 const RISE_COLOR = '#ef5350'; // 빨강
 const FALL_COLOR = '#1976d2'; // 파랑
 
+// DataZoomParams 타입을 직접 정의합니다.
+interface DataZoomParams {
+  batch?: { start: number; end: number }[];
+  start?: number;
+  end?: number;
+}
+
 const ChartComponent: React.FC<ChartComponentProps> = ({
   height = 700,
   minuteData,
@@ -105,7 +107,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     start: 0,
     end: 0,
   });
-  const [showVolume, _setShowVolume] = useState<boolean>(true);
 
   // API 데이터를 차트 데이터로 변환
   const transformedChartData = useMemo(() => {
@@ -166,6 +167,75 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     [period],
   );
 
+  // 주봉 데이터 처리 함수
+  const getWeekData = useCallback(
+    (dayData: ChartDataPoint[]) => {
+      return dayData.reduce<ChartDataPoint[]>((acc, curr, i) => {
+        if (i % 5 === 0) {
+          const weekData = dayData.slice(i, i + 5);
+          if (weekData.length > 0) {
+            const weekDate = weekData[0].rawDate as Date;
+            acc.push({
+              ...curr,
+              periodType: 'WEEK',
+              volume: weekData.reduce((sum, item) => sum + item.volume, 0),
+              high: Math.max(...weekData.map((item) => item.high)),
+              low: Math.min(...weekData.map((item) => item.low)),
+              open: weekData[0].open,
+              close: weekData[weekData.length - 1].close,
+              date: formatChartDate(weekDate),
+              rawDate: weekDate, // 원시 날짜 정보 저장
+            });
+          }
+        }
+        return acc;
+      }, []);
+    },
+    [formatChartDate],
+  );
+
+  // 월봉 데이터 처리 함수
+  const getMonthData = useCallback(
+    (dayData: ChartDataPoint[]) => {
+      return dayData.reduce<ChartDataPoint[]>((acc, curr) => {
+        const date = curr.rawDate as Date;
+        const month = date.getMonth();
+        const year = date.getFullYear();
+
+        const existingMonthIndex = acc.findIndex((item) => {
+          const itemDate = item.rawDate as Date;
+          return itemDate.getMonth() === month && itemDate.getFullYear() === year;
+        });
+
+        if (existingMonthIndex === -1) {
+          // 해당 월의 첫 데이터
+          const monthFirstDay = new Date(year, month, 1);
+          acc.push({
+            ...curr,
+            periodType: 'MONTH',
+            volume: curr.volume,
+            high: curr.high,
+            low: curr.low,
+            open: curr.open,
+            close: curr.close,
+            date: formatChartDate(monthFirstDay),
+            rawDate: monthFirstDay,
+          });
+        } else {
+          // 이미 해당 월의 데이터가 있으면 업데이트
+          const existingData = acc[existingMonthIndex];
+          existingData.volume += curr.volume;
+          existingData.high = Math.max(existingData.high, curr.high);
+          existingData.low = Math.min(existingData.low, curr.low);
+          existingData.close = curr.close; // 마지막 종가로 업데이트
+        }
+
+        return acc;
+      }, []);
+    },
+    [formatChartDate],
+  );
+
   // 기간별 날짜 포맷팅 함수 (상세 표시용)
   const formatDetailDate = useCallback(
     (date: Date): string => {
@@ -174,38 +244,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           // YYYY-MM-DD HH:MM 형식
           return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
         case 'DAY':
-        case 'WEEK':
           // YYYY-MM-DD 형식
           return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        case 'WEEK':
+          // YYYY-MM-DD (주) 형식 - 해당 주의 첫 날짜 표시
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} (주)`;
         case 'MONTH':
           // YYYY-MM 형식
           return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         default:
           return date.toISOString().split('T')[0];
-      }
-    },
-    [period],
-  );
-
-  const isFirstOfPeriod = useCallback(
-    (date: string, index: number): boolean => {
-      if (index === 0) return true;
-
-      switch (period) {
-        case 'DAY': {
-          // 월의 첫 날인지 확인
-          return date.includes('월');
-        }
-        case 'WEEK': {
-          // 월의 첫 주인지 확인
-          return date.includes('월');
-        }
-        case 'MONTH': {
-          // 년의 첫 월인지 확인
-          return date.includes('년');
-        }
-        default:
-          return false;
       }
     },
     [period],
@@ -217,6 +265,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     startDate.setHours(9, 0, 0, 0);
 
     let result: ChartDataPoint[];
+    let dayData: ChartDataPoint[];
 
     switch (period) {
       case 'MINUTE':
@@ -227,17 +276,21 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       case 'WEEK':
         if (!periodData?.data) return [];
         // 주봉: 월~금 5일 단위로 데이터 그룹화
-        result = periodData.data
-          .filter((item) => item.periodType === '2')
+        dayData = periodData.data
+          .filter((item) => item.periodType === '1')
           .map(convertPeriodCandleToChartData);
+
+        result = getWeekData(dayData);
         break;
 
       case 'MONTH':
         if (!periodData?.data) return [];
         // 월봉: 실제 월 단위로 데이터 그룹화
-        result = periodData.data
-          .filter((item) => item.periodType === '3')
+        dayData = periodData.data
+          .filter((item) => item.periodType === '1')
           .map(convertPeriodCandleToChartData);
+
+        result = getMonthData(dayData);
         break;
 
       case 'DAY':
@@ -251,23 +304,26 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     }
 
     return result;
-  }, [period, minuteData, periodData]);
+  }, [period, minuteData, periodData, getWeekData, getMonthData]);
 
-  const formatKoreanNumber = (value: number) => {
+  const formatKoreanNumber = useCallback((value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
-  };
+  }, []);
 
-  const formatVolumeNumber = (value: number) => {
-    if (value >= 1000000000) {
-      return `${Math.floor(value / 1000000000)}B`;
-    } else if (value >= 1000000) {
-      return `${Math.floor(value / 1000000)}M`;
-    } else if (value >= 1000) {
-      return `${Math.floor(value / 1000)}K`;
-    } else {
-      return formatKoreanNumber(value);
-    }
-  };
+  const formatVolumeNumber = useCallback(
+    (value: number) => {
+      if (value >= 1000000000) {
+        return `${Math.floor(value / 1000000000)}B`;
+      } else if (value >= 1000000) {
+        return `${Math.floor(value / 1000000)}M`;
+      } else if (value >= 1000) {
+        return `${Math.floor(value / 1000)}K`;
+      } else {
+        return formatKoreanNumber(value);
+      }
+    },
+    [formatKoreanNumber],
+  );
 
   // 앞쪽에 빈 데이터 없이 실제 데이터만 사용
   const extendedChartData = useMemo(() => {
@@ -376,121 +432,56 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
       // 오른쪽 여유 공간 추가 (10개의 레이블)
       if (labels.length > 0 && effectiveChartData.length > 0) {
-        const lastLabel = labels[labels.length - 1];
+        // 마지막 실제 데이터 가져오기
+        const lastRealData = effectiveChartData[effectiveChartData.length - 1];
+        if (!lastRealData || !lastRealData.rawDate) return labels;
 
-        // 다른 기간의 경우 기존 로직 유지
+        // 마지막 데이터의 실제 날짜 (툴팁에 표시되는 날짜)
+        const lastActualDate = new Date(lastRealData.rawDate as Date);
+
+        // 다음 날짜/월/연도 데이터 생성 (오른쪽 여백용)
         for (let i = 1; i <= 10; i++) {
           let newLabel = '';
+          const nextDate = new Date(lastActualDate);
 
           switch (period) {
             case 'DAY': {
-              const dayMatch = lastLabel.match(/(\d+)일/);
-              const monthMatch = lastLabel.match(/(\d+)월/);
+              // 다음 날짜 계산
+              nextDate.setDate(nextDate.getDate() + i);
 
-              if (dayMatch) {
-                let day = parseInt(dayMatch[1]) + i;
-                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
-
-                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-                while (day > daysInMonth[month]) {
-                  day -= daysInMonth[month];
-                  month++;
-                  if (month > 12) month = 1;
-                }
-
-                if (day === 1) {
-                  newLabel = `${month}월`;
-                } else {
-                  newLabel = `${day}일`;
-                }
+              // 레이블 형식에 맞게 변환
+              const day = nextDate.getDate();
+              if (day === 1) {
+                // 월의 첫 날에는 '월'을 표시
+                newLabel = `${nextDate.getMonth() + 1}월`;
+              } else {
+                newLabel = `${day}일`;
               }
               break;
             }
             case 'WEEK': {
-              const dayMatch = lastLabel.match(/(\d+)일/);
-              const monthMatch = lastLabel.match(/(\d+)월/);
+              // 다음 주 계산 (7일 단위)
+              nextDate.setDate(nextDate.getDate() + i * 7);
 
-              if (dayMatch) {
-                let day = parseInt(dayMatch[1]) + i * 7;
-                let month = monthMatch ? parseInt(monthMatch[1]) : 1;
-
-                const daysInMonth = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-                while (day > daysInMonth[month]) {
-                  day -= daysInMonth[month];
-                  month++;
-                  if (month > 12) month = 1;
-                }
-
-                if (day <= 7) {
-                  newLabel = `${month}월`;
-                } else {
-                  newLabel = `${day}일`;
-                }
+              // 레이블 형식에 맞게 변환
+              const day = nextDate.getDate();
+              if (day <= 7) {
+                // 월의 첫 주에는 '월'을 표시
+                newLabel = `${nextDate.getMonth() + 1}월`;
+              } else {
+                newLabel = `${day}일`;
               }
               break;
             }
             case 'MONTH': {
-              const monthMatch = lastLabel.match(/(\d+)월/);
-              const yearMatch = lastLabel.match(/(\d+)년/);
+              // 다음 월 계산
+              nextDate.setMonth(nextDate.getMonth() + i);
 
-              let month, year;
-
-              // 마지막 레이블이 '월'인 경우 (예: '12월')
-              if (monthMatch) {
-                month = parseInt(monthMatch[1]) + i;
-                // 마지막 레이블에 표시된 연도가 없는 경우 현재 연도를 사용
-                // 하지만 실제로는 마지막 데이터의 연도를 사용해야 함
-                year = new Date().getFullYear(); // 기본값
-
-                // chartData에서 마지막 데이터의 연도 가져오기 (더 정확함)
-                if (
-                  effectiveChartData.length > 0 &&
-                  'rawDate' in effectiveChartData[effectiveChartData.length - 1] &&
-                  effectiveChartData[effectiveChartData.length - 1].rawDate
-                ) {
-                  year = (
-                    effectiveChartData[effectiveChartData.length - 1].rawDate as Date
-                  ).getFullYear();
-                }
-
-                // 12월에서 1월로 넘어갈 때 연도 증가
-                if (monthMatch[1] === '12' && month > 12) {
-                  year += 1;
-                  month = month - 12;
-                }
-                // 그 외 일반적인 월 증가에 따른 연도 처리
-                else if (month > 12) {
-                  year += Math.floor((month - 1) / 12);
-                  month = ((month - 1) % 12) + 1;
-                }
-              }
-              // 마지막 레이블이 '년'인 경우 (예: '2024년')
-              else if (yearMatch) {
-                year = parseInt(yearMatch[1]);
-                month = i;
-
-                if (month > 12) {
-                  year += Math.floor((month - 1) / 12);
-                  month = ((month - 1) % 12) + 1;
-                }
-              }
-              // 어떤 경우도 해당하지 않을 때는 현재 날짜 사용
-              else {
-                const now = new Date();
-                year = now.getFullYear();
-                month = now.getMonth() + 1 + i;
-
-                if (month > 12) {
-                  year += Math.floor((month - 1) / 12);
-                  month = ((month - 1) % 12) + 1;
-                }
-              }
-
-              // 1월인 경우 연도 표시
+              // 레이블 형식에 맞게 변환
+              const month = nextDate.getMonth() + 1;
               if (month === 1) {
-                newLabel = `${year}년`;
+                // 년의 첫 월에는 '년'을 표시
+                newLabel = `${nextDate.getFullYear()}년`;
               } else {
                 newLabel = `${month}월`;
               }
@@ -559,89 +550,37 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     // 유효한 데이터만 필터링
     const validData = effectiveChartData.filter((d) => d !== null && d !== undefined);
     if (validData.length === 0) return 0;
+
     return Math.max(...validData.map((d) => d.volume));
   }, [effectiveChartData]);
 
-  // 거래량 범위 계산
-  const getVolumeRange = useCallback(() => {
+  // 가격 범위 계산
+  // const getPriceRange = useCallback(() => {
+  //   // 유효한 데이터만 필터링
+  //   const validData = effectiveChartData.filter((d) => d !== null && d !== undefined);
+  //   if (validData.length === 0) return { min: 0, max: 100 };
+
+  //   // 가격 범위 계산 (고가, 저가, 시가, 종가 기준)
+  //   const prices = validData.flatMap((d) => [d.high, d.low, d.open, d.close]);
+  //   const min = Math.min(...prices);
+  //   const max = Math.max(...prices);
+
+  //   // 패딩 추가
+  //   const padding = (max - min) * 0.05; // 5% 패딩
+  //   return {
+  //     min: Math.max(0, min - padding),
+  //     max: max + padding,
+  //   };
+  // }, [effectiveChartData]);
+
+  // Y축 범위 계산에 getMaxVolume 사용
+  const yAxisVolumeRange = useMemo(() => {
     const maxVolume = getMaxVolume();
     return {
       min: 0,
-      max: Math.ceil(maxVolume * 1.1),
+      max: Math.ceil(maxVolume * 1.1), // 최대값에 10% 여유 추가
     };
   }, [getMaxVolume]);
-
-  // 가격 범위 계산
-  const getPriceRange = useCallback(() => {
-    // 유효한 데이터만 필터링
-    const validData = effectiveChartData.filter((d) => d !== null && d !== undefined);
-    if (validData.length === 0) return { min: 0, max: 100, volumeMax: 10 };
-
-    // 데이터 줌 상태에 따라 현재 보이는 데이터만 사용
-    let visibleData = validData;
-    if (visibleDataIndices.end > visibleDataIndices.start) {
-      // 왼쪽 패딩 영역(10개 항목)을 고려하여 인덱스 조정
-      const adjustedStart = Math.max(0, visibleDataIndices.start - 10);
-      const adjustedEnd = Math.min(effectiveChartData.length - 1, visibleDataIndices.end - 10);
-
-      if (adjustedEnd >= adjustedStart) {
-        visibleData = effectiveChartData
-          .slice(adjustedStart, adjustedEnd + 1)
-          .filter((d) => d !== null && d !== undefined);
-      }
-    }
-
-    // 빈 배열 확인
-    if (visibleData.length === 0) visibleData = validData;
-
-    const prices = visibleData.flatMap((d) => [d.high, d.low]);
-    let min = Math.min(...prices);
-    let max = Math.max(...prices);
-
-    // EMA 데이터도 포함해서 범위 계산 (현재 보이는 부분만)
-    let visibleEma5Data = ema5Data;
-    let visibleEma20Data = ema20Data;
-
-    if (visibleDataIndices.end > visibleDataIndices.start) {
-      // ema 데이터는 effectiveChartData와 길이가 같도록 맞춰져 있음
-      visibleEma5Data = ema5Data.slice(visibleDataIndices.start, visibleDataIndices.end + 1);
-      visibleEma20Data = ema20Data.slice(visibleDataIndices.start, visibleDataIndices.end + 1);
-    }
-
-    const validEma5 = visibleEma5Data.filter((d): d is number => d !== null && d !== undefined);
-    const validEma20 = visibleEma20Data.filter((d): d is number => d !== null && d !== undefined);
-
-    if (validEma5.length > 0) {
-      min = Math.min(min, ...validEma5);
-      max = Math.max(max, ...validEma5);
-    }
-
-    if (validEma20.length > 0) {
-      min = Math.min(min, ...validEma20);
-      max = Math.max(max, ...validEma20);
-    }
-
-    // 최대 거래량 계산 (현재 보이는 부분만)
-    const visibleVolumeMax = Math.max(...visibleData.map((d) => d.volume));
-    const volumeMax = visibleVolumeMax * 1.1; // 10% 여유 공간
-
-    // 패딩 추가
-    const padding = (max - min) * 0.05; // 5% 패딩
-    const adjustedMin = Math.max(0, min - padding);
-    const adjustedMax = max + padding;
-
-    // 가격 차트와 거래량 차트 사이의 간격을 위한
-    // 전체 Y축 높이를 늘려 각 차트가 별도의 영역을 갖도록 함
-    const totalRangeHeight =
-      (adjustedMax - adjustedMin) / (1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO);
-    const newMax = adjustedMin + totalRangeHeight;
-
-    return {
-      min: adjustedMin,
-      max: newMax,
-      volumeMax,
-    };
-  }, [effectiveChartData, ema5Data, ema20Data, visibleDataIndices]);
 
   // 데이터 줌 범위 계산
   const getDataZoomRange = useCallback(() => {
@@ -657,162 +596,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         return { start: 10, end: 90 };
     }
   }, [period]);
-
-  // 구분선 위치 계산
-  const dividerLinePosition = useCallback(() => {
-    const priceRange = getPriceRange();
-    const priceHeight = priceRange.max - priceRange.min;
-    return priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
-  }, [getPriceRange]);
-
-  // 캔들 데이터 스케일링
-  const scaledCandleData = useMemo(() => {
-    const priceRange = getPriceRange();
-    const priceHeight = priceRange.max - priceRange.min;
-    // 캔들차트 표시 영역 (구분선 위)
-    const candleChartMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
-
-    return extendedChartData.map((item, index) => {
-      // 왼쪽 여백 데이터 처리
-      if (index < 10) {
-        return ['-', '-', '-', '-'];
-      }
-
-      // 실제 데이터 처리
-      const open = Number(item.open);
-      const close = Number(item.close);
-      const low = Number(item.low);
-      const high = Number(item.high);
-
-      if (isNaN(open) || isNaN(close) || isNaN(low) || isNaN(high)) {
-        return ['-', '-', '-', '-'];
-      }
-
-      // 기존 값 범위에서 캔들차트 영역으로 스케일링
-      // min, max 함수 대신 minValue, maxValue 함수 사용
-      const minValue = () => {
-        const minValues = effectiveChartData
-          .filter((d) => d !== null && d !== undefined)
-          .map((d) => Math.min(d.low, d.high, d.open, d.close));
-        return Math.min(...minValues);
-      };
-
-      const maxValue = () => {
-        const maxValues = effectiveChartData
-          .filter((d) => d !== null && d !== undefined)
-          .map((d) => Math.max(d.low, d.high, d.open, d.close));
-        return Math.max(...maxValues);
-      };
-
-      const originalRange = maxValue() - minValue();
-      const chartRange = priceRange.max - candleChartMin;
-      const scaleFactor = chartRange / (originalRange || 1); // 0으로 나누기 방지
-
-      const scaledOpen = candleChartMin + (open - minValue()) * scaleFactor;
-      const scaledClose = candleChartMin + (close - minValue()) * scaleFactor;
-      const scaledLow = candleChartMin + (low - minValue()) * scaleFactor;
-      const scaledHigh = candleChartMin + (high - minValue()) * scaleFactor;
-
-      return [
-        Math.floor(scaledOpen),
-        Math.floor(scaledClose),
-        Math.floor(scaledLow),
-        Math.floor(scaledHigh),
-      ];
-    });
-  }, [extendedChartData, getPriceRange, effectiveChartData]);
-
-  // EMA 데이터 스케일링
-  const scaledEMA5Data = useMemo(() => {
-    const priceRange = getPriceRange();
-    const priceHeight = priceRange.max - priceRange.min;
-    // EMA 표시 영역 (구분선 위)
-    const emaMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
-
-    return ema5Data.map((value) => {
-      if (value === null) return '-';
-
-      // 원본 데이터에서 EMA 영역으로 스케일링
-      const originalMin = Math.min(
-        ...effectiveChartData
-          .filter((d) => d !== null && d !== undefined)
-          .map((d) => Math.min(d.low, d.open, d.close)),
-      );
-
-      const originalMax = Math.max(
-        ...effectiveChartData
-          .filter((d) => d !== null && d !== undefined)
-          .map((d) => Math.max(d.high, d.open, d.close)),
-      );
-
-      const originalRange = originalMax - originalMin;
-      const chartRange = priceRange.max - emaMin;
-      const scaleFactor = chartRange / (originalRange || 1);
-
-      const scaledValue = emaMin + (value - originalMin) * scaleFactor;
-      return Math.floor(scaledValue);
-    });
-  }, [ema5Data, getPriceRange, effectiveChartData]);
-
-  const scaledEMA20Data = useMemo(() => {
-    const priceRange = getPriceRange();
-    const priceHeight = priceRange.max - priceRange.min;
-    // EMA 표시 영역 (구분선 위)
-    const emaMin = priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
-
-    return ema20Data.map((value) => {
-      if (value === null) return '-';
-
-      // 원본 데이터에서 EMA 영역으로 스케일링
-      const originalMin = Math.min(
-        ...effectiveChartData
-          .filter((d) => d !== null && d !== undefined)
-          .map((d) => Math.min(d.low, d.open, d.close)),
-      );
-
-      const originalMax = Math.max(
-        ...effectiveChartData
-          .filter((d) => d !== null && d !== undefined)
-          .map((d) => Math.max(d.high, d.open, d.close)),
-      );
-
-      const originalRange = originalMax - originalMin;
-      const chartRange = priceRange.max - emaMin;
-      const scaleFactor = chartRange / (originalRange || 1);
-
-      const scaledValue = emaMin + (value - originalMin) * scaleFactor;
-      return Math.floor(scaledValue);
-    });
-  }, [ema20Data, getPriceRange, effectiveChartData]);
-
-  // 거래량 데이터 스케일링
-  const scaledVolumeData = useMemo(() => {
-    const priceRange = getPriceRange();
-    const volumeRange = getVolumeRange();
-
-    // 가격 차트와 거래량 차트의 높이 비율 계산
-    const priceHeight = priceRange.max - priceRange.min;
-    const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
-
-    return extendedChartData.map((item, index) => {
-      // 왼쪽 여백 데이터 처리
-      if (index < 10) {
-        return 0; // null 대신 0 사용하여 타입 오류 방지
-      }
-
-      const volume = Number(item.volume);
-      if (isNaN(volume) || volume === 0) {
-        return 0; // null 대신 0 사용하여 타입 오류 방지
-      }
-
-      // 원래 거래량을 0~최대거래량 범위에서 -> 0~volumeHeight 범위로 스케일링
-      const volumeRatio = volume / volumeRange.max;
-      // 거래량은 구분선 아래에만 표시
-      const scaledVolume = priceRange.min + volumeRatio * volumeHeight;
-
-      return Math.floor(scaledVolume);
-    });
-  }, [extendedChartData, getPriceRange, getVolumeRange]);
 
   // 현재 데이터 (마지막 실제 데이터)
   const currentData = useMemo(() => {
@@ -834,6 +617,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     if (!currentData) return FALL_COLOR;
     return currentData.close >= currentData.open ? RISE_COLOR : FALL_COLOR;
   }, [currentData]);
+
+  // 데이터 표시 범위에 따라 차트 데이터 필터링
+  const filteredChartData = useMemo(() => {
+    return effectiveChartData.slice(visibleDataIndices.start, visibleDataIndices.end + 1);
+  }, [effectiveChartData, visibleDataIndices]);
 
   // 현재 보이는 데이터 범위 계산 함수
   const updateVisibleDataIndices = useCallback(
@@ -859,7 +647,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
   // 데이터 줌 이벤트 핸들러 최적화
   const handleDataZoom = useCallback(
-    (params: any) => {
+    (params: DataZoomParams) => {
       try {
         let start, end;
         if (params.batch) {
@@ -920,11 +708,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             type: 'dashed' as const,
           },
         },
-        confine: true, // 툴크 영역 제한
-        enterable: false, // 툴크 마우스 진입 비활성화
-        appendToBody: false, // 툴크를 body에 추가하지 않음
-        showContent: true, // 툴크 콘텐츠 표시 활성화
-        alwaysShowContent: false, // 항상 표시 비활성화
+        confine: true,
+        enterable: false,
+        appendToBody: false,
+        showContent: true,
+        alwaysShowContent: false,
         backgroundColor: 'rgba(19, 23, 34, 0.9)',
         borderColor: '#2e3947',
         textStyle: {
@@ -937,8 +725,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
           if (!candleData) return '';
 
-          const date = candleData.name;
-          const dataIndex = candleData.dataIndex;
+          const date = params[0].data[0];
+          const dataIndex = params[0].dataIndex;
 
           // 왼쪽 여백 데이터 처리
           if (dataIndex < 10) {
@@ -960,7 +748,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           if (
             !candleData.data ||
             !Array.isArray(candleData.data) ||
-            candleData.data.some((val: any) => typeof val !== 'number' || isNaN(val))
+            candleData.data.some((val: number) => typeof val !== 'number' || isNaN(val))
           ) {
             return `
               <div style="font-size: 12px;">
@@ -1156,12 +944,18 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             : '-';
           const volumeStr = volume ? formatVolumeNumber(volume) : '-';
           const ema5Str =
-            ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
-              ? formatKoreanNumber(ema5Data.value) + '원'
+            Array.isArray(ema5Data) &&
+            ema5Data.length > 0 &&
+            typeof ema5Data[0] === 'number' &&
+            !isNaN(ema5Data[0])
+              ? formatKoreanNumber(ema5Data[0]) + '원'
               : '-';
           const ema20Str =
-            ema20Data && typeof ema20Data.value === 'number' && !isNaN(ema20Data.value)
-              ? formatKoreanNumber(ema20Data.value) + '원'
+            Array.isArray(ema20Data) &&
+            ema20Data.length > 0 &&
+            typeof ema20Data[0] === 'number' &&
+            !isNaN(ema20Data[0])
+              ? formatKoreanNumber(ema20Data[0]) + '원'
               : '-';
 
           return `
@@ -1179,176 +973,38 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         },
       },
       axisPointer: {
-        link: [{ xAxisIndex: 'all' as const }],
+        link: [{ xAxisIndex: [0, 1] }],
         label: {
           backgroundColor: FALL_COLOR,
-          formatter: (params: any) => {
-            // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
-            if (!params.value || typeof params.value === 'number') {
-              return params.value;
-            }
-
-            // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-            const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
-
-            // 유효하지 않은 인덱스 또는 왼쪽 여백 영역인 경우
-            if (labelIndex < 0 || labelIndex < 10) {
-              return params.value; // 원래 레이블 반환
-            }
-
-            // 실제 데이터 영역 - extendedChartData 범위 내
-            if (labelIndex < extendedChartData.length) {
-              const item = extendedChartData[labelIndex];
-              if (!item) return params.value;
-
-              // rawDate 속성이 있는지 확인
-              if ('rawDate' in item && item.rawDate instanceof Date) {
-                return formatDetailDate(item.rawDate);
-              }
-              return params.value;
-            }
-
-            // 여기서부터는 오른쪽 여백 영역 (미래 데이터)
-            if (period === 'MINUTE') {
-              // 마지막 실제 데이터 가져오기
-              const lastRealData = effectiveChartData[effectiveChartData.length - 1];
-              if (lastRealData && lastRealData.rawDate) {
-                const lastDate = new Date(lastRealData.rawDate as Date);
-                const endTime = new Date(lastDate);
-                endTime.setHours(15, 30, 0, 0);
-
-                // 시간 정보 추출 (HH:MM 형식)
-                const timeParts = params.value.split(':');
-                if (timeParts.length === 2) {
-                  const hour = Number(timeParts[0]);
-                  const minute = Number(timeParts[1]);
-
-                  // 현재 거래일 내 시간인지 확인 (09:01 ~ 15:30)
-                  if (
-                    (hour === 9 && minute >= 1) ||
-                    (hour > 9 && hour < 15) ||
-                    (hour === 15 && minute <= 30)
-                  ) {
-                    // 날짜 계산
-                    const targetDate = new Date(lastDate);
-
-                    // 시간이 마지막 데이터 시간보다 이전인 경우, 다음 거래일로 설정
-                    if (
-                      hour < lastDate.getHours() ||
-                      (hour === lastDate.getHours() && minute <= lastDate.getMinutes())
-                    ) {
-                      targetDate.setDate(targetDate.getDate() + 1);
-
-                      // 주말 건너뛰기
-                      const dayOfWeek = targetDate.getDay();
-                      if (dayOfWeek === 6) {
-                        // 토요일
-                        targetDate.setDate(targetDate.getDate() + 2); // 월요일로
-                      } else if (dayOfWeek === 0) {
-                        // 일요일
-                        targetDate.setDate(targetDate.getDate() + 1); // 월요일로
-                      }
-                    } else if (lastDate >= endTime) {
-                      // 마지막 데이터가 15:30이거나 그 이후인 경우, 다음 거래일로 설정
-                      targetDate.setDate(targetDate.getDate() + 1);
-
-                      // 주말 건너뛰기
-                      const dayOfWeek = targetDate.getDay();
-                      if (dayOfWeek === 6) {
-                        // 토요일
-                        targetDate.setDate(targetDate.getDate() + 2); // 월요일로
-                      } else if (dayOfWeek === 0) {
-                        // 일요일
-                        targetDate.setDate(targetDate.getDate() + 1); // 월요일로
-                      }
-                    }
-
-                    // 시간 설정
-                    targetDate.setHours(hour, minute, 0, 0);
-                    return formatDetailDate(targetDate);
-                  }
-                }
-              }
-              return params.value;
-            } else if (period === 'DAY') {
-              // 날짜 정보 추출
-              const dayMatch = params.value.match(/(\d+)일/);
-              const monthMatch = params.value.match(/(\d+)월/);
-
-              if (dayMatch || monthMatch) {
-                // 마지막 실제 데이터 가져오기
-                const lastRealData = effectiveChartData[effectiveChartData.length - 1];
-                if (lastRealData && lastRealData.rawDate) {
-                  const lastDate = new Date(lastRealData.rawDate as Date);
-                  const newDate = new Date(lastDate);
-
-                  // 월 처리
-                  if (monthMatch) {
-                    const month = Number(monthMatch[1]) - 1; // JavaScript의 월은 0부터 시작
-                    newDate.setMonth(month);
-                    // 해당 월의 1일로 설정
-                    newDate.setDate(1);
-                  }
-                  // 일 처리
-                  else if (dayMatch) {
-                    const day = Number(dayMatch[1]);
-                    newDate.setDate(day);
-                  }
-
-                  return formatDetailDate(newDate);
-                }
-              }
-            } else if (period === 'WEEK' || period === 'MONTH') {
-              // 주봉/월봉의 경우도 유사하게 처리
-              const monthMatch = params.value.match(/(\d+)월/);
-              const yearMatch = params.value.match(/(\d+)년/);
-
-              if (monthMatch || yearMatch) {
-                const lastRealData = effectiveChartData[effectiveChartData.length - 1];
-                if (lastRealData && lastRealData.rawDate) {
-                  const baseDate = new Date(lastRealData.rawDate as Date);
-                  const newDate = new Date(baseDate);
-
-                  // 연도 처리
-                  if (yearMatch) {
-                    const year = Number(yearMatch[1]);
-                    newDate.setFullYear(year);
-                    newDate.setMonth(0); // 1월로 설정
-                    newDate.setDate(1); // 1일로 설정
-                  }
-                  // 월 처리
-                  else if (monthMatch) {
-                    const month = Number(monthMatch[1]) - 1;
-                    newDate.setMonth(month);
-                    newDate.setDate(1); // 1일로 설정
-                  }
-
-                  return formatDetailDate(newDate);
-                }
-              }
-            }
-
-            return params.value;
-          },
         },
         lineStyle: {
           color: 'rgba(255, 255, 255, 0.2)',
           width: 1,
           type: 'dashed' as const,
         },
-        snap: true,
-        triggerTooltip: false,
       },
-      grid: {
-        left: '5%',
-        right: '15%',
-        top: '8%',
-        bottom: '25%',
-        containLabel: true,
-        show: true,
-        borderColor: '#2e3947',
-        backgroundColor: 'transparent',
-      },
+      grid: [
+        {
+          left: '5%',
+          right: '15%',
+          top: '8%',
+          height: `${VOLUME_HEIGHT_RATIO * height}px`,
+          containLabel: true,
+          show: true,
+          borderColor: '#2e3947',
+          backgroundColor: 'transparent',
+        },
+        {
+          left: '5%',
+          right: '15%',
+          top: `${8 + VOLUME_HEIGHT_RATIO * 100}%`,
+          height: `${(1 - VOLUME_HEIGHT_RATIO - VOLUME_GAP_RATIO) * height}px`,
+          containLabel: true,
+          show: true,
+          borderColor: '#2e3947',
+          backgroundColor: 'transparent',
+        },
+      ],
       xAxis: [
         {
           type: 'category' as const,
@@ -1360,32 +1016,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             color: '#CCCCCC',
             margin: 12,
             formatter: (value: any, index: any) => {
-              // 빈 값인 경우(왼쪽 여백) 빈 문자열 반환
               if (!value) return '';
 
-              const isBold = isFirstOfPeriod(value, index);
-
-              // 다음 거래일 시작 (9:01) 표시 강화
               if (period === 'MINUTE' && value === '09:01' && index > extendedChartData.length) {
                 return `{nextDay|${value}}`;
               }
 
-              switch (period) {
-                case 'MINUTE':
-                  // HH:MM 형식 (기본 형식이 이미 올바름)
-                  return value;
-                case 'DAY':
-                  // DD일 또는 MM월 형식 (기본 형식이 이미 올바름)
-                  return value;
-                case 'WEEK':
-                  // DD일 또는 MM월 형식 (기본 형식이 이미 올바름)
-                  return value;
-                case 'MONTH':
-                  // MM월 또는 YYYY년 형식 (기본 형식이 이미 올바름)
-                  return value;
-                default:
-                  return value;
-              }
+              return value;
             },
             rich: {
               nextDay: {
@@ -1400,158 +1037,29 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           axisTick: { show: true },
           boundaryGap: true,
-          axisPointer: {
-            label: {
-              formatter: (params: any) => {
-                // 값이 빈 문자열이거나 숫자인 경우 그대로 반환
-                if (!params.value || typeof params.value === 'number') {
-                  return params.value;
-                }
-
-                // 현재 레이블 위치에 해당하는 데이터 인덱스 찾기
-                const labelIndex = xAxisLabels.findIndex((label) => label === params.value);
-
-                // 유효하지 않은 인덱스 또는 왼쪽 여백 영역인 경우
-                if (labelIndex < 0 || labelIndex < 10) {
-                  return params.value; // 원래 레이블 반환
-                }
-
-                // 실제 데이터 영역 - extendedChartData 범위 내
-                if (labelIndex < extendedChartData.length) {
-                  const item = extendedChartData[labelIndex];
-                  if (!item) return params.value;
-
-                  // rawDate 속성이 있는지 확인
-                  if ('rawDate' in item && item.rawDate instanceof Date) {
-                    return formatDetailDate(item.rawDate);
-                  }
-                  return params.value;
-                }
-
-                // 여기서부터는 오른쪽 여백 영역 (미래 데이터)
-                if (period === 'MINUTE') {
-                  // 마지막 실제 데이터 가져오기
-                  const lastRealData = effectiveChartData[effectiveChartData.length - 1];
-                  if (lastRealData && lastRealData.rawDate) {
-                    const lastDate = new Date(lastRealData.rawDate as Date);
-                    const endTime = new Date(lastDate);
-                    endTime.setHours(15, 30, 0, 0);
-
-                    // 시간 정보 추출 (HH:MM 형식)
-                    const timeParts = params.value.split(':');
-                    if (timeParts.length === 2) {
-                      const hour = Number(timeParts[0]);
-                      const minute = Number(timeParts[1]);
-
-                      // 현재 거래일 내 시간인지 확인 (09:01 ~ 15:30)
-                      if (
-                        (hour === 9 && minute >= 1) ||
-                        (hour > 9 && hour < 15) ||
-                        (hour === 15 && minute <= 30)
-                      ) {
-                        // 날짜 계산
-                        const targetDate = new Date(lastDate);
-
-                        // 시간이 마지막 데이터 시간보다 이전인 경우, 다음 거래일로 설정
-                        if (
-                          hour < lastDate.getHours() ||
-                          (hour === lastDate.getHours() && minute <= lastDate.getMinutes())
-                        ) {
-                          targetDate.setDate(targetDate.getDate() + 1);
-
-                          // 주말 건너뛰기
-                          const dayOfWeek = targetDate.getDay();
-                          if (dayOfWeek === 6) {
-                            // 토요일
-                            targetDate.setDate(targetDate.getDate() + 2); // 월요일로
-                          } else if (dayOfWeek === 0) {
-                            // 일요일
-                            targetDate.setDate(targetDate.getDate() + 1); // 월요일로
-                          }
-                        } else if (lastDate >= endTime) {
-                          // 마지막 데이터가 15:30이거나 그 이후인 경우, 다음 거래일로 설정
-                          targetDate.setDate(targetDate.getDate() + 1);
-
-                          // 주말 건너뛰기
-                          const dayOfWeek = targetDate.getDay();
-                          if (dayOfWeek === 6) {
-                            // 토요일
-                            targetDate.setDate(targetDate.getDate() + 2); // 월요일로
-                          } else if (dayOfWeek === 0) {
-                            // 일요일
-                            targetDate.setDate(targetDate.getDate() + 1); // 월요일로
-                          }
-                        }
-
-                        // 시간 설정
-                        targetDate.setHours(hour, minute, 0, 0);
-                        return formatDetailDate(targetDate);
-                      }
-                    }
-                  }
-                  return params.value;
-                } else if (period === 'DAY') {
-                  // 날짜 정보 추출
-                  const dayMatch = params.value.match(/(\d+)일/);
-                  const monthMatch = params.value.match(/(\d+)월/);
-
-                  if (dayMatch || monthMatch) {
-                    // 마지막 실제 데이터 가져오기
-                    const lastRealData = effectiveChartData[effectiveChartData.length - 1];
-                    if (lastRealData && lastRealData.rawDate) {
-                      const lastDate = new Date(lastRealData.rawDate as Date);
-                      const newDate = new Date(lastDate);
-
-                      // 월 처리
-                      if (monthMatch) {
-                        const month = Number(monthMatch[1]) - 1; // JavaScript의 월은 0부터 시작
-                        newDate.setMonth(month);
-                        // 해당 월의 1일로 설정
-                        newDate.setDate(1);
-                      }
-                      // 일 처리
-                      else if (dayMatch) {
-                        const day = Number(dayMatch[1]);
-                        newDate.setDate(day);
-                      }
-
-                      return formatDetailDate(newDate);
-                    }
-                  }
-                } else if (period === 'WEEK' || period === 'MONTH') {
-                  // 주봉/월봉의 경우도 유사하게 처리
-                  const monthMatch = params.value.match(/(\d+)월/);
-                  const yearMatch = params.value.match(/(\d+)년/);
-
-                  if (monthMatch || yearMatch) {
-                    const lastRealData = effectiveChartData[effectiveChartData.length - 1];
-                    if (lastRealData && lastRealData.rawDate) {
-                      const baseDate = new Date(lastRealData.rawDate as Date);
-                      const newDate = new Date(baseDate);
-
-                      // 연도 처리
-                      if (yearMatch) {
-                        const year = Number(yearMatch[1]);
-                        newDate.setFullYear(year);
-                        newDate.setMonth(0); // 1월로 설정
-                        newDate.setDate(1); // 1일로 설정
-                      }
-                      // 월 처리
-                      else if (monthMatch) {
-                        const month = Number(monthMatch[1]) - 1;
-                        newDate.setMonth(month);
-                        newDate.setDate(1); // 1일로 설정
-                      }
-
-                      return formatDetailDate(newDate);
-                    }
-                  }
-                }
-
-                return params.value;
-              },
-            },
+          scale: true,
+          min: 'dataMin',
+          max: 'dataMax',
+        },
+        {
+          type: 'category' as const,
+          data: xAxisLabels,
+          gridIndex: 1,
+          axisLine: { lineStyle: { color: '#2e3947' } },
+          axisLabel: {
+            show: true,
+            color: '#CCCCCC',
+            margin: 12,
           },
+          splitLine: {
+            show: true,
+            lineStyle: { color: 'rgba(100, 100, 100, 0.2)' },
+          },
+          axisTick: { show: true },
+          boundaryGap: true,
+          scale: true,
+          min: 'dataMin',
+          max: 'dataMax',
         },
       ],
       yAxis: [
@@ -1568,104 +1076,61 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           axisLabel: {
             color: '#CCCCCC',
-            formatter: (value: number) => {
-              const priceRange = getPriceRange();
-              const priceHeight = priceRange.max - priceRange.min;
-              const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
-
-              if (value >= dividerPos) {
-                // 가격 차트 영역 (구분선 위)
-                return formatKoreanNumber(Math.floor(value));
-              } else {
-                // 음수 값이나 0 미만인 경우 처리
-                if (value < 0) return '0';
-
-                // 거래량 차트 영역 (구분선 아래)
-                // 거래량 범위 가져오기
-                const volumeRange = getVolumeRange();
-                // 거래량 영역 높이 계산
-                const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
-                // 값이 Y축에서 차지하는 비율 계산
-                const ratio = (value - priceRange.min) / volumeHeight;
-                // 비율을 기반으로 실제 거래량 값 계산
-                const originalVolume = ratio * volumeRange.max;
-
-                if (originalVolume <= 0) return '0';
-                return formatVolumeNumber(Math.floor(originalVolume));
-              }
-            },
+            formatter: (value: number) => formatKoreanNumber(Math.floor(value)),
             inside: false,
             margin: 8,
             fontSize: 12,
           },
-          axisPointer: {
-            label: {
-              formatter: (params: any) => {
-                try {
-                  const numValue = Number(params.value);
-                  const priceRange = getPriceRange();
-                  const priceHeight = priceRange.max - priceRange.min;
-                  const dividerPos = priceRange.min + priceHeight * VOLUME_HEIGHT_RATIO;
-
-                  if (numValue >= dividerPos) {
-                    // 가격 차트 영역 (구분선 위)
-                    return formatKoreanNumber(Math.floor(numValue));
-                  } else {
-                    // 음수 값이나 0 미만인 경우 처리
-                    if (numValue < 0) return '0';
-
-                    // 거래량 차트 영역 (구분선 아래)
-                    // 거래량 범위 가져오기
-                    const volumeRange = getVolumeRange();
-                    // 거래량 영역 높이 계산
-                    const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
-                    // 값이 Y축에서 차지하는 비율 계산
-                    const ratio = (numValue - priceRange.min) / volumeHeight;
-                    // 비율을 기반으로 실제 거래량 값 계산
-                    const originalVolume = ratio * volumeRange.max;
-
-                    if (originalVolume <= 0) return '0';
-                    return formatVolumeNumber(Math.floor(originalVolume));
-                  }
-                } catch {
-                  // 오류 무시
-                }
-                return '-';
-              },
-              backgroundColor: FALL_COLOR,
-            },
+          min: (value: any) => Math.floor(value.min * 0.995),
+          max: (value: any) => Math.ceil(value.max * 1.005),
+        },
+        {
+          type: 'value' as const,
+          position: 'right' as const,
+          gridIndex: 1,
+          axisLine: { lineStyle: { color: '#2e3947' } },
+          axisLabel: {
+            color: '#CCCCCC',
+            formatter: (value: number) => formatVolumeNumber(value),
+            inside: false,
+            margin: 8,
+            fontSize: 12,
           },
-          min: getPriceRange().min,
-          max: getPriceRange().max,
+          splitLine: {
+            show: true,
+            lineStyle: { color: 'rgba(100, 100, 100, 0.2)' },
+          },
+          min: 0,
+          max: yAxisVolumeRange.max,
         },
       ],
       dataZoom: [
         {
           type: 'inside' as const,
+          xAxisIndex: [0, 1],
           filterMode: 'filter' as const,
           start: dataZoomRange.start,
           end: dataZoomRange.end,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
           preventDefaultMouseMove: false,
-          rangeMode: ['value', 'value'] as ['value', 'value'],
           minSpan: 5,
           maxSpan: 100,
         },
         {
           type: 'slider' as const,
           show: true,
+          xAxisIndex: [0, 1],
           filterMode: 'filter' as const,
           start: dataZoomRange.start,
           end: dataZoomRange.end,
           height: 30,
-          bottom: 60,
+          bottom: 10,
           borderColor: '#2e3947',
           fillerColor: 'rgba(80, 80, 100, 0.3)',
           handleStyle: {
             color: '#8392A5',
           },
-          rangeMode: ['value', 'value'] as ['value', 'value'],
           minSpan: 5,
           maxSpan: 100,
         },
@@ -1676,7 +1141,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           type: 'candlestick' as const,
           xAxisIndex: 0,
           yAxisIndex: 0,
-          data: scaledCandleData,
+          data: filteredChartData.map((item) => [item.open, item.close, item.low, item.high]),
           itemStyle: {
             color: RISE_COLOR,
             color0: FALL_COLOR,
@@ -1703,34 +1168,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             },
             data: [
               {
-                // 현재가를 캔들차트 영역으로 스케일링
-                yAxis: (() => {
-                  if (!currentData) return 0;
-                  const priceRange = getPriceRange();
-                  const priceHeight = priceRange.max - priceRange.min;
-                  const candleChartMin =
-                    priceRange.min + priceHeight * (VOLUME_HEIGHT_RATIO + VOLUME_GAP_RATIO);
-
-                  const originalMin = Math.min(
-                    ...effectiveChartData
-                      .filter((d) => d !== null && d !== undefined)
-                      .map((d) => Math.min(d.low, d.open, d.close)),
-                  );
-
-                  const originalMax = Math.max(
-                    ...effectiveChartData
-                      .filter((d) => d !== null && d !== undefined)
-                      .map((d) => Math.max(d.high, d.open, d.close)),
-                  );
-
-                  const originalRange = originalMax - originalMin;
-                  const chartRange = priceRange.max - candleChartMin;
-                  const scaleFactor = chartRange / (originalRange || 1);
-
-                  return Math.floor(
-                    candleChartMin + (currentData.close - originalMin) * scaleFactor,
-                  );
-                })(),
+                yAxis: currentData.close,
                 lineStyle: {
                   color: currentPriceColor,
                 },
@@ -1743,7 +1181,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           type: 'line' as const,
           xAxisIndex: 0,
           yAxisIndex: 0,
-          data: scaledEMA5Data,
+          data: ema5Data,
           smooth: true,
           lineStyle: {
             opacity: 0.8,
@@ -1758,7 +1196,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           type: 'line' as const,
           xAxisIndex: 0,
           yAxisIndex: 0,
-          data: scaledEMA20Data,
+          data: ema20Data,
           smooth: true,
           lineStyle: {
             opacity: 0.8,
@@ -1771,9 +1209,12 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         {
           name: '거래량',
           type: 'bar' as const,
-          xAxisIndex: 0,
-          yAxisIndex: 0,
-          data: showVolume ? scaledVolumeData : [],
+          xAxisIndex: 1,
+          yAxisIndex: 1,
+          data: extendedChartData.map((item, index) => {
+            if (index < 10) return 0;
+            return item.volume;
+          }),
           itemStyle: {
             color: (params: any) => {
               const index = params.dataIndex;
@@ -1805,41 +1246,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             },
             data: [
               {
-                // null 값이 들어갈 수 있는 경우 0 또는 기본값 사용
-                yAxis:
-                  scaledVolumeData.length > 0
-                    ? scaledVolumeData[scaledVolumeData.length - 1] || 0
-                    : 0,
+                yAxis: currentData.volume,
                 lineStyle: {
-                  color: 'transparent',
-                },
-              },
-            ],
-          },
-        },
-        {
-          name: '구분선',
-          type: 'line' as const,
-          xAxisIndex: 0,
-          yAxisIndex: 0,
-          markLine: {
-            silent: true,
-            symbol: 'none',
-            lineStyle: {
-              color: '#2e3947',
-              width: 2,
-              type: 'solid' as const,
-            },
-            label: {
-              show: false,
-            },
-            data: [
-              {
-                yAxis: dividerLinePosition(),
-                lineStyle: {
-                  width: 2,
-                  color: '#2e3947',
-                  type: 'solid' as const,
+                  color: currentPriceColor,
                 },
               },
             ],
@@ -1851,23 +1260,19 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     period,
     dataZoomRange,
     xAxisLabels,
-    getPriceRange,
-    scaledCandleData,
-    scaledEMA5Data,
-    scaledEMA20Data,
-    scaledVolumeData,
+    extendedChartData,
+    ema5Data,
+    ema20Data,
     currentData,
-    showVolume,
     formatKoreanNumber,
     formatDetailDate,
     formatVolumeNumber,
-    dividerLinePosition,
     effectiveChartData,
-    extendedChartData,
-    getVolumeRange,
-    isFirstOfPeriod,
     transformedChartData.length,
     currentPriceColor,
+    height,
+    filteredChartData,
+    yAxisVolumeRange,
   ]);
 
   // 컴포넌트 마운트/언마운트 처리
@@ -1984,6 +1389,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       />
     );
   }, [memoizedOption, height, eventHandlers, period]);
+
+  useEffect(() => {
+    getData();
+  }, [getData]);
 
   return (
     <div
