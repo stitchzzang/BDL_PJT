@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { useUserStockAccountData } from '@/api/stock.api';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
@@ -7,6 +9,9 @@ import { formatKoreanMoney } from '@/utils/numberFormatter';
 export const OrderStatusShell = () => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
+
+  // 사용자 주식 개수
+  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(2, 1);
 
   // 구매가격
   const [buyCost, setBuyCost] = useState<number>(0);
@@ -47,6 +52,16 @@ export const OrderStatusShell = () => {
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
+  if (isLoading) {
+    <>
+      <LoadingAnimation />
+    </>;
+  }
+  if (isError) {
+    <>
+      <p>error</p>
+    </>;
+  }
   return (
     <div>
       <h3 className={h3Style}>판매하기</h3>
@@ -135,6 +150,10 @@ export const OrderStatusShell = () => {
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>총 주문 금액</h3>
             <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+          </div>
+          <div className="flex items-center justify-between">
+            <h3 className={h3Style}>보유 주식 개수수</h3>
+            <h3 className={h3Style}>{userAssetData} 개</h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
