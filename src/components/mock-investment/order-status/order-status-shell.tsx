@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
 
-import { useUserStockAccountData } from '@/api/stock.api';
+import {
+  usePostStockLimitOrder,
+  usePostStockMarketOrder,
+  useUserStockAccountData,
+} from '@/api/stock.api';
+import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
-
 interface OrderStatusShellProps {
   closePrice: number;
   realTime?: number;
@@ -57,8 +61,17 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
       setValue(value - chagneValue);
     }
   };
+
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (userAssetData) {
+      if (userAssetData < stockCount) {
+        setStockCount(userAssetData);
+      }
+    }
+  }, [stockCount]);
   // 총 판매 금액
   const totalPrice = () => {
     const printTotalPrice: number = shellCost * stockCount;
@@ -70,6 +83,63 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
       const prtinEstimeatedTotalPrice: number = estimatedPrice * stockCount;
       return prtinEstimeatedTotalPrice;
     }
+  };
+
+  // 시장가 구매 api
+  const marketOrderMutation = usePostStockMarketOrder();
+  const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
+    marketOrderMutation.mutate(
+      {
+        memberId: memberId,
+        companyId: companyId,
+        tradeType: tradeType, // 0: 매수(구매), 1:매도(판매)
+        quantity: quantity,
+      },
+      {
+        onSuccess: () => {
+          alert(`주문이 성공적으로 처리되었습니다. 판매매 갯수는 ${quantity}입니다.`);
+        },
+      },
+    );
+  };
+
+  // 지정가 구매 api
+  const limitOrderMutation = usePostStockLimitOrder();
+  const handleLimitOrder = ({
+    memberId,
+    companyId,
+    tradeType,
+    quantity,
+    price,
+  }: LimitOrderData) => {
+    if (price <= 0 || quantity <= 0) {
+      alert('가격,수량 입력하세요');
+      return;
+    }
+    limitOrderMutation.mutate(
+      {
+        memberId: memberId,
+        companyId: companyId,
+        tradeType: tradeType, // 0: 매수(구매), 1:매도(판매)
+        quantity: quantity,
+        price: price,
+      },
+      {
+        onSuccess: (res) => {
+          console.log(res);
+          if (res.isSuccess === false) {
+            //에러 처리
+            console.log('에러 체크');
+            if (res.code === 5100) {
+              alert(`${res.message}`);
+            }
+          }
+          alert(
+            `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
+          );
+        },
+      },
+    );
   };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
@@ -195,9 +265,40 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button variant="blue" className="w-full" size="lg">
-            <p className=" text-[18px] font-medium text-white">판매하기</p>
-          </Button>
+          {isActive === '지정가' ? (
+            <Button
+              variant="blue"
+              className="w-full"
+              size="lg"
+              onClick={() =>
+                handleLimitOrder({
+                  memberId: 2,
+                  companyId: 1,
+                  tradeType: 1,
+                  quantity: stockCount,
+                  price: shellCost,
+                })
+              }
+            >
+              <p className=" text-[18px] font-medium text-white">판매하기</p>
+            </Button>
+          ) : (
+            <Button
+              variant="blue"
+              className="w-full"
+              size="lg"
+              onClick={() =>
+                handleMarketOrder({
+                  memberId: 2,
+                  companyId: 1,
+                  tradeType: 1,
+                  quantity: stockCount,
+                })
+              }
+            >
+              <p className=" text-[18px] font-medium text-white">판매하기</p>
+            </Button>
+          )}
           <p className="text-[14px] font-light text-[#718096]">
             결제 수수료는 결제 금액의 0.004% 입니다.
           </p>
