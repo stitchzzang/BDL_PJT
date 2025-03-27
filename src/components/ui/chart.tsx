@@ -158,6 +158,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       data = getMonthData(data);
     }
 
+    // 빈 데이터 추가
     const emptyData = Array(EMPTY_DATA_COUNT)
       .fill(null)
       .map(() => ({
@@ -167,7 +168,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         low: 0,
         close: 0,
         volume: 0,
+        changeType: 'NONE' as const,
+        fiveAverage: 0,
+        twentyAverage: 0,
+        rawDate: null,
+        periodType: period,
       }));
+
     return [...emptyData, ...data];
   }, [rawChartData, period, getWeekData, getMonthData]);
 
@@ -212,22 +219,25 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     const emaData: (number | null)[] = [];
     let ema: number | null = null;
 
-    for (let i = 0; i < data.length; i++) {
-      const currentValue = data[i];
+    // 첫 번째 유효한 값 찾기
+    let firstValidIndex = 0;
+    while (firstValidIndex < data.length && data[firstValidIndex] === null) {
+      firstValidIndex++;
+    }
 
-      // 현재 값이 null 또는 undefined이면 이전 EMA 값을 유지
-      if (currentValue === null || currentValue === undefined) {
+    if (firstValidIndex < data.length) {
+      ema = data[firstValidIndex];
+      emaData[firstValidIndex] = ema;
+    }
+
+    // EMA 계산
+    for (let i = firstValidIndex + 1; i < data.length; i++) {
+      const currentValue = data[i];
+      if (currentValue === null) {
         emaData[i] = ema;
         continue;
       }
-
-      // 첫 번째 유효한 값이 나오면 EMA 초기화
-      if (ema === null) {
-        ema = currentValue;
-      } else {
-        ema = currentValue * k + ema * (1 - k);
-      }
-
+      ema = currentValue * k + ema * (1 - k);
       emaData[i] = ema;
     }
 
@@ -552,8 +562,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           smooth: true,
           lineStyle: {
             opacity: 0.5,
+            color: '#FFA500',
+            width: 1,
           },
           symbol: 'none',
+          z: 1,
         },
         {
           name: 'MA20',
@@ -562,8 +575,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           smooth: true,
           lineStyle: {
             opacity: 0.5,
+            color: '#4169E1',
+            width: 1,
           },
           symbol: 'none',
+          z: 1,
         },
       ],
     }),
