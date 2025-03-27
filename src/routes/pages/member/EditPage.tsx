@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useUpdateMemberInfo } from '@/api/member.api';
@@ -11,6 +11,28 @@ export const EditPage = () => {
   const { userData, updateAuth: updateUserData } = useAuthStore();
   const [tempNickname, setTempNickname] = useState(userData.nickname || '');
   const [tempProfile, setTempProfile] = useState(userData.profile || '');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 파일 확장자 검증
+    const validExtensions = ['image/jpeg', 'image/png'];
+    if (!validExtensions.includes(file.type)) {
+      alert('JPG 또는 PNG 파일만 업로드 가능합니다.');
+      return;
+    }
+
+    setSelectedImage(file);
+    // 미리보기 URL 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setTempProfile(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const { mutate: updateMemberInfo, isPending: updatePending } = useUpdateMemberInfo({
     memberId: '1', // 추후 useAuthStore에서 가져오기
@@ -37,7 +59,14 @@ export const EditPage = () => {
             alt="profile"
             className="h-32 w-32 rounded-full"
           />
-          <Button className="w-full" variant="black">
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/jpeg,image/png"
+            onChange={handleImageChange}
+          />
+          <Button className="w-full" variant="black" onClick={() => fileInputRef.current?.click()}>
             이미지 변경
           </Button>
         </div>
