@@ -3,11 +3,15 @@ import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 
+import { useSignup } from '@/api/auth.api';
+import { SignupRequest } from '@/api/types/auth';
+import { QuestionsCombobox } from '@/components/member-info/questions-combo-box';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 interface SignUpFormValues {
   email: string;
   password: string;
@@ -15,9 +19,14 @@ interface SignUpFormValues {
   nickname: string;
   birthDate: Date;
   phoneNumber: string;
+  question: string;
+  answer: string;
 }
 
 export const SignUpPage = () => {
+  const navigate = useNavigate();
+  const { mutate: signup } = useSignup();
+
   const form = useForm<SignUpFormValues>({
     defaultValues: {
       email: '',
@@ -26,14 +35,31 @@ export const SignUpPage = () => {
       nickname: '',
       birthDate: new Date(),
       phoneNumber: '',
+      question: '',
+      answer: '',
     },
   });
 
   const onSubmit = (data: SignUpFormValues) => {
-    // TODO: API 호출
-  };
+    if (data.password !== data.passwordConfirm) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
 
-  const navigate = useNavigate();
+    const signupRequest: SignupRequest = {
+      email: data.email,
+      password: data.password,
+      nickname: data.nickname,
+      question: data.question,
+      answer: data.answer,
+    };
+
+    signup(signupRequest, {
+      onSuccess: () => {
+        navigate('/signup/success');
+      },
+    });
+  };
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
@@ -129,12 +155,29 @@ export const SignUpPage = () => {
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              variant="blue"
-              className="mt-5 w-full"
-              onClick={() => navigate('/signup-success')}
-            >
+            <FormField
+              control={form.control}
+              name="question"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <QuestionsCombobox onSelect={(question) => field.onChange(question)} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="answer"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormControl>
+                    <Input placeholder="비밀번호 찾기 답변" className="h-12" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="submit" variant="blue" className="mt-5 w-full">
               회원가입
             </Button>
           </form>
