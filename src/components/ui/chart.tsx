@@ -350,6 +350,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     () => ({
       animation: false,
       backgroundColor: '#0D192B',
+      textStyle: {
+        fontFamily:
+          'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+      },
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -359,14 +363,22 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           label: {
             backgroundColor: '#1976d2',
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
         },
         formatter: tooltipFormatter,
+        textStyle: {
+          fontFamily:
+            'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+        },
       },
       axisPointer: {
         link: [{ xAxisIndex: 'all' }],
         label: {
           backgroundColor: '#1976d2',
+          fontFamily:
+            'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
         },
       },
       grid: [
@@ -408,11 +420,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               formatter: (params) => {
                 return String(params.value);
               },
+              fontFamily:
+                'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
             },
           },
           axisLabel: {
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
         },
         {
@@ -445,6 +461,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
           position: 'right',
           splitLine: {
@@ -465,6 +483,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               formatter: (params) => {
                 return new Intl.NumberFormat('ko-KR').format(Math.floor(Number(params.value)));
               },
+              fontFamily:
+                'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
             },
           },
         },
@@ -477,6 +497,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
             formatter: (value: number | string) => {
               const numValue = Number(value);
               if (numValue >= 1000000000) {
@@ -513,6 +535,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
                 }
                 return String(Math.floor(value));
               },
+              fontFamily:
+                'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
             },
           },
         },
@@ -523,6 +547,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           xAxisIndex: [0, 1],
           start: dataZoomRange.start,
           end: dataZoomRange.end,
+          textStyle: {
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+          },
         },
         {
           show: true,
@@ -531,6 +559,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           bottom: 0,
           start: dataZoomRange.start,
           end: dataZoomRange.end,
+          textStyle: {
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+          },
         },
       ],
       series: [
@@ -567,6 +599,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           symbol: 'none',
           z: 1,
+          label: {
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+          },
         },
         {
           name: 'MA20',
@@ -580,6 +616,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           },
           symbol: 'none',
           z: 1,
+          label: {
+            fontFamily:
+              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+          },
         },
       ],
     }),
