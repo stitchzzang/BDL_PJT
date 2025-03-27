@@ -29,6 +29,9 @@ export const StockApi = {
   // 주문 대기 목록
   getUserSimulated: (memberId: number) =>
     _ky.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData[]>>(),
+  // 주문 취소
+  deleteUserSimulated: (orderId: number) =>
+    _ky.delete(`simulated/${orderId}`).json<ApiResponse<string>>(),
 
   // 지정가 post
   postStockLimitOrder: (
@@ -98,6 +101,12 @@ export const useUserSimulatedData = (memberId: number) => {
   return useQuery({
     queryKey: ['userSimulated'],
     queryFn: () => StockApi.getUserSimulated(memberId).then((res) => res.result),
+  });
+};
+// 주문 취소
+export const useDeleteUserSimulated = () => {
+  return useMutation({
+    mutationFn: (orderId: number) => StockApi.deleteUserSimulated(orderId),
   });
 };
 

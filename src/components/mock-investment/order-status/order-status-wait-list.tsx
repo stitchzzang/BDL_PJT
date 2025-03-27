@@ -1,14 +1,38 @@
 import { useState } from 'react';
 
+import { useDeleteUserSimulated } from '@/api/stock.api';
 import { UserSimulatedData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
+import { queryClient } from '@/lib/queryClient';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
+
 interface OrderStatusWaitListProps {
   UserSimulatedData: UserSimulatedData; // test 객체를 prop으로 받기
 }
 
 export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListProps) => {
   const h3Style = 'text-[16px] font-medium text-white';
+  // 주문 취소
+  const deleteSimulatedMutation = useDeleteUserSimulated();
+  const handleDeleteSimulatedMutation = (orderId: number) => {
+    deleteSimulatedMutation.mutate(orderId, {
+      onSuccess: (data) => {
+        // 성공 시 처리
+        alert('주문이 성공적으로 취소되었습니다.');
+        // 쿼리 무효화
+        queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+      },
+      onError: (error) => {
+        // 에러 시 처리
+        console.error('주문 취소 실패:', error);
+        alert('주문 취소에 실패했습니다.');
+      },
+      onSettled: () => {
+        // 성공이든 실패든 완료 시 항상 실행
+        console.log('주문 취소 요청 완료');
+      },
+    });
+  };
   // 클릭시 반응형 추가
   const [isActive, setIsActive] = useState<boolean>(false);
   const isActiveHandler = () => {
@@ -42,7 +66,12 @@ export const OrderStatusWaitList = ({ UserSimulatedData }: OrderStatusWaitListPr
           <Button variant="green" className="w-full" size="sm">
             <p>수정하기</p>
           </Button>
-          <Button variant="red" className="w-full" size="sm">
+          <Button
+            variant="red"
+            className="w-full"
+            size="sm"
+            onClick={() => handleDeleteSimulatedMutation(UserSimulatedData.orderId)}
+          >
             <p>취소하기</p>
           </Button>
         </div>
