@@ -380,7 +380,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         {
           type: 'category',
           data: xAxisLabels,
-          boundaryGap: false,
+          boundaryGap: true,
           axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: {
@@ -409,7 +409,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           type: 'category',
           gridIndex: 1,
           data: xAxisLabels,
-          boundaryGap: false,
+          boundaryGap: true,
           axisLine: { onZero: false },
           axisTick: { show: false },
           splitLine: {
