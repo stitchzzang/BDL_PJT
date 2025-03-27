@@ -5,6 +5,7 @@ import { ApiResponse } from '@/api/types/common';
 import {
   LimitOrderData,
   MarketOrderData,
+  SimulatedData,
   StockMinuteDefaultData,
   UserSimulatedData,
 } from '@/api/types/stock';
@@ -32,6 +33,22 @@ export const StockApi = {
   // 주문 취소
   deleteUserSimulated: (orderId: number) =>
     _ky.delete(`simulated/${orderId}`).json<ApiResponse<string>>(),
+  // 주문 정정
+  changeUserSimulated: (
+    orderId: number,
+    orderData: {
+      memberId: number;
+      companyId: number;
+      tradeType: number;
+      quantity: number;
+      price: number;
+    },
+  ) =>
+    _ky
+      .put(`simulated/${orderId}`, {
+        json: orderData,
+      })
+      .json<ApiResponse<string>>(),
 
   // 지정가 post
   postStockLimitOrder: (
@@ -107,6 +124,13 @@ export const useUserSimulatedData = (memberId: number) => {
 export const useDeleteUserSimulated = () => {
   return useMutation({
     mutationFn: (orderId: number) => StockApi.deleteUserSimulated(orderId),
+  });
+};
+// 주문 정정
+export const useChangeUserSimulated = () => {
+  return useMutation({
+    mutationFn: ({ orderId, ...orderData }: SimulatedData) =>
+      StockApi.changeUserSimulated(orderId, orderData),
   });
 };
 

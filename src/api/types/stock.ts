@@ -87,3 +87,13 @@ export interface UserSimulatedData {
   auto: boolean;
   confirm: boolean;
 }
+
+// 주문리스트
+export interface SimulatedData {
+  memberId: number; // 회원 ID
+  companyId: number; // 종목 ID
+  tradeType: number; // 0: 매수(구매), 1:매도(판매)
+  quantity: number; // 주 개수
+  price: number; // 지정가 - 가격
+  orderId: number;
+}
