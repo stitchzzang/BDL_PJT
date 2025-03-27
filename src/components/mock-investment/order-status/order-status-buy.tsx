@@ -10,9 +10,15 @@ interface OrderStatusBuyProps {
   userAssetData: number | undefined;
   closePrice: number;
   realTime?: number;
+  tickSize: number;
 }
 
-export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderStatusBuyProps) => {
+export const OrderStatusBuy = ({
+  userAssetData,
+  closePrice,
+  realTime,
+  tickSize,
+}: OrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
@@ -23,6 +29,11 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
   // 구매가격
   const [buyCost, setBuyCost] = useState<number>(0);
   const [printCost, setPrintCost] = useState<string>(buyCost + ' 원');
+  // 초기값 설정
+  useEffect(() => {
+    setBuyCost(closePrice);
+    setPrintCost(formatKoreanMoney(buyCost) + '원');
+  }, []);
   useEffect(() => {
     setPrintCost(buyCost + ' 원');
   }, [buyCost]);
@@ -151,7 +162,7 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
                     <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                       <button
                         className="text-[22px]"
-                        onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
+                        onClick={() => CostButtonHandler('-', buyCost, setBuyCost, tickSize)}
                       >
                         -
                       </button>
@@ -159,7 +170,7 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
                     <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                       <button
                         className="text-[22px]"
-                        onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
+                        onClick={() => CostButtonHandler('+', buyCost, setBuyCost, tickSize)}
                       >
                         +
                       </button>
