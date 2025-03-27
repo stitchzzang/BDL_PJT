@@ -125,15 +125,7 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
         price: price,
       },
       {
-        onSuccess: (res) => {
-          console.log(res);
-          if (res.isSuccess === false) {
-            //에러 처리
-            console.log('에러 체크');
-            if (res.code === 5100) {
-              alert(`${res.message}`);
-            }
-          }
+        onSuccess: () => {
           alert(
             `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
           );
