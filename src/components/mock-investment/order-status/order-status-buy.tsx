@@ -7,9 +7,10 @@ import { formatKoreanMoney } from '@/utils/numberFormatter';
 interface OrderStatusBuyProps {
   userAssetData: number | undefined;
   closePrice: number;
+  realTime?: number;
 }
 
-export const OrderStatusBuy = ({ userAssetData, closePrice }: OrderStatusBuyProps) => {
+export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
@@ -49,6 +50,13 @@ export const OrderStatusBuy = ({ userAssetData, closePrice }: OrderStatusBuyProp
   const totalPrice = () => {
     const printTotalPrice: number = buyCost * stockCount;
     return printTotalPrice;
+  };
+  // 예상 총 주문 금액
+  const estimatedTotalPrice = (estimatedPrice: number) => {
+    if (estimatedPrice) {
+      const prtinEstimeatedTotalPrice: number = estimatedPrice * stockCount;
+      return prtinEstimeatedTotalPrice;
+    }
   };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
@@ -168,7 +176,11 @@ export const OrderStatusBuy = ({ userAssetData, closePrice }: OrderStatusBuyProp
             ) : (
               <>
                 <h3 className={h3Style}>예상 충 주문 금액</h3>
-                <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+                {realTime ? (
+                  <h3 className={h3Style}>{estimatedTotalPrice(realTime)} 원</h3>
+                ) : (
+                  <h3 className={h3Style}>{estimatedTotalPrice(closePrice)} 원</h3>
+                )}
               </>
             )}
           </div>
