@@ -1,21 +1,28 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { AlgorithmLabLayout } from '@/layouts/AlgorithmLabLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import { MemberLayout } from '@/layouts/MemberLayout';
-import { AlgorithmLabPage } from '@/routes/pages/AlgorithmLabPage';
+import { ConfirmPage } from '@/routes/pages/algorithm-lab/ConfirmPage';
+import { MarketPage } from '@/routes/pages/algorithm-lab/MarketPage';
+import { MethodPage } from '@/routes/pages/algorithm-lab/MethodPage';
+import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
+import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
+import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
-import { MemberAlgorithmPage } from '@/routes/pages/MemberAlgorithmPage';
-import { MemberEditPage } from '@/routes/pages/MemberEditPage';
-import { MemberInvestmentPage } from '@/routes/pages/MemberInvestmentPage';
-import { MemberPasswordEditPage } from '@/routes/pages/MemberPasswordEditPage';
+import { AlgorithmPage } from '@/routes/pages/member/AlgorithmPage';
+import { EditPage } from '@/routes/pages/member/EditPage';
+import { InvestmentResultPage } from '@/routes/pages/member/InvestmentResultPage';
+import { PasswordEditPage } from '@/routes/pages/member/PasswordEditPage';
+import { TutorialResultPage } from '@/routes/pages/member/TutorialResultPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
-import { SimulatedEducationPage } from '@/routes/pages/SimulatedEducationPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
-import { StockTutorialResultPage } from '@/routes/pages/StockTutorialResultPage';
+import { SelectPage } from '@/routes/pages/tutorial/SelectPage';
+import { SimulatePage } from '@/routes/pages/tutorial/SimulatePage';
 
 export const router = createBrowserRouter([
   {
@@ -30,33 +37,64 @@ export const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
+        path: '/member',
         element: <MemberLayout />,
         children: [
           {
-            path: '/member/edit',
-            element: <MemberEditPage />,
+            index: true,
+            element: <Navigate to="/member/stock-tutorial-result" replace />,
           },
           {
-            path: '/member/edit/password',
-            element: <MemberPasswordEditPage />,
+            path: 'edit',
+            element: <EditPage />,
           },
           {
-            path: '/member/stock-tutorial-result',
-            element: <StockTutorialResultPage />,
+            path: 'edit/password',
+            element: <PasswordEditPage />,
           },
           {
-            path: '/member/algorithm',
-            element: <MemberAlgorithmPage />,
+            path: 'stock-tutorial-result',
+            element: <TutorialResultPage />,
           },
           {
-            path: '/member/investment',
-            element: <MemberInvestmentPage />,
+            path: 'algorithm',
+            element: <AlgorithmPage />,
+          },
+          {
+            path: 'investment',
+            element: <InvestmentResultPage />,
           },
         ],
       },
       {
         path: '/algorithm-lab',
-        element: <AlgorithmLabPage />,
+        element: <AlgorithmLabLayout />,
+        children: [
+          {
+            path: '',
+            element: <StartPage />,
+          },
+          {
+            path: 'name',
+            element: <NamePage />,
+          },
+          {
+            path: 'style',
+            element: <StylePage />,
+          },
+          {
+            path: 'method',
+            element: <MethodPage />,
+          },
+          {
+            path: 'market',
+            element: <MarketPage />,
+          },
+          {
+            path: 'confirm',
+            element: <ConfirmPage />,
+          },
+        ],
       },
       {
         path: '/search',
@@ -64,24 +102,42 @@ export const router = createBrowserRouter([
       },
       {
         path: '/signup',
-        element: <SignUpPage />,
+        children: [
+          {
+            index: true,
+            element: <SignUpPage />,
+          },
+          {
+            path: 'success',
+            element: <SignUpSuccessPage />,
+          },
+        ],
       },
       {
-        path: '/signup-success',
-        element: <SignUpSuccessPage />,
-      },
-      {
-        path: '/simulated-education',
-        element: <SimulatedEducationPage />,
+        path: '/tutorial',
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/tutorial/select" replace />,
+          },
+          {
+            path: 'select',
+            element: <SelectPage />,
+          },
+          {
+            path: 'simulate',
+            element: <SimulatePage />,
+          },
+        ],
       },
       {
         path: '/simulated-investment',
         element: <SimulatedInvestmentPage />,
       },
-      {
-        path: '*',
-        element: <NotFoundPage />,
-      },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
   },
 ]);

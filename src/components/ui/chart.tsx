@@ -692,40 +692,44 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
   return (
     <div className="relative">
-      {/* 기간 선택 버튼 */}
-      <div className="flex items-center gap-4 p-4 text-sm text-white">
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => handlePeriodChange('MINUTE')}
-            type="button"
-          >
-            1분
-          </button>
-          <button
-            className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => handlePeriodChange('DAY')}
-            type="button"
-          >
-            일
-          </button>
-          <button
-            className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => handlePeriodChange('WEEK')}
-            type="button"
-          >
-            주
-          </button>
-          <button
-            className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-            onClick={() => handlePeriodChange('MONTH')}
-            type="button"
-          >
-            월
-          </button>
+      <div
+        className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
+        style={{ backgroundColor: '#0D192B' }}
+      >
+        <div className="flex items-center gap-4 p-4 text-sm text-white">
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+              onClick={() => handlePeriodChange('MINUTE')}
+              type="button"
+            >
+              1분
+            </button>
+            <button
+              className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+              onClick={() => handlePeriodChange('DAY')}
+              type="button"
+            >
+              일
+            </button>
+            <button
+              className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+              onClick={() => handlePeriodChange('WEEK')}
+              type="button"
+            >
+              주
+            </button>
+            <button
+              className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
+              onClick={() => handlePeriodChange('MONTH')}
+              type="button"
+            >
+              월
+            </button>
+          </div>
         </div>
+        <ReactECharts ref={chartRef} option={option} style={{ height: `${height}px` }} />
       </div>
-      <ReactECharts ref={chartRef} option={option} style={{ height: `${height}px` }} />
     </div>
   );
 };

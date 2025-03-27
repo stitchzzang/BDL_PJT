@@ -17,7 +17,7 @@
     "strict": true,
     "noUnusedLocals": false, // 사용하지 않는 지역 변수 허용
     "noUnusedParameters": false, // 사용하지 않는 매개변수 허용
-    "noFallthroughCasesInSwitch": true,
+    "noFallthroughCasesInSwitch": false, // 스위치 문에서 누락된 케이스 허용
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {

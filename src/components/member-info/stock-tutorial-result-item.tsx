@@ -1,23 +1,40 @@
-import { CompanyInfo } from '@/components/common/company-info';
+import { MemberTutorialResult } from '@/api/types/member';
+import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
-export const StockTutorialResultItem = () => {
+interface StockTutorialResultItemProps {
+  result: MemberTutorialResult;
+}
+
+export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps) => {
   return (
     <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3">
-      <CompanyInfo />
+      <div className="flex flex-row items-center gap-4">
+        <img
+          src="https://placehold.co/50x50"
+          alt="company-identifier"
+          className="h-[50px] w-[50px] rounded-xl"
+        />
+        <p className="text-base">{result.companyName}</p>
+      </div>
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">시작 금액</span>
-          <p className="text-text-main-color">100,000원</p>
+          <p className="text-text-main-color">{addCommasToThousand(result.startMoney)}</p>
+          <span className="text-border-color">원</span>
         </div>
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 금액</span>
-          <p className="text-text-main-color">100,000</p>
+          <p className="text-text-main-color">{addCommasToThousand(result.endMoney)}</p>
           <span className="text-border-color">원</span>
         </div>
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 수익률</span>
-          <p className="rounded-lg border border-btn-red-color px-2 py-1 text-btn-red-color">
-            +34.2%
+          <p
+            className={`rounded-lg border px-2 py-1 ${getChangeRateColorClass(result.changeRate)}`}
+          >
+            {result.changeRate >= 0 ? '+' : ''}
+            {result.changeRate}%
           </p>
         </div>
       </div>

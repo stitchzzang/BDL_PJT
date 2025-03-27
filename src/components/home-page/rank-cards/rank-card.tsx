@@ -1,4 +1,3 @@
-import noneStockImg from '@/assets/none-img/none_stock_img.png';
 import { RankInformation } from '@/components/home-page/rank-cards/rank-cards';
 
 interface RankCardProps {
@@ -8,14 +7,14 @@ interface RankCardProps {
 export const RankCard = ({ rankInfo }: RankCardProps) => {
   const { name, rate, imgUrl } = rankInfo;
   return (
-    <div className="flex items-center justify-center rounded-2xl bg-modal-background-color p-[30px]">
+    <div className="flex items-center justify-center rounded-2xl border border-background-color bg-modal-background-color p-[30px] transition-all duration-300 hover:border-btn-blue-color">
       <div className="flex flex-col items-center justify-center gap-[15px]">
         {imgUrl === null ? (
           <div className="max-h-[168px] max-w-[168px] overflow-hidden rounded-2xl">
-            <img src={noneStockImg} alt="noneimg" />
+            <img src="/none-img/none_profile_img.png" alt="noneImg" />
           </div>
         ) : (
-          <img src={imgUrl} alt="profilimg" />
+          <img src={imgUrl} alt="profileImg" />
         )}
         <p className="text-[22px] font-medium">{name}</p>
         <div className="rounded-2xl border border-btn-red-color px-[28px] py-[12px]">
