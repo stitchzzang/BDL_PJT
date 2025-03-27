@@ -34,7 +34,6 @@ export const SimulatedInvestmentPage = () => {
     // 데이터 확인 후 진행
     if (isSuccess && minuteData) {
       // 소켓 연결 시작
-      console.log('테스트 - 제발 되라');
       connectTick('000660', setTickData);
 
       //컴포넌트 언마운트 시 해제

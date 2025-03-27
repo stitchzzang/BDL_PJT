@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+import { usePostStockMarketOrder } from '@/api/stock.api';
+import { MarketOrderData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
@@ -14,6 +16,9 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
+
+  // 유저 현재 자산
+  const userAsset = userAssetData;
 
   // 구매가격
   const [buyCost, setBuyCost] = useState<number>(0);
@@ -57,6 +62,23 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
       const prtinEstimeatedTotalPrice: number = estimatedPrice * stockCount;
       return prtinEstimeatedTotalPrice;
     }
+  };
+  // 시장가 구매 api
+  const marketOrderMutation = usePostStockMarketOrder();
+  const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
+    marketOrderMutation.mutate(
+      {
+        memberId: memberId,
+        companyId: companyId,
+        tradeType: tradeType, // 0: 매수(구매), 1:매도(판매)
+        quantity: quantity,
+      },
+      {
+        onSuccess: () => {
+          alert(`주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다.`);
+        },
+      },
+    );
   };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
@@ -164,7 +186,7 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
             <h3 className={h3Style}>
-              {userAssetData ? formatKoreanMoney(userAssetData) : '자삭 확인 불가'} 원
+              {userAsset ? formatKoreanMoney(userAsset) : '자산 확인 불가'} 원
             </h3>
           </div>
           <div className="flex items-center justify-between">
@@ -191,7 +213,19 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
               <p className=" text-[18px] font-medium text-white">구매하기</p>
             </Button>
           ) : (
-            <Button variant="red" className="w-full" size="lg">
+            <Button
+              variant="red"
+              className="w-full"
+              size="lg"
+              onClick={() =>
+                handleMarketOrder({
+                  memberId: 2,
+                  companyId: 1,
+                  tradeType: 0,
+                  quantity: stockCount,
+                })
+              }
+            >
               <p className=" text-[18px] font-medium text-white">구매하기</p>
             </Button>
           )}
