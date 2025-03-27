@@ -133,6 +133,7 @@ export const OrderStatusWaitList = ({
             tickSize={tickSize}
             userAssetData={UserSimulatedData.quantity}
             tradeType={UserSimulatedData.tradeType}
+            price={UserSimulatedData.price}
           />
         </div>
       )}

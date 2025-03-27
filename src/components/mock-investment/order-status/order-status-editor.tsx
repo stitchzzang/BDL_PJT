@@ -11,6 +11,7 @@ export interface OrderStatusShellProps {
   tickSize: number; // 호가 단위
   userAssetData: number; // 주식 갯수
   tradeType: number; // 판매,구매 판단
+  price: number;
 }
 
 export const OrderStatusEditor = ({
@@ -19,6 +20,7 @@ export const OrderStatusEditor = ({
   tickSize,
   userAssetData,
   tradeType,
+  price,
 }: OrderStatusShellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
@@ -29,11 +31,22 @@ export const OrderStatusEditor = ({
 
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
+  // 구매가격
+  const [shellCost, setShellCost] = useState<number>(0);
+  const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
+
+  useEffect(() => {
+    setPrintCost(shellCost + ' 원');
+  }, [shellCost]);
+
   useEffect(() => {
     if (userAssetData) {
       setStockCount(userAssetData);
     }
-  }, [userAssetData]);
+    if (price) {
+      setShellCost(price);
+    }
+  }, [userAssetData, price]);
 
   // 총 판매 금액
   const totalPrice = () => {
@@ -48,12 +61,6 @@ export const OrderStatusEditor = ({
     }
   };
 
-  // 구매가격
-  const [shellCost, setShellCost] = useState<number>(0);
-  const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
-  useEffect(() => {
-    setPrintCost(shellCost + ' 원');
-  }, [shellCost]);
   // +,- 기능 (구매가격)
   const CostButtonHandler = (
     check: string,
@@ -121,7 +128,7 @@ export const OrderStatusEditor = ({
                     <NumberPriceInput
                       value={0}
                       setValue={setShellCost}
-                      placeholder={`${closePrice.toLocaleString()}원`}
+                      placeholder={`${shellCost.toLocaleString()}원`}
                       tickSize={tickSize}
                       roundingMethod="ceil"
                       closePrice={closePrice}
