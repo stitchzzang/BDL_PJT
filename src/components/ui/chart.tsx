@@ -266,7 +266,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       if (!params || params.length === 0) return 'No data';
 
       const { dataIndex } = params[0];
-      const item = chartData[dataIndex];
+      const item = chartData[dataIndex] as ChartDataPoint;
 
       if (!item) return 'No data';
 
@@ -309,8 +309,8 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         ma5 = originalData.fiveAverage;
         ma20 = originalData.twentyAverage;
       } else {
-        ma5 = item.fiveAverage || 0;
-        ma20 = item.twentyAverage || 0;
+        ma5 = item.fiveAverage;
+        ma20 = item.twentyAverage;
       }
 
       // 색상 설정
@@ -321,13 +321,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
       return `
         ${date}<br />
+        <br />
         시가: ${formatKoreanNumber(open)}원 (<span style="color: ${openColor};">${openPercent.toFixed(2)}%</span>)<br />
         종가: ${formatKoreanNumber(close)}원 (<span style="color: ${closeColor};">${closePercent.toFixed(2)}%</span>)<br />
         저가: ${formatKoreanNumber(low)}원 (<span style="color: ${lowColor};">${lowPercent.toFixed(2)}%</span>)<br />
         고가: ${formatKoreanNumber(high)}원 (<span style="color: ${highColor};">${highPercent.toFixed(2)}%</span>)<br />
-        거래량: ${formatVolumeNumber(volume)}<br />
+        <br />
         5이평선: ${formatKoreanNumber(ma5)}원<br />
-        20이평선: ${formatKoreanNumber(ma20)}원
+        20이평선: ${formatKoreanNumber(ma20)}원<br />
+        <br />
+        거래량: ${formatVolumeNumber(volume)}<br />
       `;
     },
     [
