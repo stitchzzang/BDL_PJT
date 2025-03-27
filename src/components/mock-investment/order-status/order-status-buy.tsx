@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { usePostStockMarketOrder } from '@/api/stock.api';
-import { MarketOrderData } from '@/api/types/stock';
+import { usePostStockLimitOrder, usePostStockMarketOrder } from '@/api/stock.api';
+import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
@@ -76,6 +76,32 @@ export const OrderStatusBuy = ({ userAssetData, closePrice, realTime }: OrderSta
       {
         onSuccess: () => {
           alert(`주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다.`);
+        },
+      },
+    );
+  };
+  // 지정가 구매 api
+  const limitOrderMutation = usePostStockLimitOrder();
+  const handleLimitOrderMutaion = ({
+    memberId,
+    companyId,
+    tradeType,
+    quantity,
+    price,
+  }: LimitOrderData) => {
+    limitOrderMutation.mutate(
+      {
+        memberId: memberId,
+        companyId: companyId,
+        tradeType: tradeType, // 0: 매수(구매), 1:매도(판매)
+        quantity: quantity,
+        price: price,
+      },
+      {
+        onSuccess: () => {
+          alert(
+            `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
+          );
         },
       },
     );
