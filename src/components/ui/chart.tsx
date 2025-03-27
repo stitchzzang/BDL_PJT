@@ -889,7 +889,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         },
         formatter: (params: any) => {
           const candleData = params.find((p: any) => p.seriesName === '캔들차트');
-          const volumeData = params.find((p: any) => p.seriesName === '거래량');
           const ema5Data = params.find((p: any) => p.seriesName === '5일 이평선');
           const ema20Data = params.find((p: any) => p.seriesName === '20일 이평선');
 
@@ -1441,7 +1440,6 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   }, [
     period,
     dataZoomRange,
-    visibleDataIndices,
     xAxisLabels,
     getPriceRange,
     scaledCandleData,
@@ -1450,12 +1448,16 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     scaledVolumeData,
     currentData,
     showVolume,
-    FALL_COLOR,
-    RISE_COLOR,
     formatKoreanNumber,
     formatDetailDate,
     formatVolumeNumber,
     dividerLinePosition,
+    effectiveChartData,
+    extendedChartData,
+    getVolumeRange,
+    isFirstOfPeriod,
+    transformedChartData.length,
+    currentPriceColor,
   ]);
 
   // 컴포넌트 마운트/언마운트 처리
