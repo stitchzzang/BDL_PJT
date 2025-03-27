@@ -444,6 +444,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
               color: 'rgba(255, 255, 255, 0.3)',
             },
           },
+          axisPointer: {
+            label: {
+              formatter: (params) => {
+                return new Intl.NumberFormat('ko-KR').format(Math.floor(Number(params.value)));
+              },
+            },
+          },
         },
         {
           scale: true,
@@ -466,6 +473,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             show: false,
           },
           position: 'right',
+          axisPointer: {
+            label: {
+              formatter: (params) => {
+                return String(Math.floor(Number(params.value)));
+              },
+            },
+          },
         },
       ],
       dataZoom: [
