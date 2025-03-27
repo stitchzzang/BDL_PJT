@@ -964,11 +964,55 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             formattedDate = formatDetailDate(originalItem.rawDate);
           }
 
+          // 전일 종가 (이전 날짜의 종가) 가져오기
+          let previousClose = 0;
+          if (dataIndex > 10) {
+            // 왼쪽 패딩(10개)을 고려해 이전 날짜 데이터 가져오기
+            const prevItem = extendedChartData[dataIndex - 1];
+            if (prevItem && prevItem.close) {
+              previousClose = prevItem.close;
+            }
+          } else {
+            // 첫 데이터인 경우 같은 값 사용
+            previousClose = open;
+          }
+
+          // 변동률 계산 함수
+          const calculateChangePercent = (current: number, previous: number) => {
+            if (!previous) return 0;
+            return ((current - previous) / previous) * 100;
+          };
+
+          // 변동률 계산
+          const openChangePercent = calculateChangePercent(open, previousClose);
+          const highChangePercent = calculateChangePercent(high, previousClose);
+          const lowChangePercent = calculateChangePercent(low, previousClose);
+          const closeChangePercent = calculateChangePercent(close, previousClose);
+
+          // 변동률 색상 지정 함수
+          const getPercentColor = (percent: number) => {
+            return percent > 0 ? RISE_COLOR : percent < 0 ? FALL_COLOR : '#FFFFFF';
+          };
+
+          // 변동률 문자열 포맷팅
+          const formatPercent = (percent: number) => {
+            const sign = percent > 0 ? '+' : '';
+            return `<span style="color: ${getPercentColor(percent)}">(${sign}${percent.toFixed(2)}%)</span>`;
+          };
+
           // 숫자 여부 확인하고 문자열 포맷팅
-          const openStr = open ? formatKoreanNumber(open) + '원' : '-';
-          const closeStr = close ? formatKoreanNumber(close) + '원' : '-';
-          const lowStr = low ? formatKoreanNumber(low) + '원' : '-';
-          const highStr = high ? formatKoreanNumber(high) + '원' : '-';
+          const openStr = open
+            ? `${formatKoreanNumber(open)}원 ${formatPercent(openChangePercent)}`
+            : '-';
+          const closeStr = close
+            ? `${formatKoreanNumber(close)}원 ${formatPercent(closeChangePercent)}`
+            : '-';
+          const lowStr = low
+            ? `${formatKoreanNumber(low)}원 ${formatPercent(lowChangePercent)}`
+            : '-';
+          const highStr = high
+            ? `${formatKoreanNumber(high)}원 ${formatPercent(highChangePercent)}`
+            : '-';
           const volumeStr = volume ? formatVolumeNumber(volume) : '-';
           const ema5Str =
             ema5Data && typeof ema5Data.value === 'number' && !isNaN(ema5Data.value)
