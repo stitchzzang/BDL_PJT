@@ -60,21 +60,47 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
 
   const formatChartDate = useCallback(
     (date: Date): string => {
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      const year = date.getFullYear();
-      const hours = date.getHours();
-      const minutes = date.getMinutes();
-
       switch (period) {
-        case 'MINUTE':
-          return `${year}-${month}-${day} ${hours}:${String(minutes).padStart(2, '0')}`;
-        case 'DAY':
-          return `${year}-${month}-${day}`;
-        case 'WEEK':
-          return `${year}-${month}-${day}`;
-        case 'MONTH':
-          return `${year}-${month}`;
+        case 'MINUTE': {
+          const hours = date.getHours();
+          const minutes = date.getMinutes();
+
+          // 09:01에는 날짜만 표시
+          if (hours === 9 && minutes === 1) {
+            return `${date.getDate()}일`;
+          }
+
+          // 그 외에는 시간만 표시
+          return date.toLocaleTimeString('ko-KR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+          });
+        }
+        case 'DAY': {
+          const day = date.getDate();
+          if (day === 1) {
+            // 월의 첫 날에는 '월'을 표시
+            return `${date.getMonth() + 1}월`;
+          }
+          return `${day}일`;
+        }
+        case 'WEEK': {
+          const day = date.getDate();
+          if (day <= 7) {
+            // 월의 첫 주에는 '월'을 표시
+            return `${date.getMonth() + 1}월`;
+          }
+          return `${day}일`;
+        }
+        case 'MONTH': {
+          const month = date.getMonth() + 1;
+          if (month === 1) {
+            // 년의 첫 월에는 '년'을 표시
+            return `${date.getFullYear()}년`;
+          }
+          return `${month}월`;
+        }
         default:
           return '';
       }
@@ -179,8 +205,11 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   }, [rawChartData, period, getWeekData, getMonthData]);
 
   const xAxisLabels = useMemo(() => {
-    return chartData.map((item) => item?.date || '');
-  }, [chartData]);
+    return chartData.map((item) => {
+      if (!item?.rawDate) return '';
+      return formatChartDate(item.rawDate);
+    });
+  }, [chartData, formatChartDate]);
 
   const candleData = useMemo(() => {
     return chartData.map((item) => [
@@ -302,7 +331,32 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         }
       }
 
-      const { date, open, close, low, high, volume } = item;
+      const { open, close, low, high, volume, rawDate } = item;
+
+      // 날짜 포맷팅
+      let formattedDate = '';
+      if (rawDate) {
+        const year = rawDate.getFullYear();
+        const month = String(rawDate.getMonth() + 1).padStart(2, '0');
+        const day = String(rawDate.getDate()).padStart(2, '0');
+        const hours = String(rawDate.getHours()).padStart(2, '0');
+        const minutes = String(rawDate.getMinutes()).padStart(2, '0');
+
+        switch (period) {
+          case 'MINUTE':
+            formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
+            break;
+          case 'DAY':
+          case 'WEEK':
+            formattedDate = `${year}-${month}-${day}`;
+            break;
+          case 'MONTH':
+            formattedDate = `${year}-${month}`;
+            break;
+          default:
+            formattedDate = item.date;
+        }
+      }
 
       let openPercent = 0;
       let closePercent = 0;
@@ -330,7 +384,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       const highColor = getChangeColor(highPercent);
 
       return `
-        📆 ${date}<br />
+        📆 ${formattedDate}<br />
         <br />
         시가: ${formatKoreanNumber(open)}원 (<span style="color: ${openColor};">${openPercent.toFixed(2)}%</span>)<br />
         종가: ${formatKoreanNumber(close)}원 (<span style="color: ${closeColor};">${closePercent.toFixed(2)}%</span>)<br />
@@ -429,6 +483,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             color: 'rgba(255, 255, 255, 0.7)',
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+            formatter: (value: string) => value,
           },
         },
         {

@@ -123,17 +123,35 @@ export const convertPeriodCandleToChartData = (data: PeriodCandleData): ChartDat
 
 // 임시 더미 데이터 생성 함수
 const generateDummyMinuteData = (count: number): MinuteCandleData[] => {
-  const now = new Date();
   const data: MinuteCandleData[] = [];
-  let basePrice = 50000; // 시작 가격
+  let basePrice = 50000;
+
+  // 시작 시간을 09:01로 설정
+  const startDate = new Date();
+  startDate.setHours(9, 1, 0, 0);
 
   for (let i = 0; i < count; i++) {
-    const time = new Date(now);
-    time.setMinutes(time.getMinutes() - (count - i - 1));
+    const time = new Date(startDate);
+    time.setMinutes(time.getMinutes() + i);
+
+    // 거래 시간 체크 (09:01 ~ 15:20)
+    const hours = time.getHours();
+    const minutes = time.getMinutes();
+    if (
+      hours < 9 ||
+      (hours === 9 && minutes === 0) ||
+      (hours === 15 && minutes > 20) ||
+      hours > 15
+    ) {
+      continue;
+    }
 
     // 가격 변동 (랜덤하게)
     const priceChange = (Math.random() - 0.5) * 1000;
     basePrice += priceChange;
+
+    // 동시호가 시간(15:21~15:29)에는 거래량 0으로 설정
+    const isClosingAuction = hours === 15 && minutes >= 21 && minutes <= 29;
 
     data.push({
       stockCandleId: `dummy-${i}`,
@@ -146,7 +164,7 @@ const generateDummyMinuteData = (count: number): MinuteCandleData[] => {
       lowPricePercent: -((Math.random() * 500) / basePrice) * 100,
       closePrice: basePrice + (Math.random() - 0.5) * 1000,
       closePricePercent: (((Math.random() - 0.5) * 1000) / basePrice) * 100,
-      contractingVolume: Math.floor(Math.random() * 100000),
+      contractingVolume: isClosingAuction ? 0 : Math.floor(Math.random() * 100000),
       accumulatedTradeAmount: Math.floor(Math.random() * 1000000000),
       tradingTime: time.toISOString(),
       fiveAverage: basePrice + (Math.random() - 0.5) * 500,
@@ -158,19 +176,28 @@ const generateDummyMinuteData = (count: number): MinuteCandleData[] => {
 };
 
 const generateDummyPeriodData = (count: number): PeriodCandleData[] => {
-  const now = new Date();
   const data: PeriodCandleData[] = [];
-  let basePrice = 50000; // 시작 가격
+  let basePrice = 50000;
+
+  // 시작 날짜를 과거로 설정 (count일 전부터 시작)
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - count);
+  startDate.setHours(15, 30, 0, 0); // 장 마감 시간으로 설정
 
   for (let i = 0; i < count; i++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (count - i - 1));
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + i);
+
+    // 주말 제외
+    if (date.getDay() === 0 || date.getDay() === 6) {
+      continue;
+    }
 
     // 가격 변동 (랜덤하게)
     const priceChange = (Math.random() - 0.5) * 2000;
     basePrice += priceChange;
 
-    // 일/주/월봉 데이터 생성
+    // 일봉 데이터 생성
     data.push({
       stockCandleId: `dummy-day-${i}`,
       companyId: 'dummy-company',
@@ -190,8 +217,8 @@ const generateDummyPeriodData = (count: number): PeriodCandleData[] => {
       twentyAverage: basePrice + (Math.random() - 0.5) * 2000,
     });
 
-    // 주봉 데이터 (5일마다)
-    if (i % 5 === 0) {
+    // 주봉 데이터 (금요일마다)
+    if (date.getDay() === 5) {
       data.push({
         stockCandleId: `dummy-week-${i}`,
         companyId: 'dummy-company',
@@ -212,8 +239,10 @@ const generateDummyPeriodData = (count: number): PeriodCandleData[] => {
       });
     }
 
-    // 월봉 데이터 (30일마다)
-    if (i % 30 === 0) {
+    // 월봉 데이터 (매월 마지막 거래일)
+    const nextDay = new Date(date);
+    nextDay.setDate(date.getDate() + 1);
+    if (nextDay.getMonth() !== date.getMonth()) {
       data.push({
         stockCandleId: `dummy-month-${i}`,
         companyId: 'dummy-company',
