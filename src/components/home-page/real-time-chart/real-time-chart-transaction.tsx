@@ -1,4 +1,4 @@
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
 export interface StockTransaction {
   stockName: string;
@@ -89,7 +89,7 @@ export const RealTimeChartTransaction = () => {
                   {stockTransaction.changeRate}%
                 </div>
                 <div className="w-[20%] text-right font-light text-border-color">
-                  {addCommasToThousand(stockTransaction.tradingValue)} 원
+                  {formatKoreanMoney(stockTransaction.tradingValue)} 원
                 </div>
               </div>
             ))}

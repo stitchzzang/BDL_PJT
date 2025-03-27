@@ -1,4 +1,5 @@
 import { TickData } from '@/api/types/stock';
+import { ChartLoadingAnimation } from '@/components/common/chart-loading-animation';
 import { getFormatTime } from '@/utils/getTimeFormatted';
 import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
@@ -11,31 +12,13 @@ export const StockCostHistoryRealTime = ({
   tickDataLists,
   animationKey,
 }: StockCostHistoryRealTimeProps) => {
-  // 스크롤바 스타일을 객체로 정의
-  const scrollbarStyle = {
-    scrollbarWidth: 'thin', // Firefox
-    scrollbarColor: '#718096 #1a202c', // Firefox
-    msOverflowStyle: 'auto', // IE and Edge
-    '&::-webkit-scrollbar': {
-      width: '15px',
-    },
-    '&::-webkit-scrollbar-track': {
-      background: '#1a202c',
-    },
-    '&::-webkit-scrollbar-thumb': {
-      background: '#718096',
-      borderRadius: '6px',
-    },
-    '&::-webkit-scrollbar-thumb:hover': {
-      background: '#5a6887',
-    },
-  };
-
   return (
     <div>
       {!tickDataLists.length ? (
-        <div>
-          <h1>현재 데이터가 없습니다</h1>
+        <div className="flex h-full w-full items-center justify-center">
+          <h1>
+            <ChartLoadingAnimation />
+          </h1>
         </div>
       ) : (
         <div className="w-full">

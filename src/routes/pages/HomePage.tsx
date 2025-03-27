@@ -16,7 +16,7 @@ export const HomePage = () => {
             <div className="col-span-1 lg:col-span-5">
               <RealTimeChart />
             </div>
-            <div className="col-span-1 lg:col-span-2">
+            <div className="col-span-1 flex items-center justify-center lg:col-span-2">
               <NewsChart />
             </div>
           </div>

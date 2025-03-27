@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
+import { ErrorScreen } from '@/components/common/error-screen';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { OrderStatus } from '@/components/mock-investment/order-status/order-status';
 import { SellingPrice } from '@/components/mock-investment/selling-price/selling-price';
 import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
@@ -45,9 +47,14 @@ export const SimulatedInvestmentPage = () => {
   if (isLoading) {
     return (
       <div>
-        <h1>loding</h1>
+        <LoadingAnimation />
       </div>
     );
+  }
+  if (isError) {
+    <div>
+      <ErrorScreen />
+    </div>;
   }
   return (
     <div className="flex h-full w-full flex-col px-6">
