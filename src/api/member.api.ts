@@ -7,12 +7,14 @@ import { ApiResponse } from '@/api/types/common';
 import { MemberInfo } from '@/api/types/member';
 
 export const memberApi = {
-  getMemberInfo: () => _ky.get<ApiResponse<MemberInfo>>('/api/member/{memberId}').json(),
+  getMemberInfo: ({ memberId }: { memberId: string }) =>
+    _ky.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
 };
 
-export const useMemberInfo = () => {
+export const useMemberInfo = ({ memberId }: { memberId: string }) => {
   return useQuery({
-    queryKey: ['memberInfo'],
-    queryFn: () => memberApi.getMemberInfo().then((res) => res.result),
+    queryKey: ['memberInfo', memberId],
+    queryFn: () => memberApi.getMemberInfo({ memberId }).then((res) => res.result),
+    refetchInterval: false,
   });
 };
