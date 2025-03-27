@@ -463,6 +463,17 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             inside: false,
             margin: 8,
             color: 'rgba(255, 255, 255, 0.7)',
+            formatter: (value: number | string) => {
+              const numValue = Number(value);
+              if (numValue >= 1000000000) {
+                return `${Math.floor(numValue / 1000000000)}B`;
+              } else if (numValue >= 1000000) {
+                return `${Math.floor(numValue / 1000000)}M`;
+              } else if (numValue >= 1000) {
+                return `${Math.floor(numValue / 1000)}K`;
+              }
+              return String(Math.floor(numValue));
+            },
           },
           axisLine: {
             show: true,
@@ -478,7 +489,15 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           axisPointer: {
             label: {
               formatter: (params) => {
-                return String(Math.floor(Number(params.value)));
+                const value = Number(params.value);
+                if (value >= 1000000000) {
+                  return `${Math.floor(value / 1000000000)}B`;
+                } else if (value >= 1000000) {
+                  return `${Math.floor(value / 1000000)}M`;
+                } else if (value >= 1000) {
+                  return `${Math.floor(value / 1000)}K`;
+                }
+                return String(Math.floor(value));
               },
             },
           },
