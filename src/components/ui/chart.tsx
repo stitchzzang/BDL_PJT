@@ -299,6 +299,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
           // 앞쪽 빈 데이터에 대한 레이블 생성
           return ''; // 왼쪽 여백에는 빈 문자열로 레이블 생성
         }
+        // 데이터가 있는 경우 포맷팅된 날짜 반환
+        if ('rawDate' in item && item.rawDate) {
+          return formatChartDate(item.rawDate as Date);
+        }
         return item.date;
       });
 
@@ -328,6 +332,10 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       const labels = extendedChartData.map((item, index) => {
         if (index < 10) {
           return ''; // 왼쪽 여백에는 빈 문자열로 레이블 생성
+        }
+        // 데이터가 있는 경우 포맷팅된 날짜 반환
+        if ('rawDate' in item && item.rawDate) {
+          return formatChartDate(item.rawDate as Date);
         }
         return item.date;
       });
@@ -405,6 +413,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
                 // chartData에서 마지막 데이터의 연도 가져오기 (더 정확함)
                 if (
                   effectiveChartData.length > 0 &&
+                  'rawDate' in effectiveChartData[effectiveChartData.length - 1] &&
                   effectiveChartData[effectiveChartData.length - 1].rawDate
                 ) {
                   year = (
@@ -1093,6 +1102,9 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             color: '#CCCCCC',
             margin: 12,
             formatter: (value: any, index: any) => {
+              // 빈 값인 경우(왼쪽 여백) 빈 문자열 반환
+              if (!value) return '';
+
               const isBold = isFirstOfPeriod(value, index);
 
               // 다음 거래일 시작 (9:01) 표시 강화
@@ -1100,7 +1112,22 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
                 return `{nextDay|${value}}`;
               }
 
-              return isBold ? value : value;
+              switch (period) {
+                case 'MINUTE':
+                  // HH:MM 형식 (기본 형식이 이미 올바름)
+                  return value;
+                case 'DAY':
+                  // DD일 또는 MM월 형식 (기본 형식이 이미 올바름)
+                  return value;
+                case 'WEEK':
+                  // DD일 또는 MM월 형식 (기본 형식이 이미 올바름)
+                  return value;
+                case 'MONTH':
+                  // MM월 또는 YYYY년 형식 (기본 형식이 이미 올바름)
+                  return value;
+                default:
+                  return value;
+              }
             },
             rich: {
               nextDay: {
@@ -1175,7 +1202,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
                 const volumeRange = getVolumeRange();
                 // 거래량 영역 높이 계산
                 const volumeHeight = priceHeight * VOLUME_HEIGHT_RATIO;
-                // 값이 Y축에서 차지하는 비율 계산 (0 ~ volumeHeight)
+                // 값이 Y축에서 차지하는 비율 계산
                 const ratio = (value - priceRange.min) / volumeHeight;
                 // 비율을 기반으로 실제 거래량 값 계산
                 const originalVolume = ratio * volumeRange.max;

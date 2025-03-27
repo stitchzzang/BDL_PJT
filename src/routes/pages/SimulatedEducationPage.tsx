@@ -9,7 +9,7 @@ export const SimulatedEducationPage = () => {
         <ChartComponent
           minuteData={dummyMinuteData}
           periodData={dummyPeriodData}
-          height={400}
+          height={600}
           ratio={2}
         />
       </div>
