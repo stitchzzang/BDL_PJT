@@ -1,5 +1,6 @@
 import { MemberTutorialResult } from '@/api/types/member';
 import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockTutorialResultItemProps {
   result: MemberTutorialResult;
@@ -19,12 +20,12 @@ export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">시작 금액</span>
-          <p className="text-text-main-color">{result.startMoney}</p>
+          <p className="text-text-main-color">{addCommasToThousand(result.startMoney)}</p>
           <span className="text-border-color">원</span>
         </div>
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 금액</span>
-          <p className="text-text-main-color">{result.endMoney}</p>
+          <p className="text-text-main-color">{addCommasToThousand(result.endMoney)}</p>
           <span className="text-border-color">원</span>
         </div>
         <div className="flex flex-row items-center gap-1">
