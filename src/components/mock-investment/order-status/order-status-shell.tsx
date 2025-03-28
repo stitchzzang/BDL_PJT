@@ -1,19 +1,35 @@
 import { useEffect, useState } from 'react';
 
+import {
+  usePostStockLimitOrder,
+  usePostStockMarketOrder,
+  useUserStockAccountData,
+} from '@/api/stock.api';
+import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
+import { NumberPriceInput } from '@/components/ui/number-price-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
+interface OrderStatusShellProps {
+  closePrice: number; // 종가
+  realTime?: number; // 실시간 값
+  tickSize: number; // 호가 단위
+}
 
-export const OrderStatusShell = () => {
+export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatusShellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
+  // 사용자 주식 개수
+  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(2, 1);
+
   // 구매가격
-  const [buyCost, setBuyCost] = useState<number>(0);
-  const [printCost, setPrintCost] = useState<string>(buyCost + ' 원');
+  const [shellCost, setShellCost] = useState<number>(0);
+  const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
   useEffect(() => {
-    setPrintCost(buyCost + ' 원');
-  }, [buyCost]);
+    setPrintCost(shellCost + ' 원');
+  }, [shellCost]);
   // +,- 기능 (구매가격)
   const CostButtonHandler = (
     check: string,
@@ -23,11 +39,19 @@ export const OrderStatusShell = () => {
   ) => {
     if (check === '+') {
       const checkValue = value + chagneValue;
-      if (checkValue < 0) {
+      if (checkValue > 0) {
+        if (userAssetData) {
+          // alert(checkValue);
+          if (checkValue > userAssetData) {
+            return;
+          } else {
+            setValue(value + chagneValue);
+            return;
+          }
+        }
         setValue(0);
         return;
       }
-      setValue(value + chagneValue);
     } else if (check === '-') {
       const checkValue = value - chagneValue;
       if (checkValue < 0) {
@@ -37,16 +61,92 @@ export const OrderStatusShell = () => {
       setValue(value - chagneValue);
     }
   };
+
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
-  // 총 주문 금액
+
+  useEffect(() => {
+    if (userAssetData) {
+      if (userAssetData < stockCount) {
+        setStockCount(userAssetData);
+      }
+    }
+  }, [stockCount]);
+  // 총 판매 금액
   const totalPrice = () => {
-    const printTotalPrice: number = buyCost * stockCount;
+    const printTotalPrice: number = shellCost * stockCount;
     return printTotalPrice;
+  };
+  // 예상 총 판매 금액
+  const estimatedTotalPrice = (estimatedPrice: number | undefined) => {
+    if (estimatedPrice) {
+      const prtinEstimeatedTotalPrice: number = estimatedPrice * stockCount;
+      return prtinEstimeatedTotalPrice;
+    }
+  };
+
+  // 시장가 구매 api
+  const marketOrderMutation = usePostStockMarketOrder();
+  const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
+    marketOrderMutation.mutate(
+      {
+        memberId: memberId,
+        companyId: companyId,
+        tradeType: tradeType, // 0: 매수(구매), 1:매도(판매)
+        quantity: quantity,
+      },
+      {
+        onSuccess: () => {
+          alert(`주문이 성공적으로 처리되었습니다. 판매매 갯수는 ${quantity}입니다.`);
+        },
+      },
+    );
+  };
+
+  // 지정가 구매 api
+  const limitOrderMutation = usePostStockLimitOrder();
+  const handleLimitOrder = ({
+    memberId,
+    companyId,
+    tradeType,
+    quantity,
+    price,
+  }: LimitOrderData) => {
+    if (price <= 0 || quantity <= 0) {
+      alert('가격,수량 입력하세요');
+      return;
+    }
+    limitOrderMutation.mutate(
+      {
+        memberId: memberId,
+        companyId: companyId,
+        tradeType: tradeType, // 0: 매수(구매), 1:매도(판매)
+        quantity: quantity,
+        price: price,
+      },
+      {
+        onSuccess: () => {
+          alert(
+            `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
+          );
+        },
+      },
+    );
   };
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
+  // 에러,로딩 처리
+  if (isLoading) {
+    <>
+      <LoadingAnimation />
+    </>;
+  }
+  if (isError) {
+    <>
+      <p>error</p>
+    </>;
+  }
   return (
     <div>
       <h3 className={h3Style}>판매하기</h3>
@@ -78,25 +178,25 @@ export const OrderStatusShell = () => {
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput value={buyCost} setValue={setBuyCost} placeholder="값을 입력하세요." />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', buyCost, setBuyCost, 100)}
-                  >
-                    -
-                  </button>
-                </div>
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', buyCost, setBuyCost, 100)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+              {isActive === '지정가' ? (
+                <>
+                  <NumberPriceInput
+                    value={0}
+                    setValue={setShellCost}
+                    placeholder={`${closePrice.toLocaleString()}원`}
+                    tickSize={tickSize}
+                    roundingMethod="ceil"
+                    closePrice={closePrice}
+                  />
+                </>
+              ) : (
+                <NumberInput
+                  value={0}
+                  setValue={setShellCost}
+                  placeholder="최대한 빠른 가격"
+                  className="pointer-events-none bg-background-color"
+                />
+              )}
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -132,15 +232,65 @@ export const OrderStatusShell = () => {
         </div>
         <hr className="border border-border-color border-opacity-20" />
         <div className="mt-[20px] flex flex-col gap-4">
+          {isActive === '지정가' ? (
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>총 판매 금액</h3>
+              <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>예상 판매 금액</h3>
+              {realTime ? (
+                <h3 className={h3Style}>
+                  {formatKoreanMoney(estimatedTotalPrice(realTime) ?? 0)} 원
+                </h3>
+              ) : (
+                <h3 className={h3Style}>
+                  {formatKoreanMoney(estimatedTotalPrice(closePrice) ?? 0)} 원
+                </h3>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-between">
-            <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+            <h3 className={h3Style}>보유 주식 개수</h3>
+            <h3 className={h3Style}>{userAssetData} 개</h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button variant="blue" className="w-full" size="lg">
-            <p className=" text-[18px] font-medium text-white">판매하기</p>
-          </Button>
+          {isActive === '지정가' ? (
+            <Button
+              variant="blue"
+              className="w-full"
+              size="lg"
+              onClick={() =>
+                handleLimitOrder({
+                  memberId: 2,
+                  companyId: 1,
+                  tradeType: 1,
+                  quantity: stockCount,
+                  price: shellCost,
+                })
+              }
+            >
+              <p className=" text-[18px] font-medium text-white">판매하기</p>
+            </Button>
+          ) : (
+            <Button
+              variant="blue"
+              className="w-full"
+              size="lg"
+              onClick={() =>
+                handleMarketOrder({
+                  memberId: 2,
+                  companyId: 1,
+                  tradeType: 1,
+                  quantity: stockCount,
+                })
+              }
+            >
+              <p className=" text-[18px] font-medium text-white">판매하기</p>
+            </Button>
+          )}
           <p className="text-[14px] font-light text-[#718096]">
             결제 수수료는 결제 금액의 0.004% 입니다.
           </p>

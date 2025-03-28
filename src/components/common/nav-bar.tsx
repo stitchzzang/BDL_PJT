@@ -61,7 +61,7 @@ export const NavBar = () => {
             알고리즘 LAB
           </NavLink>
           <NavLink
-            to="/simulated-investment"
+            to="/investment"
             className={({ isActive }) =>
               `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
                 isActive ? 'text-text-main-color' : ''
@@ -71,7 +71,7 @@ export const NavBar = () => {
             모의투자
           </NavLink>
           <NavLink
-            to="/tutorial/select"
+            to="/tutorial"
             className={({ isActive }) =>
               `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
                 isActive ? 'text-text-main-color' : ''

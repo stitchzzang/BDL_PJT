@@ -12,6 +12,13 @@ export interface SearchedCompany {
   companyName: string;
 }
 
+export interface SearchedCompanyResponse {
+  companyCode: string;
+  companyId: number;
+  companyImage: string;
+  companyName: string;
+}
+
 export interface UserRanking {
   changeRate: number;
   nickname: string;
