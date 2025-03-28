@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 export const MethodPage = () => {
   const isValidAccess = useAlgorithmLabGuard('method');
@@ -76,7 +77,11 @@ export const MethodPage = () => {
           <div className="flex gap-4">
             <Button
               variant="blue"
-              onClick={() => setEntryInvestmentMethod('FIXED_AMOUNT')}
+              onClick={() => {
+                setEntryInvestmentMethod('FIXED_AMOUNT');
+                setEntryFixedAmount(1000);
+                setEntryFixedPercentage(null);
+              }}
               disabled={entryMethod === 'ONCE'}
               className={`flex-1 ${
                 entryInvestmentMethod === 'FIXED_AMOUNT'
@@ -88,7 +93,11 @@ export const MethodPage = () => {
             </Button>
             <Button
               variant="blue"
-              onClick={() => setEntryInvestmentMethod('FIXED_PERCENTAGE')}
+              onClick={() => {
+                setEntryInvestmentMethod('FIXED_PERCENTAGE');
+                setEntryFixedPercentage(entryMethod === 'ONCE' ? 100 : 1);
+                setEntryFixedAmount(null);
+              }}
               className={`flex-1 ${
                 entryInvestmentMethod === 'FIXED_PERCENTAGE'
                   ? 'bg-btn-blue-color'
@@ -99,23 +108,55 @@ export const MethodPage = () => {
             </Button>
           </div>
           {entryInvestmentMethod === 'FIXED_AMOUNT' && entryMethod !== 'ONCE' && (
-            <Input
-              type="number"
-              value={entryFixedAmount || ''}
-              onChange={(e) => setEntryFixedAmount(Number(e.target.value))}
-              placeholder="고정 금액을 입력하세요"
-              className="h-12 w-full"
-            />
+            <div className="space-y-2">
+              <div className="relative">
+                <Input
+                  type="text"
+                  value={entryFixedAmount ? addCommasToThousand(entryFixedAmount) : ''}
+                  onChange={(e) => {
+                    const value = Number(e.target.value.replace(/,/g, ''));
+                    if (e.target.value === '') {
+                      setEntryFixedAmount(null);
+                    } else if (!isNaN(value)) {
+                      setEntryFixedAmount(value);
+                    }
+                  }}
+                  placeholder="고정 금액을 입력하세요 (최소 1,000원)"
+                  className="h-12 w-full pr-7"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2">원</span>
+              </div>
+              {entryFixedAmount !== null &&
+                (entryFixedAmount < 1000 ||
+                  entryFixedAmount % 1000 !== 0 ||
+                  entryFixedAmount < 0) && (
+                  <p className="text-sm text-red-500">1,000원 이상의 1,000원 단위로 입력해주세요</p>
+                )}
+            </div>
           )}
           {entryInvestmentMethod === 'FIXED_PERCENTAGE' && (
-            <Input
-              type="number"
-              value={entryFixedPercentage || ''}
-              onChange={(e) => setEntryFixedPercentage(Number(e.target.value))}
-              placeholder="고정 비율(%)을 입력하세요"
-              className="h-12 w-full"
-              disabled={entryMethod === 'ONCE'}
-            />
+            <div className="relative">
+              <Input
+                type="text"
+                value={entryFixedPercentage ? `${entryFixedPercentage}` : ''}
+                onChange={(e) => {
+                  const value = Number(e.target.value.replace(/%/g, ''));
+                  if (e.target.value === '') {
+                    setEntryFixedPercentage(null);
+                  } else if (!isNaN(value)) {
+                    if (value >= 1 && value <= 100) {
+                      setEntryFixedPercentage(value);
+                    } else if (value > 100) {
+                      setEntryFixedPercentage(100);
+                    }
+                  }
+                }}
+                placeholder="고정 비율을 입력하세요 (1~100)"
+                className="h-12 w-full pr-7"
+                disabled={entryMethod === 'ONCE'}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">%</span>
+            </div>
           )}
         </div>
       </div>
@@ -151,7 +192,11 @@ export const MethodPage = () => {
           <div className="flex gap-4">
             <Button
               variant="blue"
-              onClick={() => setExitInvestmentMethod('FIXED_AMOUNT')}
+              onClick={() => {
+                setExitInvestmentMethod('FIXED_AMOUNT');
+                setExitFixedAmount(1000);
+                setExitFixedPercentage(null);
+              }}
               disabled={exitMethod === 'ONCE'}
               className={`flex-1 ${
                 exitInvestmentMethod === 'FIXED_AMOUNT'
@@ -163,7 +208,11 @@ export const MethodPage = () => {
             </Button>
             <Button
               variant="blue"
-              onClick={() => setExitInvestmentMethod('FIXED_PERCENTAGE')}
+              onClick={() => {
+                setExitInvestmentMethod('FIXED_PERCENTAGE');
+                setExitFixedPercentage(exitMethod === 'ONCE' ? 100 : 1);
+                setExitFixedAmount(null);
+              }}
               className={`flex-1 ${
                 exitInvestmentMethod === 'FIXED_PERCENTAGE'
                   ? 'bg-btn-blue-color'
@@ -174,23 +223,53 @@ export const MethodPage = () => {
             </Button>
           </div>
           {exitInvestmentMethod === 'FIXED_AMOUNT' && exitMethod !== 'ONCE' && (
-            <Input
-              type="number"
-              value={exitFixedAmount || ''}
-              onChange={(e) => setExitFixedAmount(Number(e.target.value))}
-              placeholder="고정 금액을 입력하세요"
-              className="h-12 w-full"
-            />
+            <div className="space-y-2">
+              <div className="relative">
+                <Input
+                  type="text"
+                  value={exitFixedAmount ? addCommasToThousand(exitFixedAmount) : ''}
+                  onChange={(e) => {
+                    const value = Number(e.target.value.replace(/,/g, ''));
+                    if (e.target.value === '') {
+                      setExitFixedAmount(null);
+                    } else if (!isNaN(value)) {
+                      setExitFixedAmount(value);
+                    }
+                  }}
+                  placeholder="고정 금액을 입력하세요 (최소 1,000원)"
+                  className="h-12 w-full pr-7"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2">원</span>
+              </div>
+              {exitFixedAmount !== null &&
+                (exitFixedAmount < 1000 || exitFixedAmount % 1000 !== 0 || exitFixedAmount < 0) && (
+                  <p className="text-sm text-red-500">1,000원 이상의 1,000원 단위로 입력해주세요</p>
+                )}
+            </div>
           )}
           {exitInvestmentMethod === 'FIXED_PERCENTAGE' && (
-            <Input
-              type="number"
-              value={exitFixedPercentage || ''}
-              onChange={(e) => setExitFixedPercentage(Number(e.target.value))}
-              placeholder="고정 비율(%)을 입력하세요"
-              className="h-12 w-full"
-              disabled={exitMethod === 'ONCE'}
-            />
+            <div className="relative">
+              <Input
+                type="text"
+                value={exitFixedPercentage ? `${exitFixedPercentage}` : ''}
+                onChange={(e) => {
+                  const value = Number(e.target.value.replace(/%/g, ''));
+                  if (e.target.value === '') {
+                    setExitFixedPercentage(null);
+                  } else if (!isNaN(value)) {
+                    if (value >= 1 && value <= 100) {
+                      setExitFixedPercentage(value);
+                    } else if (value > 100) {
+                      setExitFixedPercentage(100);
+                    }
+                  }
+                }}
+                placeholder="고정 비율을 입력하세요 (1~100)"
+                className="h-12 w-full pr-7"
+                disabled={exitMethod === 'ONCE'}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2">%</span>
+            </div>
           )}
         </div>
       </div>
@@ -212,12 +291,14 @@ export const MethodPage = () => {
             !entryMethod ||
             (entryMethod === 'DIVIDE' &&
               (!entryInvestmentMethod ||
-                (entryInvestmentMethod === 'FIXED_AMOUNT' && !entryFixedAmount) ||
+                (entryInvestmentMethod === 'FIXED_AMOUNT' &&
+                  (!entryFixedAmount || entryFixedAmount < 10)) ||
                 (entryInvestmentMethod === 'FIXED_PERCENTAGE' && !entryFixedPercentage))) ||
             !exitMethod ||
             (exitMethod === 'DIVIDE' &&
               (!exitInvestmentMethod ||
-                (exitInvestmentMethod === 'FIXED_AMOUNT' && !exitFixedAmount) ||
+                (exitInvestmentMethod === 'FIXED_AMOUNT' &&
+                  (!exitFixedAmount || exitFixedAmount < 10)) ||
                 (exitInvestmentMethod === 'FIXED_PERCENTAGE' && !exitFixedPercentage)))
           }
           className="flex-1 disabled:cursor-not-allowed"
