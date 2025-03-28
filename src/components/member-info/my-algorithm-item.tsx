@@ -72,8 +72,8 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
             <AlertDialogTitle>알고리즘 삭제</AlertDialogTitle>
             <AlertDialogDescription>
               {algorithm.isRunning
-                ? '알고리즘을 삭제하면 실행 중인 알고리즘이 종료되고 삭제됩니다. 계속하시겠습니까?'
-                : '알고리즘을 삭제하면 되돌릴 수 없습니다. 계속하시겠습니까?'}
+                ? '알고리즘을 삭제하면 실행 중인 알고리즘이 종료되고 삭제됩니다.\n  계속하시겠습니까?'
+                : '알고리즘을 삭제하면 되돌릴 수 없습니다.\n 계속하시겠습니까?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
