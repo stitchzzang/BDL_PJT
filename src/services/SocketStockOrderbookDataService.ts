@@ -2,7 +2,7 @@ import { Client, Frame } from '@stomp/stompjs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 
-import { OrderbookData } from '@/api/types/stock';
+import { OrderbookDatas } from '@/api/types/stock';
 
 // 커스텀 훅
 export const useOrderbookConnection = () => {
@@ -11,7 +11,7 @@ export const useOrderbookConnection = () => {
 
   // 연결함수
   const connectOrderbook = useCallback(
-    (stockId: string, setOrderbook: (data: OrderbookData) => void) => {
+    (stockId: string, setOrderbook: (data: OrderbookDatas) => void) => {
       //기존 연결일 경우 해제
       disconnectOrderbook();
 

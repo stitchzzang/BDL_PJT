@@ -103,3 +103,8 @@ export interface OrderbookData {
   price: number;
   quantity: number;
 }
+
+export interface OrderbookDatas {
+  askLevels: OrderbookData[];
+  bidLevels: OrderbookData[];
+}
