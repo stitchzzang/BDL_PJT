@@ -1,4 +1,5 @@
 import { StockMinuteData, TickData } from '@/api/types/stock';
+import { getDataFormatted } from '@/utils/getDataFormatted';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
@@ -73,7 +74,7 @@ export const StockCostHistoryDay = ({ minuteData, tickData }: StockCostHistoryDa
                   className="my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
                 >
                   <div className="w-[20%] text-[14px] font-light text-border-color">
-                    {minutlist.tradingTime}
+                    {getDataFormatted(minutlist.tradingTime)}
                   </div>
                   <div className="w-[20%] text-right text-border-color">
                     {formatKoreanMoney(minutlist.closePrice)}
