@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { OrderbookData } from '@/api/types/stock';
+import { OrderbookDatas } from '@/api/types/stock';
 import { ChartLoadingAnimation } from '@/components/common/chart-loading-animation';
 import { SellingPriceSell } from '@/components/mock-investment/selling-price/selling-price-sell';
 import { useOrderbookConnection } from '@/services/SocketStockOrderbookDataService';
@@ -8,7 +8,7 @@ import { useOrderbookConnection } from '@/services/SocketStockOrderbookDataServi
 export const SellingPrice = () => {
   // 소켓 연결
   const { IsConnected, connectOrderbook, disconnectOrderbook } = useOrderbookConnection();
-  const [orderbooks, setOrderbooks] = useState<OrderbookData | null>(null);
+  const [orderbooks, setOrderbooks] = useState<OrderbookDatas | null>(null);
 
   useEffect(() => {
     // 소켓 연결

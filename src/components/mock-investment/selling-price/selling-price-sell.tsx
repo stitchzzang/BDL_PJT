@@ -1,13 +1,13 @@
-import { OrderbookData } from '@/api/types/stock';
+import { OrderbookData, OrderbookDatas } from '@/api/types/stock';
 interface SellingPriceSellProps {
-  orderbooks: OrderbookData;
+  orderbooks: OrderbookDatas;
 }
 
 export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
   return (
     <div>
       <div>
-        {orderBookDummy.ask.map((data, index) => {
+        {orderbooks.askLevels.map((data: OrderbookData, index) => {
           return (
             <div key={index} className="flex w-full justify-between">
               <div className="w-[50%] bg-btn-blue-color bg-opacity-20 p-[14px]">
@@ -21,7 +21,7 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
         })}
       </div>
       <div>
-        {orderBookDummy.bid.map((data, index) => {
+        {orderbooks.bidLevels.map((data: OrderbookData, index) => {
           return (
             <div key={index} className="flex w-full justify-between">
               <div className="flex w-[50%] justify-end p-[14px]">
