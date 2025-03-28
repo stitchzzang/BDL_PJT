@@ -12,7 +12,7 @@ import {
 
 export const StockApi = {
   // 분봉 데이터 가져오기 (limit 값은 직접 입력)
-  getStockInitMinuteData: (stockId: string, limit: number) =>
+  getStockInitMinuteData: (stockId: number, limit: number) =>
     _ky
       .get(`stocks/${stockId}/minute/initial?limit=${limit}`)
       .json<ApiResponse<StockMinuteDefaultData>>(),
@@ -89,7 +89,7 @@ export const StockApi = {
       .json<ApiResponse<string>>(),
 };
 
-export const useStockMinuteData = (stockId: string, limit: number) => {
+export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData'],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
