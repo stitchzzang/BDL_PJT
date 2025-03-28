@@ -99,7 +99,7 @@ export interface SimulatedData {
 }
 
 // 호가 인터페이스
-export interface Orderbook {
+export interface OrderbookData {
   price: number;
   quantity: number;
 }
