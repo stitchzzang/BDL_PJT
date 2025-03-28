@@ -13,6 +13,7 @@ export const SellingPrice = () => {
   useEffect(() => {
     // 소켓 연결
     connectOrderbook('000660', setOrderbooks);
+    console.log('호가 소켓 연결!!!');
     return () => {
       disconnectOrderbook();
     };
