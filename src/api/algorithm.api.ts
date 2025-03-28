@@ -34,4 +34,3 @@ export const useDeleteAlgorithm = () => {
       algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
   });
 };
-
