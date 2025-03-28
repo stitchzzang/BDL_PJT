@@ -135,6 +135,10 @@ export const router = createBrowserRouter([
         path: '/investment',
         children: [
           {
+            index: true,
+            element: <Navigate to="/investment/select" replace />,
+          },
+          {
             path: 'select',
             element: <InvestmentSelectPage />,
           },
