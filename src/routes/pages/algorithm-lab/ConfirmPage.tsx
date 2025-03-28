@@ -13,8 +13,6 @@ export const ConfirmPage = () => {
   const {
     algorithmName,
     investmentStyle,
-    investmentMethod,
-    investmentAmount,
     profitPercentToSell,
     lossPercentToSell,
     oneMinuteIncreasePercent,
@@ -27,6 +25,15 @@ export const ConfirmPage = () => {
     dailyDecreaseAction,
     shortTermMaPeriod,
     longTermMaPeriod,
+    entryMethod,
+    entryInvestmentMethod,
+    entryFixedAmount,
+    entryFixedPercentage,
+    exitMethod,
+    exitInvestmentMethod,
+    exitFixedAmount,
+    exitFixedPercentage,
+    isFee,
   } = useAlgorithmLabStore();
 
   if (!isValidAccess) {
@@ -48,10 +55,21 @@ export const ConfirmPage = () => {
 
   const getMethodText = (method: string) => {
     switch (method) {
-      case 'ratio':
-        return '자산비율 투자';
-      case 'fixed':
-        return '고정금액 투자';
+      case 'ONCE':
+        return '한번에';
+      case 'DIVIDE':
+        return '나누어서';
+      default:
+        return '';
+    }
+  };
+
+  const getInvestmentMethodText = (method: string) => {
+    switch (method) {
+      case 'FIXED_AMOUNT':
+        return '고정 금액';
+      case 'FIXED_PERCENTAGE':
+        return '고정 비율';
       default:
         return '';
     }
@@ -72,26 +90,27 @@ export const ConfirmPage = () => {
       memberId: '1',
       algorithm: {
         algorithmName,
-        entryMethod: 'ONCE',
-        exitMethod: 'ONCE',
-        entryInvestmentMethod: investmentMethod === 'fixed' ? 'FIXED_AMOUNT' : 'FIXED_PERCENTAGE',
-        entryFixedAmount: investmentMethod === 'fixed' ? investmentAmount : undefined,
-        entryFixedPercentage: investmentMethod === 'ratio' ? investmentAmount : 100,
-        exitInvestmentMethod: undefined,
-        exitFixedAmount: undefined,
-        exitFixedPercentage: undefined,
-        profitPercentToSell: profitPercentToSell ?? undefined,
-        lossPercentToSell: lossPercentToSell ?? undefined,
-        oneMinuteIncreasePercent: oneMinuteIncreasePercent ?? undefined,
-        oneMinuteDecreasePercent: oneMinuteDecreasePercent ?? undefined,
-        oneMinuteIncreaseAction: oneMinuteIncreaseAction ?? undefined,
-        oneMinuteDecreaseAction: oneMinuteDecreaseAction ?? undefined,
-        dailyIncreasePercent: dailyIncreasePercent ?? undefined,
-        dailyDecreasePercent: dailyDecreasePercent ?? undefined,
-        dailyIncreaseAction: dailyIncreaseAction ?? undefined,
-        dailyDecreaseAction: dailyDecreaseAction ?? undefined,
-        shortTermMaPeriod: shortTermMaPeriod ?? undefined,
-        longTermMaPeriod: longTermMaPeriod ?? undefined,
+        entryMethod: entryMethod ?? 'ONCE',
+        exitMethod: exitMethod ?? 'ONCE',
+        entryInvestmentMethod: entryInvestmentMethod ?? 'FIXED_PERCENTAGE',
+        entryFixedAmount,
+        entryFixedPercentage,
+        exitInvestmentMethod: exitInvestmentMethod ?? 'FIXED_PERCENTAGE',
+        exitFixedAmount,
+        exitFixedPercentage,
+        profitPercentToSell,
+        lossPercentToSell,
+        oneMinuteIncreasePercent,
+        oneMinuteDecreasePercent,
+        oneMinuteIncreaseAction,
+        oneMinuteDecreaseAction,
+        dailyIncreasePercent,
+        dailyDecreasePercent,
+        dailyIncreaseAction,
+        dailyDecreaseAction,
+        shortTermMaPeriod,
+        longTermMaPeriod,
+        isFee,
       },
     });
     navigate('/member/algorithm', { replace: true });
@@ -123,11 +142,52 @@ export const ConfirmPage = () => {
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 방식</h3>
+          <div>
+            <p className="font-light text-border-color">
+              진입 방식: {entryMethod && getMethodText(entryMethod)}
+              {entryInvestmentMethod && ` (${getInvestmentMethodText(entryInvestmentMethod)})`}
+            </p>
+            {entryInvestmentMethod === 'FIXED_AMOUNT' && entryFixedAmount && (
+              <p className="font-light text-border-color">
+                진입 금액:{' '}
+                <span className="text-[18px] font-bold text-btn-blue-color">
+                  {entryFixedAmount.toLocaleString()}원
+                </span>
+              </p>
+            )}
+            {entryInvestmentMethod === 'FIXED_PERCENTAGE' && entryFixedPercentage && (
+              <p className="font-light text-border-color">
+                진입 비율:{' '}
+                <span className="text-[18px] font-bold text-btn-blue-color">
+                  {entryFixedPercentage}%
+                </span>
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="font-light text-border-color">
+              청산 방식: {exitMethod && getMethodText(exitMethod)}
+              {exitInvestmentMethod && ` (${getInvestmentMethodText(exitInvestmentMethod)})`}
+            </p>
+            {exitInvestmentMethod === 'FIXED_AMOUNT' && exitFixedAmount && (
+              <p className="font-light text-border-color">
+                청산 금액:{' '}
+                <span className="text-[18px] font-bold text-btn-blue-color">
+                  {exitFixedAmount.toLocaleString()}원
+                </span>
+              </p>
+            )}
+            {exitInvestmentMethod === 'FIXED_PERCENTAGE' && exitFixedPercentage && (
+              <p className="font-light text-border-color">
+                청산 비율:{' '}
+                <span className="text-[18px] font-bold text-btn-blue-color">
+                  {exitFixedPercentage}%
+                </span>
+              </p>
+            )}
+          </div>
           <p className="font-light text-border-color">
-            {investmentMethod && getMethodText(investmentMethod)} :{' '}
-            <span className="text-[18px] font-bold text-btn-blue-color">
-              {investmentAmount.toLocaleString()}원
-            </span>
+            수수료 포함: <span className="font-bold">{isFee ? '예' : '아니오'}</span>
           </p>
         </div>
         {(oneMinuteIncreasePercent ||
