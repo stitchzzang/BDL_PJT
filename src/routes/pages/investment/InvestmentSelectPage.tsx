@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import NoneLogo from '/none-img/none-logo.png';
-import { BuildingAnimation } from '@/components/common/buildingAnimation';
+import { BuildingAnimation } from '@/components/common/building-animation';
 import { CategoryList } from '@/components/common/category-list';
 
 export const InvestmentSelectPage = () => {

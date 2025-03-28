@@ -1,6 +1,6 @@
 import Lottie from 'lottie-react';
 
-import buildingAnimation from '@/assets/lottie/build-anmation.json';
+import buildingAnimation from '@/assets/lottie/build-animation.json';
 
 export const BuildingAnimation = () => {
   return (
