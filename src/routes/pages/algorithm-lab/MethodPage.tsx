@@ -1,5 +1,7 @@
+import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
+import graphMove from '@/assets/lottie/graph-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +42,15 @@ export const MethodPage = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-5">
       <h2 className="text-3xl font-bold">투자 방식 설정</h2>
+      <Lottie
+        animationData={graphMove}
+        loop={true}
+        autoplay={true}
+        style={{ height: 170, width: 170 }}
+        rendererSettings={{
+          preserveAspectRatio: 'xMidYMid slice',
+        }}
+      />
       <HelpBadge
         title="투자는 어떤 방식으로 설정할까요?"
         description="진입/청산 방식을 설정해주세요.
