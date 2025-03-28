@@ -60,31 +60,56 @@ export const StockCostHistoryDay = ({ minuteData, tickData }: StockCostHistoryDa
               </div>
             </div>
             {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
-            {dayDataList.map((item, index) => (
-              <div
-                key={index}
-                className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
-              >
-                <div className="w-[20%] text-[14px] font-light text-border-color">{item.date}</div>
-                <div className="w-[20%] text-right text-border-color">{item.closePrice}</div>
-                <div className="w-[20%] text-right text-btn-red-color">{item.changeRate}%</div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.accumulateVolume}
+            <div
+              className="max-h-[450px] animate-fadeIn overflow-y-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#718096 #1a202c',
+              }}
+            >
+              {minuteData?.map((minutlist, index) => (
+                <div
+                  key={index}
+                  className="my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
+                >
+                  <div className="w-[20%] text-[14px] font-light text-border-color">
+                    {minutlist.tradingTime}
+                  </div>
+                  <div className="w-[20%] text-right text-border-color">
+                    {formatKoreanMoney(minutlist.closePrice)}
+                  </div>
+                  {minutlist.closePricePercent < 0 ? (
+                    <div className="w-[20%] text-right text-btn-blue-color">
+                      {Math.round(minutlist.closePricePercent * 100) / 100}%
+                    </div>
+                  ) : minutlist.closePricePercent === 0 ? (
+                    <div className="w-[20%] text-right text-border-color">
+                      {Math.round(minutlist.closePricePercent * 100) / 100}%
+                    </div>
+                  ) : (
+                    <div className="w-[20%] text-right text-btn-red-color">
+                      {Math.round(minutlist.closePricePercent * 100) / 100}%
+                    </div>
+                  )}
+
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(minutlist.contractingVolume)}
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(minutlist.accumulatedTradeAmount)}원
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(minutlist.openPrice)}원
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(minutlist.highPrice)}원
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(minutlist.lowPrice)}원
+                  </div>
                 </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {formatKoreanMoney(item.accumulatedTradeAmount)}원
-                </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {formatKoreanMoney(item.openPrice)}원
-                </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.highPrice} %
-                </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.lowPrice}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
