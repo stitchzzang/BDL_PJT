@@ -11,14 +11,15 @@ import { StockCostHistory } from '@/components/mock-investment/stock-cost-histor
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import ChartComponent from '@/components/ui/chart';
-import { dummyChartData } from '@/lib/dummy-data';
+import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
-  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData('000660', 50);
+  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 50);
+  const [closePrice, setClosePrice] = useState<number>(0);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
@@ -26,10 +27,13 @@ export const SimulatedInvestmentPage = () => {
 
   // 정적 데이터 확인 후 소켓 연결 시작
   useEffect(() => {
+    //장 마감을 위한 1분 데이터 종가 가져오기
+    if (minuteData) {
+      setClosePrice(minuteData.data[0].closePrice);
+    }
     // 데이터 확인 후 진행
     if (isSuccess && minuteData) {
       // 소켓 연결 시작
-      console.log('테스트 - 제발 되라');
       connectTick('000660', setTickData);
 
       //컴포넌트 언마운트 시 해제
@@ -55,7 +59,7 @@ export const SimulatedInvestmentPage = () => {
     <div className="flex h-full w-full flex-col px-6">
       <div>
         <div>
-          <StockInfo category="반도체" tickData={tickData} />
+          <StockInfo category="반도체" tickData={tickData} closePrice={closePrice} />
         </div>
         <div className="mb-[16px] mt-[30px] flex justify-between">
           <div className="flex items-center gap-2">
@@ -76,10 +80,10 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="mb-[20px] grid grid-cols-1 gap-5 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
-          <ChartComponent data={dummyChartData} height={600} />
+          <ChartComponent minuteData={dummyMinuteData} periodData={dummyPeriodData} height={600} />
         </div>
         <div className="col-span-1 lg:col-span-2">
-          <OrderStatus />
+          <OrderStatus closePrice={closePrice} realTime={tickData?.stckPrpr} />
         </div>
       </div>
       <div className="grid grid-cols-10 gap-5">

@@ -11,3 +11,20 @@ export interface SearchedCompany {
   categoryId: string;
   companyName: string;
 }
+
+export interface SearchedCompanyResponse {
+  companyCode: string;
+  companyId: number;
+  companyImage: string;
+  companyName: string;
+}
+
+export interface UserRanking {
+  changeRate: number;
+  nickname: string;
+  profile: string;
+}
+
+export interface UserRankingResponse {
+  userRanking: UserRanking[] | null;
+}

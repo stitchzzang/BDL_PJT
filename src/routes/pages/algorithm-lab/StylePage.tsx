@@ -1,7 +1,7 @@
 import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
-import StableMotion from '@/assets/lottie/stable-anmation.json';
+import StableMotion from '@/assets/lottie/stable-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
