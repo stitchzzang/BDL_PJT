@@ -10,7 +10,7 @@ export const SelectPage = () => {
       <div className="flex flex-col items-center justify-center gap-3">
         <div className="flex flex-col items-center justify-center">
           <h1 className="mb-[10px] text-[28px] font-bold">주식 튜토리얼</h1>
-          <p className="text-[16px]">주식에 익숙하지 않은 당식을 위하여여</p>
+          <p className="text-[16px]">주식에 익숙하지 않은 당식을 위하여</p>
           <span className="text-[16px] font-bold">적응을 도와드릴게요.</span>
           <p className="text-[16px]">
             먼저 경험하고 싶은{' '}
