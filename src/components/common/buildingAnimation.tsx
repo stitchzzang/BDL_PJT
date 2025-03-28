@@ -5,7 +5,7 @@ import buildingAnimation from '@/assets/lottie/build-anmation.json';
 export const BuildingAnimation = () => {
   return (
     <div className="flex items-center justify-center">
-      <Lottie animationData={buildingAnimation} loop={true} />
+      <Lottie animationData={buildingAnimation} loop={true} style={{ height: 250, width: 250 }} />
     </div>
   );
 };

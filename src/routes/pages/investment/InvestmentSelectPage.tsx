@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import NoneLogo from '/none-img/none-logo.png';
+import { BuildingAnimation } from '@/components/common/buildingAnimation';
 import { CategoryList } from '@/components/common/category-list';
 
 export const InvestmentSelectPage = () => {
@@ -30,7 +30,7 @@ export const InvestmentSelectPage = () => {
         </div>
       </div>
       <div className="mt-[50px]">
-        <img src={NoneLogo} alt="none-logo" />
+        <BuildingAnimation />
       </div>
     </div>
   );
