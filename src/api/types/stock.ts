@@ -97,3 +97,9 @@ export interface SimulatedData {
   price: number; // 지정가 - 가격
   orderId: number;
 }
+
+// 호가 인터페이스
+export interface Orderbook {
+  price: number;
+  quantity: number;
+}
