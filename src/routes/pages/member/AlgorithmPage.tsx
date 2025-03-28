@@ -22,11 +22,15 @@ export const AlgorithmPage = () => {
           </div>
         ) : (
           <>
-            {algorithms && (
+            {algorithms && algorithms.length > 0 ? (
               <div className="flex flex-col gap-4">
                 {algorithms.map((algorithm: Algorithm) => (
                   <MyAlgorithmItem key={algorithm.algorithmId} algorithm={algorithm} />
                 ))}
+              </div>
+            ) : (
+              <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
+                <p className="text-center text-lg text-[#718096]">알고리즘이 없습니다.</p>
               </div>
             )}
           </>

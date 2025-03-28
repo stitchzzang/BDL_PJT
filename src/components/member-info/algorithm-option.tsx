@@ -1,11 +1,12 @@
 import { Algorithm } from '@/api/types/algorithm';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 type AlgorithmOptionProps = {
   algorithm: Algorithm;
 };
 
 export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
-  const getActionColor = (action: string | undefined) => {
+  const getActionColor = (action: string | undefined | null) => {
     switch (action) {
       case 'BUY':
         return 'text-btn-red-color';
@@ -18,19 +19,24 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
 
   const options = [
     {
-      optionName: '매수 방법',
-      optionDescription: algorithm.entryMethod === 'ONCE' ? '일시 매수' : '분할 매수',
-    },
-    {
-      optionName: '매도 방법',
-      optionDescription: algorithm.exitMethod === 'ONCE' ? '일시 매도' : '분할 매도',
-    },
-    {
-      optionName: '투자 방식',
-      optionDescription:
+      optionName: '매수',
+      optionDescription: `${algorithm.entryMethod === 'ONCE' ? '일시' : '분할'} | ${
         algorithm.entryInvestmentMethod === 'FIXED_AMOUNT'
-          ? `고정금액: ${algorithm.entryFixedAmount?.toLocaleString()}원`
-          : `비율: ${algorithm.entryFixedPercentage}%`,
+          ? `${algorithm.entryFixedAmount ? addCommasToThousand(algorithm.entryFixedAmount) : 0}원`
+          : `${algorithm.entryFixedPercentage}%`
+      }`,
+    },
+    {
+      optionName: '매도',
+      optionDescription: `${algorithm.exitMethod === 'ONCE' ? '일시' : '분할'} | ${
+        algorithm.exitInvestmentMethod === 'FIXED_AMOUNT'
+          ? `${algorithm.exitFixedAmount ? addCommasToThousand(algorithm.exitFixedAmount) : 0}원`
+          : `${algorithm.exitFixedPercentage}%`
+      }`,
+    },
+    {
+      optionName: '수수료',
+      optionDescription: algorithm.isFee ? '포함' : '미포함',
     },
     ...(algorithm.profitPercentToSell
       ? [
@@ -54,15 +60,25 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
             optionName: '단기 변화 반응',
             optionDescription: (
               <>
-                상승: {algorithm.oneMinuteIncreasePercent}% (
-                <span className={getActionColor(algorithm.oneMinuteIncreaseAction)}>
-                  {algorithm.oneMinuteIncreaseAction}
-                </span>
-                ) / 하락: {algorithm.oneMinuteDecreasePercent}% (
-                <span className={getActionColor(algorithm.oneMinuteDecreaseAction)}>
-                  {algorithm.oneMinuteDecreaseAction}
-                </span>
-                )
+                {algorithm.oneMinuteIncreasePercent && (
+                  <>
+                    상승: {algorithm.oneMinuteIncreasePercent}% (
+                    <span className={getActionColor(algorithm.oneMinuteIncreaseAction)}>
+                      {algorithm.oneMinuteIncreaseAction}
+                    </span>
+                    )
+                  </>
+                )}
+                {algorithm.oneMinuteDecreasePercent && (
+                  <>
+                    {algorithm.oneMinuteIncreasePercent && ' / '}
+                    하락: {algorithm.oneMinuteDecreasePercent}% (
+                    <span className={getActionColor(algorithm.oneMinuteDecreaseAction)}>
+                      {algorithm.oneMinuteDecreaseAction}
+                    </span>
+                    )
+                  </>
+                )}
               </>
             ),
           },
@@ -74,15 +90,25 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
             optionName: '일간 추세 반응',
             optionDescription: (
               <>
-                상승: {algorithm.dailyIncreasePercent}% (
-                <span className={getActionColor(algorithm.dailyIncreaseAction)}>
-                  {algorithm.dailyIncreaseAction}
-                </span>
-                ) / 하락: {algorithm.dailyDecreasePercent}% (
-                <span className={getActionColor(algorithm.dailyDecreaseAction)}>
-                  {algorithm.dailyDecreaseAction}
-                </span>
-                )
+                {algorithm.dailyIncreasePercent && (
+                  <>
+                    상승: {algorithm.dailyIncreasePercent}% (
+                    <span className={getActionColor(algorithm.dailyIncreaseAction)}>
+                      {algorithm.dailyIncreaseAction}
+                    </span>
+                    )
+                  </>
+                )}
+                {algorithm.dailyDecreasePercent && (
+                  <>
+                    {algorithm.dailyIncreasePercent && ' / '}
+                    하락: {algorithm.dailyDecreasePercent}% (
+                    <span className={getActionColor(algorithm.dailyDecreaseAction)}>
+                      {algorithm.dailyDecreaseAction}
+                    </span>
+                    )
+                  </>
+                )}
               </>
             ),
           },

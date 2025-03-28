@@ -7,10 +7,6 @@ interface AlgorithmLabState {
   algorithmName: string;
   investmentStyle: 'conservative' | 'balanced' | 'aggressive' | null;
 
-  // 투자 방식 설정
-  investmentMethod: 'ratio' | 'fixed' | null;
-  investmentAmount: number;
-
   // 손익 설정
   profitPercentToSell: number;
   lossPercentToSell: number;
@@ -31,11 +27,20 @@ interface AlgorithmLabState {
   shortTermMaPeriod: number | null;
   longTermMaPeriod: number | null;
 
+  // 진입/청산 설정
+  entryMethod: 'ONCE' | 'DIVIDE' | null;
+  entryInvestmentMethod: 'FIXED_AMOUNT' | 'FIXED_PERCENTAGE' | null;
+  entryFixedAmount: number | null;
+  entryFixedPercentage: number | null;
+  exitMethod: 'ONCE' | 'DIVIDE' | null;
+  exitInvestmentMethod: 'FIXED_AMOUNT' | 'FIXED_PERCENTAGE' | null;
+  exitFixedAmount: number | null;
+  exitFixedPercentage: number | null;
+  isFee: boolean;
+
   // 액션
   setAlgorithmName: (name: string) => void;
   setInvestmentStyle: (style: 'conservative' | 'balanced' | 'aggressive' | null) => void;
-  setInvestmentMethod: (method: 'ratio' | 'fixed') => void;
-  setInvestmentAmount: (amount: number) => void;
   setProfitPercentToSell: (value: number) => void;
   setLossPercentToSell: (value: number) => void;
   setOneMinuteIncreasePercent: (value: number | null) => void;
@@ -48,14 +53,21 @@ interface AlgorithmLabState {
   setDailyDecreaseAction: (action: 'BUY' | 'SELL' | null) => void;
   setShortTermMaPeriod: (period: number | null) => void;
   setLongTermMaPeriod: (period: number | null) => void;
+  setEntryMethod: (method: 'ONCE' | 'DIVIDE' | null) => void;
+  setEntryInvestmentMethod: (method: 'FIXED_AMOUNT' | 'FIXED_PERCENTAGE' | null) => void;
+  setEntryFixedAmount: (amount: number | null) => void;
+  setEntryFixedPercentage: (percentage: number | null) => void;
+  setExitMethod: (method: 'ONCE' | 'DIVIDE' | null) => void;
+  setExitInvestmentMethod: (method: 'FIXED_AMOUNT' | 'FIXED_PERCENTAGE' | null) => void;
+  setExitFixedAmount: (amount: number | null) => void;
+  setExitFixedPercentage: (percentage: number | null) => void;
+  setIsFee: (isFee: boolean) => void;
   resetState: () => void;
 }
 
 export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   algorithmName: '',
   investmentStyle: null,
-  investmentMethod: null,
-  investmentAmount: 1,
   profitPercentToSell: 15,
   lossPercentToSell: 15,
   oneMinuteIncreasePercent: null,
@@ -68,6 +80,15 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   dailyDecreaseAction: null,
   shortTermMaPeriod: null,
   longTermMaPeriod: null,
+  entryMethod: null,
+  entryInvestmentMethod: null,
+  entryFixedAmount: null,
+  entryFixedPercentage: null,
+  exitMethod: null,
+  exitInvestmentMethod: null,
+  exitFixedAmount: null,
+  exitFixedPercentage: null,
+  isFee: false,
 
   setAlgorithmName: (name) => set({ algorithmName: name }),
   setInvestmentStyle: (style) => {
@@ -98,8 +119,6 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
         break;
     }
   },
-  setInvestmentMethod: (method) => set({ investmentMethod: method }),
-  setInvestmentAmount: (amount) => set({ investmentAmount: amount }),
   setProfitPercentToSell: (value) => set({ profitPercentToSell: Math.min(Math.max(value, 1), 30) }),
   setLossPercentToSell: (value) => set({ lossPercentToSell: Math.min(Math.max(value, 1), 30) }),
   setOneMinuteIncreasePercent: (value) =>
@@ -116,12 +135,19 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
   setDailyDecreaseAction: (action) => set({ dailyDecreaseAction: action }),
   setShortTermMaPeriod: (period) => set({ shortTermMaPeriod: period }),
   setLongTermMaPeriod: (period) => set({ longTermMaPeriod: period }),
+  setEntryMethod: (method) => set({ entryMethod: method }),
+  setEntryInvestmentMethod: (method) => set({ entryInvestmentMethod: method }),
+  setEntryFixedAmount: (amount) => set({ entryFixedAmount: amount }),
+  setEntryFixedPercentage: (percentage) => set({ entryFixedPercentage: percentage }),
+  setExitMethod: (method) => set({ exitMethod: method }),
+  setExitInvestmentMethod: (method) => set({ exitInvestmentMethod: method }),
+  setExitFixedAmount: (amount) => set({ exitFixedAmount: amount }),
+  setExitFixedPercentage: (percentage) => set({ exitFixedPercentage: percentage }),
+  setIsFee: (isFee) => set({ isFee: isFee }),
   resetState: () =>
     set({
       algorithmName: '',
       investmentStyle: null,
-      investmentMethod: null,
-      investmentAmount: 1,
       profitPercentToSell: 15,
       lossPercentToSell: 15,
       oneMinuteIncreasePercent: null,
@@ -134,6 +160,15 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
       dailyDecreaseAction: null,
       shortTermMaPeriod: null,
       longTermMaPeriod: null,
+      entryMethod: null,
+      entryInvestmentMethod: null,
+      entryFixedAmount: null,
+      entryFixedPercentage: null,
+      exitMethod: null,
+      exitInvestmentMethod: null,
+      exitFixedAmount: null,
+      exitFixedPercentage: null,
+      isFee: false,
     }),
 }));
 

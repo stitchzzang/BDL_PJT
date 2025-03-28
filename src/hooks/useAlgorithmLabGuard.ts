@@ -8,8 +8,14 @@ type PageType = 'name' | 'style' | 'method' | 'market' | 'confirm';
 export const useAlgorithmLabGuard = (page: PageType): boolean => {
   const {
     algorithmName,
-    investmentMethod,
-    investmentAmount,
+    entryMethod,
+    entryInvestmentMethod,
+    entryFixedAmount,
+    entryFixedPercentage,
+    exitMethod,
+    exitInvestmentMethod,
+    exitFixedAmount,
+    exitFixedPercentage,
     profitPercentToSell,
     lossPercentToSell,
   } = useAlgorithmLabStore();
@@ -19,8 +25,14 @@ export const useAlgorithmLabGuard = (page: PageType): boolean => {
     case 'confirm':
       if (
         !algorithmName ||
-        !investmentMethod ||
-        !investmentAmount ||
+        !entryMethod ||
+        !entryInvestmentMethod ||
+        (entryInvestmentMethod === 'FIXED_AMOUNT' && !entryFixedAmount) ||
+        (entryInvestmentMethod === 'FIXED_PERCENTAGE' && !entryFixedPercentage) ||
+        !exitMethod ||
+        !exitInvestmentMethod ||
+        (exitInvestmentMethod === 'FIXED_AMOUNT' && !exitFixedAmount) ||
+        (exitInvestmentMethod === 'FIXED_PERCENTAGE' && !exitFixedPercentage) ||
         !profitPercentToSell ||
         !lossPercentToSell
       ) {
@@ -28,7 +40,16 @@ export const useAlgorithmLabGuard = (page: PageType): boolean => {
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
     case 'market':
-      if (!investmentMethod || investmentAmount <= 0) {
+      if (
+        !entryMethod ||
+        !entryInvestmentMethod ||
+        (entryInvestmentMethod === 'FIXED_AMOUNT' && !entryFixedAmount) ||
+        (entryInvestmentMethod === 'FIXED_PERCENTAGE' && !entryFixedPercentage) ||
+        !exitMethod ||
+        !exitInvestmentMethod ||
+        (exitInvestmentMethod === 'FIXED_AMOUNT' && !exitFixedAmount) ||
+        (exitInvestmentMethod === 'FIXED_PERCENTAGE' && !exitFixedPercentage)
+      ) {
         return false;
       }
     // fall through : 이전 페이지에서 데이터가 없으면 현재 페이지로 이동
