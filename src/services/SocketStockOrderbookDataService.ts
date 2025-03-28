@@ -28,6 +28,9 @@ export const useOrderbookConnection = () => {
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       });
+
+      stompClientRef.current = client;
+
       // 연결 성공 콜백
       client.onConnect = (frame: Frame) => {
         setIsConnected(true);
