@@ -146,7 +146,7 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
             </div>
           );
         })}
-        <div className="mt-8 flex justify-between border-t border-border-color border-opacity-20 pt-4">
+        <div className="mt-8 flex items-center justify-between rounded-xl border border-border-color border-opacity-20 p-4 pt-4">
           <p>
             <span className="text-btn-blue-color">매도대기 : </span>{' '}
             {totalAskQuantity.toLocaleString()}
