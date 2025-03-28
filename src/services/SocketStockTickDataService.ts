@@ -15,6 +15,8 @@ export const useTickConnection = () => {
     disconnectTick();
 
     // SockJS 인스턴스 생성
+    // http://192.168.100.198:8080/ws
+    // https://j12d202.p.ssafy.io/ws
     const socket = new SockJS('http://192.168.100.198:8080/ws');
 
     // STOMP 클라이언트 생성

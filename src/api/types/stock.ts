@@ -16,6 +16,13 @@ export interface StockMinuteData {
   twentyAverage: number; // 20 이평선
 }
 
+export interface StockMinuteDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockMinuteData[];
+}
+
 // 메시지 데이터 구조에 대한 타입 정의
 export interface TickData {
   /** 종목 코드 (예: "005930") */
@@ -47,4 +54,46 @@ export interface TickData {
 
   /** 체결구분 (예: "1" - 매수, "3" - 장전, "5" - 매도) */
   ccldDvsn: string;
+}
+
+// 매수,매도
+// 지정가
+export interface LimitOrderData {
+  memberId: number; // 회원 ID
+  companyId: number; // 종목 ID
+  tradeType: number; // 0: 매수(구매), 1:매도(판매)
+  quantity: number; // 주 개수
+  price: number; // 지정가 - 가격
+}
+
+// 시장가
+export interface MarketOrderData {
+  memberId: number; // 회원 ID
+  companyId: number; // 종목 ID
+  tradeType: number; // 0: 매수(구매), 1:매도(판매)
+  quantity: number; // 시장가 - 가격(현재 가격을 가져와야 함)
+}
+
+// 주문 대기목록
+export interface UserSimulatedData {
+  orderId: number;
+  memberId: number;
+  companyId: number;
+  companyName: string;
+  tradeType: number;
+  quantity: number;
+  price: number;
+  tradingTime: string;
+  auto: boolean;
+  confirm: boolean;
+}
+
+// 주문리스트
+export interface SimulatedData {
+  memberId: number; // 회원 ID
+  companyId: number; // 종목 ID
+  tradeType: number; // 0: 매수(구매), 1:매도(판매)
+  quantity: number; // 주 개수
+  price: number; // 지정가 - 가격
+  orderId: number;
 }

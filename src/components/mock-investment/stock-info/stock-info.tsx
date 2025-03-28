@@ -7,9 +7,10 @@ import { addCommasToThousand } from '@/utils/numberFormatter';
 interface StockInfoProps {
   category: CategoryName;
   tickData: TickData | null;
+  closePrice: number;
 }
 
-export const StockInfo = ({ category, tickData }: StockInfoProps) => {
+export const StockInfo = ({ category, tickData, closePrice }: StockInfoProps) => {
   const CategoryIcon = getCategoryIcon(category);
 
   return (
@@ -27,7 +28,10 @@ export const StockInfo = ({ category, tickData }: StockInfoProps) => {
           <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-[18px] sm:flex-row">
               <h3 className="text-[30px] font-medium text-white">
-                {tickData ? addCommasToThousand(tickData?.stckPrpr) : '0'}원
+                {tickData
+                  ? addCommasToThousand(tickData?.stckPrpr)
+                  : addCommasToThousand(closePrice)}
+                원
               </h3>
               <div className="flex flex-col gap-[18px] sm:flex-row">
                 <div className="flex gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
