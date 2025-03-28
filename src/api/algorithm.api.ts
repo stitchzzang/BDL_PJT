@@ -2,12 +2,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
-import { Algorithm } from '@/api/types/algorithm';
+import { Algorithm, AlgorithmResponse } from '@/api/types/algorithm';
 import { ApiResponse } from '@/api/types/common';
-
-interface AlgorithmResponse {
-  algorithms: Algorithm[];
-}
 
 export const algorithmAPI = {
   createAlgorithm: (memberId: string, algorithm: Algorithm) =>

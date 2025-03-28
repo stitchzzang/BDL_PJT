@@ -23,3 +23,7 @@ export interface Algorithm {
   exitFixedAmount?: number; // 매도 투자 금액
   exitFixedPercentage?: number; // 매도 투자 퍼센트
 }
+
+export interface AlgorithmResponse {
+  algorithms: Algorithm[];
+}
