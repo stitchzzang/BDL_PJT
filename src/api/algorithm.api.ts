@@ -5,11 +5,15 @@ import { _ky } from '@/api/instance';
 import { Algorithm } from '@/api/types/algorithm';
 import { ApiResponse } from '@/api/types/common';
 
+interface AlgorithmResponse {
+  algorithms: Algorithm[];
+}
+
 export const algorithmAPI = {
   createAlgorithm: (memberId: string, algorithm: Algorithm) =>
     _ky.post(`algorithm/${memberId}`, { json: algorithm }).json<ApiResponse<Algorithm>>(),
   getAlgorithm: (memberId: string) =>
-    _ky.get(`algorithm/${memberId}`).json<ApiResponse<Algorithm[]>>(),
+    _ky.get(`algorithm/${memberId}`).json<ApiResponse<AlgorithmResponse>>(),
   deleteAlgorithm: (memberId: string, algorithmId: string) =>
     _ky.delete(`algorithm/${memberId}/${algorithmId}`).json<ApiResponse<void>>(),
 };
@@ -24,7 +28,7 @@ export const useCreateAlgorithm = () => {
 export const useGetAlgorithm = (memberId: string) => {
   return useQuery<Algorithm[]>({
     queryKey: ['algorithms'],
-    queryFn: () => algorithmAPI.getAlgorithm(memberId).then((res) => res.result),
+    queryFn: () => algorithmAPI.getAlgorithm(memberId).then((res) => res.result.algorithms),
   });
 };
 
@@ -34,4 +38,3 @@ export const useDeleteAlgorithm = () => {
       algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
   });
 };
-
