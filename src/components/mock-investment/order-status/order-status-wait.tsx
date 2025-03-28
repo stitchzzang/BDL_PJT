@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { useUserSimulatedData } from '@/api/stock.api';
+import { WaitOrderLoadingAnimation } from '@/components/common/chart-loading-animation';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { OrderStatusWaitList } from '@/components/mock-investment/order-status/order-status-wait-list';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
@@ -45,15 +46,25 @@ export const OrderStatusWait = ({ closePrice, realTime, tickSize }: OrderStatusW
       <div className="mb-1">
         <h3 className={h3Style}>대기 주문</h3>
       </div>
-      {userSimulated?.map((UserSimulatedData, index) => (
-        <OrderStatusWaitList
-          UserSimulatedData={UserSimulatedData}
-          closePrice={closePrice}
-          realTime={realTime}
-          tickSize={tickSize}
-          key={index}
-        />
-      ))}
+      <div>
+        {userSimulated?.length === 0 ? (
+          <div>
+            <WaitOrderLoadingAnimation />
+          </div>
+        ) : (
+          <>
+            {userSimulated?.map((UserSimulatedData, index) => (
+              <OrderStatusWaitList
+                UserSimulatedData={UserSimulatedData}
+                closePrice={closePrice}
+                realTime={realTime}
+                tickSize={tickSize}
+                key={index}
+              />
+            ))}
+          </>
+        )}
+      </div>
       <hr className="mb-[20px] mt-[30px] border border-border-color border-opacity-20" />
       <div className="flex flex-col gap-2">
         <div className="flex justify-between">
