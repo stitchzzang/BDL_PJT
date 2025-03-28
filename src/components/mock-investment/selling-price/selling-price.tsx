@@ -33,18 +33,18 @@ const orderBookDummy: orderBookData = {
 export const SellingPrice = () => {
   // 소켓 연결
   const { IsConnected, connectOrderbook, disconnectOrderbook } = useOrderbookConnection();
-  const [orderbookData, setOrderbookData] = useState<OrderbookData | null>(null);
+  const [orderbooks, setOrderbooks] = useState<OrderbookData | null>(null);
 
   useEffect(() => {
     // 소켓 연결
-    connectOrderbook('000660', setOrderbookData);
+    connectOrderbook('000660', setOrderbooks);
     return () => {
       disconnectOrderbook();
     };
   }, [connectOrderbook, disconnectOrderbook]);
   return (
     <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
-      {orderbookData ? (
+      {orderbooks ? (
         <>
           <div className="flex justify-between">
             <h3 className="text-[18px] font-bold">호가</h3>
@@ -57,7 +57,7 @@ export const SellingPrice = () => {
           </div>
           <hr className="mt-[16px] border-border-color border-opacity-20" />
           <div>
-            <SellingPriceSell orderBookDummy={orderBookDummy} />
+            <SellingPriceSell orderbooks={orderbooks} />
           </div>
         </>
       ) : (

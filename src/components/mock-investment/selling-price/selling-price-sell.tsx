@@ -1,10 +1,9 @@
-import { orderBookData } from '@/components/mock-investment/selling-price/selling-price';
-
+import { OrderbookData } from '@/api/types/stock';
 interface SellingPriceSellProps {
-  orderBookDummy: orderBookData;
+  orderbooks: OrderbookData;
 }
 
-export const SellingPriceSell = ({ orderBookDummy }: SellingPriceSellProps) => {
+export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
   return (
     <div>
       <div>
