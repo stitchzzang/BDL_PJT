@@ -39,6 +39,12 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
     <div className="flex w-full flex-row items-center justify-between rounded-[10px] bg-modal-background-color p-5">
       <div className="flex flex-col items-start gap-2">
         <p className="mr-20 whitespace-nowrap text-text-main-color">{algorithm.algorithmName}</p>
+        {algorithm.isRunning && (
+          <div className="flex items-center gap-1 rounded-full bg-btn-red-color px-3 py-1">
+            <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
+            <span className="text-sm text-white">실행 중</span>
+          </div>
+        )}
       </div>
       <AlgorithmOption algorithm={algorithm} />
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
