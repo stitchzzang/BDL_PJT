@@ -1,4 +1,8 @@
+import { useState } from 'react';
+
+import { OrderbookData } from '@/api/types/stock';
 import { SellingPriceSell } from '@/components/mock-investment/selling-price/selling-price-sell';
+import { useOrderbookConnection } from '@/services/SocketStockOrderbookDataService';
 
 export interface orderBook {
   price: number;
@@ -26,6 +30,9 @@ const orderBookDummy: orderBookData = {
   ],
 };
 export const SellingPrice = () => {
+  // 소켓 연결
+  const { IsConnected, connectOrderbook, disconnectOrderbook } = useOrderbookConnection();
+  const [tickData, setTickData] = useState<OrderbookData | null>(null);
   return (
     <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
       <div className="flex justify-between">
