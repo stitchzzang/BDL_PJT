@@ -87,10 +87,10 @@ export const SimulatedInvestmentPage = () => {
         </div>
       </div>
       <div className="grid grid-cols-10 gap-5">
-        <div className="col-span-5">
+        <div className="col-span-6">
           <StockCostHistory tickData={tickData} minuteData={minuteData?.data} />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2">
           <StockInfoDetail />
         </div>
         <div className="col-span-2">
