@@ -5,31 +5,40 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSearchedCompanies } from '@/api/home.api';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
+import { ErrorScreen } from '@/components/common/error-screen';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 
 export const SearchPage = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
   const searchQuery = urlParams.get('q') || '';
+  const categoryQuery = urlParams.get('category') || '0';
 
-  const [categoryId, setCategoryId] = useState('0');
+  const [categoryId, setCategoryId] = useState(categoryQuery);
   const [companyName, setCompanyName] = useState(searchQuery);
   const [searchParams, setSearchParams] = useState({
-    categoryId: '0',
+    categoryId: categoryQuery,
     companyName: searchQuery,
   });
 
-  const { data: searchedCompanies, refetch } = useSearchedCompanies(searchParams);
+  const {
+    data: searchedCompanies,
+    refetch,
+    isLoading,
+    isError,
+  } = useSearchedCompanies(searchParams);
 
   useEffect(() => {
     setCompanyName(searchQuery);
+    setCategoryId(categoryQuery);
     setSearchParams({
-      categoryId,
+      categoryId: categoryQuery,
       companyName: searchQuery,
     });
-  }, [searchQuery, categoryId]);
+  }, [searchQuery, categoryQuery]);
 
   const handleSearch = () => {
-    navigate(`/search?q=${encodeURIComponent(companyName)}`);
+    navigate(`/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
     refetch();
   };
 
@@ -37,6 +46,15 @@ export const SearchPage = () => {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  const handleCategoryChange = (newCategoryId: string) => {
+    setCategoryId(newCategoryId);
+    navigate(`/search?q=${encodeURIComponent(companyName)}&category=${newCategoryId}`);
+    setSearchParams({
+      categoryId: newCategoryId,
+      companyName,
+    });
   };
 
   return (
@@ -65,9 +83,24 @@ export const SearchPage = () => {
             <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
           </button>
         </div>
-        <CategoryList setCategoryId={setCategoryId} activeCategoryId={categoryId} />
+        <CategoryList setCategoryId={handleCategoryChange} activeCategoryId={categoryId} />
         <p className="my-3 text-lg text-[#718096]">카테고리 선택으로도 검색이 가능합니다.</p>
-        <CompanySelectButton />
+        <div className="w-full min-w-[200px] p-5 sm:min-w-[600px]">
+          {isLoading && <LoadingAnimation />}
+          {isError && <ErrorScreen />}
+          {searchedCompanies && searchedCompanies.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {searchedCompanies.map((company) => (
+                <CompanySelectButton key={company.companyId} company={company} />
+              ))}
+            </div>
+          )}
+          {searchedCompanies && searchedCompanies.length === 0 && (
+            <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
+              <p className="text-center text-lg text-[#718096]">검색 결과가 없습니다.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
