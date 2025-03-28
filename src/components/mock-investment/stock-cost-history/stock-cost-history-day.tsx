@@ -1,13 +1,13 @@
-import { StockMinuteData, TickData } from '@/api/types/stock';
+import { StockDayCandle, TickData } from '@/api/types/stock';
 import { getDataFormatted } from '@/utils/getDataFormatted';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryDayProps {
-  minuteData: StockMinuteData[] | undefined;
+  DayData: StockDayCandle[] | undefined;
   tickData: TickData | null;
 }
-export const StockCostHistoryDay = ({ minuteData, tickData }: StockCostHistoryDayProps) => {
+export const StockCostHistoryDay = ({ DayData, tickData }: StockCostHistoryDayProps) => {
   return (
     <div>
       <div className="w-full">
@@ -68,45 +68,45 @@ export const StockCostHistoryDay = ({ minuteData, tickData }: StockCostHistoryDa
                 scrollbarColor: '#718096 #1a202c',
               }}
             >
-              {minuteData?.map((minutlist, index) => (
+              {DayData?.map((daylist, index) => (
                 <div
                   key={index}
                   className="my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
                 >
                   <div className="w-[20%] text-[14px] font-light text-border-color">
-                    {getDataFormatted(minutlist.tradingTime)}
+                    {getDataFormatted(daylist.tradingDate)}
                   </div>
                   <div className="w-[20%] text-right text-border-color">
-                    {formatKoreanMoney(minutlist.closePrice)}
+                    {formatKoreanMoney(daylist.closePrice)}
                   </div>
-                  {minutlist.closePricePercent < 0 ? (
+                  {daylist.closePricePercent < 0 ? (
                     <div className="w-[20%] text-right text-btn-blue-color">
-                      {Math.round(minutlist.closePricePercent * 100) / 100}%
+                      {Math.round(daylist.closePricePercent * 100) / 100}%
                     </div>
-                  ) : minutlist.closePricePercent === 0 ? (
+                  ) : daylist.closePricePercent === 0 ? (
                     <div className="w-[20%] text-right text-border-color">
-                      {Math.round(minutlist.closePricePercent * 100) / 100}%
+                      {Math.round(daylist.closePricePercent * 100) / 100}%
                     </div>
                   ) : (
                     <div className="w-[20%] text-right text-btn-red-color">
-                      {Math.round(minutlist.closePricePercent * 100) / 100}%
+                      {Math.round(daylist.closePricePercent * 100) / 100}%
                     </div>
                   )}
 
                   <div className="w-[20%] text-right font-light text-border-color">
-                    {formatKoreanMoney(minutlist.contractingVolume)}
+                    {formatKoreanMoney(daylist.accumulatedVolume)}
                   </div>
                   <div className="w-[20%] text-right font-light text-border-color">
-                    {formatKoreanMoney(minutlist.accumulatedTradeAmount)}원
+                    {formatKoreanMoney(daylist.accumulatedTradeAmount)}원
                   </div>
                   <div className="w-[20%] text-right font-light text-border-color">
-                    {formatKoreanMoney(minutlist.openPrice)}원
+                    {formatKoreanMoney(daylist.openPrice)}원
                   </div>
                   <div className="w-[20%] text-right font-light text-border-color">
-                    {formatKoreanMoney(minutlist.highPrice)}원
+                    {formatKoreanMoney(daylist.highPrice)}원
                   </div>
                   <div className="w-[20%] text-right font-light text-border-color">
-                    {formatKoreanMoney(minutlist.lowPrice)}원
+                    {formatKoreanMoney(daylist.lowPrice)}원
                   </div>
                 </div>
               ))}
