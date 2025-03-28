@@ -1,13 +1,12 @@
-import { TickData } from '@/api/types/stock';
-import { DTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
+import { StockMinuteData, TickData } from '@/api/types/stock';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryDayProps {
-  dayDataList: DTData[];
+  minuteData: StockMinuteData[] | undefined;
   tickData: TickData | null;
 }
-export const StockCostHistoryDay = ({ dayDataList, tickData }: StockCostHistoryDayProps) => {
+export const StockCostHistoryDay = ({ minuteData, tickData }: StockCostHistoryDayProps) => {
   return (
     <div>
       <div className="w-full">
