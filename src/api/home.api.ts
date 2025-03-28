@@ -12,8 +12,8 @@ export const homeApi = {
     _ky
       .get('company/search', {
         searchParams: {
-          categoryId: categoryId ?? '',
           keyword: companyName ?? '',
+          categoryId: categoryId ?? '',
         },
       })
       .json<ApiResponse<SearchedCompanyResponse[]>>(),
