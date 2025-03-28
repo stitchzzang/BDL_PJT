@@ -1,8 +1,11 @@
+import { useUserRanking } from '@/api/home.api';
 import { NewsChart } from '@/components/home-page/news/news-chart';
 import { RankCards } from '@/components/home-page/rank-cards/rank-cards';
 import { RealTimeChart } from '@/components/home-page/real-time-chart/real-time-chart';
 
 export const HomePage = () => {
+  const { data: userRanking, isLoading, isError } = useUserRanking();
+
   return (
     <div className="px-6">
       <div>{/* 코스피,코스단.. 차트 */}</div>
@@ -32,7 +35,7 @@ export const HomePage = () => {
           </p>
         </div>
         <div>
-          <RankCards />
+          <RankCards userRanking={userRanking ?? []} isLoading={isLoading} isError={isError} />
         </div>
       </div>
     </div>

@@ -18,3 +18,13 @@ export interface SearchedCompanyResponse {
   companyImage: string;
   companyName: string;
 }
+
+export interface UserRanking {
+  changeRate: number;
+  nickname: string;
+  profile: string;
+}
+
+export interface UserRankingResponse {
+  userRanking: UserRanking[] | null;
+}
