@@ -19,5 +19,5 @@ export interface UserRanking {
 }
 
 export interface UserRankingResponse {
-  userRanking: UserRanking[];
+  userRanking: UserRanking[] | null;
 }
