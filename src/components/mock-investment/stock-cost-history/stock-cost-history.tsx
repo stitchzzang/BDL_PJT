@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 
-import { StockMinuteData, TickData } from '@/api/types/stock';
+import { StockDayCandle, TickData } from '@/api/types/stock';
 import { StockCostHistoryDay } from '@/components/mock-investment/stock-cost-history/stock-cost-history-day';
 import { StockCostHistoryRealTime } from '@/components/mock-investment/stock-cost-history/stock-cost-history-realtime';
 
 // 실시간 데이터 - 실제
 interface StockCostHistoryProps {
   tickData: TickData | null;
-  minuteData: StockMinuteData[] | undefined;
+  DayData: StockDayCandle[] | undefined;
 }
 
-export const StockCostHistory = ({ tickData, minuteData }: StockCostHistoryProps) => {
+export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) => {
   const [isActive, setIsActive] = useState<string>('실시간');
   // 실시간 정보 관리
   const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
@@ -44,7 +44,7 @@ export const StockCostHistory = ({ tickData, minuteData }: StockCostHistoryProps
           {isActive === '실시간' ? (
             <StockCostHistoryRealTime tickDataLists={tickDataLists} animationKey={animationKey} />
           ) : (
-            <StockCostHistoryDay minuteData={minuteData} tickData={tickData} />
+            <StockCostHistoryDay DayData={DayData} tickData={tickData} />
           )}
         </div>
       </div>

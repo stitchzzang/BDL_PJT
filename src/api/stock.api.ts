@@ -6,7 +6,7 @@ import {
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
-  StockDayCandle,
+  StockDayDefaultData,
   StockMinuteDefaultData,
   UserSimulatedData,
 } from '@/api/types/stock';
@@ -27,7 +27,7 @@ export const StockApi = {
           periodType: periodType,
         },
       })
-      .json<ApiResponse<StockDayCandle[]>>(),
+      .json<ApiResponse<StockDayDefaultData>>(),
 
   //Order API
 
@@ -110,7 +110,7 @@ export const useStockMinuteData = (stockId: number, limit: number) => {
 
 export const useStockDayData = (stockId: number, limit: number, periodType: number) => {
   return useQuery({
-    queryKey: ['stockInitDayData'],
+    queryKey: ['DayData'],
     queryFn: () =>
       StockApi.getStockInitDayData(stockId, limit, periodType).then((res) => res.result),
   });

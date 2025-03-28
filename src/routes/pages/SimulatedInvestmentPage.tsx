@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useStockMinuteData } from '@/api/stock.api';
+import { useStockDayData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
@@ -18,7 +18,8 @@ import { getTodayFormatted } from '@/utils/getTodayFormatted';
 export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
-  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 50);
+  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 50); // 분봉
+  const { data: DayData } = useStockDayData(1, 5, 1); // 일봉
   const [closePrice, setClosePrice] = useState<number>(0);
 
   // 소켓 연결 관련 훅
@@ -32,7 +33,7 @@ export const SimulatedInvestmentPage = () => {
       setClosePrice(minuteData.data[0].closePrice);
     }
     // 데이터 확인 후 진행
-    if (isSuccess && minuteData) {
+    if (isSuccess && minuteData && DayData) {
       // 소켓 연결 시작
       connectTick('000660', setTickData);
 
@@ -41,7 +42,7 @@ export const SimulatedInvestmentPage = () => {
         disconnectTick();
       };
     }
-  }, [isSuccess, minuteData, connectTick, disconnectTick]);
+  }, [isSuccess, minuteData, connectTick, disconnectTick, DayData]);
 
   if (isLoading) {
     return (
@@ -88,7 +89,7 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="grid grid-cols-10 gap-5">
         <div className="col-span-6">
-          <StockCostHistory tickData={tickData} minuteData={minuteData?.data} />
+          <StockCostHistory tickData={tickData} DayData={DayData?.data} />
         </div>
         <div className="col-span-2">
           <StockInfoDetail />

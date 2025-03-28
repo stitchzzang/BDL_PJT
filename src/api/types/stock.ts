@@ -36,6 +36,13 @@ export interface StockDayCandle {
   twentyAverage: number; // 20일 이동평균선
 }
 
+export interface StockDayDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockDayCandle[];
+}
+
 export interface StockMinuteDefaultData {
   companyId: string;
   limit: number;
