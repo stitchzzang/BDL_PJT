@@ -76,8 +76,8 @@ export const StockCostHistoryDay = ({ DayData, tickData }: StockCostHistoryDayPr
                   <div className="w-[20%] text-[14px] font-light text-border-color">
                     {getDataFormatted(daylist.tradingDate)}
                   </div>
-                  <div className="w-[20%] text-right text-border-color">
-                    {formatKoreanMoney(daylist.closePrice)}
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.closePrice)}원
                   </div>
                   {daylist.closePricePercent < 0 ? (
                     <div className="w-[20%] text-right text-btn-blue-color">
