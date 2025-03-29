@@ -2,19 +2,19 @@ import { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 
+import { StockMinuteDefaultData } from '@/api/types/stock';
 import {
   CandleResponse,
   ChartDataPoint,
   convertMinuteCandleToChartData,
   convertPeriodCandleToChartData,
-  MinuteCandleData,
+  // MinuteCandleData,
   PeriodCandleData,
 } from '@/mocks/dummy-data';
-
 // 타입 정의
 interface ChartComponentProps {
   readonly height?: number;
-  readonly minuteData?: CandleResponse<MinuteCandleData>;
+  readonly minuteData?: StockMinuteDefaultData;
   readonly periodData?: CandleResponse<PeriodCandleData>;
   readonly ratio?: number;
 }
@@ -45,18 +45,64 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     setPeriod(newPeriod);
   };
 
+  // 1. 상태 추가
+  const [amplifyMinuteData, setAmplifyMinuteData] = useState(true);
+  const [amplificationFactor, setAmplificationFactor] = useState(5);
+
   // 데이터 변환 및 필터링
+  // 2. rawChartData 부분 수정
   const rawChartData = useMemo(() => {
     let data: ChartDataPoint[] = [];
+
     if (period === 'MINUTE' && minuteData?.data) {
+      // 먼저 기본 변환 수행
       data = minuteData.data.map(convertMinuteCandleToChartData);
+
+      // 변동폭 강조가 활성화된 경우
+      if (amplifyMinuteData) {
+        // 모든 가격 데이터 수집
+        const allPrices = data.flatMap((item) => [item.open, item.close, item.high, item.low]);
+        const validPrices = allPrices.filter(
+          (price) => price !== undefined && price !== null && !isNaN(price),
+        );
+
+        // 최소/최대/중간 가격 계산
+        const minPrice = Math.min(...validPrices);
+        const maxPrice = Math.max(...validPrices);
+        const midPrice = (minPrice + maxPrice) / 2;
+
+        // 변동폭 강조 적용
+        data = data.map((item) => {
+          // 원본 데이터 백업
+          const originalOpen = item.open;
+          const originalClose = item.close;
+          const originalHigh = item.high;
+          const originalLow = item.low;
+
+          // 중간값 기준으로 변동폭 확대
+          return {
+            ...item,
+            open: midPrice + (item.open - midPrice) * amplificationFactor,
+            close: midPrice + (item.close - midPrice) * amplificationFactor,
+            high: midPrice + (item.high - midPrice) * amplificationFactor,
+            low: midPrice + (item.low - midPrice) * amplificationFactor,
+            // 원본 값 저장
+            originalOpen,
+            originalClose,
+            originalHigh,
+            originalLow,
+            amplified: true,
+          };
+        });
+      }
     } else if (periodData?.data) {
       data = periodData.data
         .filter((item) => item.periodType === '1')
         .map(convertPeriodCandleToChartData);
     }
+
     return data;
-  }, [period, minuteData, periodData]);
+  }, [period, minuteData, periodData, amplifyMinuteData, amplificationFactor]);
 
   const formatChartDate = useCallback(
     (date: Date): string => {
@@ -300,6 +346,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     return '#ffffff'; // 기본 색상
   };
 
+  // 3. 툴팁 포맷터 수정
   const tooltipFormatter = useCallback(
     (params: any): string => {
       if (!params || params.length === 0) return 'No data';
@@ -331,7 +378,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
         }
       }
 
-      const { open, close, low, high, volume, rawDate } = item;
+      // 확대된 분봉 데이터는 원본 값 사용
+      const useOpen = item.amplified ? item.originalOpen! : item.open;
+      const useClose = item.amplified ? item.originalClose! : item.close;
+      const useLow = item.amplified ? item.originalLow! : item.low;
+      const useHigh = item.amplified ? item.originalHigh! : item.high;
+
+      const { rawDate, volume } = item;
 
       // 날짜 포맷팅
       let formattedDate = '';
@@ -383,19 +436,26 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
       const lowColor = getChangeColor(lowPercent);
       const highColor = getChangeColor(highPercent);
 
-      return `
-        📆 ${formattedDate}<br />
-        <br />
-        시가: ${formatKoreanNumber(open)}원 (<span style="color: ${openColor};">${openPercent.toFixed(2)}%</span>)<br />
-        종가: ${formatKoreanNumber(close)}원 (<span style="color: ${closeColor};">${closePercent.toFixed(2)}%</span>)<br />
-        저가: ${formatKoreanNumber(low)}원 (<span style="color: ${lowColor};">${lowPercent.toFixed(2)}%</span>)<br />
-        고가: ${formatKoreanNumber(high)}원 (<span style="color: ${highColor};">${highPercent.toFixed(2)}%</span>)<br />
-        <br />
-        5이평선: ${formatKoreanNumber(ma5)}원<br />
-        20이평선: ${formatKoreanNumber(ma20)}원<br />
-        <br />
-        거래량: ${formatVolumeNumber(volume)}<br />
-      `;
+      let tooltipContent = `
+      📆 ${formattedDate}<br />
+      <br />
+      시가: ${formatKoreanNumber(useOpen)}원 (<span style="color: ${openColor};">${openPercent.toFixed(2)}%</span>)<br />
+      종가: ${formatKoreanNumber(useClose)}원 (<span style="color: ${closeColor};">${closePercent.toFixed(2)}%</span>)<br />
+      저가: ${formatKoreanNumber(useLow)}원 (<span style="color: ${lowColor};">${lowPercent.toFixed(2)}%</span>)<br />
+      고가: ${formatKoreanNumber(useHigh)}원 (<span style="color: ${highColor};">${highPercent.toFixed(2)}%</span>)<br />
+      <br />
+      5이평선: ${formatKoreanNumber(ma5)}원<br />
+      20이평선: ${formatKoreanNumber(ma20)}원<br />
+      <br />
+      거래량: ${formatVolumeNumber(volume)}<br />
+    `;
+
+      // 확대된 데이터인 경우 알림 추가
+      if (item.amplified) {
+        tooltipContent += `<div style="color: yellow; font-size: 0.8em; padding-top: 4px;">* 변동폭 강조 표시 (실제 값 표시중)</div>`;
+      }
+
+      return tooltipContent;
     },
     [chartData, formatKoreanNumber, formatVolumeNumber, period, minuteData, periodData],
   );
@@ -728,6 +788,48 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
             </button>
           </div>
         </div>
+
+        {/* 분봉 모드에서만 변동폭 강조 컨트롤 표시 */}
+        {period === 'MINUTE' && (
+          <div className="flex items-center px-4 pb-2 text-sm text-white border-t border-gray-700/30">
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="amplify-minute-data"
+                checked={amplifyMinuteData}
+                onChange={(e) => setAmplifyMinuteData(e.target.checked)}
+                className="mr-2 h-4 w-4 accent-blue-500"
+              />
+              <label htmlFor="amplify-minute-data">변동폭 강조</label>
+            </div>
+
+            {amplifyMinuteData && (
+              <div className="flex items-center ml-6">
+                <label htmlFor="amplification-factor" className="mr-2">
+                  강조 계수:
+                </label>
+                <input
+                  type="range"
+                  id="amplification-factor"
+                  min="1"
+                  max="20"
+                  step="1"
+                  value={amplificationFactor}
+                  onChange={(e) => setAmplificationFactor(Number(e.target.value))}
+                  className="w-24 accent-blue-500"
+                />
+                <span className="ml-2 text-blue-400">{amplificationFactor}x</span>
+              </div>
+            )}
+
+            {amplifyMinuteData && (
+              <div className="ml-auto text-yellow-300 text-xs italic">
+                * 변동폭이 강조되어 표시됩니다. 실제 가격은 툴팁에서 확인하세요.
+              </div>
+            )}
+          </div>
+        )}
+
         <ReactECharts ref={chartRef} option={option} style={{ height: `${height}px` }} />
       </div>
     </div>
