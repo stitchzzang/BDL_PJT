@@ -1,5 +1,6 @@
 import { EChartsOption } from 'echarts';
 import ReactECharts from 'echarts-for-react';
+import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // 타입 정의
@@ -300,8 +301,9 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
   );
 
   // 데이터 줌 이벤트 처리
+  // 컴포넌트 내부
   const handleDataZoomChange = useCallback(
-    (params: any) => {
+    debounce((params: any) => {
       if (!params || !params.start || !params.end) return;
 
       // 데이터 줌 범위 저장
@@ -312,10 +314,13 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
 
       // 왼쪽 경계에 도달했을 때 더 많은 데이터 로드
       if (params.start <= 5 && !isLoadingMore && onLoadMoreData) {
-        // loadMoreData();
-        alert('로드!');
+        loadMoreData();
+        console.log('추가 데이터 로드 요청');
       }
-    },
+      if (params.start <= 5) {
+        console.log('끝점');
+      }
+    }, 300), // 300ms 디바운스
     [loadMoreData, isLoadingMore, onLoadMoreData],
   );
 
@@ -646,7 +651,9 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           option={option}
           style={{ height: `${height}px` }}
           onEvents={{
-            datazoom: handleDataZoomChange,
+            datazoom: handleDataZoomChange, // 이벤트 이름: 핸들러 함수
+            rendered: () => console.log('차트 렌더링 완료'),
+            click: () => console.log('차트 클릭됨'),
           }}
         />
       </div>
