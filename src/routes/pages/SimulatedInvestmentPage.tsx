@@ -11,6 +11,7 @@ import { StockCostHistory } from '@/components/mock-investment/stock-cost-histor
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import ChartComponent from '@/components/ui/chart';
+import { MinuteChart } from '@/components/ui/chart-simulate';
 import { dummyPeriodData } from '@/mocks/dummy-data';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
@@ -18,7 +19,7 @@ import { getTodayFormatted } from '@/utils/getTodayFormatted';
 export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
-  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 50);
+  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 200);
   const [closePrice, setClosePrice] = useState<number>(0);
 
   // 소켓 연결 관련 훅
@@ -80,7 +81,8 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="mb-[20px] grid grid-cols-1 gap-5 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
-          <ChartComponent minuteData={minuteData} periodData={dummyPeriodData} height={600} />
+          {/* <ChartComponent minuteData={minuteData} periodData={dummyPeriodData} height={600} /> */}
+          <MinuteChart initialData={minuteData} />
         </div>
         <div className="col-span-1 lg:col-span-2">
           <OrderStatus closePrice={closePrice} realTime={tickData?.stckPrpr} />
