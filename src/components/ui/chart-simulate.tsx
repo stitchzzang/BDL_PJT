@@ -284,17 +284,54 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
       const priceChangeText = close >= open ? `+${priceChangePercent}%` : `${priceChangePercent}%`;
 
       return `
-        📆 ${formattedDate}<br />
-        <br />
-        시가: ${formatKoreanNumber(open)}원<br />
-        종가: ${formatKoreanNumber(close)}원 (<span style="color: ${priceColor};">${priceChangeText}</span>)<br />
-        저가: ${formatKoreanNumber(low)}원<br />
-        고가: ${formatKoreanNumber(high)}원<br />
-        <br />
-        5이평선: ${formatKoreanNumber(fiveAverage)}원<br />
-        20이평선: ${formatKoreanNumber(twentyAverage)}원<br />
-        <br />
-        거래량: ${formatVolumeNumber(volume)}<br />
+        <div class="max-w-md rounded-xl overflow-hidden">
+          <div class="p-4">
+            <div class="flex flex-col justify-between mb-3 border-b border-gray-200 pb-2">
+              <div class="text-base font-semibold text-gray-800">주식 정보</div>
+              <div class="text-sm text-gray-500">${formattedDate}</div>
+            </div>
+            
+            <div class="mb-3">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-600">시가</span>
+                <span class="font-medium">${formatKoreanNumber(open)}원</span>
+              </div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-600">종가</span>
+                <div>
+                  <span class="font-medium">${formatKoreanNumber(close)}원</span>
+                  <span style="color: ${priceColor};" class="ml-2 text-xs font-medium">${priceChangeText}</span>
+                </div>
+              </div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-600">저가</span>
+                <span class="font-medium">${formatKoreanNumber(low)}원</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600">고가</span>
+                <span class="font-medium">${formatKoreanNumber(high)}원</span>
+              </div>
+            </div>
+            
+            <div class="mb-3 pt-2 border-t border-gray-200">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-600">5일 이평선</span>
+                <span class="font-medium">${formatKoreanNumber(fiveAverage)}원</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600">20일 이평선</span>
+                <span class="font-medium">${formatKoreanNumber(twentyAverage)}원</span>
+              </div>
+            </div>
+            
+            <div class="pt-2 border-t border-gray-200">
+              <div class="flex justify-between items-center">
+                <span class="text-gray-600">거래량</span>
+                <span class="font-medium">${formatVolumeNumber(volume)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       `;
     },
     [chartData, formatKoreanNumber, formatVolumeNumber],
