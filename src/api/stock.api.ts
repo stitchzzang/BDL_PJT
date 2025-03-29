@@ -17,6 +17,16 @@ export const StockApi = {
       .get(`stocks/${stockId}/minute/initial?limit=${limit}`)
       .json<ApiResponse<StockMinuteDefaultData>>(),
 
+  // 분봉 데이터 추가 가져오기
+  getStockInitMinunteDataCurser: (companyId: number, cursor: string, limit: number) =>
+    _ky
+      .get(`stocks/${companyId}/minute`, {
+        searchParams: {
+          cursor,
+          limit,
+        },
+      })
+      .json<ApiResponse<StockMinuteDefaultData>>(),
   //Order API
 
   // 유저 현재 보유 자산
@@ -93,6 +103,13 @@ export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData'],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
+  });
+};
+// 분봉(추가데이터 요청)
+export const useStockMinuteDataCursor = (companyId: number, cursor: string, limit: number) => {
+  return useQuery({
+    queryKey: ['stockInitMinDataCursor', companyId, cursor, limit],
+    queryFn: () => StockApi.getStockInitMinunteDataCurser(companyId, cursor, limit),
   });
 };
 
