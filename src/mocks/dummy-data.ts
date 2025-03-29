@@ -1,6 +1,6 @@
 // 분봉 데이터 타입
 export interface MinuteCandleData {
-  stockCandleMinuteId: number; // 주식 봉의 고유 ID
+  stockCandleId: string; // 주식 봉의 고유 ID
   companyId: string; // 종목 ID
   openPrice: number; // 시가
   openPricePercent: number; // 시간 변동률
@@ -58,12 +58,6 @@ export interface ChartDataPoint {
   twentyAverage: number;
   rawDate: Date | null;
   periodType: 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
-  // 분봉 데이터 확대를 위한 추가 속성
-  originalOpen?: number;
-  originalClose?: number;
-  originalHigh?: number;
-  originalLow?: number;
-  amplified?: boolean;
 }
 
 // 날짜 포맷팅 유틸리티 함수
@@ -160,7 +154,7 @@ const generateDummyMinuteData = (count: number): MinuteCandleData[] => {
     const isClosingAuction = hours === 15 && minutes >= 21 && minutes <= 29;
 
     data.push({
-      stockCandleMinuteId: `dummy-${i}`,
+      stockCandleId: `dummy-${i}`,
       companyId: 'dummy-company',
       openPrice: basePrice,
       openPricePercent: (priceChange / basePrice) * 100,
