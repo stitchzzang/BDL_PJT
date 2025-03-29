@@ -304,8 +304,9 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
   // 컴포넌트 내부
   const handleDataZoomChange = useCallback(
     debounce((params: any) => {
-      if (!params || !params.start || !params.end) return;
-
+      if (!params) return;
+      if (params.start === undefined || params.start === null) return;
+      if (params.end === undefined || params.end === null) return;
       // 데이터 줌 범위 저장
       setDataZoomRange({
         start: params.start,
