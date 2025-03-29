@@ -19,7 +19,7 @@ export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
   const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 50); // 분봉
-  const { data: DayData } = useStockDayData(1, 5, 1); // 일봉
+  const { data: DayData } = useStockDayData(1, 10, 1); // 일봉(초기 셋팅값은 limit10으로 지정)
   const [closePrice, setClosePrice] = useState<number>(0);
 
   // 소켓 연결 관련 훅
