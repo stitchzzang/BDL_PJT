@@ -296,9 +296,9 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
                 <span class="text-gray-600">시가</span>
                 <span class="font-medium">${formatKoreanNumber(open)}원</span>
               </div>
-              <div class="flex justify-between items-center mb-1">
+              <div class="flex justify-between items-start mb-1">
                 <span class="text-gray-600">종가</span>
-                <div>
+                <div class="flex flex-col justify-between items-center">
                   <span class="font-medium">${formatKoreanNumber(close)}원</span>
                   <span style="color: ${priceColor};" class="ml-2 text-xs font-medium">${priceChangeText}</span>
                 </div>
