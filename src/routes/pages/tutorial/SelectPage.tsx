@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import NoneLogo from '/none-img/none-logo.png';
+import { useGetCompaniesByCategory } from '@/api/category.api';
+import { BuildingAnimation } from '@/components/common/building-animation';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
-import { useGetCompaniesByCategory } from '@/api/category.api';
 
 export const SelectPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('0');
@@ -19,16 +20,26 @@ export const SelectPage = () => {
 
   return (
     <div className="flex flex-col items-center justify-center gap-3">
-      <div className="flex flex-col items-center justify-center gap-3">
-        <div className="flex flex-col items-center justify-center">
+      <div className="group flex flex-col items-center justify-center gap-3">
+        <div className="flex w-full flex-col items-center justify-center">
           <h1 className="mb-[10px] text-[28px] font-bold">주식 튜토리얼</h1>
-          <p className="text-[16px]">주식에 익숙하지 않은 당식을 위하여</p>
-          <span className="text-[16px] font-bold">적응을 도와드릴게요.</span>
-          <p className="text-[16px]">
-            먼저 경험하고 싶은{' '}
-            <span className="text-[16px] font-bold text-btn-blue-color">카테고리</span>를
-            골라볼까요?
-          </p>
+          <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border-color border-opacity-40 p-2 py-4 transition-all duration-300 group-hover:border-btn-blue-color">
+            <div>
+              <BuildingAnimation />
+            </div>
+            <div>
+              <p className="text-[16px]">주식에 익숙하지 않은 당신을 위한 튜토리얼 환경입니다.</p>
+              <p>
+                <span className="text-[16px] font-bold text-btn-blue-color">안전한 환경에서</span>{' '}
+                주식시장을 경험해보세요.
+              </p>
+              <p className="text-[16px]">
+                먼저 경험하고 싶은{' '}
+                <span className="text-[16px] font-bold text-btn-blue-color">카테고리</span>를
+                골라볼까요?
+              </p>
+            </div>
+          </div>
         </div>
         <div>
           <CategoryList setCategoryId={setSelectedCategory} activeCategoryId={selectedCategory} />
