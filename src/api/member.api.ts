@@ -4,26 +4,26 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
-import { MemberInfo, MemberPassword } from '@/api/types/member';
+import { AccountSummaryResponse, MemberInfo, MemberPassword } from '@/api/types/member';
 
 export const memberApi = {
-  getMemberInfo: ({ memberId }: { memberId: string }) =>
+  getMemberInfo: (memberId: string) =>
     _ky.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
 
-  updateMemberInfo: ({ memberId, data }: { memberId: string; data: MemberInfo }) =>
+  updateMemberInfo: (memberId: string, data: MemberInfo) =>
     _ky.put<ApiResponse<MemberInfo>>(`member/${memberId}`, { json: data }).json(),
 
-  updateMemberPassword: ({ memberId, data }: { memberId: string; data: MemberPassword }) =>
+  updateMemberPassword: (memberId: string, data: MemberPassword) =>
     _ky.put<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
 
   getAccountSummary: (memberId: string) =>
     _ky.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
 };
 
-export const useMemberInfo = ({ memberId }: { memberId: string }) => {
+export const useMemberInfo = (memberId: string) => {
   return useQuery({
     queryKey: ['memberInfo', memberId],
-    queryFn: () => memberApi.getMemberInfo({ memberId }).then((res) => res.result),
+    queryFn: () => memberApi.getMemberInfo(memberId).then((res) => res.result),
     refetchInterval: false,
   });
 };
@@ -42,7 +42,7 @@ export const useUpdateMemberInfo = ({
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => memberApi.updateMemberInfo({ memberId, data }),
+    mutationFn: () => memberApi.updateMemberInfo(memberId, data),
     onSuccess: () => {
       // 프로필 정보 갱신
       queryClient.invalidateQueries({ queryKey: ['memberInfo', memberId] });
@@ -68,7 +68,7 @@ export const useUpdateMemberPassword = ({
   onError?: () => void;
 }) => {
   return useMutation({
-    mutationFn: () => memberApi.updateMemberPassword({ memberId, data }),
+    mutationFn: () => memberApi.updateMemberPassword(memberId, data),
     onSuccess: () => {
       alert('비밀번호가 성공적으로 업데이트되었습니다.');
       onSuccess?.();
