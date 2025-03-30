@@ -163,7 +163,7 @@ export const InvestmentResultPage = () => {
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
             <span className={addStockValueColorClass(displayData?.totalProfitRate ?? 0)}>
               {displayData?.totalProfitRate
-                ? `${plusMinusSign(displayData.totalProfitRate)} ${roundToTwoDecimalPlaces(
+                ? `${plusMinusSign(displayData.totalProfitRate)}${roundToTwoDecimalPlaces(
                     displayData.totalProfitRate,
                   )}`
                 : '0'}
@@ -187,7 +187,7 @@ export const InvestmentResultPage = () => {
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
             <span className={addStockValueColorClass(displayData?.totalProfit ?? 0)}>
               {displayData?.totalProfit
-                ? `${plusMinusSign(displayData.totalProfit)} ${addCommasToThousand(
+                ? `${plusMinusSign(displayData.totalProfit)}${addCommasToThousand(
                     displayData.totalProfit,
                   )}`
                 : '0'}
@@ -211,7 +211,7 @@ export const InvestmentResultPage = () => {
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
             <span className={addStockValueColorClass(displayData?.dailyProfitRate ?? 0)}>
               {displayData?.dailyProfitRate
-                ? `${plusMinusSign(displayData.dailyProfitRate)} ${roundToTwoDecimalPlaces(
+                ? `${plusMinusSign(displayData.dailyProfitRate)}${roundToTwoDecimalPlaces(
                     displayData.dailyProfitRate,
                   )}`
                 : '0'}
@@ -235,7 +235,7 @@ export const InvestmentResultPage = () => {
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
             <span className={addStockValueColorClass(displayData?.dailyProfit ?? 0)}>
               {displayData?.dailyProfit
-                ? `${plusMinusSign(displayData.dailyProfit)} ${addCommasToThousand(
+                ? `${plusMinusSign(displayData.dailyProfit)}${addCommasToThousand(
                     displayData.dailyProfit,
                   )}`
                 : '0'}
@@ -319,7 +319,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(roundToTwoDecimalPlaces(account.profitRate))} ${roundToTwoDecimalPlaces(account.profitRate)}%`}
+                  {`${plusMinusSign(roundToTwoDecimalPlaces(account.profitRate))}${roundToTwoDecimalPlaces(account.profitRate)}%`}
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profit)} transition-all duration-300 ${
@@ -338,7 +338,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(account.profit)} ${addCommasToThousand(account.profit)}`}
+                  {`${plusMinusSign(account.profit)}${addCommasToThousand(account.profit)}`}
                 </TableCell>
                 <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
                 <TableCell
@@ -375,7 +375,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(account.evaluation)} ${addCommasToThousand(account.evaluation)}`}
+                  {`${plusMinusSign(account.evaluation)}${addCommasToThousand(account.evaluation)}`}
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.investment)} transition-all duration-300 ${
@@ -394,7 +394,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(account.investment)} ${addCommasToThousand(account.investment)}`}
+                  {`${plusMinusSign(account.investment)}${addCommasToThousand(account.investment)}`}
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.dailyProfitRate)} transition-all duration-300 ${
@@ -414,7 +414,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(account.dailyProfitRate)} ${roundToTwoDecimalPlaces(account.dailyProfitRate)}%`}
+                  {`${plusMinusSign(account.dailyProfitRate)}${roundToTwoDecimalPlaces(account.dailyProfitRate)}%`}
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.dailyProfit)} transition-all duration-300 ${
@@ -433,7 +433,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(account.dailyProfit)} ${addCommasToThousand(account.dailyProfit)}`}
+                  {`${plusMinusSign(account.dailyProfit)}${addCommasToThousand(account.dailyProfit)}`}
                 </TableCell>
               </TableRow>
             ))
