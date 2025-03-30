@@ -23,7 +23,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
-import { addCommasToThousand, roundToTwoDecimalPlaces } from '@/utils/numberFormatter';
+import {
+  addCommasToThousand,
+  plusMinusSign,
+  roundToTwoDecimalPlaces,
+} from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
   const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
@@ -71,7 +75,9 @@ export const InvestmentResultPage = () => {
               className={`text-sm ${getChangeRateColorClass(accountSummary?.totalProfitRate ?? 0)}`}
             >
               {accountSummary?.totalProfitRate
-                ? roundToTwoDecimalPlaces(accountSummary?.totalProfitRate)
+                ? `${plusMinusSign(accountSummary?.totalProfitRate)} ${roundToTwoDecimalPlaces(
+                    accountSummary?.totalProfitRate,
+                  )}`
                 : '0'}
               %
             </span>
@@ -79,7 +85,11 @@ export const InvestmentResultPage = () => {
           <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
             <span className={`${getChangeRateColorClass(accountSummary?.totalProfit ?? 0)}`}>
-              {accountSummary?.totalProfit ? addCommasToThousand(accountSummary?.totalProfit) : '0'}
+              {accountSummary?.totalProfit
+                ? `${plusMinusSign(accountSummary?.totalProfit)} ${addCommasToThousand(
+                    accountSummary?.totalProfit,
+                  )}`
+                : '0'}
             </span>
           </Badge>
           <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
@@ -88,7 +98,9 @@ export const InvestmentResultPage = () => {
               className={`text-sm ${getChangeRateColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
             >
               {accountSummary?.dailyProfitRate
-                ? roundToTwoDecimalPlaces(accountSummary?.dailyProfitRate)
+                ? `${plusMinusSign(accountSummary?.dailyProfitRate)} ${roundToTwoDecimalPlaces(
+                    accountSummary?.dailyProfitRate,
+                  )}`
                 : '0'}
               %
             </span>
@@ -98,7 +110,11 @@ export const InvestmentResultPage = () => {
             <span
               className={`text-sm ${getChangeRateColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
             >
-              {accountSummary?.dailyProfit ? addCommasToThousand(accountSummary?.dailyProfit) : '0'}
+              {accountSummary?.dailyProfit
+                ? `${plusMinusSign(accountSummary?.dailyProfit)} ${addCommasToThousand(
+                    accountSummary?.dailyProfit,
+                  )}`
+                : '0'}
             </span>
           </Badge>
         </div>
@@ -159,14 +175,24 @@ export const InvestmentResultPage = () => {
               <TableRow key={account.companyId}>
                 <TableCell>{account.companyName}</TableCell>
                 <TableCell>{roundToTwoDecimalPlaces(account.profitRate)}%</TableCell>
-                <TableCell>{addCommasToThousand(account.profit)}</TableCell>
+                <TableCell>{`${plusMinusSign(account.profit)} ${addCommasToThousand(
+                  account.profit,
+                )}`}</TableCell>
                 <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
                 <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
                 <TableCell>{account.stockCnt}</TableCell>
-                <TableCell>{addCommasToThousand(account.evaluation)}</TableCell>
-                <TableCell>{addCommasToThousand(account.investment)}</TableCell>
-                <TableCell>{roundToTwoDecimalPlaces(account.dailyProfitRate)}%</TableCell>
-                <TableCell>{addCommasToThousand(account.dailyProfit)}</TableCell>
+                <TableCell>{`${plusMinusSign(account.evaluation)} ${addCommasToThousand(
+                  account.evaluation,
+                )}`}</TableCell>
+                <TableCell>{`${plusMinusSign(account.investment)} ${addCommasToThousand(
+                  account.investment,
+                )}`}</TableCell>
+                <TableCell>{`${plusMinusSign(account.dailyProfitRate)} ${roundToTwoDecimalPlaces(
+                  account.dailyProfitRate,
+                )}%`}</TableCell>
+                <TableCell>{`${plusMinusSign(account.dailyProfit)} ${addCommasToThousand(
+                  account.dailyProfit,
+                )}`}</TableCell>
               </TableRow>
             ))
           ) : (
