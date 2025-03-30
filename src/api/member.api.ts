@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
-import { MemberInfo, MemberPassword, MemberTutorialResults } from '@/api/types/member';
+import { MemberInfo, MemberPassword } from '@/api/types/member';
 
 export const memberApi = {
   getMemberInfo: ({ memberId }: { memberId: string }) =>
@@ -15,9 +15,6 @@ export const memberApi = {
 
   updateMemberPassword: ({ memberId, data }: { memberId: string; data: MemberPassword }) =>
     _ky.put<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
-
-  getTutorialResults: ({ memberId }: { memberId: string }) =>
-    _ky.get<ApiResponse<MemberTutorialResults>>(`member/tutorial/${memberId}`).json(),
 };
 
 export const useMemberInfo = ({ memberId }: { memberId: string }) => {
@@ -77,12 +74,5 @@ export const useUpdateMemberPassword = ({
       alert('비밀번호 업데이트에 실패했습니다. 다시 시도해주세요.');
       onError?.();
     },
-  });
-};
-
-export const useTutorialResults = ({ memberId }: { memberId: string }) => {
-  return useQuery({
-    queryKey: ['tutorialResults', memberId],
-    queryFn: () => memberApi.getTutorialResults({ memberId }).then((res) => res.result),
   });
 };
