@@ -1,15 +1,15 @@
-import { useNavigate } from 'react-router-dom';
 import { Company } from '@/api/types/category';
 
 interface CompanySelectButtonProps {
   company: Company;
+  onClick?: (company: Company) => void;
 }
 
-export const CompanySelectButton = ({ company }: CompanySelectButtonProps) => {
-  const navigate = useNavigate();
-
+export const CompanySelectButton = ({ company, onClick }: CompanySelectButtonProps) => {
   const handleCompanySelect = () => {
-    navigate(`/tutorial/simulation/${company.companyId}`);
+    if (onClick) {
+      onClick(company);
+    }
   };
 
   return (
