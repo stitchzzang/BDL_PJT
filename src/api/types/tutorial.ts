@@ -15,7 +15,7 @@ export interface ChartDataPoint {
 
 // 분봉 데이터 타입
 export interface MinuteCandleData {
-    stockCandleId: string;
+    stockCandleMinuteId: string;
     companyId: string;
     openPrice: number;
     openPricePercent: number;
