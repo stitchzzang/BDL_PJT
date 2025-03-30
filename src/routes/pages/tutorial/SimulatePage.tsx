@@ -84,14 +84,6 @@ export const SimulatePage = () => {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProgress(100);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
     if (progress === 100) {
       setFinalChangeRate(32.2);
       setIsModalOpen(true);
@@ -113,7 +105,7 @@ export const SimulatePage = () => {
       <div>
         <StockTutorialInfo category={'반도체'} />
         <div className="my-[25px]">
-          <StockProgress />
+          <StockProgress onProgressChange={setProgress} />
         </div>
         <div className="mb-[25px] flex justify-between">
           <StockTutorialMoneyInfo />
