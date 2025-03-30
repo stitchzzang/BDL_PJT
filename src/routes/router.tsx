@@ -125,7 +125,7 @@ export const router = createBrowserRouter([
             element: <SelectPage />,
           },
           {
-            path: 'simulate',
+            path: 'simulate/:companyId',
             element: <SimulatePage />,
           },
         ],
