@@ -1,4 +1,6 @@
 import { useGetAccountSummary } from '@/api/member.api';
+import { ErrorScreen } from '@/components/common/error-screen';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,27 +25,39 @@ import {
 import { addCommasToThousand, roundToTwoDecimalPlaces } from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
-  const { data: accountSummary } = useGetAccountSummary('1');
+  const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
+
+  if (isLoading) {
+    return <LoadingAnimation />;
+  }
+
+  if (isError) {
+    return <ErrorScreen />;
+  }
 
   return (
     <div className="flex w-full flex-col gap-4 px-6">
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
-          <p className="text-4xl font-bold">{addCommasToThousand(accountSummary?.totalAsset)}</p>
+          <p className="text-4xl font-bold">
+            {accountSummary?.totalAsset ? addCommasToThousand(accountSummary?.totalAsset) : '0'}
+          </p>
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 평가금</p>
             <p className="text-3xl font-bold text-btn-red-color">
-              {addCommasToThousand(accountSummary?.totalEvaluation)}
+              {accountSummary?.totalEvaluation
+                ? addCommasToThousand(accountSummary?.totalEvaluation)
+                : '0'}
             </p>
           </div>
           <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
             <p className="text-3xl font-bold text-btn-green-color">
-              {addCommasToThousand(accountSummary?.totalCash)}
+              {accountSummary?.totalCash ? addCommasToThousand(accountSummary?.totalCash) : '0'}
             </p>
           </div>
         </div>
@@ -53,22 +67,28 @@ export const InvestmentResultPage = () => {
           <Badge variant="increase">
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
             <span className="text-sm text-btn-blue-color">
-              {roundToTwoDecimalPlaces(accountSummary?.totalProfitRate)}%
+              {accountSummary?.totalProfitRate
+                ? roundToTwoDecimalPlaces(accountSummary?.totalProfitRate)
+                : '0'}
+              %
             </span>
           </Badge>
           <Badge variant="main">
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            {addCommasToThousand(accountSummary?.totalProfit)}
+            {accountSummary?.totalProfit ? addCommasToThousand(accountSummary?.totalProfit) : '0'}
           </Badge>
           <Badge variant="decrease">
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
             <span className="text-sm text-btn-red-color">
-              {roundToTwoDecimalPlaces(accountSummary?.dailyProfitRate)}%
+              {accountSummary?.dailyProfitRate
+                ? roundToTwoDecimalPlaces(accountSummary?.dailyProfitRate)
+                : '0'}
+              %
             </span>
           </Badge>
           <Badge variant="main">
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            {addCommasToThousand(accountSummary?.dailyProfit)}
+            {accountSummary?.dailyProfit ? addCommasToThousand(accountSummary?.dailyProfit) : '0'}
           </Badge>
         </div>
         <div className="flex flex-row gap-3">
@@ -103,7 +123,7 @@ export const InvestmentResultPage = () => {
       <div className="flex flex-row gap-3">
         <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
           <p>전체 개수:</p>
-          <span>{accountSummary?.accountCount}개</span>
+          <span>{accountSummary?.accountCount ? accountSummary?.accountCount : '0'}개</span>
         </div>
       </div>
       <Table>
@@ -123,20 +143,28 @@ export const InvestmentResultPage = () => {
         </TableHeader>
         <TableBody>
           <div className="h-5"></div>
-          {accountSummary?.accounts.map((account) => (
-            <TableRow key={account.companyId}>
-              <TableCell>{account.companyName}</TableCell>
-              <TableCell>{roundToTwoDecimalPlaces(account.profitRate)}%</TableCell>
-              <TableCell>{addCommasToThousand(account.profit)}</TableCell>
-              <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
-              <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
-              <TableCell>{account.stockCnt}</TableCell>
-              <TableCell>{addCommasToThousand(account.evaluation)}</TableCell>
-              <TableCell>{addCommasToThousand(account.investment)}</TableCell>
-              <TableCell>{roundToTwoDecimalPlaces(account.dailyProfitRate)}%</TableCell>
-              <TableCell>{addCommasToThousand(account.dailyProfit)}</TableCell>
+          {accountSummary?.accounts.length && accountSummary?.accounts.length > 0 ? (
+            accountSummary?.accounts.map((account) => (
+              <TableRow key={account.companyId}>
+                <TableCell>{account.companyName}</TableCell>
+                <TableCell>{roundToTwoDecimalPlaces(account.profitRate)}%</TableCell>
+                <TableCell>{addCommasToThousand(account.profit)}</TableCell>
+                <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
+                <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
+                <TableCell>{account.stockCnt}</TableCell>
+                <TableCell>{addCommasToThousand(account.evaluation)}</TableCell>
+                <TableCell>{addCommasToThousand(account.investment)}</TableCell>
+                <TableCell>{roundToTwoDecimalPlaces(account.dailyProfitRate)}%</TableCell>
+                <TableCell>{addCommasToThousand(account.dailyProfit)}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={10} className="text-center">
+                보유 종목이 없습니다.
+              </TableCell>
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </div>
