@@ -15,6 +15,9 @@ export const memberApi = {
 
   updateMemberPassword: ({ memberId, data }: { memberId: string; data: MemberPassword }) =>
     _ky.put<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
+
+  getAccountSummary: (memberId: string) =>
+    _ky.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
 };
 
 export const useMemberInfo = ({ memberId }: { memberId: string }) => {
@@ -74,5 +77,12 @@ export const useUpdateMemberPassword = ({
       alert('비밀번호 업데이트에 실패했습니다. 다시 시도해주세요.');
       onError?.();
     },
+  });
+};
+
+export const useGetAccountSummary = (memberId: string) => {
+  return useQuery({
+    queryKey: ['accountSummary'],
+    queryFn: () => memberApi.getAccountSummary(memberId).then((res) => res.result),
   });
 };
