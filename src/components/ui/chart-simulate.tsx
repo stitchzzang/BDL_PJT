@@ -173,11 +173,20 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
     return chartData.map((item) => item.twentyAverage || null);
   }, [chartData]);
 
-  // Y축 범위 계산 (여백 포함)
-  const yAxisRange = useMemo(() => {
+  // 현재 보이는 데이터 범위에 따라 Y축 범위를 계산하는 함수 추가
+  const getVisibleDataRange = useCallback(() => {
     if (chartData.length === 0) return { min: 0, max: 1 };
 
-    const prices = chartData
+    // 데이터줌 범위 계산 (백분율을 실제 인덱스로 변환)
+    const dataLength = chartData.length - EMPTY_DATA_COUNT;
+    const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
+    const endIdx = Math.min(dataLength - 1, Math.floor((dataLength * dataZoomRange.end) / 100));
+
+    // 현재 보이는 데이터 추출
+    const visibleData = chartData.slice(startIdx, endIdx + 1);
+
+    // 빈 데이터나 무효한 가격 제외
+    const prices = visibleData
       .filter((item) => item.high > 0) // 빈 데이터 제외
       .flatMap((item) => [item.high, item.low]);
 
@@ -187,13 +196,16 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
     const max = Math.max(...prices);
     const range = max - min;
 
-    // 여백 추가
+    // 여백 추가 (범위의 Y_AXIS_MARGIN_PERCENT %)
     const margin = range * (Y_AXIS_MARGIN_PERCENT / 100);
     return {
       min: Math.max(0, min - margin),
       max: max + margin,
     };
-  }, [chartData]);
+  }, [chartData, dataZoomRange]);
+
+  // yAxisRange 훅을 기존 코드에서 제거하고 getVisibleDataRange 함수로 대체
+  const yAxisRange = useMemo(() => getVisibleDataRange(), [getVisibleDataRange]);
 
   // 색상 스타일 가져오기
   const getItemStyle = useCallback(
@@ -325,6 +337,26 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
         end: params.end,
       });
 
+      // Y축 범위 업데이트를 위해 차트 인스턴스 접근
+      if (chartRef.current) {
+        const chartInstance = chartRef.current.getEchartsInstance();
+        if (chartInstance) {
+          // Y축 범위 다시 계산
+          const newRange = getVisibleDataRange();
+
+          // 차트 옵션 업데이트
+          chartInstance.setOption({
+            yAxis: [
+              {
+                min: newRange.min,
+                max: newRange.max,
+              },
+              {}, // 두 번째 yAxis는 그대로 유지
+            ],
+          });
+        }
+      }
+
       // 왼쪽 경계에 도달했고 아직 추가 데이터를 로드하지 않았을 때만 요청
       if (params.start <= 5 && !hasLoadedAdditionalData) {
         console.log('추가 데이터 로드 요청');
@@ -378,6 +410,28 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
     }, 300),
     [onLoadMoreData, hasLoadedAdditionalData, cursorValue],
   );
+
+  // useEffect 추가: 데이터가 변경될 때마다 Y축 범위 업데이트
+  useEffect(() => {
+    if (chartRef.current) {
+      const chartInstance = chartRef.current.getEchartsInstance();
+      if (chartInstance) {
+        // Y축 범위 다시 계산
+        const newRange = getVisibleDataRange();
+
+        // 차트 옵션 업데이트
+        chartInstance.setOption({
+          yAxis: [
+            {
+              min: newRange.min,
+              max: newRange.max,
+            },
+            {}, // 두 번째 yAxis는 그대로 유지
+          ],
+        });
+      }
+    }
+  }, [chartData, getVisibleDataRange]);
   // 차트 옵션 설정
   const option: EChartsOption = useMemo(() => {
     // 최신 캔들 데이터 가져오기 (배열의 마지막 요소) - 안전하게 체크
