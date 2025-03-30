@@ -22,9 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
 import {
   addCommasToThousand,
+  addStockValueColorClass,
   plusMinusSign,
   roundToTwoDecimalPlaces,
 } from '@/utils/numberFormatter';
@@ -72,7 +72,7 @@ export const InvestmentResultPage = () => {
           <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'increase'}>
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
             <span
-              className={`text-sm ${getChangeRateColorClass(accountSummary?.totalProfitRate ?? 0)}`}
+              className={`text-sm ${addStockValueColorClass(accountSummary?.totalProfitRate ?? 0)}`}
             >
               {accountSummary?.totalProfitRate
                 ? `${plusMinusSign(accountSummary?.totalProfitRate)} ${roundToTwoDecimalPlaces(
@@ -84,7 +84,7 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            <span className={`${getChangeRateColorClass(accountSummary?.totalProfit ?? 0)}`}>
+            <span className={`${addStockValueColorClass(accountSummary?.totalProfit ?? 0)}`}>
               {accountSummary?.totalProfit
                 ? `${plusMinusSign(accountSummary?.totalProfit)} ${addCommasToThousand(
                     accountSummary?.totalProfit,
@@ -95,7 +95,7 @@ export const InvestmentResultPage = () => {
           <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
             <span
-              className={`text-sm ${getChangeRateColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
+              className={`text-sm ${addStockValueColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
             >
               {accountSummary?.dailyProfitRate
                 ? `${plusMinusSign(accountSummary?.dailyProfitRate)} ${roundToTwoDecimalPlaces(
@@ -108,7 +108,7 @@ export const InvestmentResultPage = () => {
           <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
             <span
-              className={`text-sm ${getChangeRateColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
+              className={`text-sm ${addStockValueColorClass(accountSummary?.dailyProfit ?? 0)}`}
             >
               {accountSummary?.dailyProfit
                 ? `${plusMinusSign(accountSummary?.dailyProfit)} ${addCommasToThousand(

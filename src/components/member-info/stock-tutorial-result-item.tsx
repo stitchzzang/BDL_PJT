@@ -1,6 +1,10 @@
 import { TutorialResultResponse } from '@/api/types/tutorial';
-import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import {
+  addCommasToThousand,
+  addStockValueColorClass,
+  plusMinusSign,
+  roundToTwoDecimalPlaces,
+} from '@/utils/numberFormatter';
 
 interface StockTutorialResultItemProps {
   result: TutorialResultResponse;
@@ -31,12 +35,15 @@ export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 수익률</span>
           <p
-            className={`rounded-lg border px-2 py-1 ${getChangeRateColorClass(
+            className={`rounded-lg border px-2 py-1 ${addStockValueColorClass(
               ((result.endMoney - result.startMoney) / result.startMoney) * 100,
             )}`}
           >
-            {((result.endMoney - result.startMoney) / result.startMoney) * 100 >= 0 ? '+' : ''}
-            {((result.endMoney - result.startMoney) / result.startMoney) * 100}%
+            {`${plusMinusSign(
+              ((result.endMoney - result.startMoney) / result.startMoney) * 100,
+            )} ${roundToTwoDecimalPlaces(
+              ((result.endMoney - result.startMoney) / result.startMoney) * 100,
+            )}%`}
           </p>
         </div>
       </div>

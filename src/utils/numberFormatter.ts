@@ -68,3 +68,16 @@ export const roundToTwoDecimalPlaces = (value: number): number => {
 export const plusMinusSign = (value: number): string => {
   return value > 0 ? '+' : '';
 };
+
+/**
+ * 음수, 양수에 따른 색상 클래스를 반환합니다.
+ * @param value - stock value
+ * @returns 색상 클래스
+ */
+export const addStockValueColorClass = (value: number) => {
+  return value > 0
+    ? 'border-btn-red-color text-btn-red-color'
+    : value < 0
+      ? 'border-btn-blue-color text-btn-blue-color'
+      : 'border-border-color text-border-color';
+};
