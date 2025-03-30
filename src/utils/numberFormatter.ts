@@ -59,3 +59,12 @@ export const formatKoreanMoney = (amount: number): string => {
 export const roundToTwoDecimalPlaces = (value: number): number => {
   return Math.round(value * 100) / 100;
 };
+
+/**
+ * 숫자에 부호를 추가합니다.
+ * @param value - 변환할 숫자
+ * @returns 부호가 포함된 문자열
+ */
+export const plusMinusSign = (value: number): string => {
+  return value > 0 ? '+' : '';
+};
