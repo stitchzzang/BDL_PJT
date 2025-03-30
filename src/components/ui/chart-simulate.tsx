@@ -82,10 +82,12 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
   });
   const chartRef = useRef<ReactECharts>(null);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [curserData, setCurserData] = useState<string | undefined>('0');
 
   // 초기 데이터 설정
   useEffect(() => {
     setMinuteData(initialData);
+    setCurserData(initialData?.cursor);
   }, [initialData]);
 
   // 추가 데이터 로드 함수
@@ -673,15 +675,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
         <div className="flex items-center gap-4 p-4 text-sm text-white">
           <div className="mr-auto">
             <h3 className="text-lg font-bold">분봉 차트</h3>
-            {minuteData && (
-              <p className="text-xs text-gray-400">
-                데이터 기간:{' '}
-                {new Date(
-                  minuteData.data[minuteData.data.length - 1]?.tradingTime,
-                ).toLocaleDateString()}{' '}
-                ~ {new Date(minuteData.data[0]?.tradingTime).toLocaleDateString()}
-              </p>
-            )}
+            <p>{curserData}</p>
           </div>
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}
