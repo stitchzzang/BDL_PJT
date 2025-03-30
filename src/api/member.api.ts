@@ -18,6 +18,9 @@ export const memberApi = {
 
   getAccountSummary: (memberId: string) =>
     _ky.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
+
+  resetAccount: (memberId: string) =>
+    _ky.put<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
 };
 
 export const useMemberInfo = (memberId: string) => {
@@ -84,5 +87,19 @@ export const useGetAccountSummary = (memberId: string) => {
   return useQuery({
     queryKey: ['accountSummary'],
     queryFn: () => memberApi.getAccountSummary(memberId).then((res) => res.result),
+  });
+};
+
+export const useResetAccount = (memberId: string, onSuccess?: () => void, onError?: () => void) => {
+  return useMutation({
+    mutationFn: () => memberApi.resetAccount(memberId),
+    onSuccess: () => {
+      alert('계좌가 성공적으로 초기화되었습니다.');
+      onSuccess?.();
+    },
+    onError: () => {
+      alert('계좌 초기화에 실패했습니다. 다시 시도해주세요.');
+      onError?.();
+    },
   });
 };

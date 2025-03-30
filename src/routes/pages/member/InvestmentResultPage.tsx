@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { useGetAccountSummary } from '@/api/member.api';
+import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
 import { AccountResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
@@ -38,6 +38,8 @@ export const InvestmentResultPage = () => {
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
   const [accountData, setAccountData] = useState<AccountResponse[]>([]);
   const [realTimeData, setRealTimeData] = useState(accountSummary);
+
+  const { mutate: resetAccount } = useResetAccount('1');
 
   useEffect(() => {
     if (accountData) {
@@ -188,7 +190,10 @@ export const InvestmentResultPage = () => {
                 <AlertDialogCancel className="border-none bg-btn-primary-active-color hover:bg-btn-primary-inactive-color hover:text-text-inactive-3-color">
                   취소하기
                 </AlertDialogCancel>
-                <AlertDialogAction className="border-none bg-btn-red-color hover:bg-btn-red-color/20 hover:text-btn-red-color">
+                <AlertDialogAction
+                  className="border-none bg-btn-red-color hover:bg-btn-red-color/20 hover:text-btn-red-color"
+                  onClick={() => resetAccount()}
+                >
                   초기화하기
                 </AlertDialogAction>
               </AlertDialogFooter>
