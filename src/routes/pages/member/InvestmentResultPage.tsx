@@ -38,6 +38,7 @@ export const InvestmentResultPage = () => {
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
   const [accountData, setAccountData] = useState<AccountResponse[]>([]);
   const [realTimeData, setRealTimeData] = useState(accountSummary);
+  const [prevData, setPrevData] = useState(accountSummary);
 
   const { mutate: resetAccount } = useResetAccount('1');
 
@@ -77,14 +78,17 @@ export const InvestmentResultPage = () => {
         0,
       );
 
-      setRealTimeData({
+      const newData = {
         ...accountSummary,
         accounts: updatedAccounts,
         totalEvaluation,
         totalProfit,
         dailyProfit: totalDailyProfit,
         totalAsset: accountSummary.totalCash + totalEvaluation,
-      });
+      };
+
+      setPrevData(realTimeData || accountSummary);
+      setRealTimeData(newData);
     }
   }, [accountData, accountSummary]);
 
@@ -103,24 +107,48 @@ export const InvestmentResultPage = () => {
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
-          <p className="text-4xl font-bold">
-            {displayData?.totalAsset ? addCommasToThousand(displayData?.totalAsset) : '0'}
+          <p
+            className={`text-4xl font-bold transition-colors duration-300 ${
+              displayData?.totalAsset !== prevData?.totalAsset
+                ? (displayData?.totalAsset ?? 0) > (prevData?.totalAsset ?? 0)
+                  ? 'bg-btn-red-color/20'
+                  : 'bg-btn-blue-color/20'
+                : ''
+            }`}
+          >
+            {displayData?.totalAsset ? addCommasToThousand(displayData.totalAsset) : '0'}
           </p>
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 평가금</p>
-            <p className="text-3xl font-bold text-btn-red-color">
+            <p
+              className={`text-3xl font-bold text-btn-red-color transition-colors duration-300 ${
+                displayData?.totalEvaluation !== prevData?.totalEvaluation
+                  ? (displayData?.totalEvaluation ?? 0) > (prevData?.totalEvaluation ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
               {displayData?.totalEvaluation
-                ? addCommasToThousand(displayData?.totalEvaluation)
+                ? addCommasToThousand(displayData.totalEvaluation)
                 : '0'}
             </p>
           </div>
           <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
-            <p className="text-3xl font-bold text-btn-green-color">
-              {displayData?.totalCash ? addCommasToThousand(displayData?.totalCash) : '0'}
+            <p
+              className={`text-3xl font-bold text-btn-green-color transition-colors duration-300 ${
+                displayData?.totalCash !== prevData?.totalCash
+                  ? (displayData?.totalCash ?? 0) > (prevData?.totalCash ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
+              {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
             </p>
           </div>
         </div>
@@ -129,10 +157,18 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-row gap-3">
           <Badge variant={displayData?.totalProfitRate === 0 ? 'zero' : 'increase'}>
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span className={`${addStockValueColorClass(displayData?.totalProfitRate ?? 0)}`}>
+            <span
+              className={`${addStockValueColorClass(displayData?.totalProfitRate ?? 0)} transition-colors duration-300 ${
+                displayData?.totalProfitRate !== prevData?.totalProfitRate
+                  ? (displayData?.totalProfitRate ?? 0) > (prevData?.totalProfitRate ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
               {displayData?.totalProfitRate
-                ? `${plusMinusSign(displayData?.totalProfitRate)} ${roundToTwoDecimalPlaces(
-                    displayData?.totalProfitRate,
+                ? `${plusMinusSign(displayData.totalProfitRate)} ${roundToTwoDecimalPlaces(
+                    displayData.totalProfitRate,
                   )}`
                 : '0'}
               %
@@ -140,20 +176,36 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge variant={displayData?.totalProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            <span className={`${addStockValueColorClass(displayData?.totalProfit ?? 0)}`}>
+            <span
+              className={`${addStockValueColorClass(displayData?.totalProfit ?? 0)} transition-colors duration-300 ${
+                displayData?.totalProfit !== prevData?.totalProfit
+                  ? (displayData?.totalProfit ?? 0) > (prevData?.totalProfit ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
               {displayData?.totalProfit
-                ? `${plusMinusSign(displayData?.totalProfit)} ${addCommasToThousand(
-                    displayData?.totalProfit,
+                ? `${plusMinusSign(displayData.totalProfit)} ${addCommasToThousand(
+                    displayData.totalProfit,
                   )}`
                 : '0'}
             </span>
           </Badge>
           <Badge variant={displayData?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span className={`${addStockValueColorClass(displayData?.dailyProfitRate ?? 0)}`}>
+            <span
+              className={`${addStockValueColorClass(displayData?.dailyProfitRate ?? 0)} transition-colors duration-300 ${
+                displayData?.dailyProfitRate !== prevData?.dailyProfitRate
+                  ? (displayData?.dailyProfitRate ?? 0) > (prevData?.dailyProfitRate ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
               {displayData?.dailyProfitRate
-                ? `${plusMinusSign(displayData?.dailyProfitRate)} ${roundToTwoDecimalPlaces(
-                    displayData?.dailyProfitRate,
+                ? `${plusMinusSign(displayData.dailyProfitRate)} ${roundToTwoDecimalPlaces(
+                    displayData.dailyProfitRate,
                   )}`
                 : '0'}
               %
@@ -161,10 +213,18 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge variant={displayData?.dailyProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            <span className={`${addStockValueColorClass(displayData?.dailyProfit ?? 0)}`}>
+            <span
+              className={`${addStockValueColorClass(displayData?.dailyProfit ?? 0)} transition-colors duration-300 ${
+                displayData?.dailyProfit !== prevData?.dailyProfit
+                  ? (displayData?.dailyProfit ?? 0) > (prevData?.dailyProfit ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
               {displayData?.dailyProfit
-                ? `${plusMinusSign(displayData?.dailyProfit)} ${addCommasToThousand(
-                    displayData?.dailyProfit,
+                ? `${plusMinusSign(displayData.dailyProfit)} ${addCommasToThousand(
+                    displayData.dailyProfit,
                   )}`
                 : '0'}
             </span>
@@ -229,37 +289,107 @@ export const InvestmentResultPage = () => {
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
                 <TableCell>{account.companyName}</TableCell>
-                <TableCell className={addStockValueColorClass(account.profitRate)}>
+                <TableCell
+                  className={`${addStockValueColorClass(account.profitRate)} transition-colors duration-300 ${
+                    account.profitRate !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)?.profitRate
+                      ? account.profitRate >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.profitRate || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
                   {roundToTwoDecimalPlaces(account.profitRate)}%
                 </TableCell>
                 <TableCell
-                  className={addStockValueColorClass(account.profit)}
-                >{`${plusMinusSign(account.profit)} ${addCommasToThousand(
-                  account.profit,
-                )}`}</TableCell>
+                  className={`${addStockValueColorClass(account.profit)} transition-colors duration-300 ${
+                    account.profit !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)?.profit
+                      ? account.profit >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.profit || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
+                  {`${plusMinusSign(account.profit)} ${addCommasToThousand(account.profit)}`}
+                </TableCell>
                 <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
-                <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
+                <TableCell
+                  className={`transition-colors duration-300 ${
+                    account.currentPrice !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)?.currentPrice
+                      ? account.currentPrice >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.currentPrice || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
+                  {addCommasToThousand(account.currentPrice)}
+                </TableCell>
                 <TableCell>{account.stockCnt}</TableCell>
                 <TableCell
-                  className={addStockValueColorClass(account.evaluation)}
-                >{`${plusMinusSign(account.evaluation)} ${addCommasToThousand(
-                  account.evaluation,
-                )}`}</TableCell>
+                  className={`${addStockValueColorClass(account.evaluation)} transition-colors duration-300 ${
+                    account.evaluation !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)?.evaluation
+                      ? account.evaluation >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.evaluation || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
+                  {`${plusMinusSign(account.evaluation)} ${addCommasToThousand(account.evaluation)}`}
+                </TableCell>
                 <TableCell
-                  className={addStockValueColorClass(account.investment)}
-                >{`${plusMinusSign(account.investment)} ${addCommasToThousand(
-                  account.investment,
-                )}`}</TableCell>
+                  className={`${addStockValueColorClass(account.investment)} transition-colors duration-300 ${
+                    account.investment !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)?.investment
+                      ? account.investment >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.investment || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
+                  {`${plusMinusSign(account.investment)} ${addCommasToThousand(account.investment)}`}
+                </TableCell>
                 <TableCell
-                  className={addStockValueColorClass(account.dailyProfitRate)}
-                >{`${plusMinusSign(account.dailyProfitRate)} ${roundToTwoDecimalPlaces(
-                  account.dailyProfitRate,
-                )}%`}</TableCell>
+                  className={`${addStockValueColorClass(account.dailyProfitRate)} transition-colors duration-300 ${
+                    account.dailyProfitRate !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)
+                      ?.dailyProfitRate
+                      ? account.dailyProfitRate >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.dailyProfitRate || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
+                  {`${plusMinusSign(account.dailyProfitRate)} ${roundToTwoDecimalPlaces(account.dailyProfitRate)}%`}
+                </TableCell>
                 <TableCell
-                  className={addStockValueColorClass(account.dailyProfit)}
-                >{`${plusMinusSign(account.dailyProfit)} ${addCommasToThousand(
-                  account.dailyProfit,
-                )}`}</TableCell>
+                  className={`${addStockValueColorClass(account.dailyProfit)} transition-colors duration-300 ${
+                    account.dailyProfit !==
+                    prevData?.accounts.find((a) => a.companyId === account.companyId)?.dailyProfit
+                      ? account.dailyProfit >
+                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
+                          ?.dailyProfit || 0)
+                        ? 'bg-btn-red-color/20'
+                        : 'bg-btn-blue-color/20'
+                      : ''
+                  }`}
+                >
+                  {`${plusMinusSign(account.dailyProfit)} ${addCommasToThousand(account.dailyProfit)}`}
+                </TableCell>
               </TableRow>
             ))
           ) : (
