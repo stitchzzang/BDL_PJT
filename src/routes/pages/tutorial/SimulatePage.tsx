@@ -8,11 +8,90 @@ import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-ne
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
 import ChartComponent from '@/components/ui/chart';
 import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
+import React, { useState } from 'react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+
+interface TutorialEndModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  changeRate: number;
+}
+
+const TutorialEndModal = ({ isOpen, onClose, changeRate }: TutorialEndModalProps) => {
+  const isPositive = changeRate >= 0;
+  const rateColor = isPositive ? 'text-[#E5404A]' : 'text-blue-500';
+  const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(1)}%`;
+
+  if (!isOpen) return null;
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent className="w-[450px] rounded-lg bg-[#1A1A25] p-6 text-white border-none">
+        <div className="mb-4 rounded-md bg-[#101017] p-4 text-center">
+          <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
+        </div>
+        <AlertDialogHeader className="text-center">
+          <AlertDialogTitle className="text-xl font-semibold">
+            모의교육이 종료되었습니다.
+          </AlertDialogTitle>
+          <AlertDialogDescription className="mt-2 text-sm text-gray-400">
+            모의교육 결과는 마이페이지에서 전체 확인이 가능합니다.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-6 flex justify-between sm:justify-between">
+          <AlertDialogCancel
+            onClick={onClose}
+            className="flex-1 mr-2 bg-[#333342] hover:bg-[#444452] text-white border-none"
+          >
+            결과 확인하기
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onClose}
+            className="flex-1 ml-2 bg-[#4A90E2] hover:bg-[#5AA0F2] text-white border-none"
+          >
+            교육 종료하기
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
 
 export const SimulatePage = () => {
   const h3Style = 'text-[20px] font-bold';
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [finalChangeRate, setFinalChangeRate] = useState(32.2);
+
+  const handleOpenModal = () => {
+    setFinalChangeRate(32.2);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenNegativeModal = () => {
+    setFinalChangeRate(-15.8);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="flex h-full w-full flex-col">
+      <div className="my-4 flex gap-4">
+        <Button onClick={handleOpenModal} variant="secondary">
+          임시: 튜토리얼 종료 (수익 +)
+        </Button>
+        <Button onClick={handleOpenNegativeModal} variant="destructive">
+          임시: 튜토리얼 종료 (수익 -)
+        </Button>
+      </div>
       <div>
         <StockTutorialInfo category={'반도체'} />
         <div className="my-[25px]">
@@ -55,6 +134,11 @@ export const SimulatePage = () => {
           <StockTutorialConclusion />
         </div>
       </div>
+      <TutorialEndModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        changeRate={finalChangeRate}
+      />
     </div>
   );
 };
