@@ -8,7 +8,7 @@ import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-ne
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
 import ChartComponent from '@/components/ui/chart';
 import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
