@@ -1,3 +1,4 @@
+import { useGetAccountSummary } from '@/api/member.api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,23 +20,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
 export const InvestmentResultPage = () => {
+  const { data: accountSummary } = useGetAccountSummary('1');
+
   return (
     <div className="flex w-full flex-col gap-4 px-6">
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
-          <p className="text-4xl font-bold">52,1223,425원</p>
+          <p className="text-4xl font-bold">{accountSummary?.totalAsset}</p>
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 평가금</p>
-            <p className="text-3xl font-bold text-btn-red-color">32,123,425원</p>
+            <p className="text-3xl font-bold text-btn-red-color">
+              {accountSummary?.totalEvaluation}
+            </p>
           </div>
           <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
-            <p className="text-3xl font-bold text-btn-green-color">32,123,425원</p>
+            <p className="text-3xl font-bold text-btn-green-color">{accountSummary?.totalCash}</p>
           </div>
         </div>
       </div>
@@ -43,17 +49,19 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-row gap-3">
           <Badge variant="increase">
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span className="text-sm text-btn-blue-color">+32.12%</span>
+            <span className="text-sm text-btn-blue-color">{accountSummary?.totalProfitRate}%</span>
           </Badge>
           <Badge variant="main">
-            <span className="mr-1 text-sm text-border-color">총 수익:</span>50,000,000원
+            <span className="mr-1 text-sm text-border-color">총 수익:</span>
+            {accountSummary?.totalProfit}
           </Badge>
           <Badge variant="decrease">
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span className="text-sm text-btn-red-color">-32.12%</span>
+            <span className="text-sm text-btn-red-color">{accountSummary?.dailyProfitRate}%</span>
           </Badge>
           <Badge variant="main">
-            <span className="mr-1 text-sm text-border-color">일간 수익:</span>-5,000원
+            <span className="mr-1 text-sm text-border-color">일간 수익:</span>
+            {accountSummary?.dailyProfit}
           </Badge>
         </div>
         <div className="flex flex-row gap-3">
@@ -88,7 +96,7 @@ export const InvestmentResultPage = () => {
       <div className="flex flex-row gap-3">
         <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
           <p>전체 개수:</p>
-          <span>12개</span>
+          <span>{accountSummary?.accountCount}개</span>
         </div>
       </div>
       <Table>
@@ -108,18 +116,20 @@ export const InvestmentResultPage = () => {
         </TableHeader>
         <TableBody>
           <div className="h-5"></div>
-          <TableRow>
-            <TableCell>1 엔비디아</TableCell>
-            <TableCell>+32.12%</TableCell>
-            <TableCell>50,000,000원</TableCell>
-            <TableCell>10,000원</TableCell>
-            <TableCell>10,000원</TableCell>
-            <TableCell>10,000원</TableCell>
-            <TableCell>10,000원</TableCell>
-            <TableCell>+32.12%</TableCell>
-            <TableCell>-5,000원</TableCell>
-            <TableCell>10,000원</TableCell>
-          </TableRow>
+          {accountSummary?.accounts.map((account) => (
+            <TableRow key={account.companyId}>
+              <TableCell>{account.companyName}</TableCell>
+              <TableCell>{account.profitRate}%</TableCell>
+              <TableCell>{account.profit}</TableCell>
+              <TableCell>{account.avgPrice}</TableCell>
+              <TableCell>{account.currentPrice}</TableCell>
+              <TableCell>{account.stockCnt}</TableCell>
+              <TableCell>{account.evaluation}</TableCell>
+              <TableCell>{account.investment}</TableCell>
+              <TableCell>{account.dailyProfitRate}%</TableCell>
+              <TableCell>{account.dailyProfit}</TableCell>
+            </TableRow>
+          ))}
         </TableBody>
       </Table>
     </div>
