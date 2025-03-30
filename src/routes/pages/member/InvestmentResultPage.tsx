@@ -108,15 +108,7 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
           <div className="flex flex-row items-end gap-1">
-            <p
-              className={`text-4xl font-bold transition-colors duration-300 ${
-                displayData?.totalAsset !== prevData?.totalAsset
-                  ? (displayData?.totalAsset ?? 0) > (prevData?.totalAsset ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
+            <p className="text-4xl font-bold">
               {displayData?.totalAsset ? addCommasToThousand(displayData.totalAsset) : '0'}
             </p>
             <p className="text-2xl text-border-color">원</p>
@@ -126,15 +118,7 @@ export const InvestmentResultPage = () => {
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 평가금</p>
             <div className="flex flex-row items-end gap-1">
-              <p
-                className={`text-3xl font-bold text-btn-red-color transition-colors duration-300 ${
-                  displayData?.totalEvaluation !== prevData?.totalEvaluation
-                    ? (displayData?.totalEvaluation ?? 0) > (prevData?.totalEvaluation ?? 0)
-                      ? 'bg-btn-red-color/20'
-                      : 'bg-btn-blue-color/20'
-                    : ''
-                }`}
-              >
+              <p className="text-3xl font-bold text-btn-red-color">
                 {displayData?.totalEvaluation
                   ? addCommasToThousand(displayData.totalEvaluation)
                   : '0'}
@@ -146,15 +130,7 @@ export const InvestmentResultPage = () => {
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
             <div className="flex flex-row items-end gap-1">
-              <p
-                className={`text-3xl font-bold text-btn-green-color transition-colors duration-300 ${
-                  displayData?.totalCash !== prevData?.totalCash
-                    ? (displayData?.totalCash ?? 0) > (prevData?.totalCash ?? 0)
-                      ? 'bg-btn-red-color/20'
-                      : 'bg-btn-blue-color/20'
-                    : ''
-                }`}
-              >
+              <p className="text-3xl font-bold text-btn-green-color">
                 {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
               </p>
               <p className="text-2xl text-border-color">원</p>
@@ -166,23 +142,19 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-row gap-3">
           <Badge
             variant={
-              (displayData?.totalProfitRate ?? 0) === 0
-                ? 'zero'
-                : (displayData?.totalProfitRate ?? 0) > 0
-                  ? 'increase'
-                  : 'decrease'
+              displayData?.totalProfitRate !== prevData?.totalProfitRate
+                ? (displayData?.totalProfitRate ?? 0) > (prevData?.totalProfitRate ?? 0)
+                  ? 'increase-flash'
+                  : 'decrease-flash'
+                : (displayData?.totalProfitRate ?? 0) === 0
+                  ? 'zero'
+                  : (displayData?.totalProfitRate ?? 0) > 0
+                    ? 'increase'
+                    : 'decrease'
             }
           >
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span
-              className={`${addStockValueColorClass(displayData?.totalProfitRate ?? 0)} transition-colors duration-300 ${
-                displayData?.totalProfitRate !== prevData?.totalProfitRate
-                  ? (displayData?.totalProfitRate ?? 0) > (prevData?.totalProfitRate ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
+            <span className={addStockValueColorClass(displayData?.totalProfitRate ?? 0)}>
               {displayData?.totalProfitRate
                 ? `${plusMinusSign(displayData.totalProfitRate)} ${roundToTwoDecimalPlaces(
                     displayData.totalProfitRate,
@@ -193,23 +165,19 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge
             variant={
-              (displayData?.totalProfitRate ?? 0) === 0
-                ? 'zero'
-                : (displayData?.totalProfit ?? 0) > 0
-                  ? 'increase'
-                  : 'decrease'
+              displayData?.totalProfit !== prevData?.totalProfit
+                ? (displayData?.totalProfit ?? 0) > (prevData?.totalProfit ?? 0)
+                  ? 'increase-flash'
+                  : 'decrease-flash'
+                : (displayData?.totalProfit ?? 0) === 0
+                  ? 'zero'
+                  : (displayData?.totalProfit ?? 0) > 0
+                    ? 'increase'
+                    : 'decrease'
             }
           >
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            <span
-              className={`${addStockValueColorClass(displayData?.totalProfit ?? 0)} transition-colors duration-300 ${
-                displayData?.totalProfit !== prevData?.totalProfit
-                  ? (displayData?.totalProfit ?? 0) > (prevData?.totalProfit ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
+            <span className={addStockValueColorClass(displayData?.totalProfit ?? 0)}>
               {displayData?.totalProfit
                 ? `${plusMinusSign(displayData.totalProfit)} ${addCommasToThousand(
                     displayData.totalProfit,
@@ -220,23 +188,19 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge
             variant={
-              (displayData?.dailyProfitRate ?? 0) === 0
-                ? 'zero'
-                : (displayData?.dailyProfitRate ?? 0) > 0
-                  ? 'increase'
-                  : 'decrease'
+              displayData?.dailyProfitRate !== prevData?.dailyProfitRate
+                ? (displayData?.dailyProfitRate ?? 0) > (prevData?.dailyProfitRate ?? 0)
+                  ? 'increase-flash'
+                  : 'decrease-flash'
+                : (displayData?.dailyProfitRate ?? 0) === 0
+                  ? 'zero'
+                  : (displayData?.dailyProfitRate ?? 0) > 0
+                    ? 'increase'
+                    : 'decrease'
             }
           >
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span
-              className={`${addStockValueColorClass(displayData?.dailyProfitRate ?? 0)} transition-colors duration-300 ${
-                displayData?.dailyProfitRate !== prevData?.dailyProfitRate
-                  ? (displayData?.dailyProfitRate ?? 0) > (prevData?.dailyProfitRate ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
+            <span className={addStockValueColorClass(displayData?.dailyProfitRate ?? 0)}>
               {displayData?.dailyProfitRate
                 ? `${plusMinusSign(displayData.dailyProfitRate)} ${roundToTwoDecimalPlaces(
                     displayData.dailyProfitRate,
@@ -247,23 +211,19 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge
             variant={
-              (displayData?.dailyProfitRate ?? 0) === 0
-                ? 'zero'
-                : (displayData?.dailyProfitRate ?? 0) > 0
-                  ? 'increase'
-                  : 'decrease'
+              displayData?.dailyProfit !== prevData?.dailyProfit
+                ? (displayData?.dailyProfit ?? 0) > (prevData?.dailyProfit ?? 0)
+                  ? 'increase-flash'
+                  : 'decrease-flash'
+                : (displayData?.dailyProfit ?? 0) === 0
+                  ? 'zero'
+                  : (displayData?.dailyProfit ?? 0) > 0
+                    ? 'increase'
+                    : 'decrease'
             }
           >
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            <span
-              className={`${addStockValueColorClass(displayData?.dailyProfit ?? 0)} transition-colors duration-300 ${
-                displayData?.dailyProfit !== prevData?.dailyProfit
-                  ? (displayData?.dailyProfit ?? 0) > (prevData?.dailyProfit ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
+            <span className={addStockValueColorClass(displayData?.dailyProfit ?? 0)}>
               {displayData?.dailyProfit
                 ? `${plusMinusSign(displayData.dailyProfit)} ${addCommasToThousand(
                     displayData.dailyProfit,
