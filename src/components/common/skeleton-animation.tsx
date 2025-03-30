@@ -2,7 +2,11 @@ import Lottie from 'lottie-react';
 
 import SkeletonAnimation from '@/assets/lottie/skeleton-animation.json';
 
-export const SkeletonLoadingAnimation = () => {
+interface SkeletonLoadingAnimationProps {
+  subText: string;
+}
+
+export const SkeletonLoadingAnimation = ({ subText }: SkeletonLoadingAnimationProps) => {
   return (
     <div className="flex flex-col items-center justify-center gap-0">
       <Lottie
@@ -15,7 +19,7 @@ export const SkeletonLoadingAnimation = () => {
         }}
       />
       <div className="flex flex-col gap-2">
-        <h1 className="text-[18px] font-medium text-border-color">대기 주문이 비어있습니다.</h1>
+        <h1 className="text-[18px] font-medium text-border-color">{subText}</h1>
       </div>
     </div>
   );

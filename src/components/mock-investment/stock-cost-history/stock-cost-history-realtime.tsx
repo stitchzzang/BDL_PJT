@@ -1,5 +1,5 @@
 import { TickData } from '@/api/types/stock';
-import { ChartLoadingAnimation } from '@/components/common/chart-loading-animation';
+import { SkeletonLoadingAnimation } from '@/components/common/skeleton-animation';
 import { getFormatTime } from '@/utils/getTimeFormatted';
 import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter';
 
@@ -16,10 +16,7 @@ export const StockCostHistoryRealTime = ({
     <div>
       {!tickDataLists.length ? (
         <div className="flex h-full w-full flex-col items-center justify-center">
-          <ChartLoadingAnimation />
-          <div>
-            <h1>현재 장 시간이 아닙니다.</h1>
-          </div>
+          <SkeletonLoadingAnimation subText="현재 장 시간이 아닙니다." />
         </div>
       ) : (
         <div className="w-full">
