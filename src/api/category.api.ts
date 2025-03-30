@@ -5,7 +5,6 @@ import { _ky } from '@/api/instance';
 import { Category, Company } from '@/api/types/category';
 import { ApiResponse } from '@/api/types/common';
 
-// 실제 API 응답은 categoryList가 아닌 바로 배열로 옵니다
 export const categoryAPI = {
   getCategoryList: () => _ky.get('category').json<ApiResponse<Category[]>>(),
   getCompaniesByCategory: (categoryId: string) =>
@@ -18,6 +17,7 @@ export const useGetCategoryList = () => {
     queryFn: async () => {
       try {
         const res = await categoryAPI.getCategoryList();
+        console.log('카테고리 목록 응답:', res);
         return res.result || [];
       } catch (error) {
         console.error('Failed to fetch categories:', error);
@@ -35,9 +35,10 @@ export const useGetCompaniesByCategory = (categoryId: string) => {
       if (!categoryId) return [];
       try {
         const res = await categoryAPI.getCompaniesByCategory(categoryId);
+        console.log(`카테고리 ID ${categoryId}의 기업 목록 응답:`, res);
         return res.result || [];
       } catch (error) {
-        console.error('Failed to fetch companies:', error);
+        console.error(`Failed to fetch companies for category ${categoryId}:`, error);
         return [];
       }
     },
