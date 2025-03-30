@@ -114,36 +114,40 @@ export const SelectPage = () => {
 
       {/* 기업 선택 완료 모달 */}
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent className="bg-[#171A2E] text-white border-none rounded-xl max-w-md mx-auto p-0 overflow-hidden">
-          <div className="flex flex-col items-center text-center p-8">
-            <AlertDialogTitle className="text-[28px] font-bold mb-5">
+        <AlertDialogContent className="bg-[#121729] text-white border-none rounded-2xl max-w-md mx-auto p-0 overflow-hidden">
+          <div className="flex flex-col items-center text-center p-10">
+            <AlertDialogTitle className="text-[28px] font-bold mb-8">
               기업 선택 완료
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[16px] text-white">
-              <p>기업 선택을 완료했습니다.</p>
-              <p className="mt-3">모의 튜토리얼의 시간대는 다음과 같습니다.</p>
+              <div className="space-y-2">
+                <div>기업 선택을 완료했습니다.</div>
+                <div>주식 튜토리얼의 시간대는 다음과 같습니다.</div>
+              </div>
 
-              <div className="flex justify-center items-center gap-6 my-10 w-full">
+              <div className="flex justify-center items-center gap-5 my-10 w-full">
                 <span className="text-[#4CAF50] text-[20px] font-medium">{startDate}</span>
-                <span className="text-white text-[16px]">-</span>
+                <span className="text-white text-[16px] mx-1">-</span>
                 <span className="text-[#F44336] text-[20px] font-medium">{endDate}</span>
               </div>
 
-              <p>튜토리얼은 실제 데이터를 바탕으로 진행됩니다.</p>
-              <p className="mt-3">저희는 해당 데이터를 바탕으로</p>
-              <p>여러분에게 도움이 될 수 있는 3가지 변곡점을 보여드리겠습니다.</p>
-              <p className="mt-3">저희가 제시한 정보를 바탕으로 자유롭게 선택해보세요.</p>
+              <div className="space-y-2">
+                <div>튜토리얼은 실제 데이터를 바탕으로 진행됩니다.</div>
+                <div>저희는 해당 데이터를 바탕으로</div>
+                <div>여러분에게 도움이 될 수 있는 3가지 변곡점을 보여드리겠습니다.</div>
+                <div>저희가 제시한 정보를 바탕으로 자유롭게 선택해보세요.</div>
+              </div>
 
-              <div className="mt-12 flex flex-col items-center">
+              <div className="mt-12 flex flex-col items-center w-full">
                 <AlertDialogAction
+                  className="bg-[#5676F5] hover:bg-[#4A67DE] text-white py-3 px-8 rounded-full text-[18px] font-medium w-72"
                   onClick={handleConfirm}
-                  className="bg-[#5676F5] hover:bg-[#4A67DE] text-white py-3 rounded-full text-[18px] font-medium w-full max-w-xs"
                 >
                   선택완료
                 </AlertDialogAction>
-                <p className="text-center text-[13px] text-gray-400 mt-4">
-                  선택완료 버튼 클릭시 모의교육이 시작됩니다.
-                </p>
+                <div className="text-center text-[13px] text-gray-500 mt-4">
+                  선택완료 버튼 클릭시 주식 튜토리얼이 시작됩니다.
+                </div>
               </div>
             </AlertDialogDescription>
           </div>
