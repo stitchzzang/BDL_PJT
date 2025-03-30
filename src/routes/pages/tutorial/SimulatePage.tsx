@@ -20,14 +20,23 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface TutorialEndModalProps {
   isOpen: boolean;
   onClose: () => void;
   changeRate: number;
+  onConfirmResultClick: () => void;
+  onEndTutorialClick: () => void;
 }
 
-const TutorialEndModal = ({ isOpen, onClose, changeRate }: TutorialEndModalProps) => {
+const TutorialEndModal = ({
+  isOpen,
+  onClose,
+  changeRate,
+  onConfirmResultClick,
+  onEndTutorialClick,
+}: TutorialEndModalProps) => {
   const isPositive = changeRate >= 0;
   const rateColor = isPositive ? 'text-[#E5404A]' : 'text-blue-500';
   const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(1)}%`;
@@ -50,13 +59,13 @@ const TutorialEndModal = ({ isOpen, onClose, changeRate }: TutorialEndModalProps
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-6 flex justify-between sm:justify-between">
           <AlertDialogCancel
-            onClick={onClose}
+            onClick={onConfirmResultClick}
             className="flex-1 mr-2 bg-[#333342] hover:bg-[#444452] text-white border-none"
           >
             결과 확인하기
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={onClose}
+            onClick={onEndTutorialClick}
             className="flex-1 ml-2 bg-[#4A90E2] hover:bg-[#5AA0F2] text-white border-none"
           >
             교육 종료하기
@@ -68,6 +77,7 @@ const TutorialEndModal = ({ isOpen, onClose, changeRate }: TutorialEndModalProps
 };
 
 export const SimulatePage = () => {
+  const navigate = useNavigate();
   const h3Style = 'text-[20px] font-bold';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [finalChangeRate, setFinalChangeRate] = useState(32.2);
@@ -80,6 +90,16 @@ export const SimulatePage = () => {
   const handleOpenNegativeModal = () => {
     setFinalChangeRate(-15.8);
     setIsModalOpen(true);
+  };
+
+  const handleNavigateToResult = () => {
+    navigate('/member/stock-tutorial-result');
+    setIsModalOpen(false);
+  };
+
+  const handleNavigateToSelect = () => {
+    navigate('/tutorial/select');
+    setIsModalOpen(false);
   };
 
   return (
@@ -138,6 +158,8 @@ export const SimulatePage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         changeRate={finalChangeRate}
+        onConfirmResultClick={handleNavigateToResult}
+        onEndTutorialClick={handleNavigateToSelect}
       />
     </div>
   );
