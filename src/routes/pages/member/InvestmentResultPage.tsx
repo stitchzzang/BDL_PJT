@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react';
+
 import { useGetAccountSummary } from '@/api/member.api';
+import { AccountResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import {
@@ -22,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useAccountConnection } from '@/services/SocketAccountService';
 import {
   addCommasToThousand,
   addStockValueColorClass,
@@ -31,6 +35,56 @@ import {
 
 export const InvestmentResultPage = () => {
   const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
+  const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
+  const [accountData, setAccountData] = useState<AccountResponse[]>([]);
+  const [realTimeData, setRealTimeData] = useState(accountSummary);
+
+  useEffect(() => {
+    if (accountData) {
+      connectAccount('1', setAccountData);
+      return () => {
+        disconnectAccount();
+      };
+    }
+  }, [accountData, connectAccount, disconnectAccount]);
+
+  useEffect(() => {
+    if (accountData && accountSummary) {
+      // 웹소켓으로 받은 데이터로 accountSummary 업데이트
+      const updatedAccounts = accountSummary.accounts.map((account) => {
+        const realTimeAccount = accountData.find((rt) => rt.companyId === account.companyId);
+        if (realTimeAccount) {
+          return {
+            ...account,
+            currentPrice: realTimeAccount.currentPrice,
+            evaluation: realTimeAccount.evaluation,
+            profit: realTimeAccount.profit,
+            profitRate: realTimeAccount.profitRate,
+            dailyProfit: realTimeAccount.dailyProfit,
+            dailyProfitRate: realTimeAccount.dailyProfitRate,
+          };
+        }
+        return account;
+      });
+
+      // 총 자산, 평가금액, 현금 업데이트
+      const totalEvaluation = updatedAccounts.reduce((sum, account) => sum + account.evaluation, 0);
+      const totalProfit = updatedAccounts.reduce((sum, account) => sum + account.profit, 0);
+      const totalDailyProfit = updatedAccounts.reduce(
+        (sum, account) => sum + account.dailyProfit,
+        0,
+      );
+
+      setRealTimeData({
+        ...accountSummary,
+        accounts: updatedAccounts,
+        totalEvaluation,
+        totalProfit,
+        dailyProfit: totalDailyProfit,
+        totalAsset: accountSummary.totalCash + totalEvaluation,
+      });
+    }
+  }, [accountData, accountSummary]);
 
   if (isLoading) {
     return <LoadingAnimation />;
@@ -40,21 +94,23 @@ export const InvestmentResultPage = () => {
     return <ErrorScreen />;
   }
 
+  const displayData = realTimeData || accountSummary;
+
   return (
     <div className="flex w-full flex-col gap-4 px-6">
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
           <p className="text-4xl font-bold">
-            {accountSummary?.totalAsset ? addCommasToThousand(accountSummary?.totalAsset) : '0'}
+            {displayData?.totalAsset ? addCommasToThousand(displayData?.totalAsset) : '0'}
           </p>
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 평가금</p>
             <p className="text-3xl font-bold text-btn-red-color">
-              {accountSummary?.totalEvaluation
-                ? addCommasToThousand(accountSummary?.totalEvaluation)
+              {displayData?.totalEvaluation
+                ? addCommasToThousand(displayData?.totalEvaluation)
                 : '0'}
             </p>
           </div>
@@ -62,51 +118,51 @@ export const InvestmentResultPage = () => {
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
             <p className="text-3xl font-bold text-btn-green-color">
-              {accountSummary?.totalCash ? addCommasToThousand(accountSummary?.totalCash) : '0'}
+              {displayData?.totalCash ? addCommasToThousand(displayData?.totalCash) : '0'}
             </p>
           </div>
         </div>
       </div>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3">
-          <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'increase'}>
+          <Badge variant={displayData?.totalProfitRate === 0 ? 'zero' : 'increase'}>
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span className={`${addStockValueColorClass(accountSummary?.totalProfitRate ?? 0)}`}>
-              {accountSummary?.totalProfitRate
-                ? `${plusMinusSign(accountSummary?.totalProfitRate)} ${roundToTwoDecimalPlaces(
-                    accountSummary?.totalProfitRate,
+            <span className={`${addStockValueColorClass(displayData?.totalProfitRate ?? 0)}`}>
+              {displayData?.totalProfitRate
+                ? `${plusMinusSign(displayData?.totalProfitRate)} ${roundToTwoDecimalPlaces(
+                    displayData?.totalProfitRate,
                   )}`
                 : '0'}
               %
             </span>
           </Badge>
-          <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'main'}>
+          <Badge variant={displayData?.totalProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            <span className={`${addStockValueColorClass(accountSummary?.totalProfit ?? 0)}`}>
-              {accountSummary?.totalProfit
-                ? `${plusMinusSign(accountSummary?.totalProfit)} ${addCommasToThousand(
-                    accountSummary?.totalProfit,
+            <span className={`${addStockValueColorClass(displayData?.totalProfit ?? 0)}`}>
+              {displayData?.totalProfit
+                ? `${plusMinusSign(displayData?.totalProfit)} ${addCommasToThousand(
+                    displayData?.totalProfit,
                   )}`
                 : '0'}
             </span>
           </Badge>
-          <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
+          <Badge variant={displayData?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span className={`${addStockValueColorClass(accountSummary?.dailyProfitRate ?? 0)}`}>
-              {accountSummary?.dailyProfitRate
-                ? `${plusMinusSign(accountSummary?.dailyProfitRate)} ${roundToTwoDecimalPlaces(
-                    accountSummary?.dailyProfitRate,
+            <span className={`${addStockValueColorClass(displayData?.dailyProfitRate ?? 0)}`}>
+              {displayData?.dailyProfitRate
+                ? `${plusMinusSign(displayData?.dailyProfitRate)} ${roundToTwoDecimalPlaces(
+                    displayData?.dailyProfitRate,
                   )}`
                 : '0'}
               %
             </span>
           </Badge>
-          <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'main'}>
+          <Badge variant={displayData?.dailyProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            <span className={`${addStockValueColorClass(accountSummary?.dailyProfit ?? 0)}`}>
-              {accountSummary?.dailyProfit
-                ? `${plusMinusSign(accountSummary?.dailyProfit)} ${addCommasToThousand(
-                    accountSummary?.dailyProfit,
+            <span className={`${addStockValueColorClass(displayData?.dailyProfit ?? 0)}`}>
+              {displayData?.dailyProfit
+                ? `${plusMinusSign(displayData?.dailyProfit)} ${addCommasToThousand(
+                    displayData?.dailyProfit,
                   )}`
                 : '0'}
             </span>
@@ -144,7 +200,7 @@ export const InvestmentResultPage = () => {
       <div className="flex flex-row gap-3">
         <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
           <p>전체 개수:</p>
-          <span>{accountSummary?.accountCount ? accountSummary?.accountCount : '0'}개</span>
+          <span>{displayData?.accountCount ? displayData?.accountCount : '0'}개</span>
         </div>
       </div>
       <Table>
@@ -164,8 +220,8 @@ export const InvestmentResultPage = () => {
         </TableHeader>
         <TableBody>
           <div className="h-5"></div>
-          {accountSummary?.accounts.length && accountSummary?.accounts.length > 0 ? (
-            accountSummary?.accounts.map((account) => (
+          {displayData?.accounts.length && displayData?.accounts.length > 0 ? (
+            displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
                 <TableCell>{account.companyName}</TableCell>
                 <TableCell>{roundToTwoDecimalPlaces(account.profitRate)}%</TableCell>
