@@ -304,7 +304,7 @@ export const InvestmentResultPage = () => {
                       : ''
                   }`}
                 >
-                  {roundToTwoDecimalPlaces(account.profitRate)}%
+                  {`${plusMinusSign(roundToTwoDecimalPlaces(account.profitRate))} ${roundToTwoDecimalPlaces(account.profitRate)}%`}
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profit)} transition-colors duration-300 ${
