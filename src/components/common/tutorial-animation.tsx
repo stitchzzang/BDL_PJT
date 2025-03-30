@@ -2,7 +2,7 @@ import Lottie from 'lottie-react';
 
 import tutorialAnimation from '@/assets/lottie/tutorial-animation.json';
 
-export const BuildingAnimation = () => {
+export const TutorialAnimation = () => {
   return (
     <div className="flex items-center justify-center">
       <Lottie

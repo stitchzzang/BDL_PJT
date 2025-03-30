@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import NoneLogo from '/none-img/none-logo.png';
 import { useGetCompaniesByCategory } from '@/api/category.api';
-import { BuildingAnimation } from '@/components/common/building-animation';
+import { TutorialAnimation } from '@/components/common/tutorial-animation';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
 
@@ -25,7 +25,7 @@ export const SelectPage = () => {
           <h1 className="mb-[10px] text-[28px] font-bold">주식 튜토리얼</h1>
           <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border-color border-opacity-40 p-2 py-4 transition-all duration-300 group-hover:border-btn-blue-color">
             <div>
-              <BuildingAnimation />
+              <TutorialAnimation />
             </div>
             <div>
               <p className="text-[16px]">주식에 익숙하지 않은 당신을 위한 튜토리얼 환경입니다.</p>
