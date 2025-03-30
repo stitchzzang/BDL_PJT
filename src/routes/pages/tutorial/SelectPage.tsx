@@ -115,41 +115,48 @@ export const SelectPage = () => {
       {/* 기업 선택 완료 모달 */}
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogContent className="bg-[#121729] text-white border-none rounded-2xl max-w-md mx-auto p-0 overflow-hidden">
-          <div className="flex flex-col items-center text-center p-10">
+          <AlertDialogHeader className="flex flex-col items-center text-center p-10">
             <AlertDialogTitle className="text-[28px] font-bold mb-8">
               기업 선택 완료
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[16px] text-white">
-              <div className="space-y-2">
-                <div>기업 선택을 완료했습니다.</div>
-                <div>주식 튜토리얼의 시간대는 다음과 같습니다.</div>
-              </div>
 
-              <div className="flex justify-center items-center gap-5 my-10 w-full">
-                <span className="text-[#4CAF50] text-[20px] font-medium">{startDate}</span>
-                <span className="text-white text-[16px] mx-1">-</span>
-                <span className="text-[#F44336] text-[20px] font-medium">{endDate}</span>
-              </div>
-
-              <div className="space-y-2">
-                <div>튜토리얼은 실제 데이터를 바탕으로 진행됩니다.</div>
-                <div>저희는 해당 데이터를 바탕으로</div>
-                <div>여러분에게 도움이 될 수 있는 3가지 변곡점을 보여드리겠습니다.</div>
-                <div>저희가 제시한 정보를 바탕으로 자유롭게 선택해보세요.</div>
-              </div>
-
-              <div className="mt-12 flex flex-col items-center w-full">
-                <AlertDialogAction
-                  className="bg-[#5676F5] hover:bg-[#4A67DE] text-white py-3 px-8 rounded-full text-[18px] font-medium w-72"
-                  onClick={handleConfirm}
-                >
-                  선택완료
-                </AlertDialogAction>
-                <div className="text-center text-[13px] text-gray-500 mt-4">
-                  선택완료 버튼 클릭시 주식 튜토리얼이 시작됩니다.
-                </div>
-              </div>
+            {/* 접근성을 위한 설명 (스크린 리더용) */}
+            <AlertDialogDescription className="sr-only">
+              기업 선택 완료 후 튜토리얼 시간대와 안내 사항을 확인하세요.
             </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {/* 실제 모달 콘텐츠 */}
+          <div className="flex flex-col items-center text-center px-10 pb-10 pt-0">
+            <div className="flex flex-col text-[16px] text-white">
+              <span>기업 선택을 완료했습니다.</span>
+              <span className="mt-2">주식 튜토리얼의 시간대는 다음과 같습니다.</span>
+            </div>
+
+            <div className="flex justify-center items-center gap-5 my-10 w-full">
+              <span className="text-[#4CAF50] text-[20px] font-medium">{startDate}</span>
+              <span className="text-white text-[16px] mx-1">-</span>
+              <span className="text-[#F44336] text-[20px] font-medium">{endDate}</span>
+            </div>
+
+            <div className="flex flex-col text-[16px] text-white">
+              <span>튜토리얼은 실제 데이터를 바탕으로 진행됩니다.</span>
+              <span className="mt-2">저희는 해당 데이터를 바탕으로</span>
+              <span>여러분에게 도움이 될 수 있는 3가지 변곡점을 보여드리겠습니다.</span>
+              <span className="mt-2">저희가 제시한 정보를 바탕으로 자유롭게 선택해보세요.</span>
+            </div>
+
+            <AlertDialogFooter className="mt-12 flex flex-col items-center w-full">
+              <AlertDialogAction
+                className="bg-[#5676F5] hover:bg-[#4A67DE] text-white py-3 px-8 rounded-full text-[18px] font-medium w-72"
+                onClick={handleConfirm}
+              >
+                선택완료
+              </AlertDialogAction>
+              <span className="text-center text-[13px] text-gray-500 mt-4">
+                선택완료 버튼 클릭시 주식 튜토리얼이 시작됩니다.
+              </span>
+            </AlertDialogFooter>
           </div>
         </AlertDialogContent>
       </AlertDialog>
