@@ -57,7 +57,7 @@ const TutorialEndModal = ({
             모의교육 결과는 마이페이지에서 전체 확인이 가능합니다.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="mt-6 flex justify-between sm:justify-between">
+        <AlertDialogFooter className="mt-4 flex justify-between sm:justify-between">
           <AlertDialogCancel
             onClick={onConfirmResultClick}
             className="flex-1 mr-2 bg-[#333342] hover:bg-[#444452] text-white border-none"
