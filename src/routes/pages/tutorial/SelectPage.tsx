@@ -41,7 +41,6 @@ export const SelectPage = () => {
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center justify-center h-[200px]">
-            <img src={NoneLogo} alt="오류 발생" className="w-[100px] h-[100px] opacity-70 mb-4" />
             <p className="text-[16px]">데이터를 불러오는 중 오류가 발생했습니다.</p>
             <p className="text-[14px] text-gray-400 mt-2">잠시 후 다시 시도해주세요.</p>
           </div>
