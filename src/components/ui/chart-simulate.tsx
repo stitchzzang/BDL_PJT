@@ -410,8 +410,8 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
         {
           left: '5%',
           right: '10%',
-          top: '60%',
-          height: '30%',
+          top: '65%',
+          height: '15%',
           containLabel: false,
         },
       ],
@@ -512,6 +512,9 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           scale: true,
           gridIndex: 1,
           splitNumber: 2,
+          max: function (value) {
+            return value.max * 3; // 예: 최대값의 3배로 설정하여 그래프 높이를 1/3로 줄임
+          },
           axisLabel: {
             show: true,
             inside: false,
@@ -579,7 +582,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           show: true,
           xAxisIndex: [0, 1],
           type: 'slider',
-          bottom: 0,
+          bottom: '10%',
           start: dataZoomRange.start,
           end: dataZoomRange.end,
           textStyle: {
