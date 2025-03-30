@@ -365,8 +365,19 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
   );
 
   // 차트 옵션 설정
-  const option: EChartsOption = useMemo(
-    () => ({
+  // 차트 옵션 설정
+  const option: EChartsOption = useMemo(() => {
+    // 최신 캔들 데이터 가져오기 (배열의 마지막 요소) - 안전하게 체크
+    const latestIndex = xAxisLabels.length - 1;
+    const latestCandle =
+      candleData.length > 0 ? candleData[candleData.length - EMPTY_DATA_COUNT - 1] : null;
+    const latestPrice = latestCandle ? latestCandle[1] : 0; // 종가 값
+
+    // 상승/하락 여부 확인 (안전하게)
+    const isRising = latestCandle && latestCandle[1] >= latestCandle[0];
+    const priceColor = isRising ? RISE_COLOR : FALL_COLOR;
+
+    return {
       animation: false,
       backgroundColor: '#0D192B',
       textStyle: {
@@ -427,7 +438,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           splitLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)',
+              color: 'rgba(84, 84, 84, 0.1)',
               width: 1,
             },
           },
@@ -461,7 +472,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           splitLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)',
+              color: 'rgba(84, 84, 84, 0.1)',
               width: 1,
             },
           },
@@ -490,7 +501,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           splitLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.1)',
+              color: 'rgba(84, 84, 84, 0.1)',
               width: 1,
             },
           },
@@ -605,6 +616,45 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
             borderColor: RISE_COLOR,
             borderColor0: FALL_COLOR,
           },
+          // 최신값이 있을 때만 markLine 표시
+          ...(latestCandle && {
+            markLine: {
+              symbol: 'none',
+              lineStyle: {
+                color: priceColor,
+                type: 'solid',
+                width: 1,
+                opacity: 0.7,
+              },
+              label: {
+                show: true,
+                position: 'end',
+                formatter: (params) => {
+                  return new Intl.NumberFormat('ko-KR').format(Math.floor(Number(params.value)));
+                },
+                backgroundColor: priceColor,
+                color: '#FFFFFF',
+                padding: [6, 10],
+                borderRadius: 3,
+                fontSize: 14,
+                fontWeight: 'bold',
+                fontFamily:
+                  'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+              },
+              data: [
+                {
+                  name: '최신값',
+                  xAxis: latestIndex - EMPTY_DATA_COUNT,
+                  yAxis: latestPrice,
+                  label: {
+                    formatter: () => {
+                      return new Intl.NumberFormat('ko-KR').format(Math.floor(latestPrice));
+                    },
+                  },
+                },
+              ],
+            },
+          }),
         },
         {
           name: '거래량',
@@ -651,20 +701,19 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
           },
         },
       ],
-    }),
-    [
-      xAxisLabels,
-      candleData,
-      volumeData,
-      ema5Data,
-      ema20Data,
-      getItemStyle,
-      dataZoomRange,
-      tooltipFormatter,
-      yAxisRange,
-      handleDataZoomChange,
-    ],
-  );
+    };
+  }, [
+    xAxisLabels,
+    candleData,
+    volumeData,
+    ema5Data,
+    ema20Data,
+    getItemStyle,
+    dataZoomRange,
+    tooltipFormatter,
+    yAxisRange,
+    handleDataZoomChange,
+  ]);
 
   return (
     <div className="relative">
