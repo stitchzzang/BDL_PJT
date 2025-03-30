@@ -19,7 +19,13 @@ export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps
           alt="company-identifier"
           className="h-[50px] w-[50px] rounded-xl"
         />
-        <p className="text-base">{result.companyName}</p>
+        <div className="flex flex-col gap-1">
+          <p className="text-base">{result.companyName}</p>
+          <div className="flex flex-row gap-2 text-sm text-text-inactive-2-color">
+            {new Date(result.startDate).toLocaleDateString()} ~{' '}
+            {new Date(result.endDate).toLocaleDateString()}
+          </div>
+        </div>
       </div>
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
