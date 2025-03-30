@@ -7,20 +7,13 @@ import { useGetCompaniesByCategory } from '@/api/category.api';
 import { Company } from '@/api/types/category';
 
 export const SelectPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('0');
   const {
     data: companies = [],
     isLoading,
     isFetching,
     isError,
   } = useGetCompaniesByCategory(selectedCategory);
-
-  useEffect(() => {
-    // 초기 카테고리를 '전체'로 설정
-    if (!selectedCategory) {
-      setSelectedCategory('0');
-    }
-  }, []);
 
   const isLoadingData = isLoading || isFetching;
   const hasCompanies = companies && companies.length > 0;

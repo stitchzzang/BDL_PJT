@@ -57,7 +57,7 @@ export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListPr
           className={`group flex w-full items-center justify-center gap-2 rounded-xl ${
             activeCategoryId === '0' ? 'bg-btn-blue-color' : 'bg-modal-background-color'
           } px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color`}
-          onClick={() => handleCategoryClick('전체', 0)}
+          onClick={() => setCategoryId('0')}
         >
           <div className="min-h-[25px] min-w-[25px]">
             <AllCompaniesIcon />
