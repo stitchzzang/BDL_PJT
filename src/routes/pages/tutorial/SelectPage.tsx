@@ -133,7 +133,7 @@ export const SelectPage = () => {
               <span className="mt-2">주식 튜토리얼의 시간대는 다음과 같습니다.</span>
             </div>
 
-            <div className="flex justify-center items-center gap-5 my-10 w-full">
+            <div className="flex justify-center items-center gap-5 my-10 w-full bg-[#041021] p-4 rounded-lg">
               <span className="text-[#4CAF50] text-[22px] font-bold">{startDate}</span>
               <span className="text-white text-[22px] mx-1">-</span>
               <span className="text-[#F44336] text-[22px] font-bold">{endDate}</span>
@@ -146,14 +146,14 @@ export const SelectPage = () => {
               <span className="mt-2">저희가 제시한 정보를 바탕으로 자유롭게 선택해보세요.</span>
             </div>
 
-            <div className="mt-12 flex flex-col items-center w-full">
+            <div className="mt-10 flex flex-col items-center w-full">
               <AlertDialogAction
                 className="bg-[#5676F5] hover:bg-[#4A67DE] text-white py-4 px-8 rounded-full text-[18px] font-bold w-full max-w-[400px]"
                 onClick={handleConfirm}
               >
                 선택완료
               </AlertDialogAction>
-              <span className="text-center text-[13px] text-gray-500 mt-4">
+              <span className="text-center text-[13px] text-gray-500 mt-4 mb-4">
                 선택완료 버튼 클릭시 주식 튜토리얼이 시작됩니다.
               </span>
             </div>
