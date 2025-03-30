@@ -155,7 +155,15 @@ export const InvestmentResultPage = () => {
       </div>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3">
-          <Badge variant={displayData?.totalProfitRate === 0 ? 'zero' : 'increase'}>
+          <Badge
+            variant={
+              (displayData?.totalProfitRate ?? 0) === 0
+                ? 'zero'
+                : (displayData?.totalProfitRate ?? 0) > 0
+                  ? 'increase'
+                  : 'decrease'
+            }
+          >
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
             <span
               className={`${addStockValueColorClass(displayData?.totalProfitRate ?? 0)} transition-colors duration-300 ${
@@ -174,7 +182,15 @@ export const InvestmentResultPage = () => {
               %
             </span>
           </Badge>
-          <Badge variant={displayData?.totalProfitRate === 0 ? 'zero' : 'main'}>
+          <Badge
+            variant={
+              (displayData?.totalProfitRate ?? 0) === 0
+                ? 'zero'
+                : (displayData?.totalProfit ?? 0) > 0
+                  ? 'increase'
+                  : 'decrease'
+            }
+          >
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
             <span
               className={`${addStockValueColorClass(displayData?.totalProfit ?? 0)} transition-colors duration-300 ${
@@ -192,7 +208,15 @@ export const InvestmentResultPage = () => {
                 : '0'}
             </span>
           </Badge>
-          <Badge variant={displayData?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
+          <Badge
+            variant={
+              (displayData?.dailyProfitRate ?? 0) === 0
+                ? 'zero'
+                : (displayData?.dailyProfitRate ?? 0) > 0
+                  ? 'increase'
+                  : 'decrease'
+            }
+          >
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
             <span
               className={`${addStockValueColorClass(displayData?.dailyProfitRate ?? 0)} transition-colors duration-300 ${
@@ -211,7 +235,15 @@ export const InvestmentResultPage = () => {
               %
             </span>
           </Badge>
-          <Badge variant={displayData?.dailyProfitRate === 0 ? 'zero' : 'main'}>
+          <Badge
+            variant={
+              (displayData?.dailyProfitRate ?? 0) === 0
+                ? 'zero'
+                : (displayData?.dailyProfitRate ?? 0) > 0
+                  ? 'increase'
+                  : 'decrease'
+            }
+          >
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
             <span
               className={`${addStockValueColorClass(displayData?.dailyProfit ?? 0)} transition-colors duration-300 ${
