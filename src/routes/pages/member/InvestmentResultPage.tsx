@@ -160,8 +160,8 @@ export const InvestmentResultPage = () => {
                     displayData.totalProfitRate,
                   )}`
                 : '0'}
-              %
             </span>
+            <p className="text-border-color">%</p>
           </Badge>
           <Badge
             variant={
@@ -184,7 +184,7 @@ export const InvestmentResultPage = () => {
                   )}`
                 : '0'}
             </span>
-            <p className="text-sm text-border-color">원</p>
+            <p className="text-border-color">원</p>
           </Badge>
           <Badge
             variant={
@@ -230,7 +230,7 @@ export const InvestmentResultPage = () => {
                   )}`
                 : '0'}
             </span>
-            <p className="text-sm text-border-color">원</p>
+            <p className="text-border-color">원</p>
           </Badge>
         </div>
         <div className="flex flex-row gap-3">
