@@ -45,7 +45,7 @@ const TutorialEndModal = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="w-[450px] rounded-lg bg-[#1A1A25] p-6 text-white border-none">
+      <AlertDialogContent className="w-[450px] rounded-lg bg-[#121729] p-6 text-white border-none">
         <div className="mb-4 rounded-md bg-[#101017] p-4 text-center">
           <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
         </div>
