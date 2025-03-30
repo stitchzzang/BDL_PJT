@@ -1,4 +1,19 @@
-import { type CategoryName, getCategoryIcon, getCategoryNames } from '@/utils/categoryMapper';
+import { type CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
+
+// DB의 카테고리 순서대로 이름 정의
+const DB_CATEGORY_NAMES: CategoryName[] = [
+  '전체',
+  '반도체',
+  '자동차',
+  'IT',
+  '금융',
+  '엔터',
+  '방위',
+  '화장품',
+  '음식',
+  '금속',
+  '바이오',
+];
 
 // props 선택
 export interface CategoryListProps {
@@ -7,11 +22,8 @@ export interface CategoryListProps {
 }
 
 export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListProps) => {
-  const categoryNames = getCategoryNames();
-
-  const handleCategoryClick = (name: CategoryName, index: number) => {
-    // 인덱스 + 1이 카테고리 ID가 됨 (전체 제외)
-    setCategoryId(index.toString());
+  const handleCategoryClick = (categoryId: number) => {
+    setCategoryId(categoryId.toString());
   };
 
   const AllCompaniesIcon = getCategoryIcon('전체');
@@ -38,16 +50,16 @@ export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListPr
         </button>
       </div>
       <div className="grid max-w-[660px] grid-cols-5 gap-[10px]">
-        {categoryNames.slice(1).map((name, index) => {
+        {DB_CATEGORY_NAMES.slice(1).map((name, index) => {
           const IconComponent = getCategoryIcon(name);
-          const categoryId = (index + 1).toString();
+          const categoryId = (index + 1).toString(); // 실제 DB의 categoryId
           return (
             <button
               className={`group flex items-center justify-center gap-2 rounded-xl ${
                 activeCategoryId === categoryId ? 'bg-btn-blue-color' : 'bg-modal-background-color'
               } px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color`}
               key={index}
-              onClick={() => handleCategoryClick(name, index + 1)}
+              onClick={() => handleCategoryClick(index + 1)}
             >
               <div className="min-h-[25px] min-w-[25px]">
                 <IconComponent />
