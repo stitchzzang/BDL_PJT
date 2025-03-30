@@ -115,8 +115,8 @@ export const SelectPage = () => {
       {/* 기업 선택 완료 모달 */}
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogContent className="bg-[#121729] text-white border-none rounded-2xl max-w-lg mx-auto p-0 overflow-hidden">
-          <AlertDialogHeader className="flex flex-col items-center text-center p-10">
-            <AlertDialogTitle className="text-[28px] font-bold mb-8">
+          <AlertDialogHeader className="flex flex-col items-center text-center pb-5 pt-10">
+            <AlertDialogTitle className="text-[28px] font-bold mb-1">
               기업 선택 완료
             </AlertDialogTitle>
 
@@ -127,7 +127,7 @@ export const SelectPage = () => {
           </AlertDialogHeader>
 
           {/* 실제 모달 콘텐츠 */}
-          <div className="flex flex-col items-center text-center px-10 pb-10 pt-0">
+          <div className="flex flex-col items-center text-center px-5 pb-5 pt-0">
             <div className="flex flex-col text-[16px] text-white">
               <span>기업 선택을 완료했습니다.</span>
               <span className="mt-2">주식 튜토리얼의 시간대는 다음과 같습니다.</span>
