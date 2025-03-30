@@ -107,49 +107,58 @@ export const InvestmentResultPage = () => {
       <div className="flex flex-row gap-3">
         <div className="flex flex-col items-start">
           <p className="text-lg text-border-color">총 자산</p>
-          <p
-            className={`text-4xl font-bold transition-colors duration-300 ${
-              displayData?.totalAsset !== prevData?.totalAsset
-                ? (displayData?.totalAsset ?? 0) > (prevData?.totalAsset ?? 0)
-                  ? 'bg-btn-red-color/20'
-                  : 'bg-btn-blue-color/20'
-                : ''
-            }`}
-          >
-            {displayData?.totalAsset ? addCommasToThousand(displayData.totalAsset) : '0'}
-          </p>
+          <div className="flex flex-row items-end gap-1">
+            <p
+              className={`text-4xl font-bold transition-colors duration-300 ${
+                displayData?.totalAsset !== prevData?.totalAsset
+                  ? (displayData?.totalAsset ?? 0) > (prevData?.totalAsset ?? 0)
+                    ? 'bg-btn-red-color/20'
+                    : 'bg-btn-blue-color/20'
+                  : ''
+              }`}
+            >
+              {displayData?.totalAsset ? addCommasToThousand(displayData.totalAsset) : '0'}
+            </p>
+            <p className="text-2xl text-border-color">원</p>
+          </div>
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 평가금</p>
-            <p
-              className={`text-3xl font-bold text-btn-red-color transition-colors duration-300 ${
-                displayData?.totalEvaluation !== prevData?.totalEvaluation
-                  ? (displayData?.totalEvaluation ?? 0) > (prevData?.totalEvaluation ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
-              {displayData?.totalEvaluation
-                ? addCommasToThousand(displayData.totalEvaluation)
-                : '0'}
-            </p>
+            <div className="flex flex-row items-end gap-1">
+              <p
+                className={`text-3xl font-bold text-btn-red-color transition-colors duration-300 ${
+                  displayData?.totalEvaluation !== prevData?.totalEvaluation
+                    ? (displayData?.totalEvaluation ?? 0) > (prevData?.totalEvaluation ?? 0)
+                      ? 'bg-btn-red-color/20'
+                      : 'bg-btn-blue-color/20'
+                    : ''
+                }`}
+              >
+                {displayData?.totalEvaluation
+                  ? addCommasToThousand(displayData.totalEvaluation)
+                  : '0'}
+              </p>
+              <p className="text-2xl text-border-color">원</p>
+            </div>
           </div>
           <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
-            <p
-              className={`text-3xl font-bold text-btn-green-color transition-colors duration-300 ${
-                displayData?.totalCash !== prevData?.totalCash
-                  ? (displayData?.totalCash ?? 0) > (prevData?.totalCash ?? 0)
-                    ? 'bg-btn-red-color/20'
-                    : 'bg-btn-blue-color/20'
-                  : ''
-              }`}
-            >
-              {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
-            </p>
+            <div className="flex flex-row items-end gap-1">
+              <p
+                className={`text-3xl font-bold text-btn-green-color transition-colors duration-300 ${
+                  displayData?.totalCash !== prevData?.totalCash
+                    ? (displayData?.totalCash ?? 0) > (prevData?.totalCash ?? 0)
+                      ? 'bg-btn-red-color/20'
+                      : 'bg-btn-blue-color/20'
+                    : ''
+                }`}
+              >
+                {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
+              </p>
+              <p className="text-2xl text-border-color">원</p>
+            </div>
           </div>
         </div>
       </div>
@@ -207,6 +216,7 @@ export const InvestmentResultPage = () => {
                   )}`
                 : '0'}
             </span>
+            <p className="text-sm text-border-color">원</p>
           </Badge>
           <Badge
             variant={
@@ -260,6 +270,7 @@ export const InvestmentResultPage = () => {
                   )}`
                 : '0'}
             </span>
+            <p className="text-sm text-border-color">원</p>
           </Badge>
         </div>
         <div className="flex flex-row gap-3">
@@ -305,14 +316,14 @@ export const InvestmentResultPage = () => {
           <TableRow>
             <TableHead>종목명</TableHead>
             <TableHead>총 수익률</TableHead>
-            <TableHead>총 수익금</TableHead>
-            <TableHead>1주 평균 금액</TableHead>
-            <TableHead>현재가</TableHead>
+            <TableHead>총 수익금(원)</TableHead>
+            <TableHead>1주 평균 금액(원)</TableHead>
+            <TableHead>현재가(원)</TableHead>
             <TableHead>보유수량</TableHead>
-            <TableHead>평가금</TableHead>
-            <TableHead>원금</TableHead>
+            <TableHead>평가금(원)</TableHead>
+            <TableHead>원금(원)</TableHead>
             <TableHead>일간 수익률</TableHead>
-            <TableHead>일간 수익금</TableHead>
+            <TableHead>일간 수익금(원)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
