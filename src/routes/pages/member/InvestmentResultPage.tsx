@@ -229,23 +229,35 @@ export const InvestmentResultPage = () => {
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
                 <TableCell>{account.companyName}</TableCell>
-                <TableCell>{roundToTwoDecimalPlaces(account.profitRate)}%</TableCell>
-                <TableCell>{`${plusMinusSign(account.profit)} ${addCommasToThousand(
+                <TableCell className={addStockValueColorClass(account.profitRate)}>
+                  {roundToTwoDecimalPlaces(account.profitRate)}%
+                </TableCell>
+                <TableCell
+                  className={addStockValueColorClass(account.profit)}
+                >{`${plusMinusSign(account.profit)} ${addCommasToThousand(
                   account.profit,
                 )}`}</TableCell>
                 <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
                 <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
                 <TableCell>{account.stockCnt}</TableCell>
-                <TableCell>{`${plusMinusSign(account.evaluation)} ${addCommasToThousand(
+                <TableCell
+                  className={addStockValueColorClass(account.evaluation)}
+                >{`${plusMinusSign(account.evaluation)} ${addCommasToThousand(
                   account.evaluation,
                 )}`}</TableCell>
-                <TableCell>{`${plusMinusSign(account.investment)} ${addCommasToThousand(
+                <TableCell
+                  className={addStockValueColorClass(account.investment)}
+                >{`${plusMinusSign(account.investment)} ${addCommasToThousand(
                   account.investment,
                 )}`}</TableCell>
-                <TableCell>{`${plusMinusSign(account.dailyProfitRate)} ${roundToTwoDecimalPlaces(
+                <TableCell
+                  className={addStockValueColorClass(account.dailyProfitRate)}
+                >{`${plusMinusSign(account.dailyProfitRate)} ${roundToTwoDecimalPlaces(
                   account.dailyProfitRate,
                 )}%`}</TableCell>
-                <TableCell>{`${plusMinusSign(account.dailyProfit)} ${addCommasToThousand(
+                <TableCell
+                  className={addStockValueColorClass(account.dailyProfit)}
+                >{`${plusMinusSign(account.dailyProfit)} ${addCommasToThousand(
                   account.dailyProfit,
                 )}`}</TableCell>
               </TableRow>
