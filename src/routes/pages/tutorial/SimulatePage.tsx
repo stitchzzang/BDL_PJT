@@ -51,10 +51,10 @@ const TutorialEndModal = ({
         </div>
         <AlertDialogHeader className="text-center">
           <AlertDialogTitle className="text-xl font-semibold">
-            모의교육이 종료되었습니다.
+            주식 튜토리얼이 종료되었습니다.
           </AlertDialogTitle>
           <AlertDialogDescription className="mt-2 text-sm text-gray-400">
-            모의교육 결과는 마이페이지에서 전체 확인이 가능합니다.
+            주식 튜토리얼 결과는 마이페이지에서 전체 확인이 가능합니다.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-4 flex justify-between sm:justify-between">
@@ -68,7 +68,7 @@ const TutorialEndModal = ({
             onClick={onEndTutorialClick}
             className="flex-1 ml-2 bg-[#4A90E2] hover:bg-[#5AA0F2] text-white border-none"
           >
-            교육 종료하기
+            튜토리얼 종료하기
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
