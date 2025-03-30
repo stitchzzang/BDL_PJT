@@ -11,15 +11,9 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        flash: {
-          '0%': { backgroundColor: 'transparent' },
-          '50%': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-          '100%': { backgroundColor: 'transparent' },
-        },
       },
       animation: {
         fadeIn: 'fadeIn 300ms ease-in forwards',
-        flash: 'flash 1s ease-in-out',
       },
       colors: {
         'primary-color': '#3485FA',
