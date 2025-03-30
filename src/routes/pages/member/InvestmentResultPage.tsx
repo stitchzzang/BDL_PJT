@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
 import { addCommasToThousand, roundToTwoDecimalPlaces } from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
@@ -64,31 +65,41 @@ export const InvestmentResultPage = () => {
       </div>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3">
-          <Badge variant="increase">
+          <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'increase'}>
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span className="text-sm text-btn-blue-color">
+            <span
+              className={`text-sm ${getChangeRateColorClass(accountSummary?.totalProfitRate ?? 0)}`}
+            >
               {accountSummary?.totalProfitRate
                 ? roundToTwoDecimalPlaces(accountSummary?.totalProfitRate)
                 : '0'}
               %
             </span>
           </Badge>
-          <Badge variant="main">
+          <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            {accountSummary?.totalProfit ? addCommasToThousand(accountSummary?.totalProfit) : '0'}
+            <span className={`${getChangeRateColorClass(accountSummary?.totalProfit ?? 0)}`}>
+              {accountSummary?.totalProfit ? addCommasToThousand(accountSummary?.totalProfit) : '0'}
+            </span>
           </Badge>
-          <Badge variant="decrease">
+          <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span className="text-sm text-btn-red-color">
+            <span
+              className={`text-sm ${getChangeRateColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
+            >
               {accountSummary?.dailyProfitRate
                 ? roundToTwoDecimalPlaces(accountSummary?.dailyProfitRate)
                 : '0'}
               %
             </span>
           </Badge>
-          <Badge variant="main">
+          <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            {accountSummary?.dailyProfit ? addCommasToThousand(accountSummary?.dailyProfit) : '0'}
+            <span
+              className={`text-sm ${getChangeRateColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
+            >
+              {accountSummary?.dailyProfit ? addCommasToThousand(accountSummary?.dailyProfit) : '0'}
+            </span>
           </Badge>
         </div>
         <div className="flex flex-row gap-3">
