@@ -3,6 +3,9 @@ import ReactECharts from 'echarts-for-react';
 import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { _ky } from '@/api/instance';
+import { useStockMinuteDataCursor } from '@/api/stock.api';
+
 // 타입 정의
 interface StockMinuteData {
   stockCandleMinuteId: number;
@@ -29,11 +32,11 @@ interface StockMinuteDefaultData {
   data: StockMinuteData[];
 }
 
-interface ApiResponse {
+interface ApiResponse<T> {
   isSuccess: boolean;
   code: number;
   message: string;
-  result: StockMinuteDefaultData;
+  result: T;
 }
 
 // 차트 데이터 포인트 타입
@@ -81,50 +84,21 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
     end: DEFAULT_DATA_ZOOM_END,
   });
   const chartRef = useRef<ReactECharts>(null);
-  const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const [curserData, setCurserData] = useState<string | undefined>('0');
+  // const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [cursorValue, setCursorValue] = useState<string>('0');
 
-  // 초기 데이터 설정
+  // 커서 페이지네이션을 위한 변수
+  const [cursorForQuery, setCursorForQuery] = useState<string | undefined>(initialData?.cursor);
+  const [hasLoadedAdditionalData, setHasLoadedAdditionalData] = useState(false);
+
+  // 2. 초기 데이터 설정 - 커서 값도 함께 업데이트
   useEffect(() => {
-    setMinuteData(initialData);
-    setCurserData(initialData?.cursor);
-  }, [initialData]);
-
-  // 추가 데이터 로드 함수
-  const loadMoreData = useCallback(async () => {
-    // 로드 가능 여부 확인
-    if (!onLoadMoreData || !minuteData?.cursor || isLoadingMore) return;
-
-    try {
-      // 로딩 상태 설정
-      setIsLoadingMore(true);
-      setLoading(true);
-
-      const moreData = await onLoadMoreData(minuteData.cursor);
-
-      if (moreData) {
-        // 이전 데이터에 새 데이터 추가
-        setMinuteData((prev) => {
-          if (!prev) {
-            // prev가 undefined인 경우 그냥 새 데이터 반환
-            return moreData;
-          }
-
-          return {
-            ...moreData,
-            data: [...prev.data, ...moreData.data],
-          };
-        });
-      }
-    } catch (err) {
-      setError('추가 데이터 로딩 중 오류 발생');
-      console.error('추가 데이터 로딩 오류:', err);
-    } finally {
-      setLoading(false);
-      setIsLoadingMore(false);
+    if (initialData) {
+      setMinuteData(initialData);
+      setCursorValue(initialData.cursor);
+      console.log('초기 커서값 설정:', cursorValue);
     }
-  }, [onLoadMoreData, minuteData?.cursor, isLoadingMore]);
-
+  }, [initialData]);
   // 분봉 데이터를 차트 데이터 포인트로 변환
   const convertMinuteDataToChartData = useCallback((data: StockMinuteData): ChartDataPoint => {
     return {
@@ -340,31 +314,67 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
   );
 
   // 데이터 줌 이벤트 처리
-  // 컴포넌트 내부
   const handleDataZoomChange = useCallback(
     debounce((params: any) => {
       if (!params) return;
       if (params.start === undefined || params.start === null) return;
       if (params.end === undefined || params.end === null) return;
+
       // 데이터 줌 범위 저장
       setDataZoomRange({
         start: params.start,
         end: params.end,
       });
 
-      // 왼쪽 경계에 도달했을 때 더 많은 데이터 로드
-      if (params.start <= 5 && !isLoadingMore && onLoadMoreData) {
-        loadMoreData();
+      // 왼쪽 경계에 도달했고 아직 추가 데이터를 로드하지 않았을 때만 요청
+      if (params.start <= 5 && !hasLoadedAdditionalData) {
         console.log('추가 데이터 로드 요청');
-      }
-      if (params.start <= 5) {
-        console.log('끝점');
-      }
-    }, 300), // 300ms 디바운스
-    [loadMoreData, isLoadingMore, onLoadMoreData],
-  );
+        console.log(cursorValue);
 
-  // 차트 옵션 설정
+        // 가장 오래된 데이터의 시간을 커서로 사용
+
+        // 직접 _ky 사용하여 API 호출
+        _ky
+          .get(`stocks/${1}/minute`, {
+            searchParams: {
+              cursor: cursorValue,
+              limit: 50,
+            },
+          })
+          .json<ApiResponse<StockMinuteDefaultData>>()
+          .then((response) => {
+            // 응답 처리
+            const newData = response.result;
+
+            // 응답 데이터 확인
+            console.log('받은 새 데이터:', newData);
+
+            // 기존 데이터와 새 데이터 병합
+            setMinuteData((prevData) => {
+              if (!prevData) return newData;
+
+              // 두 데이터 세트 병합
+              return {
+                ...newData,
+                data: [...newData.data, ...prevData.data], // 새 데이터를 앞에 추가
+                cursor: newData.cursor, // 새 cursor 값으로 업데이트
+              };
+            });
+
+            // 새 커서 값 업데이트
+            setCursorValue(newData.cursor);
+
+            // 플래그 설정으로 중복 요청 방지
+            setHasLoadedAdditionalData(true);
+          })
+          .catch((error) => {
+            console.error('추가 데이터 로드 실패:', error);
+            console.log('현재 커서는', cursorValue);
+          });
+      }
+    }, 300),
+    [onLoadMoreData, hasLoadedAdditionalData, cursorValue],
+  );
   // 차트 옵션 설정
   const option: EChartsOption = useMemo(() => {
     // 최신 캔들 데이터 가져오기 (배열의 마지막 요소) - 안전하게 체크
@@ -724,7 +734,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
         <div className="flex items-center gap-4 p-4 text-sm text-white">
           <div className="mr-auto">
             <h3 className="text-lg font-bold">분봉 차트</h3>
-            <p>{curserData}</p>
+            <p>{cursorValue} 현재 커서</p>
           </div>
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}
