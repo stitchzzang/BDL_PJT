@@ -4,7 +4,6 @@ import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { _ky } from '@/api/instance';
-import { useStockMinuteDataCursor } from '@/api/stock.api';
 
 // 타입 정의
 interface StockMinuteData {
@@ -364,8 +363,12 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
             // 새 커서 값 업데이트
             setCursorValue(newData.cursor);
 
-            // 플래그 설정으로 중복 요청 방지
-            setHasLoadedAdditionalData(true);
+            // 새 데이터가 추가되었으므로 표시 범위 조정
+            console.log('시작값 변경');
+            setDataZoomRange({
+              start: 10,
+              end: params.end,
+            });
           })
           .catch((error) => {
             console.error('추가 데이터 로드 실패:', error);
