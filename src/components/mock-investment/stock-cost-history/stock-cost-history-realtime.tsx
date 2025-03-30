@@ -15,10 +15,11 @@ export const StockCostHistoryRealTime = ({
   return (
     <div>
       {!tickDataLists.length ? (
-        <div className="flex h-full w-full items-center justify-center">
-          <h1>
-            <ChartLoadingAnimation />
-          </h1>
+        <div className="flex h-full w-full flex-col items-center justify-center">
+          <ChartLoadingAnimation />
+          <div>
+            <h1>현재 장 시간이 아닙니다.</h1>
+          </div>
         </div>
       ) : (
         <div className="w-full">
