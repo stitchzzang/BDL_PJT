@@ -4,7 +4,6 @@ import NoneLogo from '/none-img/none-logo.png';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
 import { useGetCompaniesByCategory } from '@/api/category.api';
-import { Company } from '@/api/types/category';
 
 export const SelectPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('0');
@@ -36,9 +35,6 @@ export const SelectPage = () => {
         </div>
       </div>
       <div className="mt-[50px] flex flex-col items-center gap-4 w-full">
-        {/* <p className="text-[16px] text-center text-gray-400">
-          카테고리 선택으로도 검색이 가능합니다.
-        </p> */}
         {isLoadingData ? (
           <div className="flex justify-center items-center h-20">
             <p className="text-[16px]">기업 목록을 불러오는 중...</p>
