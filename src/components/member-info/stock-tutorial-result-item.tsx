@@ -12,7 +12,7 @@ interface StockTutorialResultItemProps {
 
 export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps) => {
   return (
-    <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3">
+    <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3 hover:bg-modal-background-color/50">
       <div className="flex flex-row items-center gap-4">
         <img
           src="https://placehold.co/50x50"
