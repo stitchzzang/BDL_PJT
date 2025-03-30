@@ -8,7 +8,7 @@ import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-ne
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
 import ChartComponent from '@/components/ui/chart';
 import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,17 +80,23 @@ export const SimulatePage = () => {
   const navigate = useNavigate();
   const h3Style = 'text-[20px] font-bold';
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [finalChangeRate, setFinalChangeRate] = useState(32.2);
+  const [finalChangeRate, setFinalChangeRate] = useState(0);
+  const [progress, setProgress] = useState(0);
 
-  const handleOpenModal = () => {
-    setFinalChangeRate(32.2);
-    setIsModalOpen(true);
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setProgress(100);
+    }, 3000);
 
-  const handleOpenNegativeModal = () => {
-    setFinalChangeRate(-15.8);
-    setIsModalOpen(true);
-  };
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (progress === 100) {
+      setFinalChangeRate(32.2);
+      setIsModalOpen(true);
+    }
+  }, [progress]);
 
   const handleNavigateToResult = () => {
     navigate('/member/stock-tutorial-result');
@@ -104,14 +110,6 @@ export const SimulatePage = () => {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="my-4 flex gap-4">
-        <Button onClick={handleOpenModal} variant="secondary">
-          임시: 튜토리얼 종료 (수익 +)
-        </Button>
-        <Button onClick={handleOpenNegativeModal} variant="destructive">
-          임시: 튜토리얼 종료 (수익 -)
-        </Button>
-      </div>
       <div>
         <StockTutorialInfo category={'반도체'} />
         <div className="my-[25px]">
