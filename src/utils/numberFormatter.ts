@@ -50,3 +50,12 @@ export const formatKoreanMoney = (amount: number): string => {
     return amount.toLocaleString();
   }
 };
+
+/**
+ * 소수점 둘째자리까지 반올림하여 반환합니다.
+ * @param value - 변환할 숫자
+ * @returns 소수점 둘째자리까지 반올림된 숫자
+ */
+export const roundToTwoDecimalPlaces = (value: number): number => {
+  return Math.round(value * 100) / 100;
+};

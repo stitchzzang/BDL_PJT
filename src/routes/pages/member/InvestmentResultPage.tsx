@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import { addCommasToThousand, roundToTwoDecimalPlaces } from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
   const { data: accountSummary } = useGetAccountSummary('1');
@@ -52,7 +52,9 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-row gap-3">
           <Badge variant="increase">
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span className="text-sm text-btn-blue-color">{accountSummary?.totalProfitRate}%</span>
+            <span className="text-sm text-btn-blue-color">
+              {roundToTwoDecimalPlaces(accountSummary?.totalProfitRate)}%
+            </span>
           </Badge>
           <Badge variant="main">
             <span className="mr-1 text-sm text-border-color">총 수익:</span>
@@ -60,7 +62,9 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge variant="decrease">
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span className="text-sm text-btn-red-color">{accountSummary?.dailyProfitRate}%</span>
+            <span className="text-sm text-btn-red-color">
+              {roundToTwoDecimalPlaces(accountSummary?.dailyProfitRate)}%
+            </span>
           </Badge>
           <Badge variant="main">
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
@@ -122,14 +126,14 @@ export const InvestmentResultPage = () => {
           {accountSummary?.accounts.map((account) => (
             <TableRow key={account.companyId}>
               <TableCell>{account.companyName}</TableCell>
-              <TableCell>{account.profitRate}%</TableCell>
+              <TableCell>{roundToTwoDecimalPlaces(account.profitRate)}%</TableCell>
               <TableCell>{addCommasToThousand(account.profit)}</TableCell>
               <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
               <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
               <TableCell>{account.stockCnt}</TableCell>
               <TableCell>{addCommasToThousand(account.evaluation)}</TableCell>
               <TableCell>{addCommasToThousand(account.investment)}</TableCell>
-              <TableCell>{account.dailyProfitRate}%</TableCell>
+              <TableCell>{roundToTwoDecimalPlaces(account.dailyProfitRate)}%</TableCell>
               <TableCell>{addCommasToThousand(account.dailyProfit)}</TableCell>
             </TableRow>
           ))}
