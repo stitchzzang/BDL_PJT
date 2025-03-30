@@ -18,6 +18,8 @@ const badgeVariants = cva(
         increase: 'bg-btn-red-color/20',
         decrease: 'bg-btn-blue-color/20',
         zero: 'bg-btn-primary-active-color/20',
+        'increase-flash': 'animate-flash bg-btn-red-color/50',
+        'decrease-flash': 'animate-flash bg-btn-blue-color/50',
       },
     },
     defaultVariants: {
