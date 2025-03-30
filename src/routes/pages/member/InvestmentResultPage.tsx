@@ -71,9 +71,7 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-row gap-3">
           <Badge variant={accountSummary?.totalProfitRate === 0 ? 'zero' : 'increase'}>
             <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span
-              className={`text-sm ${addStockValueColorClass(accountSummary?.totalProfitRate ?? 0)}`}
-            >
+            <span className={`${addStockValueColorClass(accountSummary?.totalProfitRate ?? 0)}`}>
               {accountSummary?.totalProfitRate
                 ? `${plusMinusSign(accountSummary?.totalProfitRate)} ${roundToTwoDecimalPlaces(
                     accountSummary?.totalProfitRate,
@@ -94,9 +92,7 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'decrease'}>
             <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span
-              className={`text-sm ${addStockValueColorClass(accountSummary?.dailyProfitRate ?? 0)}`}
-            >
+            <span className={`${addStockValueColorClass(accountSummary?.dailyProfitRate ?? 0)}`}>
               {accountSummary?.dailyProfitRate
                 ? `${plusMinusSign(accountSummary?.dailyProfitRate)} ${roundToTwoDecimalPlaces(
                     accountSummary?.dailyProfitRate,
@@ -107,9 +103,7 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge variant={accountSummary?.dailyProfitRate === 0 ? 'zero' : 'main'}>
             <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            <span
-              className={`text-sm ${addStockValueColorClass(accountSummary?.dailyProfit ?? 0)}`}
-            >
+            <span className={`${addStockValueColorClass(accountSummary?.dailyProfit ?? 0)}`}>
               {accountSummary?.dailyProfit
                 ? `${plusMinusSign(accountSummary?.dailyProfit)} ${addCommasToThousand(
                     accountSummary?.dailyProfit,
