@@ -114,7 +114,7 @@ export const SelectPage = () => {
 
       {/* 기업 선택 완료 모달 */}
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent className="bg-[#121729] text-white border-none rounded-2xl max-w-md mx-auto p-0 overflow-hidden">
+        <AlertDialogContent className="bg-[#121729] text-white border-none rounded-2xl max-w-lg mx-auto p-0 overflow-hidden">
           <AlertDialogHeader className="flex flex-col items-center text-center p-10">
             <AlertDialogTitle className="text-[28px] font-bold mb-8">
               기업 선택 완료
