@@ -10,7 +10,7 @@ import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { StockCostHistory } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
-import { ChartConstainer } from '@/components/ui/chart-container';
+import { ChartContainer } from '@/components/ui/chart-container';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { TickChart } from '@/components/ui/tick-chart';
 import { TickCandleChart } from '@/components/ui/tick-chart2';
@@ -114,7 +114,7 @@ export const SimulatedInvestmentPage = () => {
             </div>
           ) : (
             <div className="">
-              <ChartConstainer initialData={minuteData} />
+              <ChartContainer initialData={minuteData} />
             </div>
           )}
         </div>

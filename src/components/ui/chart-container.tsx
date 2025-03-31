@@ -46,7 +46,7 @@ interface MinuteChartProps {
   initialData?: StockMinuteDefaultData; // 부모 컴포넌트에서 받는 초기 데이터
 }
 
-export const ChartConstainer = ({ initialData }: MinuteChartProps) => {
+export const ChartContainer = ({ initialData }: MinuteChartProps) => {
   return (
     <div>
       <div>

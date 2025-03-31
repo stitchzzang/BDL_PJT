@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-import { ChartConstainer } from '@/components/ui/chart-container';
+import { ChartContainer } from '@/components/ui/chart-container';
 import { AlgorithmLabLayout } from '@/layouts/AlgorithmLabLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import { MemberLayout } from '@/layouts/MemberLayout';
@@ -151,7 +151,7 @@ export const router = createBrowserRouter([
       },
       {
         path: '/test',
-        element: <ChartConstainer />,
+        element: <ChartContainer />,
       },
     ],
   },
