@@ -307,9 +307,15 @@ export const InvestmentResultPage = () => {
           {displayData?.accounts.length && displayData?.accounts.length > 0 ? (
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
-                <TableCell>{account.companyName}</TableCell>
                 <TableCell>
-                  <img src={account.companyImage} alt="companyIcon" />
+                  <div className="flex flex-row items-center gap-2">
+                    <img
+                      src={account.companyImage}
+                      alt="companyIcon"
+                      className="h-10 w-10 rounded-full"
+                    />
+                    {account.companyName}
+                  </div>
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
