@@ -17,7 +17,6 @@ interface CompanyProfileResponse {
 }
 
 interface StockInfoProps {
-  category: CategoryName | string;
   companyId: number;
 }
 
@@ -39,7 +38,7 @@ const CATEGORY_MAPPING: Record<string, CategoryName> = {
   바이오: '바이오',
 };
 
-export const StockTutorialInfo = ({ category, companyId }: StockInfoProps) => {
+export const StockTutorialInfo = ({ companyId }: StockInfoProps) => {
   const [startTutorial, setStartTutorial] = useState<boolean>(true);
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);

@@ -15,67 +15,60 @@ import {
   TutorialResultSaveRequest,
 } from '@/api/types/tutorial';
 
-// API 기본 URL 설정
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-
 export const tutorialAPI = {
   // 변곡점 탐색
   detectPoints: (companyId: number) =>
-    _ky
-      .post(`${API_BASE_URL}/tutorial/points/detect?companyId=${companyId}`)
-      .json<ApiResponse<void>>(),
+    _ky.post(`tutorial/points/detect?companyId=${companyId}`).json<ApiResponse<void>>(),
 
   // 변곡점 TOP 3 조회
   getTop3Points: (companyId: number) =>
     _ky
-      .get(`${API_BASE_URL}/tutorial/points/top3?companyId=${companyId}`)
+      .get(`tutorial/points/top3?companyId=${companyId}`)
       .json<ApiResponse<{ PointResponseList: Point[] }>>(),
 
   // 모든 변곡점 조회 (테스트용)
-  getAllPoints: () => _ky.get(`${API_BASE_URL}/tutorial/points`).json<ApiResponse<Point[]>>(),
+  getAllPoints: () => _ky.get('tutorial/points').json<ApiResponse<Point[]>>(),
 
   // 튜토리얼 세션 초기화
   initTutorial: (data: TutorialInitRequest) =>
-    _ky.post(`${API_BASE_URL}/tutorial/init`, { json: data }).json<ApiResponse<void>>(),
+    _ky.post('tutorial/init', { json: data }).json<ApiResponse<void>>(),
 
   // 튜토리얼 세션 끊기
   deleteSession: (memberId: number) =>
-    _ky.get(`${API_BASE_URL}/tutorial/session/delete/${memberId}`).json<ApiResponse<void>>(),
+    _ky.get(`tutorial/session/delete/${memberId}`).json<ApiResponse<void>>(),
 
   // 사용자 행동, 일봉 계산 결과 리스트
   postAction: (memberId: number, data: TutorialActionRequest) =>
-    _ky
-      .post(`${API_BASE_URL}/tutorial/${memberId}/action`, { json: data })
-      .json<ApiResponse<AssetResponse[]>>(),
+    _ky.post(`tutorial/${memberId}/action`, { json: data }).json<ApiResponse<AssetResponse[]>>(),
 
   // 뉴스 (교육용)
   getCurrentNews: (data: NewsRequest) =>
     _ky
-      .post(`${API_BASE_URL}/tutorial/news/current`, { json: data })
+      .post('tutorial/news/current', { json: data })
       .json<ApiResponse<NewsResponseWithThumbnail>>(),
 
   // 뉴스 리스트 (변곡점 사이)
   getPastNews: (data: NewsRequest) =>
     _ky
-      .post(`${API_BASE_URL}/tutorial/news/past`, { json: data })
+      .post('tutorial/news/past', { json: data })
       .json<ApiResponse<{ NewsResponse: NewsResponse[] }>>(),
 
   // 뉴스 코멘트
   getNewsComment: (data: NewsRequest) =>
-    _ky.post(`${API_BASE_URL}/tutorial/news/comment`, { json: data }).json<ApiResponse<string>>(),
+    _ky.post('tutorial/news/comment', { json: data }).json<ApiResponse<string>>(),
 
   // 튜토리얼 피드백
   getTutorialFeedback: (memberId: number) =>
-    _ky.get(`${API_BASE_URL}/tutorial/result/feedback/${memberId}`).json<ApiResponse<string>>(),
+    _ky.get(`tutorial/result/feedback/${memberId}`).json<ApiResponse<string>>(),
 
   // 튜토리얼 결과 저장
   saveTutorialResult: (data: TutorialResultSaveRequest) =>
-    _ky.post(`${API_BASE_URL}/tutorial/result/save`, { json: data }).json<ApiResponse<void>>(),
+    _ky.post('tutorial/result/save', { json: data }).json<ApiResponse<void>>(),
 
   // 멤버별 튜토리얼 결과 리스트
   getTutorialResults: (memberId: number) =>
     _ky
-      .get(`${API_BASE_URL}/tutorial/result/${memberId}`)
+      .get(`tutorial/result/${memberId}`)
       .json<ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>>(),
 };
 
@@ -168,5 +161,16 @@ export const useGetTutorialResults = (memberId: number) => {
   return useQuery<{ TutorialResultResponse: TutorialResultResponse[] }>({
     queryKey: ['tutorial', 'results', memberId],
     queryFn: () => tutorialAPI.getTutorialResults(memberId).then((res) => res.result),
+  });
+};
+export const tutorialApi = {
+  getTutorialResults: ({ memberId }: { memberId: string }) =>
+    _ky.get<ApiResponse<TutorialResultResponse[]>>(`tutorial/result/${memberId}`).json(),
+};
+
+export const useTutorialResults = ({ memberId }: { memberId: string }) => {
+  return useQuery({
+    queryKey: ['tutorialResults', memberId],
+    queryFn: () => tutorialApi.getTutorialResults({ memberId }).then((res) => res.result),
   });
 };

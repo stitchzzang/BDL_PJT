@@ -5,10 +5,15 @@ import { _ky } from '@/api/instance';
 import { Category, Company } from '@/api/types/category';
 import { ApiResponse } from '@/api/types/common';
 
+// Define the specific response structure for companies by category
+interface CompaniesByCategoryResponse {
+  companyList: Company[];
+}
+
 export const categoryAPI = {
   getCategoryList: () => _ky.get('category').json<ApiResponse<Category[]>>(),
   getCompaniesByCategory: (categoryId: string) =>
-    _ky.get(`category/${categoryId}`).json<ApiResponse<Company[]>>(),
+    _ky.get(`category/${categoryId}`).json<ApiResponse<CompaniesByCategoryResponse>>(), // Expect the nested structure
 };
 
 export const useGetCategoryList = () => {
@@ -20,7 +25,9 @@ export const useGetCategoryList = () => {
 
 export const useGetCompaniesByCategory = (categoryId: string) => {
   return useQuery<Company[]>({
+    // The hook still returns Company[]
     queryKey: ['categories', categoryId, 'companies'],
-    queryFn: () => categoryAPI.getCompaniesByCategory(categoryId).then((res) => res.result),
+    queryFn: () =>
+      categoryAPI.getCompaniesByCategory(categoryId).then((res) => res.result.companyList), // Extract companyList
   });
 };
