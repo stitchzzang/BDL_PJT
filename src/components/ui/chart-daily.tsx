@@ -3,6 +3,7 @@ import ReactECharts from 'echarts-for-react';
 import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { _ky } from '@/api/instance';
 import { useStockDailyData } from '@/api/stock.api';
 
 // 타입 정의
@@ -465,12 +466,57 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         }
       }
 
-      // 왼쪽 경계에 도달했을 때 추가 데이터 로드
-      if (start <= 5) {
-        alert('hello');
+      // 왼쪽 경계에 도달했고 아직 추가 데이터가 있으며 로딩 중이 아닐 때만 요청
+      if (start <= 5 && hasMoreData && !loading) {
+        console.log('추가 데이터 로드 요청');
+        console.log(cursorValue);
+
+        // 직접 _ky 사용하여 API 호출
+        _ky
+          .get(`stocks/${1}/daily`, {
+            searchParams: {
+              periodType: 1,
+              cursor: cursorValue,
+              limit: 50,
+            },
+          })
+          .json<ApiResponse<StockPeriodDefaultData>>()
+          .then((response) => {
+            // 응답 처리
+            const newData = response.result;
+
+            // 응답 데이터 확인
+            console.log('받은 새 데이터:', newData);
+
+            // 기존 데이터와 새 데이터 병합
+            setChartData((prevData) => {
+              if (!prevData) return newData;
+
+              // 두 데이터 세트 병합
+              return {
+                ...newData,
+                data: [...prevData.data, ...newData.data], // 새 데이터를 앞에 추가
+                cursor: newData.cursor, // 새 cursor 값으로 업데이트
+              };
+            });
+
+            // 새 커서 값 업데이트
+            setCursorValue(newData.cursor);
+
+            // 새 데이터가 추가되었으므로 표시 범위 조정
+            console.log('시작값 변경');
+            setDataZoomRange({
+              start: start + 10,
+              end: end + 10,
+            });
+          })
+          .catch((error) => {
+            console.error('추가 데이터 로드 실패:', error);
+            console.log('현재 커서는', cursorValue);
+          });
       }
     }, 300),
-    [getVisibleDataRange, hasMoreData, loading],
+    [getVisibleDataRange, hasMoreData, loading, cursorValue],
   );
 
   // useEffect: 데이터가 변경될 때마다 Y축 범위 업데이트
