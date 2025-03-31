@@ -4,7 +4,6 @@ import { debounce, throttle } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { _ky } from '@/api/instance';
-import { useStockMinuteData } from '@/api/stock.api';
 
 // 타입 정의
 interface StockMinuteData {
@@ -133,10 +132,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   onLoadMoreData,
   TickData,
 }) => {
-  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 100);
-  const [useMinuteData, setUseMinuteData] = useState<StockMinuteDefaultData | undefined>(
-    initialData,
-  );
+  const [minuteData, setMinuteData] = useState<StockMinuteDefaultData | undefined>(initialData);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [dataZoomRange, setDataZoomRange] = useState({
@@ -153,11 +149,11 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
 
   // 2. 초기 데이터 설정 - 커서 값도 함께 업데이트
   useEffect(() => {
-    if (minuteData) {
-      setUseMinuteData(minuteData);
-      setCursorValue(minuteData.cursor);
+    if (initialData) {
+      setMinuteData(initialData);
+      setCursorValue(initialData.cursor);
     }
-  }, [initialData, minuteData]);
+  }, [initialData]);
   // 시간 조정을 위한 유틸리티 함수 추가
   const addNineHours = (date: Date): Date => {
     const newDate = new Date(date);
@@ -462,7 +458,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             console.log('받은 새 데이터:', newData);
 
             // 기존 데이터와 새 데이터 병합
-            setUseMinuteData((prevData) => {
+            setMinuteData((prevData) => {
               if (!prevData) return newData;
 
               // 두 데이터 세트 병합
@@ -624,7 +620,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     }
 
     // 2. 상태 업데이트 (데이터 상태 관리)
-    setUseMinuteData((prev) => {
+    setMinuteData((prev) => {
       if (!prev || !prev.data || prev.data.length === 0) return prev;
 
       // 마지막 항목만 업데이트한 새 배열 생성
@@ -1188,10 +1184,6 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     <div className="relative">
       <div className="bg-modal-background-color">
         <div className="flex items-center gap-4 p-4 text-sm text-white">
-          <div className="mr-auto">
-            {/* 디버깅 정보 추가 */}
-            <p>현재 가격: {TickData?.stckPrpr}</p>
-          </div>
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}
         </div>
