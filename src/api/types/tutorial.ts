@@ -122,6 +122,7 @@ export interface TutorialResultSaveRequest {
 export interface TutorialResultResponse {
   tutorialResultId: number;
   companyId: number;
+  companyImage: string;
   companyName: string;
   startMoney: number;
   endMoney: number;
