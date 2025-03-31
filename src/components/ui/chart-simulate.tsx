@@ -100,7 +100,7 @@ const FALL_COLOR = '#1976d2'; // 하락 색상 (파란색)
 const DEFAULT_DATA_ZOOM_START = 50; // 데이터줌 시작 위치
 const DEFAULT_DATA_ZOOM_END = 100; // 데이터줌 종료 위치
 const EMPTY_DATA_COUNT = 10; // 빈 데이터 개수 (여백용)
-const Y_AXIS_MARGIN_PERCENT = 5; // Y축 여백 비율 (%)
+const Y_AXIS_MARGIN_PERCENT = 25; // Y축 여백 비율 (%)
 
 // 커스텀 비교 함수 - 실제로 props가 변경되었는지 확인
 const arePropsEqual = (prevProps: MinuteChartProps, nextProps: MinuteChartProps) => {
@@ -247,8 +247,21 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
     const endIdx = Math.min(dataLength - 1, Math.floor((dataLength * dataZoomRange.end) / 100));
 
-    // 현재 보이는 데이터 추출
-    const visibleData = chartData.slice(startIdx, endIdx + 1);
+    // 추가: 표시 범위보다 더 넓은 범위를 계산에 사용 (앞뒤로 20% 더 확장)
+    const visibleRange = endIdx - startIdx;
+    const extraRange = Math.ceil(visibleRange * 0.9); // 표시되는 영역의 20%를 추가로 고려
+
+    const expandedStartIdx = Math.max(0, startIdx - extraRange);
+    const expandedEndIdx = Math.min(dataLength - 1, endIdx + extraRange);
+
+    console.log('범위 확장:', {
+      원래범위: `${startIdx}-${endIdx} (${endIdx - startIdx + 1}개)`,
+      확장범위: `${expandedStartIdx}-${expandedEndIdx} (${expandedEndIdx - expandedStartIdx + 1}개)`,
+      추가확장: extraRange,
+    });
+
+    // 확장된 범위의 데이터 추출
+    const visibleData = chartData.slice(expandedStartIdx, expandedEndIdx + 1);
 
     // 빈 데이터나 무효한 가격 제외
     const prices = visibleData
@@ -263,6 +276,16 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
 
     // 여백 추가 (범위의 Y_AXIS_MARGIN_PERCENT %)
     const margin = range * (Y_AXIS_MARGIN_PERCENT / 100);
+
+    console.log('Y축 범위 계산:', {
+      최소값: min,
+      최대값: max,
+      범위: range,
+      여백: margin,
+      최종최소값: Math.max(0, min - margin),
+      최종최대값: max + margin,
+    });
+
     return {
       min: Math.max(0, min - margin),
       max: max + margin,
@@ -880,6 +903,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           top: '5%',
           height: '50%',
           containLabel: false,
+          clipOverflow: true, // 그리드 오버플로우 클리핑 추가
         },
         {
           left: '5%',
@@ -887,6 +911,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           top: '65%',
           height: '15%',
           containLabel: false,
+          clipOverflow: true, // 그리드 오버플로우 클리핑 추가
         },
       ],
       xAxis: [
@@ -1071,6 +1096,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           name: '캔들',
           type: 'candlestick',
           data: candleData,
+          clip: true, // 그리드 영역을 벗어나는 요소를 잘라냅니다
           itemStyle: {
             color: RISE_COLOR,
             color0: FALL_COLOR,
@@ -1120,6 +1146,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
         {
           name: '거래량',
           type: 'bar',
+          clip: true,
           xAxisIndex: 1,
           yAxisIndex: 1,
           data: volumeData,
@@ -1130,6 +1157,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
         {
           name: '5이평선',
           type: 'line',
+          clip: true,
           data: ema5Data,
           smooth: true,
           lineStyle: {
@@ -1147,6 +1175,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
         {
           name: '20이평선',
           type: 'line',
+          clip: true,
           data: ema20Data,
           smooth: true,
           lineStyle: {
