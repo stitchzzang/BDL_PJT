@@ -15,6 +15,33 @@ export interface StockMinuteData {
   fiveAverage: number; // 5 이평선
   twentyAverage: number; // 20 이평선
 }
+// 일,주,월
+// 타입 정의
+export interface StockPeriodData {
+  stockCandleId: number;
+  companyId: string;
+  openPrice: number;
+  openPricePercent: number;
+  highPrice: number;
+  highPricePercent: number;
+  lowPrice: number;
+  lowPricePercent: number;
+  closePrice: number;
+  closePricePercent: number;
+  accumulatedVolume: number;
+  accumulatedTradeAmount: number;
+  tradingDate: string;
+  periodType: number; // 1: 일봉, 2: 주봉, 3: 월봉
+  fiveAverage: number;
+  twentyAverage: number;
+}
+
+export interface StockPeriodDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockPeriodData[];
+}
 
 export interface StockMinuteDefaultData {
   companyId: string;
