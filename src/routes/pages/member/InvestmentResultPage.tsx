@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
-import { AccountResponse } from '@/api/types/member';
+import { AccountSummaryResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import {
@@ -36,7 +36,7 @@ import {
 export const InvestmentResultPage = () => {
   const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
-  const [accountData, setAccountData] = useState<AccountResponse[]>([]);
+  const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
   const [realTimeData, setRealTimeData] = useState(accountSummary);
   const [prevData, setPrevData] = useState(accountSummary);
   const [isFlashing, setIsFlashing] = useState(false);
@@ -57,11 +57,9 @@ export const InvestmentResultPage = () => {
       // 웹소켓으로 받은 데이터로 accountSummary 업데이트
       const updatedAccounts = accountSummary.accounts.map((account) => {
         // accountData가 배열이 아닐 경우를 처리
-        const realTimeAccount = Array.isArray(accountData)
-          ? accountData.find((rt) => rt.companyId === account.companyId)
-          : (accountData as AccountResponse).companyId === account.companyId
-            ? accountData
-            : null;
+        const realTimeAccount = accountData.accounts.find(
+          (rt) => rt.companyId === account.companyId,
+        );
 
         if (realTimeAccount) {
           return {
@@ -78,12 +76,9 @@ export const InvestmentResultPage = () => {
       });
 
       // 총 자산, 평가금액, 현금 업데이트
-      const totalEvaluation = updatedAccounts.reduce((sum, account) => sum + account.evaluation, 0);
-      const totalProfit = updatedAccounts.reduce((sum, account) => sum + account.profit, 0);
-      const totalDailyProfit = updatedAccounts.reduce(
-        (sum, account) => sum + account.dailyProfit,
-        0,
-      );
+      const totalEvaluation = accountData.totalEvaluation;
+      const totalProfit = accountData.totalProfit;
+      const totalDailyProfit = accountData.dailyProfit;
 
       const newData = {
         ...accountSummary,
@@ -91,7 +86,9 @@ export const InvestmentResultPage = () => {
         totalEvaluation,
         totalProfit,
         dailyProfit: totalDailyProfit,
-        totalAsset: accountSummary.totalCash + totalEvaluation,
+        totalProfitRate: accountData.totalProfitRate,
+        dailyProfitRate: accountData.dailyProfitRate,
+        totalAsset: accountData.totalAsset,
       };
 
       setIsFlashing(true);
