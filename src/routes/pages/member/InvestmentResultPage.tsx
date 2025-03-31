@@ -302,6 +302,9 @@ export const InvestmentResultPage = () => {
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
                 <TableCell>{account.companyName}</TableCell>
+                <TableCell>
+                  <img src={account.companyImage} alt="companyIcon" />
+                </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
                     isFlashing &&
