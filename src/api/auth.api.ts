@@ -19,7 +19,7 @@ export const authApi = {
   logout: () => _kyAuth.post('member/logout', {}).json<ApiResponse<void>>(),
   signup: (data: SignupRequest) =>
     _ky
-      .post('member/register', {
+      .post('auth/signup', {
         json: data,
       })
       .json<ApiResponse<void>>(),
