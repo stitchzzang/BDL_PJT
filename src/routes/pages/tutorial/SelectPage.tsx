@@ -1,21 +1,19 @@
-import { useState } from 'react';
 import { format } from 'date-fns';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import NoneLogo from '/none-img/none-logo.png';
 import { useGetCompaniesByCategory } from '@/api/category.api';
-import { TutorialAnimation } from '@/components/common/tutorial-animation';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
+import { TutorialAnimation } from '@/components/common/tutorial-animation';
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useNavigate } from 'react-router-dom';
 
 export const SelectPage = () => {
   const navigate = useNavigate();
@@ -83,18 +81,18 @@ export const SelectPage = () => {
           <CategoryList setCategoryId={setSelectedCategory} activeCategoryId={selectedCategory} />
         </div>
       </div>
-      <div className="mt-[50px] flex flex-col items-center gap-4 w-full">
+      <div className="mt-[50px] flex w-full flex-col items-center gap-4">
         {isLoadingData ? (
-          <div className="flex justify-center items-center h-20">
+          <div className="flex h-20 items-center justify-center">
             <p className="text-[16px]">기업 목록을 불러오는 중...</p>
           </div>
         ) : isError ? (
-          <div className="flex flex-col items-center justify-center h-[200px]">
+          <div className="flex h-[200px] flex-col items-center justify-center">
             <p className="text-[16px]">데이터를 불러오는 중 오류가 발생했습니다.</p>
-            <p className="text-[14px] text-gray-400 mt-2">잠시 후 다시 시도해주세요.</p>
+            <p className="mt-2 text-[14px] text-gray-400">잠시 후 다시 시도해주세요.</p>
           </div>
         ) : hasCompanies ? (
-          <div className="flex flex-col items-center gap-4 w-full max-w-[600px]">
+          <div className="flex w-full max-w-[600px] flex-col items-center gap-4">
             <h2 className="text-[20px] font-bold">기업 선택</h2>
             {companies.map((company) => (
               <CompanySelectButton
@@ -105,18 +103,18 @@ export const SelectPage = () => {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-[200px]">
+          <div className="flex h-[200px] flex-col items-center justify-center">
             <p className="text-[16px]">데이터가 없습니다.</p>
-            <p className="text-[14px] text-gray-400 mt-2">다른 카테고리를 선택해보세요.</p>
+            <p className="mt-2 text-[14px] text-gray-400">다른 카테고리를 선택해보세요.</p>
           </div>
         )}
       </div>
 
       {/* 기업 선택 완료 모달 */}
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent className="bg-[#121729] text-white border-none rounded-2xl max-w-lg mx-auto p-0 overflow-hidden">
-          <AlertDialogHeader className="flex flex-col items-center text-center pb-5 pt-10">
-            <AlertDialogTitle className="text-[28px] font-bold mb-1">
+        <AlertDialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
+          <AlertDialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
+            <AlertDialogTitle className="mb-1 text-[28px] font-bold">
               기업 선택 완료
             </AlertDialogTitle>
 
@@ -127,16 +125,16 @@ export const SelectPage = () => {
           </AlertDialogHeader>
 
           {/* 실제 모달 콘텐츠 */}
-          <div className="flex flex-col items-center text-center px-5 pb-5 pt-0">
+          <div className="flex flex-col items-center px-5 pb-5 pt-0 text-center">
             <div className="flex flex-col text-[16px] text-white">
               <span>기업 선택을 완료했습니다.</span>
               <span className="mt-2">주식 튜토리얼의 시간대는 다음과 같습니다.</span>
             </div>
 
-            <div className="flex justify-center items-center gap-5 my-10 w-full bg-[#041021] p-4 rounded-lg">
-              <span className="text-[#4CAF50] text-[22px] font-bold">{startDate}</span>
-              <span className="text-white text-[22px] mx-1">-</span>
-              <span className="text-[#F44336] text-[22px] font-bold">{endDate}</span>
+            <div className="my-10 flex w-full items-center justify-center gap-5 rounded-lg bg-[#041021] p-4">
+              <span className="text-[22px] font-bold text-[#4CAF50]">{startDate}</span>
+              <span className="mx-1 text-[22px] text-white">-</span>
+              <span className="text-[22px] font-bold text-[#F44336]">{endDate}</span>
             </div>
 
             <div className="flex flex-col text-[16px] text-white">
@@ -146,14 +144,14 @@ export const SelectPage = () => {
               <span className="mt-2">저희가 제시한 정보를 바탕으로 자유롭게 선택해보세요.</span>
             </div>
 
-            <div className="mt-10 flex flex-col items-center w-full">
+            <div className="mt-10 flex w-full flex-col items-center">
               <AlertDialogAction
-                className="bg-[#5676F5] hover:bg-[#4A67DE] text-white py-4 px-8 rounded-full text-[18px] font-bold w-full max-w-[400px]"
+                className="w-full max-w-[400px] rounded-full bg-[#5676F5] px-8 py-4 text-[18px] font-bold text-white hover:bg-[#4A67DE]"
                 onClick={handleConfirm}
               >
                 선택완료
               </AlertDialogAction>
-              <span className="text-center text-[13px] text-gray-500 mt-4 mb-4">
+              <span className="mb-4 mt-4 text-center text-[13px] text-gray-500">
                 선택완료 버튼 클릭시 주식 튜토리얼이 시작됩니다.
               </span>
             </div>

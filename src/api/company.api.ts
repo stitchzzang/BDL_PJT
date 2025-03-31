@@ -2,13 +2,13 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
+import { ApiResponse } from '@/api/types/common';
 import {
-  CompanyProfile,
   CompanyBasicInfo,
   CompanyFinancialRatio,
+  CompanyProfile,
   CompanyProfitabilityRatio,
 } from '@/api/types/company';
-import { ApiResponse } from '@/api/types/common';
 
 export const companyAPI = {
   getCompanyProfile: (companyId: string) =>

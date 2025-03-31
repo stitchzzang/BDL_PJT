@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { DayHistory } from '@/components/stock-tutorial/day-history';
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
 import { StockTutorialComment } from '@/components/stock-tutorial/stock-tutorial-comment';
@@ -6,9 +9,6 @@ import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-in
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
 import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-news';
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
-import ChartComponent from '@/components/ui/chart';
-import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
-import { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,8 +19,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import ChartComponent from '@/components/ui/chart';
+import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
 
 interface TutorialEndModalProps {
   isOpen: boolean;
@@ -45,7 +45,7 @@ const TutorialEndModal = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="w-[450px] rounded-lg bg-[#121729] p-6 text-white border-none">
+      <AlertDialogContent className="w-[450px] rounded-lg border-none bg-[#121729] p-6 text-white">
         <div className="mb-4 rounded-md bg-[#101017] p-4 text-center">
           <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
         </div>
@@ -60,13 +60,13 @@ const TutorialEndModal = ({
         <AlertDialogFooter className="mt-4 flex justify-between sm:justify-between">
           <AlertDialogCancel
             onClick={onConfirmResultClick}
-            className="flex-1 mr-2 bg-[#333342] hover:bg-[#444452] text-white border-none"
+            className="mr-2 flex-1 border-none bg-[#333342] text-white hover:bg-[#444452]"
           >
             결과 확인하기
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onEndTutorialClick}
-            className="flex-1 ml-2 bg-[#4A90E2] hover:bg-[#5AA0F2] text-white border-none"
+            className="ml-2 flex-1 border-none bg-[#4A90E2] text-white hover:bg-[#5AA0F2]"
           >
             튜토리얼 종료하기
           </AlertDialogAction>
