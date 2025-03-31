@@ -13,9 +13,10 @@ import { SignupRequest } from '@/api/types/auth';
 import { QuestionsCombobox } from '@/components/member-info/questions-combo-box';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 // 회원가입 폼 유효성 검사를 위한 스키마 정의
 const signUpSchema = z
@@ -189,9 +190,24 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    <p className="text-xs text-text-main-color">
-                      비밀번호와 정확히 일치해야 합니다.
-                    </p>
+                    {dirtyFields.passwordConfirm && (
+                      <FormMessage
+                        className={cn(
+                          'text-xs',
+                          hasError
+                            ? 'text-btn-red-color'
+                            : isValid
+                              ? 'text-btn-green-color'
+                              : 'text-text-main-color',
+                        )}
+                      >
+                        {hasError
+                          ? '비밀번호가 일치하지 않습니다.'
+                          : isValid
+                            ? '비밀번호가 일치합니다.'
+                            : '비밀번호와 정확히 일치해야 합니다.'}
+                      </FormMessage>
+                    )}
                   </FormItem>
                 );
               }}
