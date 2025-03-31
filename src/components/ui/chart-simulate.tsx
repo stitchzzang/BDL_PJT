@@ -154,10 +154,19 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       setCursorValue(initialData.cursor);
     }
   }, [initialData]);
-  // 분봉 데이터를 차트 데이터 포인트로 변환
+  // 시간 조정을 위한 유틸리티 함수 추가
+  const addNineHours = (date: Date): Date => {
+    const newDate = new Date(date);
+    newDate.setHours(newDate.getHours() + 9);
+    return newDate;
+  };
+  // 분봉 데이터를 차트 데이터 포인트로 변환하는 함수 수정
   const convertMinuteDataToChartData = useCallback((data: StockMinuteData): ChartDataPoint => {
+    // tradingTime에서 Date 객체 생성 후 9시간 추가
+    const adjustedDate = addNineHours(new Date(data.tradingTime));
+
     return {
-      date: new Date(data.tradingTime).toLocaleTimeString('ko-KR', {
+      date: adjustedDate.toLocaleTimeString('ko-KR', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: false,
@@ -170,7 +179,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       changeType: data.closePrice >= data.openPrice ? 'RISE' : 'FALL',
       fiveAverage: data.fiveAverage,
       twentyAverage: data.twentyAverage,
-      rawDate: new Date(data.tradingTime),
+      rawDate: adjustedDate, // 조정된 날짜 저장
     };
   }, []);
 
@@ -310,7 +319,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
 
       const { rawDate, open, close, low, high, volume, fiveAverage, twentyAverage } = item;
 
-      // 날짜 포맷팅
+      // 날짜 포맷팅 (이미 addNineHours가 적용된 rawDate 사용)
       let formattedDate = '';
       if (rawDate) {
         const year = rawDate.getFullYear();
@@ -797,9 +806,10 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
 
     const result = new Date(now);
     result.setHours(hour, minute, second, 0);
-    return result;
-  };
 
+    // 9시간 추가
+    return addNineHours(result);
+  };
   // 두 날짜가 같은 분(minute)에 속하는지 확인하는 함수
   const isSameMinute = (date1: Date | null, date2: Date | null): boolean => {
     if (!date1 || !date2) return false;
