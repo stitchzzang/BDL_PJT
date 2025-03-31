@@ -9,7 +9,7 @@ export const TutorialAnimation = () => {
         animationData={tutorialAnimation}
         loop={true}
         autoplay={true}
-        style={{ height: 120, width: 120 }}
+        style={{ height: 100, width: 100 }}
         rendererSettings={{
           preserveAspectRatio: 'xMidYMid slice',
         }}
