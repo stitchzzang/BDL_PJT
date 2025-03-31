@@ -2,7 +2,7 @@ import { CalendarIcon } from '@heroicons/react/24/outline';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
@@ -43,6 +43,7 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 export const SignUpPage = () => {
   const navigate = useNavigate();
   const { mutate: signup } = useSignup();
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -243,7 +244,7 @@ export const SignUpPage = () => {
               name="birthDate"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <Popover>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <div className="relative">
@@ -266,11 +267,17 @@ export const SignUpPage = () => {
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          // 날짜 선택 후 팝오버 닫기
+                          setCalendarOpen(false);
+                        }}
                         disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                         className="w-auto"
                         fromYear={1900}
                         toYear={new Date().getFullYear()}
+                        initialFocus
+                        defaultMonth={field.value}
                       />
                     </PopoverContent>
                   </Popover>
