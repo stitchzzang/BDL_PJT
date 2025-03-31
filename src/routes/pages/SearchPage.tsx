@@ -60,8 +60,8 @@ export const SearchPage = () => {
   return (
     <div className="flex w-full flex-col items-center justify-center gap-3">
       <div className="mx-5 flex max-w-xl flex-col items-center justify-center gap-4">
-        <div className="group flex flex-col items-center justify-center gap-3">
-          <div className="flex flex-col items-center justify-center gap-[10px]">
+        <div className="flex flex-col items-center justify-center gap-3">
+          <div className="group flex flex-col items-center justify-center gap-[10px]">
             <h1 className="text-[28px] font-bold">종목 검색</h1>
             <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border-color border-opacity-40 p-2 py-4 transition-all duration-300 group-hover:border-btn-blue-color">
               <div>

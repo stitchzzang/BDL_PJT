@@ -1,21 +1,31 @@
-import { MemberTutorialResult } from '@/api/types/member';
-import { getChangeRateColorClass } from '@/utils/getChangeRateColorClass';
-import { addCommasToThousand } from '@/utils/numberFormatter';
+import { TutorialResultResponse } from '@/api/types/tutorial';
+import {
+  addCommasToThousand,
+  addStockValueColorClass,
+  plusMinusSign,
+  roundToTwoDecimalPlaces,
+} from '@/utils/numberFormatter';
 
 interface StockTutorialResultItemProps {
-  result: MemberTutorialResult;
+  result: TutorialResultResponse;
 }
 
 export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps) => {
   return (
-    <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3">
+    <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3 hover:bg-modal-background-color/50">
       <div className="flex flex-row items-center gap-4">
         <img
           src="https://placehold.co/50x50"
           alt="company-identifier"
           className="h-[50px] w-[50px] rounded-xl"
         />
-        <p className="text-base">{result.companyName}</p>
+        <div className="flex flex-col gap-1">
+          <p className="text-base">{result.companyName}</p>
+          <div className="flex flex-row gap-2 text-sm text-text-inactive-2-color">
+            {new Date(result.startDate).toLocaleDateString()} ~{' '}
+            {new Date(result.endDate).toLocaleDateString()}
+          </div>
+        </div>
       </div>
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
@@ -31,10 +41,15 @@ export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 수익률</span>
           <p
-            className={`rounded-lg border px-2 py-1 ${getChangeRateColorClass(result.changeRate)}`}
+            className={`rounded-lg border px-2 py-1 ${addStockValueColorClass(
+              ((result.endMoney - result.startMoney) / result.startMoney) * 100,
+            )}`}
           >
-            {result.changeRate >= 0 ? '+' : ''}
-            {result.changeRate}%
+            {`${plusMinusSign(
+              ((result.endMoney - result.startMoney) / result.startMoney) * 100,
+            )} ${roundToTwoDecimalPlaces(
+              ((result.endMoney - result.startMoney) / result.startMoney) * 100,
+            )}%`}
           </p>
         </div>
       </div>
