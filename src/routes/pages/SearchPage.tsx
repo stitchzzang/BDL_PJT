@@ -4,10 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useSearchedCompanies } from '@/api/home.api';
 import { CategoryList } from '@/components/common/category-list';
-import { CompanySelectButton } from '@/components/common/company-select-button';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { SearchAnimation } from '@/components/common/search-animation';
+import { SearchedCompanyCard } from '@/components/home-page/searched-company-card';
 export const SearchPage = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
@@ -112,7 +112,7 @@ export const SearchPage = () => {
             {searchedCompanies && searchedCompanies.length > 0 && (
               <div className="flex flex-col gap-2">
                 {searchedCompanies.map((company) => (
-                  <CompanySelectButton key={company.companyId} company={company} />
+                  <SearchedCompanyCard key={company.companyId} company={company} />
                 ))}
               </div>
             )}
