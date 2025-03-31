@@ -42,7 +42,7 @@ const _kyAuth = _ky.extend({
           if (!request._retry) {
             request._retry = true;
             try {
-              const tokenResponse = await _ky.post('auth/token');
+              const tokenResponse = await _ky.post('auth/reissue');
               const BEARER_PREFIX = 'Bearer ';
               const newAccessToken = tokenResponse.headers
                 .get('Authorization')
