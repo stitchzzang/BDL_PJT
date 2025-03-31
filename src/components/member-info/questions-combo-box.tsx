@@ -42,7 +42,7 @@ const frameworks = [
 ];
 
 interface QuestionsComboboxProps {
-  onSelect?: (question: string) => void;
+  onSelect?: (question: number) => void;
 }
 
 export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
@@ -64,7 +64,7 @@ export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-auto p-0" align="end">
         <Command>
           <CommandList>
             <CommandEmpty>질문을 선택해주세요.</CommandEmpty>
@@ -77,7 +77,7 @@ export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
                     setValue(currentValue === value ? '' : currentValue);
                     setOpen(false);
                     if (currentValue !== value) {
-                      onSelect?.(framework.label);
+                      onSelect?.(Number(framework.value));
                     }
                   }}
                 >

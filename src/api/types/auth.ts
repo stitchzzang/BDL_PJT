@@ -7,6 +7,6 @@ export interface SignupRequest {
   email: string;
   nickname: string;
   password: string;
-  question: string;
+  question: number;
   answer: string;
 }

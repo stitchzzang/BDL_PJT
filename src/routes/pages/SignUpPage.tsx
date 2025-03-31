@@ -19,7 +19,7 @@ interface SignUpFormValues {
   nickname: string;
   birthDate: Date;
   phoneNumber: string;
-  question: string;
+  question: number;
   answer: string;
 }
 
@@ -35,7 +35,7 @@ export const SignUpPage = () => {
       nickname: '',
       birthDate: new Date(),
       phoneNumber: '',
-      question: '',
+      question: 0,
       answer: '',
     },
   });
@@ -161,7 +161,7 @@ export const SignUpPage = () => {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormControl>
-                    <QuestionsCombobox onSelect={(question) => field.onChange(question)} />
+                    <QuestionsCombobox onSelect={(question) => field.onChange(Number(question))} />
                   </FormControl>
                 </FormItem>
               )}
