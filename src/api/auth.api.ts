@@ -49,7 +49,11 @@ export const useLogin = () => {
 
       // accessToken이 있으면 로그인 처리
       if (accessToken) {
-        loginAuth(accessToken, { nickname: result.nickname, profile: result.profile });
+        loginAuth(accessToken, {
+          memberId: result.memberId,
+          nickname: result.nickname,
+          profile: result.profile,
+        });
         toast.success('로그인되었습니다.');
         navigate('/');
       }

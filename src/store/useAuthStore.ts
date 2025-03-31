@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 interface UserData {
+  memberId: number | null;
   nickname: string | null;
   profile: string | null;
 }
@@ -17,7 +18,9 @@ interface AuthState {
 
 const getUserDataFromStorage = (): UserData => {
   const storedData = localStorage.getItem('userData');
-  return storedData ? JSON.parse(storedData) : { nickname: null, profile: null };
+  return storedData
+    ? JSON.parse(storedData)
+    : { memberId: null, nickname: null, profile: null, isLogin: false };
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -34,7 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logoutAuth: () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userData');
-    set({ userData: { nickname: null, profile: null }, isLogin: false });
+    set({ userData: { memberId: null, nickname: null, profile: null }, isLogin: false });
   },
 
   updateAuth: (newUserData: Partial<UserData>) => {

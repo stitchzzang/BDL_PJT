@@ -1,4 +1,5 @@
 export interface LoginResponse {
+  memberId: number;
   nickname: string;
   profile: string;
 }
