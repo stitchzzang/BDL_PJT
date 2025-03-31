@@ -1,0 +1,159 @@
+{
+  "data1": {
+    "totalAsset": 10000000,
+    "totalEvaluation": 5000000,
+    "totalCash": 5000000,
+    "totalProfitRate": 5.2,
+    "totalProfit": 520000,
+    "dailyProfitRate": 2.1,
+    "dailyProfit": 210000,
+    "accountCount": 3,
+    "orderableAmount": 5000000,
+    "accounts": [
+      {
+        "companyId": "1",
+        "companyName": "삼성전자",
+        "currentPrice": 75000,
+        "evaluation": 3000000,
+        "profit": 300000,
+        "profitRate": 11.1,
+        "dailyProfit": 150000,
+        "dailyProfitRate": 5.2,
+        "avgPrice": 67500,
+        "stockCnt": 40,
+        "investment": 2700000
+      },
+      {
+        "companyId": "2",
+        "companyName": "SK하이닉스",
+        "currentPrice": 150000,
+        "evaluation": 1500000,
+        "profit": 150000,
+        "profitRate": 11.1,
+        "dailyProfit": 50000,
+        "dailyProfitRate": 3.4,
+        "avgPrice": 135000,
+        "stockCnt": 10,
+        "investment": 1350000
+      },
+      {
+        "companyId": "3",
+        "companyName": "NAVER",
+        "currentPrice": 200000,
+        "evaluation": 500000,
+        "profit": 70000,
+        "profitRate": 16.0,
+        "dailyProfit": 10000,
+        "dailyProfitRate": 2.0,
+        "avgPrice": 172000,
+        "stockCnt": 2.5,
+        "investment": 430000
+      }
+    ]
+  },
+  "data2": {
+    "totalAsset": 10210000,
+    "totalEvaluation": 5210000,
+    "totalCash": 5000000,
+    "totalProfitRate": 6.5,
+    "totalProfit": 650000,
+    "dailyProfitRate": 3.2,
+    "dailyProfit": 320000,
+    "accountCount": 3,
+    "orderableAmount": 5000000,
+    "accounts": [
+      {
+        "companyId": "1",
+        "companyName": "삼성전자",
+        "currentPrice": 78000,
+        "evaluation": 3120000,
+        "profit": 420000,
+        "profitRate": 15.6,
+        "dailyProfit": 180000,
+        "dailyProfitRate": 6.1,
+        "avgPrice": 67500,
+        "stockCnt": 40,
+        "investment": 2700000
+      },
+      {
+        "companyId": "2",
+        "companyName": "SK하이닉스",
+        "currentPrice": 145000,
+        "evaluation": 1450000,
+        "profit": 100000,
+        "profitRate": 7.4,
+        "dailyProfit": -50000,
+        "dailyProfitRate": -3.3,
+        "avgPrice": 135000,
+        "stockCnt": 10,
+        "investment": 1350000
+      },
+      {
+        "companyId": "3",
+        "companyName": "NAVER",
+        "currentPrice": 205000,
+        "evaluation": 512500,
+        "profit": 82500,
+        "profitRate": 19.2,
+        "dailyProfit": 12500,
+        "dailyProfitRate": 2.5,
+        "avgPrice": 172000,
+        "stockCnt": 2.5,
+        "investment": 430000
+      }
+    ]
+  },
+  "data3": {
+    "totalAsset": 10150000,
+    "totalEvaluation": 5150000,
+    "totalCash": 5000000,
+    "totalProfitRate": 5.8,
+    "totalProfit": 580000,
+    "dailyProfitRate": 2.5,
+    "dailyProfit": -250000,
+    "accountCount": 3,
+    "orderableAmount": 5000000,
+    "accounts": [
+      {
+        "companyId": "1",
+        "companyName": "삼성전자",
+        "currentPrice": 76500,
+        "evaluation": 3060000,
+        "profit": 360000,
+        "profitRate": 13.3,
+        "dailyProfit": 165000,
+        "dailyProfitRate": 5.7,
+        "avgPrice": 67500,
+        "stockCnt": 40,
+        "investment": 2700000
+      },
+      {
+        "companyId": "2",
+        "companyName": "SK하이닉스",
+        "companyName": "SK하이닉스",
+        "currentPrice": 148000,
+        "evaluation": 1480000,
+        "profit": 130000,
+        "profitRate": 9.6,
+        "dailyProfit": -20000,
+        "dailyProfitRate": -1.3,
+        "avgPrice": 135000,
+        "stockCnt": 10,
+        "investment": 1350000
+      },
+      {
+        "companyId": "3",
+        "companyName": "NAVER",
+        "currentPrice": 202000,
+        "evaluation": 505000,
+        "profit": 75000,
+        "profitRate": 17.4,
+        "dailyProfit": 11000,
+        "dailyProfitRate": 2.2,
+        "avgPrice": 172000,
+        "stockCnt": 2.5,
+        "investment": 430000
+      }
+    ]
+  }
+} 

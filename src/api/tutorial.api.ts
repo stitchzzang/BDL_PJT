@@ -163,3 +163,14 @@ export const useGetTutorialResults = (memberId: number) => {
     queryFn: () => tutorialAPI.getTutorialResults(memberId).then((res) => res.result),
   });
 };
+export const tutorialApi = {
+  getTutorialResults: ({ memberId }: { memberId: string }) =>
+    _ky.get<ApiResponse<TutorialResultResponse[]>>(`tutorial/result/${memberId}`).json(),
+};
+
+export const useTutorialResults = ({ memberId }: { memberId: string }) => {
+  return useQuery({
+    queryKey: ['tutorialResults', memberId],
+    queryFn: () => tutorialApi.getTutorialResults({ memberId }).then((res) => res.result),
+  });
+};

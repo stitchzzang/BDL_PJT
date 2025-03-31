@@ -2,20 +2,22 @@ import { Client, Frame } from '@stomp/stompjs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 
-import { OrderbookDatas } from '@/api/types/stock';
+import { AccountResponse } from '@/api/types/member';
 
-// 커스텀 훅
-export const useOrderbookConnection = () => {
+// 커스텀 훅으로 변경
+export const useAccountConnection = () => {
   const stompClientRef = useRef<Client | null>(null);
   const [IsConnected, setIsConnected] = useState<boolean>(false);
 
-  // 연결함수
-  const connectOrderbook = useCallback(
-    (stockId: string, setOrderbook: (data: OrderbookDatas) => void) => {
-      //기존 연결일 경우 해제
-      disconnectOrderbook();
+  // 연결 함수
+  const connectAccount = useCallback(
+    (memberId: string, setAccountData: (data: AccountResponse[]) => void) => {
+      // 기존 연결이 있으면 해제
+      disconnectAccount();
 
-      //인스턴스 생성
+      // SockJS 인스턴스 생성
+      // http://192.168.100.198:8080/ws
+      // https://j12d202.p.ssafy.io/ws
       const socket = new SockJS('https://j12d202.p.ssafy.io/ws');
 
       // STOMP 클라이언트 생성
@@ -29,19 +31,17 @@ export const useOrderbookConnection = () => {
         heartbeatOutgoing: 4000,
       });
 
-      stompClientRef.current = client;
-
       // 연결 성공 콜백
       client.onConnect = (frame: Frame) => {
         setIsConnected(true);
         console.log('소켓 연결', frame);
 
         // 주제 구독
-        client.subscribe(`/topic/orderBookData/${stockId}`, (message) => {
+        client.subscribe(`/topic/member/account/${memberId}`, (message) => {
           try {
-            // 메시지 처리 - 호가 데이터가 들어옴
+            // 메시지 처리
             const receivedData = JSON.parse(message.body);
-            setOrderbook(receivedData);
+            setAccountData(receivedData);
           } catch (error) {
             console.error('에러 발생', error);
           }
@@ -62,12 +62,15 @@ export const useOrderbookConnection = () => {
 
       // 연결 시작
       client.activate();
+
+      // ref에 저장
+      stompClientRef.current = client;
     },
     [],
   );
 
   // 연결 해제 함수
-  const disconnectOrderbook = useCallback(() => {
+  const disconnectAccount = useCallback(() => {
     console.log('소켓 연결 해제(disconnect)');
     if (stompClientRef.current) {
       try {
@@ -80,16 +83,17 @@ export const useOrderbookConnection = () => {
       console.log('연결 해제를 위한 스톰프 클라이언트가 없습니다.');
     }
   }, []);
+
   // 컴포넌트 언마운트 시 자동 연결 해제
   useEffect(() => {
     return () => {
-      disconnectOrderbook();
+      disconnectAccount();
     };
-  }, [disconnectOrderbook]);
+  }, [disconnectAccount]);
 
   return {
     IsConnected,
-    connectOrderbook,
-    disconnectOrderbook,
+    connectAccount,
+    disconnectAccount,
   };
 };
