@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 export const authApi = {
   login: (email: string, password: string) =>
     _ky
-      .post('member/login', {
+      .post('auth/login', {
         json: { email, password },
       })
       .json<ApiResponse<LoginResponse>>(),
@@ -31,19 +31,25 @@ export const useLogin = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) =>
-      authApi.login(email, password).then((res) => res.result),
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const response = await _ky.post('auth/login', {
+        json: { email, password },
+      });
+      const data = await response.json<ApiResponse<LoginResponse>>();
+      return {
+        ...data.result,
+        headers: response.headers,
+      };
+    },
     onSuccess: (result) => {
-      // 쿠키에서 accessToken 추출
-      const accessToken = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('Authorization='))
-        ?.split('=')[1];
+      // 응답 헤더에서 accessToken 추출
+      const BEARER_PREFIX = 'Bearer ';
+      const accessToken = result.headers.get('Authorization')?.substring(BEARER_PREFIX.length);
 
       // accessToken이 있으면 로그인 처리
       if (accessToken) {
         loginAuth(accessToken, { nickname: result.nickname, profile: result.profile });
-        navigate('/signup/success');
+        navigate('/');
       }
     },
     // 로그인 실패
