@@ -152,7 +152,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.totalProfitRate !== prevData?.totalProfitRate
-                ? (displayData?.totalProfitRate ?? 0) > (prevData?.totalProfitRate ?? 0)
+                ? (displayData?.totalProfitRate ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.totalProfitRate ?? 0) === 0
@@ -176,7 +176,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.totalProfit !== prevData?.totalProfit
-                ? (displayData?.totalProfit ?? 0) > (prevData?.totalProfit ?? 0)
+                ? (displayData?.totalProfit ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.totalProfit ?? 0) === 0
@@ -200,7 +200,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.dailyProfitRate !== prevData?.dailyProfitRate
-                ? (displayData?.dailyProfitRate ?? 0) > (prevData?.dailyProfitRate ?? 0)
+                ? (displayData?.dailyProfitRate ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.dailyProfitRate ?? 0) === 0
@@ -224,7 +224,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.dailyProfit !== prevData?.dailyProfit
-                ? (displayData?.dailyProfit ?? 0) > (prevData?.dailyProfit ?? 0)
+                ? (displayData?.dailyProfit ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.dailyProfit ?? 0) === 0
@@ -319,9 +319,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.profitRate !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.profitRate
-                      ? account.profitRate >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.profitRate || 0)
+                      ? account.profitRate > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.profitRate > 0
@@ -338,9 +336,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.profit !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.profit
-                      ? account.profit >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.profit || 0)
+                      ? account.profit > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.profit > 0
@@ -359,9 +355,7 @@ export const InvestmentResultPage = () => {
                     account.currentPrice !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)
                         ?.currentPrice
-                      ? account.currentPrice >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.currentPrice || 0)
+                      ? account.currentPrice > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : ''
@@ -375,9 +369,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.evaluation !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.evaluation
-                      ? account.evaluation >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.evaluation || 0)
+                      ? account.evaluation > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.evaluation > 0
@@ -394,9 +386,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.investment !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.investment
-                      ? account.investment >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.investment || 0)
+                      ? account.investment > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.investment > 0
@@ -414,9 +404,7 @@ export const InvestmentResultPage = () => {
                     account.dailyProfitRate !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)
                         ?.dailyProfitRate
-                      ? account.dailyProfitRate >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.dailyProfitRate || 0)
+                      ? account.dailyProfitRate > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.dailyProfitRate > 0
@@ -433,9 +421,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.dailyProfit !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.dailyProfit
-                      ? account.dailyProfit >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.dailyProfit || 0)
+                      ? account.dailyProfit > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.dailyProfit > 0
