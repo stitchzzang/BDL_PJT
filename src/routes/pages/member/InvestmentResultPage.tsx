@@ -44,19 +44,25 @@ export const InvestmentResultPage = () => {
   const { mutate: resetAccount } = useResetAccount('1');
 
   useEffect(() => {
-    if (accountData) {
+    if (accountSummary) {
       connectAccount('1', setAccountData);
       return () => {
         disconnectAccount();
       };
     }
-  }, [accountData, connectAccount, disconnectAccount]);
+  }, [accountSummary, connectAccount, disconnectAccount]);
 
   useEffect(() => {
     if (accountData && accountSummary) {
       // 웹소켓으로 받은 데이터로 accountSummary 업데이트
       const updatedAccounts = accountSummary.accounts.map((account) => {
-        const realTimeAccount = accountData.find((rt) => rt.companyId === account.companyId);
+        // accountData가 배열이 아닐 경우를 처리
+        const realTimeAccount = Array.isArray(accountData)
+          ? accountData.find((rt) => rt.companyId === account.companyId)
+          : (accountData as AccountResponse).companyId === account.companyId
+            ? accountData
+            : null;
+
         if (realTimeAccount) {
           return {
             ...account,
