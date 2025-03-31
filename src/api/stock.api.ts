@@ -7,6 +7,7 @@ import {
   MarketOrderData,
   SimulatedData,
   StockMinuteDefaultData,
+  StockPeriodDefaultData,
   UserSimulatedData,
 } from '@/api/types/stock';
 
@@ -27,7 +28,16 @@ export const StockApi = {
         },
       })
       .json<ApiResponse<StockMinuteDefaultData>>(),
-  //Order API
+  // 일,주,월 데이터 가져오기
+  getStockInitDailyData: (companyId: number, periodType: number, limit: number) =>
+    _ky
+      .get(`stocks/${companyId}/daily/initial`, {
+        searchParams: {
+          periodType,
+          limit,
+        },
+      })
+      .json<ApiResponse<StockPeriodDefaultData>>(),
 
   // 유저 현재 보유 자산
   getUserAsset: (memberId: number) =>
@@ -110,6 +120,14 @@ export const useStockMinuteDataCursor = (companyId: number, cursor: string, limi
   return useQuery({
     queryKey: ['stockInitMinDataCursor', companyId, cursor, limit],
     queryFn: () => StockApi.getStockInitMinunteDataCurser(companyId, cursor, limit),
+  });
+};
+
+// 일,주,월(초기 데이터)
+export const useStockDailyData = (companyId: number, periodType: number, limit: number) => {
+  return useQuery({
+    queryKey: ['stockDailyData', companyId, periodType, limit],
+    queryFn: () => StockApi.getStockInitDailyData(companyId, periodType, limit),
   });
 };
 

@@ -100,7 +100,8 @@ export const SimulatedInvestmentPage = () => {
       <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
           <div>
-            <PeriodChart periodType={'day'} />
+            {/* 테스트중 */}
+            <PeriodChart periodType={'day'} initialData={stockDailyData?.result} />
           </div>
           {tickData ? (
             <div className="grid grid-cols-12 gap-3">
