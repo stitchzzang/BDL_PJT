@@ -180,7 +180,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           const weekNumber = Math.ceil(
             (date.getDate() + new Date(date.getFullYear(), date.getMonth(), 1).getDay()) / 7,
           );
-          return `${date.getFullYear()}-${date.getMonth() + 1}월 ${weekNumber}주차`;
+          return `${date.getMonth() + 1}월 ${weekNumber}주`;
         }
 
         case 'month':
