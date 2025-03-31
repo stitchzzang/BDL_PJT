@@ -264,8 +264,6 @@ export const SignUpPage = () => {
               control={form.control}
               name="question"
               render={({ field }) => {
-                const isValid = !errors.question && dirtyFields.question;
-                const hasError = !!errors.question && dirtyFields.question;
                 return (
                   <FormItem className="w-full">
                     <div className="relative">
@@ -274,16 +272,6 @@ export const SignUpPage = () => {
                           onSelect={(question) => field.onChange(Number(question))}
                         />
                       </FormControl>
-                      {isValid && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <CheckCircleIcon className="h-5 w-5 text-btn-green-color" />
-                        </div>
-                      )}
-                      {hasError && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                          <XCircleIcon className="h-5 w-5 text-btn-red-color" />
-                        </div>
-                      )}
                     </div>
                   </FormItem>
                 );
