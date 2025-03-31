@@ -4,7 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
-import { LatestNews, SearchedCompany } from '@/api/types/home';
+import {
+  LatestNews,
+  SearchedCompany,
+  SearchedCompanyResponse,
+  UserRanking,
+} from '@/api/types/home';
 
 export const homeApi = {
   getLatestNews: () => _ky.get('news/latest').json<ApiResponse<LatestNews[]>>(),
@@ -12,11 +17,12 @@ export const homeApi = {
     _ky
       .get('company/search', {
         searchParams: {
+          keyword: companyName ?? '',
           categoryId: categoryId ?? '',
-          companyName: companyName ?? '',
         },
       })
-      .json<ApiResponse<SearchedCompany[]>>(),
+      .json<ApiResponse<SearchedCompanyResponse[]>>(),
+  getUserRanking: () => _ky.get('tutorial/rankings').json<ApiResponse<UserRanking[]>>(),
 };
 
 export const useLatestNews = () => {
@@ -27,9 +33,16 @@ export const useLatestNews = () => {
 };
 
 export const useSearchedCompanies = ({ categoryId, companyName }: SearchedCompany) => {
-  return useQuery({
+  return useQuery<SearchedCompanyResponse[]>({
     queryKey: ['searchedCompanies', categoryId, companyName],
     queryFn: () =>
       homeApi.getSearchedCompanies({ categoryId, companyName }).then((res) => res.result),
+  });
+};
+
+export const useUserRanking = () => {
+  return useQuery({
+    queryKey: ['userRankings'],
+    queryFn: () => homeApi.getUserRanking().then((res) => res.result),
   });
 };

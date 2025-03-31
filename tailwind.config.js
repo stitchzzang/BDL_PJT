@@ -11,9 +11,15 @@ export default {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+        rotate: {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '25%': { transform: 'rotate(-15deg)' },
+          '75%': { transform: 'rotate(15deg)' },
+        },
       },
       animation: {
         fadeIn: 'fadeIn 300ms ease-in forwards',
+        rotate: 'rotate 0.3s ease-in-out',
       },
       colors: {
         'primary-color': '#3485FA',

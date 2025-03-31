@@ -10,6 +10,7 @@ import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
 import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
 import { HomePage } from '@/routes/pages/HomePage';
+import { InvestmentSelectPage } from '@/routes/pages/investment/InvestmentSelectPage';
 import { LoginPage } from '@/routes/pages/LoginPage';
 import { AlgorithmPage } from '@/routes/pages/member/AlgorithmPage';
 import { EditPage } from '@/routes/pages/member/EditPage';
@@ -131,8 +132,21 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: '/simulated-investment',
-        element: <SimulatedInvestmentPage />,
+        path: '/investment',
+        children: [
+          {
+            index: true,
+            element: <Navigate to="/investment/select" replace />,
+          },
+          {
+            path: 'select',
+            element: <InvestmentSelectPage />,
+          },
+          {
+            path: 'simulate',
+            element: <SimulatedInvestmentPage />,
+          },
+        ],
       },
     ],
   },
