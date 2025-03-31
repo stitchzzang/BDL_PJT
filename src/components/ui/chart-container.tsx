@@ -1,5 +1,6 @@
 import { DailyChart } from '@/components/ui/chart-daily';
 import { MinuteChart } from '@/components/ui/chart-simulate';
+import { WeekChart } from '@/components/ui/chart-week';
 
 // 타입 정의 (분봉데이터 - 초기 데이터 적재를 위하여)
 interface StockMinuteData {
@@ -59,6 +60,9 @@ export const ChartContainer = ({ initialData }: MinuteChartProps) => {
       </div>
       <div>
         <DailyChart periodType={'day'} />
+      </div>
+      <div>
+        <WeekChart periodType={'week'} />
       </div>
     </div>
   );
