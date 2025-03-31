@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
 import { CategoryList } from '@/components/common/category-list';
@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const SelectPage = () => {
   const navigate = useNavigate();
@@ -53,6 +54,12 @@ export const SelectPage = () => {
     }
     setIsDialogOpen(false);
   };
+
+  const { isLogin } = useAuthStore();
+
+  if (!isLogin) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center gap-3">

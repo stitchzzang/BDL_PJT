@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
@@ -8,15 +8,21 @@ import { Input } from '@/components/ui/input';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const NamePage = () => {
   const isValidAccess = useAlgorithmLabGuard('name');
+  const { isLogin } = useAuthStore();
   const navigate = useNavigate();
   const { algorithmName, setAlgorithmName } = useAlgorithmLabStore();
   const [nowName, setNowName] = useState<string>('');
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
+  }
+
+  if (!isLogin) {
+    return <Navigate to="/login" />;
   }
 
   return (
