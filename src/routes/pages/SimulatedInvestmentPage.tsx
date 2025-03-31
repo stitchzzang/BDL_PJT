@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useStockMinuteData } from '@/api/stock.api';
+import { useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
@@ -22,6 +22,8 @@ export const SimulatedInvestmentPage = () => {
   //초기 데이터 설정 및 소켓 연결
   const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 100);
   const [closePrice, setClosePrice] = useState<number>(0);
+  // 초기 데이터  일,주,월
+  const { data: stockDailyData } = useStockDailyData(1, 1, 50);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
