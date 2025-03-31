@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
@@ -9,7 +10,6 @@ import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 import { useAuthStore } from '@/store/useAuthStore';
-
 export const NamePage = () => {
   const isValidAccess = useAlgorithmLabGuard('name');
   const { isLogin } = useAuthStore();
@@ -22,6 +22,7 @@ export const NamePage = () => {
   }
 
   if (!isLogin) {
+    toast.error('로그인 후 이용해주세요.');
     return <Navigate to="/login" />;
   }
 

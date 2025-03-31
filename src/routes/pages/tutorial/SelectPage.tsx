@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
@@ -15,7 +16,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAuthStore } from '@/store/useAuthStore';
-
 export const SelectPage = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>('0');
@@ -58,6 +58,7 @@ export const SelectPage = () => {
   const { isLogin } = useAuthStore();
 
   if (!isLogin) {
+    toast.error('로그인 후 이용해주세요.');
     return <Navigate to="/login" />;
   }
 

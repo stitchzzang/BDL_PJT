@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useLogin } from '@/api/auth.api';
@@ -12,7 +13,17 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const initialRender = useRef(true);
   const { mutateAsync: login, isPending } = useLogin();
+
+  useEffect(() => {
+    // 이미 로그인된 상태에서 로그인 페이지에 접근할 때만 토스트 메시지 표시
+    if (isLogin && initialRender.current) {
+      toast.success('이미 로그인 상태입니다.');
+      navigate('/');
+    }
+    initialRender.current = false;
+  }, [isLogin, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
