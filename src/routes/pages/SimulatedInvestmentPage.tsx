@@ -10,6 +10,7 @@ import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { StockCostHistory } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
+import { PeriodChart } from '@/components/ui/chart-daily';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { TickChart } from '@/components/ui/tick-chart';
 import { TickCandleChart } from '@/components/ui/tick-chart2';
@@ -96,30 +97,45 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
-          <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-10">
-              <MinuteChart initialData={minuteData} />
-            </div>
-            <div className="col-span-2">
-              <TickCandleChart
-                tickData={tickData}
-                height={400}
-                basePrice={minuteData?.data[0]?.openPrice} // 초기 기준가
-              />
-            </div>
+          <div>
+            <PeriodChart periodType={'day'} />
           </div>
+          {tickData ? (
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-10">
+                <MinuteChart initialData={minuteData} />
+              </div>
+              <div className="col-span-2">
+                <TickCandleChart
+                  tickData={tickData}
+                  height={400}
+                  basePrice={minuteData?.data[0]?.openPrice} // 초기 기준가
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="">
+              <div className="">
+                <MinuteChart initialData={minuteData} />
+              </div>
+            </div>
+          )}
         </div>
         <div className="col-span-1 lg:col-span-2">
           <OrderStatus closePrice={closePrice} realTime={tickData?.stckPrpr} />
         </div>
       </div>
-      <div className="my-2">
-        <TickChart
-          tickData={tickData}
-          height={200}
-          basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
-        />
-      </div>
+      {tickData ? (
+        <div className="my-2">
+          <TickChart
+            tickData={tickData}
+            height={200}
+            basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
+          />
+        </div>
+      ) : (
+        <div></div>
+      )}
       <div className="grid grid-cols-10 gap-5">
         <div className="col-span-5">
           <StockCostHistory tickData={tickData} />
