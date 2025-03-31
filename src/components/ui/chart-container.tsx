@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { DailyChart } from '@/components/ui/chart-daily';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { WeekChart } from '@/components/ui/chart-week';
@@ -48,21 +50,34 @@ interface MinuteChartProps {
 }
 
 export const ChartContainer = ({ initialData }: MinuteChartProps) => {
+  const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
+
   return (
     <div>
       <div>
-        <button>1</button>
-        <button>2</button>
-        <button>3</button>
+        <button
+          onClick={() => setChartType('minute')}
+          style={{ fontWeight: chartType === 'minute' ? 'bold' : 'normal' }}
+        >
+          분
+        </button>
+        <button
+          onClick={() => setChartType('day')}
+          style={{ fontWeight: chartType === 'day' ? 'bold' : 'normal' }}
+        >
+          일
+        </button>
+        <button
+          onClick={() => setChartType('week')}
+          style={{ fontWeight: chartType === 'week' ? 'bold' : 'normal' }}
+        >
+          주
+        </button>
       </div>
       <div>
-        <MinuteChart initialData={initialData} />
-      </div>
-      <div>
-        <DailyChart periodType={'day'} />
-      </div>
-      <div>
-        <WeekChart periodType={'week'} />
+        {chartType === 'minute' && <MinuteChart initialData={initialData} />}
+        {chartType === 'day' && <DailyChart periodType={'day'} />}
+        {chartType === 'week' && <WeekChart periodType={'week'} />}
       </div>
     </div>
   );
