@@ -68,7 +68,25 @@ const DEFAULT_DATA_ZOOM_END = 100; // 데이터줌 종료 위치
 const EMPTY_DATA_COUNT = 10; // 빈 데이터 개수 (여백용)
 const Y_AXIS_MARGIN_PERCENT = 5; // Y축 여백 비율 (%)
 
-export const MinuteChart: React.FC<MinuteChartProps> = ({
+// 커스텀 비교 함수 - 실제로 props가 변경되었는지 확인
+const arePropsEqual = (prevProps: MinuteChartProps, nextProps: MinuteChartProps) => {
+  // initialData가 가장 중요한 prop이므로 이것을 주로 비교
+  if (prevProps.initialData?.cursor !== nextProps.initialData?.cursor) {
+    return false;
+  }
+
+  // 다른 props도 필요에 따라 비교
+  if (prevProps.height !== nextProps.height) return false;
+  if (prevProps.companyId !== nextProps.companyId) return false;
+  if (prevProps.initialLimit !== nextProps.initialLimit) return false;
+
+  // onLoadMoreData는 함수이므로 참조 변경을 확인하지 않음
+  // 함수는 useCallback으로 메모이제이션하는 것이 좋음
+
+  return true;
+};
+
+const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   companyId,
   height = 600,
   initialLimit = 100,
@@ -277,7 +295,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
               <div class="text-base font-semibold text-gray-800">주식 정보</div>
               <div class="text-sm text-gray-500">${formattedDate}</div>
             </div>
-            
+
             <div class="mb-3">
               <div class="flex justify-between items-center mb-1">
                 <span class="text-gray-600">시가</span>
@@ -299,7 +317,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
                 <span class="font-medium">${formatKoreanNumber(high)}원</span>
               </div>
             </div>
-            
+
             <div class="mb-3 pt-2 border-t border-gray-200">
               <div class="flex justify-between items-center mb-1">
                 <span class="text-gray-600">5일 이평선</span>
@@ -310,7 +328,7 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
                 <span class="font-medium">${formatKoreanNumber(twentyAverage)}원</span>
               </div>
             </div>
-            
+
             <div class="pt-2 border-t border-gray-200">
               <div class="flex justify-between items-center">
                 <span class="text-gray-600">거래량</span>
@@ -811,3 +829,6 @@ export const MinuteChart: React.FC<MinuteChartProps> = ({
     </div>
   );
 };
+
+// React.memo를 사용하여 컴포넌트 메모이제이션
+export const MinuteChart = React.memo<MinuteChartProps>(MinuteChartComponent, arePropsEqual);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
@@ -10,9 +10,7 @@ import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { StockCostHistory } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
-import ChartComponent from '@/components/ui/chart';
 import { MinuteChart } from '@/components/ui/chart-simulate';
-import { dummyPeriodData } from '@/mocks/dummy-data';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
@@ -25,6 +23,15 @@ export const SimulatedInvestmentPage = () => {
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
   const [tickData, setTickData] = useState<TickData | null>(null);
+
+  // useCallback으로 이벤트 핸들러 메모이제이션
+  const handleLoadMore = useCallback(
+    async (cursor: string) => {
+      // 추가 데이터 로드 로직
+      return null;
+    },
+    [], // 의존성 배열
+  );
 
   // 정적 데이터 확인 후 소켓 연결 시작
   useEffect(() => {
@@ -43,6 +50,12 @@ export const SimulatedInvestmentPage = () => {
       };
     }
   }, [isSuccess, minuteData, connectTick, disconnectTick]);
+
+  // minuteChart 컴포넌트를 useMemo로 메모이제이션
+  const memoizedChart = useMemo(() => {
+    if (!minuteData) return null;
+    return <MinuteChart initialData={minuteData} onLoadMoreData={handleLoadMore} />;
+  }, [minuteData, handleLoadMore]);
 
   if (isLoading) {
     return (
