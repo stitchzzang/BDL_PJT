@@ -52,12 +52,46 @@ interface ChartDataPoint {
   rawDate: Date | null;
 }
 
+// 틱 데이터
+interface TickData {
+  /** 종목 코드 (예: "005930") */
+  stockCode: string;
+
+  /** 주식 체결 시간 (문자열, HHmmss 형식 등) */
+  stckCntgHour: string;
+
+  /** 주식 현재가 (체결 가격) */
+  stckPrpr: number;
+
+  /** 주식 시가 */
+  stckOprc: number;
+
+  /** 주식 최고가 */
+  stckHgpr: number;
+
+  /** 주식 최저가 */
+  stckLwpr: number;
+
+  /** 체결 거래량 */
+  cntgVol: number;
+
+  /** 누적 거래량 */
+  acmlVol: number;
+
+  /** 누적 거래 대금 */
+  acmlTrPbm: number;
+
+  /** 체결구분 (예: "1" - 매수, "3" - 장전, "5" - 매도) */
+  ccldDvsn: string;
+}
+
 interface MinuteChartProps {
   companyId?: string;
   height?: number;
   initialLimit?: number;
   initialData?: StockMinuteDefaultData; // 부모 컴포넌트에서 받는 초기 데이터
   onLoadMoreData?: (cursor: string) => Promise<StockMinuteDefaultData | null>; // 추가 데이터 로드 콜백
+  TickData?: TickData | null;
 }
 
 // 상수 정의
@@ -79,6 +113,7 @@ const arePropsEqual = (prevProps: MinuteChartProps, nextProps: MinuteChartProps)
   if (prevProps.height !== nextProps.height) return false;
   if (prevProps.companyId !== nextProps.companyId) return false;
   if (prevProps.initialLimit !== nextProps.initialLimit) return false;
+  if (prevProps.TickData !== nextProps.TickData) return false;
 
   // onLoadMoreData는 함수이므로 참조 변경을 확인하지 않음
   // 함수는 useCallback으로 메모이제이션하는 것이 좋음
@@ -92,6 +127,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   initialLimit = 100,
   initialData,
   onLoadMoreData,
+  TickData,
 }) => {
   const [minuteData, setMinuteData] = useState<StockMinuteDefaultData | undefined>(initialData);
   const [loading, setLoading] = useState<boolean>(false);
@@ -345,14 +381,26 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   // 데이터 줌 이벤트 처리
   const handleDataZoomChange = useCallback(
     debounce((params: any) => {
-      if (!params) return;
-      if (params.start === undefined || params.start === null) return;
-      if (params.end === undefined || params.end === null) return;
+      console.log('DataZoom 이벤트 발생:', params);
+      console.log('DataZoom 이벤트 발생 타입:', params.type); // 이벤트 타입
+      console.log('DataZoom start/end:', params.start, params.end); // start와 end 값
+      console.log('DataZoom 전체 파라미터:', JSON.stringify(params)); // 전체 파라미터 구조
+      if (!params || !params.batch || params.batch.length === 0) return;
+
+      // batch 배열의 첫 번째 요소에서 start와 end 값을 가져옴
+      const batchItem = params.batch[0];
+      const start = batchItem?.start;
+      const end = batchItem?.end;
+
+      if (start === undefined || start === null) return;
+      if (end === undefined || end === null) return;
+
+      console.log('처리할 start/end 값:', start, end);
 
       // 데이터 줌 범위 저장
       setDataZoomRange({
-        start: params.start,
-        end: params.end,
+        start: start,
+        end: end,
       });
 
       // Y축 범위 업데이트를 위해 차트 인스턴스 접근
@@ -376,7 +424,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       }
 
       // 왼쪽 경계에 도달했고 아직 추가 데이터를 로드하지 않았을 때만 요청
-      if (params.start <= 5 && !hasLoadedAdditionalData) {
+      if (start <= 5 && !hasLoadedAdditionalData) {
         console.log('추가 데이터 로드 요청');
         console.log(cursorValue);
 
@@ -426,7 +474,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           });
       }
     }, 300),
-    [onLoadMoreData, hasLoadedAdditionalData, cursorValue],
+    [onLoadMoreData, hasLoadedAdditionalData, cursorValue, getVisibleDataRange],
   );
 
   // useEffect 추가: 데이터가 변경될 때마다 Y축 범위 업데이트
@@ -450,6 +498,31 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       }
     }
   }, [chartData, getVisibleDataRange]);
+
+  useEffect(() => {
+    // 차트가 마운트된 후 이벤트 리스너 등록
+    if (chartRef.current) {
+      const chartInstance = chartRef.current.getEchartsInstance();
+      if (chartInstance) {
+        // 기존 이벤트 리스너 제거 후 다시 등록
+        chartInstance.off('datazoom');
+        chartInstance.on('datazoom', handleDataZoomChange);
+
+        console.log('데이터줌 이벤트 리스너 직접 등록 완료');
+      }
+    }
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 정리
+    return () => {
+      if (chartRef.current) {
+        const chartInstance = chartRef.current.getEchartsInstance();
+        if (chartInstance) {
+          chartInstance.off('datazoom', handleDataZoomChange);
+        }
+      }
+    };
+  }, [handleDataZoomChange]);
+
   // 차트 옵션 설정
   const option: EChartsOption = useMemo(() => {
     // 최신 캔들 데이터 가져오기 (배열의 마지막 요소) - 안전하게 체크
@@ -674,7 +747,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
-          onZoom: handleDataZoomChange,
+          // onZoom: handleDataZoomChange,
         },
         {
           show: true,
@@ -687,7 +760,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
-          onZoom: handleDataZoomChange,
+          // onZoom: handleDataZoomChange,
         },
       ],
       series: [
@@ -820,7 +893,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           option={option}
           style={{ height: `${height}px` }}
           onEvents={{
-            datazoom: handleDataZoomChange, // 이벤트 이름: 핸들러 함수
+            datazoom: handleDataZoomChange, // 기존 이벤트 (모든 dataZoom 이벤트 처리)
             rendered: () => console.log('차트 렌더링 완료'),
             click: () => console.log('차트 클릭됨'),
           }}
