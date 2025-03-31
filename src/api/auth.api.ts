@@ -16,7 +16,7 @@ export const authApi = {
       })
       .json<ApiResponse<LoginResponse>>(),
 
-  logout: () => _kyAuth.post('auth/logout', {}).json<ApiResponse<void>>(),
+  logout: () => _ky.post('auth/logout', {}).json<ApiResponse<void>>(),
   signup: (data: SignupRequest) =>
     _ky
       .post('auth/signup', {
@@ -61,11 +61,13 @@ export const useLogin = () => {
 
 export const useLogout = () => {
   const logoutAuth = useAuthStore((state) => state.logoutAuth);
+  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
       logoutAuth();
+      navigate('/');
     },
     onError: () => {
       alert('로그아웃 실패');
