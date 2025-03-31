@@ -25,7 +25,9 @@ export const PasswordEditPage = () => {
       <h1 className="mb-4 text-2xl font-bold">비밀번호 수정</h1>
       <div className="flex min-w-[400px] flex-col items-center gap-5 rounded-2xl border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex w-full flex-col items-center gap-4">
-          <QuestionsCombobox onSelect={(selectedQuestion) => setQuestion(selectedQuestion)} />
+          <QuestionsCombobox
+            onSelect={(selectedQuestion) => setQuestion(selectedQuestion.toString())}
+          />
           <Input
             type="text"
             placeholder="답변을 입력해주세요."

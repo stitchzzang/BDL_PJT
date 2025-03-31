@@ -1,9 +1,12 @@
-import { useTutorialResults } from '@/api/member.api';
+import { useTutorialResults } from '@/api/tutorial.api';
 import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial-result-item';
-import stockTutorialResults from '@/mocks/stock-tutorial-results.json';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const TutorialResultPage = () => {
-  const { data: tutorialResults } = useTutorialResults({ memberId: '1' });
+  const { userData } = useAuthStore();
+  const { data: tutorialResults } = useTutorialResults({
+    memberId: userData.memberId?.toString() ?? '',
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
@@ -12,8 +15,8 @@ export const TutorialResultPage = () => {
         <p className="text-text-inactive-2-color">{new Date().toISOString().split('T')[0]}</p>
       </div>
       <hr className="my-3 w-full border-t border-btn-primary-inactive-color" />
-      {stockTutorialResults.tutorials.map((result) => (
-        <StockTutorialResultItem key={result.companyName} result={result} />
+      {tutorialResults?.map((tutorialResult) => (
+        <StockTutorialResultItem key={tutorialResult.tutorialResultId} result={tutorialResult} />
       ))}
     </div>
   );

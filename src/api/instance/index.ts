@@ -42,16 +42,18 @@ const _kyAuth = _ky.extend({
           if (!request._retry) {
             request._retry = true;
             try {
-              const tokenResponse = await _ky.post('auth/token');
+              const tokenResponse = await _ky.post('auth/reissue');
               const BEARER_PREFIX = 'Bearer ';
               const newAccessToken = tokenResponse.headers
                 .get('Authorization')
                 ?.substring(BEARER_PREFIX.length);
 
               if (newAccessToken) {
-                useAuthStore
-                  .getState()
-                  .loginAuth(newAccessToken, { nickname: null, profile: null });
+                useAuthStore.getState().loginAuth(newAccessToken, {
+                  memberId: null,
+                  nickname: null,
+                  profile: null,
+                });
                 request.headers.set('Authorization', `Bearer ${newAccessToken}`);
               }
 

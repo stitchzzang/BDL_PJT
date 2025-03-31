@@ -16,33 +16,33 @@ import { cn } from '@/lib/utils';
 
 const frameworks = [
   {
-    value: '0',
+    value: '1',
     label: '처음 나온 초등학교 이름은?',
   },
   {
-    value: '1',
+    value: '2',
     label: '가장 아끼는 보물 1호는?',
   },
   {
-    value: '2',
+    value: '3',
     label: '어릴 적 별명은 무엇인가요?',
   },
   {
-    value: '3',
+    value: '4',
     label: '첫 번째 애완동물 이름은?',
   },
   {
-    value: '4',
+    value: '5',
     label: '어머니의 성함은?',
   },
   {
-    value: '5',
+    value: '6',
     label: '아버지의 성함은?',
   },
 ];
 
 interface QuestionsComboboxProps {
-  onSelect?: (question: string) => void;
+  onSelect?: (question: number) => void;
 }
 
 export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
@@ -56,7 +56,9 @@ export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="flex h-14 w-full justify-between rounded-md border border-border-color bg-transparent px-3 py-1 text-base text-border-color shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-border-color focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+          className={`flex h-14 w-full justify-between rounded-md border border-border-color px-3 py-1 text-base ${
+            value ? 'bg-white text-black' : 'bg-transparent text-border-color'
+          } shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-border-color focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm`}
         >
           {value
             ? frameworks.find((framework) => framework.value === value)?.label
@@ -64,7 +66,7 @@ export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-auto p-0" align="end">
         <Command>
           <CommandList>
             <CommandEmpty>질문을 선택해주세요.</CommandEmpty>
@@ -77,7 +79,7 @@ export function QuestionsCombobox({ onSelect }: QuestionsComboboxProps) {
                     setValue(currentValue === value ? '' : currentValue);
                     setOpen(false);
                     if (currentValue !== value) {
-                      onSelect?.(framework.label);
+                      onSelect?.(Number(framework.value));
                     }
                   }}
                 >

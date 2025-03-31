@@ -1,11 +1,19 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { Navigate } from 'react-router-dom';
 
 import NoneLogo from '/none-img/none-logo.png';
 import { BuildingAnimation } from '@/components/common/building-animation';
 import { CategoryList } from '@/components/common/category-list';
-
+import { useAuthStore } from '@/store/useAuthStore';
 export const InvestmentSelectPage = () => {
   const [categoryId, setCategoryId] = useState<string>('0');
+  const { isLogin } = useAuthStore();
+
+  if (!isLogin) {
+    toast.error('로그인 후 이용해주세요.');
+    return <Navigate to="/login" />;
+  }
   return (
     <div className="flex flex-col items-center justify-center gap-3">
       <div className="group flex flex-col items-center justify-center gap-3">

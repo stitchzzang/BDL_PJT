@@ -6,6 +6,7 @@ import {
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
+  StockDayDefaultData,
   StockMinuteDefaultData,
   StockPeriodDefaultData,
   UserSimulatedData,
@@ -128,6 +129,14 @@ export const useStockDailyData = (companyId: number, periodType: number, limit: 
   return useQuery({
     queryKey: ['stockDailyData', companyId, periodType, limit],
     queryFn: () => StockApi.getStockInitDailyData(companyId, periodType, limit),
+  });
+};
+
+export const useStockDayData = (stockId: number, limit: number, periodType: number) => {
+  return useQuery({
+    queryKey: ['DayData'],
+    queryFn: () =>
+      StockApi.getStockInitDayData(stockId, limit, periodType).then((res) => res.result),
   });
 };
 

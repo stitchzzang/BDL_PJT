@@ -45,7 +45,7 @@ export const SimulatedInvestmentPage = () => {
       setClosePrice(minuteData.data[0].closePrice);
     }
     // 데이터 확인 후 진행
-    if (isSuccess && minuteData) {
+    if (isSuccess && minuteData && DayData) {
       // 소켓 연결 시작
       connectTick('000660', setTickData);
 
@@ -54,7 +54,7 @@ export const SimulatedInvestmentPage = () => {
         disconnectTick();
       };
     }
-  }, [isSuccess, minuteData, connectTick, disconnectTick]);
+  }, [isSuccess, minuteData, connectTick, disconnectTick, DayData]);
 
   // minuteChart 컴포넌트를 useMemo로 메모이제이션
   const memoizedChart = useMemo(() => {
@@ -134,10 +134,10 @@ export const SimulatedInvestmentPage = () => {
         <div></div>
       )}
       <div className="grid grid-cols-10 gap-5">
-        <div className="col-span-5">
-          <StockCostHistory tickData={tickData} />
+        <div className="col-span-6">
+          <StockCostHistory tickData={tickData} DayData={DayData?.data} />
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2">
           <StockInfoDetail />
         </div>
         <div className="col-span-2">

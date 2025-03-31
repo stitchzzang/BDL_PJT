@@ -4,10 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useSearchedCompanies } from '@/api/home.api';
 import { CategoryList } from '@/components/common/category-list';
-import { CompanySelectButton } from '@/components/common/company-select-button';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { SearchAnimation } from '@/components/common/search-animation';
+import { SearchedCompanyCard } from '@/components/home-page/searched-company-card';
 export const SearchPage = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
@@ -60,8 +60,8 @@ export const SearchPage = () => {
   return (
     <div className="flex w-full flex-col items-center justify-center gap-3">
       <div className="mx-5 flex max-w-xl flex-col items-center justify-center gap-4">
-        <div className="group flex flex-col items-center justify-center gap-3">
-          <div className="flex flex-col items-center justify-center gap-[10px]">
+        <div className="flex flex-col items-center justify-center gap-3">
+          <div className="group flex flex-col items-center justify-center gap-[10px]">
             <h1 className="text-[28px] font-bold">종목 검색</h1>
             <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border-color border-opacity-40 p-2 py-4 transition-all duration-300 group-hover:border-btn-blue-color">
               <div>
@@ -112,7 +112,7 @@ export const SearchPage = () => {
             {searchedCompanies && searchedCompanies.length > 0 && (
               <div className="flex flex-col gap-2">
                 {searchedCompanies.map((company) => (
-                  <CompanySelectButton key={company.companyId} company={company} />
+                  <SearchedCompanyCard key={company.companyId} company={company} />
                 ))}
               </div>
             )}
