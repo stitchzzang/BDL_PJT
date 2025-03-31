@@ -11,7 +11,6 @@ import { StockCostHistory } from '@/components/mock-investment/stock-cost-histor
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
 import { ChartConstainer } from '@/components/ui/chart-container';
-import { PeriodChart } from '@/components/ui/chart-daily';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { TickChart } from '@/components/ui/tick-chart';
 import { TickCandleChart } from '@/components/ui/tick-chart2';
@@ -100,10 +99,6 @@ export const SimulatedInvestmentPage = () => {
       </div>
       <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
-          <div>
-            {/* 테스트중 */}
-            <PeriodChart periodType={'day'} initialData={stockDailyData?.result} />
-          </div>
           {tickData ? (
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-10">
