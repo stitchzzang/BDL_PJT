@@ -18,6 +18,7 @@ export interface MemberInvestedStock {
 
 export interface AccountResponse {
   companyId: number; // 종목 ID
+  companyImage: string; // 종목 이미지
   companyName: string; // 종목명
   profitRate: number; // 해당 종목의 수익률 (%)
   profit: number; // 해당 종목의 수익금 (원)
