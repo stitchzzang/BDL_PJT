@@ -54,32 +54,35 @@ export const ChartContainer = ({ initialData }: MinuteChartProps) => {
 
   return (
     <div className="h-[100%] rounded-2xl bg-modal-background-color pt-5">
-      <div className="mx-2 flex gap-2">
-        <button
-          onClick={() => setChartType('minute')}
-          className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
-            chartType === 'minute' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
-          }`}
-        >
-          분
-        </button>
-        <button
-          onClick={() => setChartType('day')}
-          className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
-            chartType === 'day' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
-          }`}
-        >
-          일
-        </button>
-        <button
-          onClick={() => setChartType('week')}
-          className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
-            chartType === 'week' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
-          }`}
-        >
-          주
-        </button>
+      <div className="inline-block">
+        <div className="mx-2 flex gap-2 rounded-xl border p-2 border-border-color">
+          <button
+            onClick={() => setChartType('minute')}
+            className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+              chartType === 'minute' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+            }`}
+          >
+            분 <span className="text-[14px] font-light opacity-40">(1분)</span>
+          </button>
+          <button
+            onClick={() => setChartType('day')}
+            className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+              chartType === 'day' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+            }`}
+          >
+            일
+          </button>
+          <button
+            onClick={() => setChartType('week')}
+            className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+              chartType === 'week' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+            }`}
+          >
+            주
+          </button>
+        </div>
       </div>
+      <div className="mx-2 mt-[25px] border-b border-border-color  border-opacity-20"></div>
       <div>
         {chartType === 'minute' && <MinuteChart initialData={initialData} />}
         {chartType === 'day' && <DailyChart periodType={'day'} />}

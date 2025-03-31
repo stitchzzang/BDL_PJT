@@ -1012,7 +1012,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           gridIndex: 1,
           splitNumber: 2,
           max: function (value) {
-            return value.max * 3; // 예: 최대값의 3배로 설정하여 그래프 높이를 1/3로 줄임
+            return value.max * 2; // 예: 최대값의 3배로 설정하여 그래프 높이를 1/3로 줄임
           },
           axisLabel: {
             show: true,
