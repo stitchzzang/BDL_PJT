@@ -53,23 +53,29 @@ export const ChartContainer = ({ initialData }: MinuteChartProps) => {
   const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
 
   return (
-    <div>
-      <div>
+    <div className="h-[100%] rounded-2xl bg-modal-background-color pt-5">
+      <div className="mx-2 flex gap-2">
         <button
           onClick={() => setChartType('minute')}
-          style={{ fontWeight: chartType === 'minute' ? 'bold' : 'normal' }}
+          className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+            chartType === 'minute' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+          }`}
         >
           분
         </button>
         <button
           onClick={() => setChartType('day')}
-          style={{ fontWeight: chartType === 'day' ? 'bold' : 'normal' }}
+          className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+            chartType === 'day' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+          }`}
         >
           일
         </button>
         <button
           onClick={() => setChartType('week')}
-          style={{ fontWeight: chartType === 'week' ? 'bold' : 'normal' }}
+          className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+            chartType === 'week' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+          }`}
         >
           주
         </button>
