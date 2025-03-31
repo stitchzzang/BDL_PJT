@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
-import { AccountResponse } from '@/api/types/member';
+import { AccountSummaryResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import {
@@ -36,7 +36,7 @@ import {
 export const InvestmentResultPage = () => {
   const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
-  const [accountData, setAccountData] = useState<AccountResponse[]>([]);
+  const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
   const [realTimeData, setRealTimeData] = useState(accountSummary);
   const [prevData, setPrevData] = useState(accountSummary);
   const [isFlashing, setIsFlashing] = useState(false);
@@ -44,19 +44,23 @@ export const InvestmentResultPage = () => {
   const { mutate: resetAccount } = useResetAccount('1');
 
   useEffect(() => {
-    if (accountData) {
+    if (accountSummary) {
       connectAccount('1', setAccountData);
       return () => {
         disconnectAccount();
       };
     }
-  }, [accountData, connectAccount, disconnectAccount]);
+  }, [accountSummary, connectAccount, disconnectAccount]);
 
   useEffect(() => {
     if (accountData && accountSummary) {
       // 웹소켓으로 받은 데이터로 accountSummary 업데이트
       const updatedAccounts = accountSummary.accounts.map((account) => {
-        const realTimeAccount = accountData.find((rt) => rt.companyId === account.companyId);
+        // accountData가 배열이 아닐 경우를 처리
+        const realTimeAccount = accountData.accounts.find(
+          (rt) => rt.companyId === account.companyId,
+        );
+
         if (realTimeAccount) {
           return {
             ...account,
@@ -72,12 +76,9 @@ export const InvestmentResultPage = () => {
       });
 
       // 총 자산, 평가금액, 현금 업데이트
-      const totalEvaluation = updatedAccounts.reduce((sum, account) => sum + account.evaluation, 0);
-      const totalProfit = updatedAccounts.reduce((sum, account) => sum + account.profit, 0);
-      const totalDailyProfit = updatedAccounts.reduce(
-        (sum, account) => sum + account.dailyProfit,
-        0,
-      );
+      const totalEvaluation = accountData.totalEvaluation;
+      const totalProfit = accountData.totalProfit;
+      const totalDailyProfit = accountData.dailyProfit;
 
       const newData = {
         ...accountSummary,
@@ -85,7 +86,9 @@ export const InvestmentResultPage = () => {
         totalEvaluation,
         totalProfit,
         dailyProfit: totalDailyProfit,
-        totalAsset: accountSummary.totalCash + totalEvaluation,
+        totalProfitRate: accountData.totalProfitRate,
+        dailyProfitRate: accountData.dailyProfitRate,
+        totalAsset: accountData.totalAsset,
       };
 
       setIsFlashing(true);
@@ -149,7 +152,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.totalProfitRate !== prevData?.totalProfitRate
-                ? (displayData?.totalProfitRate ?? 0) > (prevData?.totalProfitRate ?? 0)
+                ? (displayData?.totalProfitRate ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.totalProfitRate ?? 0) === 0
@@ -173,7 +176,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.totalProfit !== prevData?.totalProfit
-                ? (displayData?.totalProfit ?? 0) > (prevData?.totalProfit ?? 0)
+                ? (displayData?.totalProfit ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.totalProfit ?? 0) === 0
@@ -197,7 +200,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.dailyProfitRate !== prevData?.dailyProfitRate
-                ? (displayData?.dailyProfitRate ?? 0) > (prevData?.dailyProfitRate ?? 0)
+                ? (displayData?.dailyProfitRate ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.dailyProfitRate ?? 0) === 0
@@ -221,7 +224,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.dailyProfit !== prevData?.dailyProfit
-                ? (displayData?.dailyProfit ?? 0) > (prevData?.dailyProfit ?? 0)
+                ? (displayData?.dailyProfit ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.dailyProfit ?? 0) === 0
@@ -301,15 +304,22 @@ export const InvestmentResultPage = () => {
           {displayData?.accounts.length && displayData?.accounts.length > 0 ? (
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
-                <TableCell>{account.companyName}</TableCell>
+                <TableCell>
+                  <div className="flex flex-row items-center gap-2">
+                    <img
+                      src={account.companyImage}
+                      alt="companyIcon"
+                      className="h-10 w-10 rounded-full"
+                    />
+                    {account.companyName}
+                  </div>
+                </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
                     isFlashing &&
                     account.profitRate !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.profitRate
-                      ? account.profitRate >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.profitRate || 0)
+                      ? account.profitRate > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.profitRate > 0
@@ -326,9 +336,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.profit !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.profit
-                      ? account.profit >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.profit || 0)
+                      ? account.profit > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.profit > 0
@@ -347,9 +355,7 @@ export const InvestmentResultPage = () => {
                     account.currentPrice !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)
                         ?.currentPrice
-                      ? account.currentPrice >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.currentPrice || 0)
+                      ? account.currentPrice > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : ''
@@ -363,9 +369,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.evaluation !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.evaluation
-                      ? account.evaluation >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.evaluation || 0)
+                      ? account.evaluation > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.evaluation > 0
@@ -382,9 +386,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.investment !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.investment
-                      ? account.investment >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.investment || 0)
+                      ? account.investment > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.investment > 0
@@ -402,9 +404,7 @@ export const InvestmentResultPage = () => {
                     account.dailyProfitRate !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)
                         ?.dailyProfitRate
-                      ? account.dailyProfitRate >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.dailyProfitRate || 0)
+                      ? account.dailyProfitRate > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.dailyProfitRate > 0
@@ -421,9 +421,7 @@ export const InvestmentResultPage = () => {
                     isFlashing &&
                     account.dailyProfit !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.dailyProfit
-                      ? account.dailyProfit >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.dailyProfit || 0)
+                      ? account.dailyProfit > 0
                         ? 'bg-btn-red-color/50'
                         : 'bg-btn-blue-color/50'
                       : account.dailyProfit > 0

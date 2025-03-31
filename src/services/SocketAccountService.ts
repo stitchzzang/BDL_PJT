@@ -2,7 +2,7 @@ import { Client, Frame } from '@stomp/stompjs';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import SockJS from 'sockjs-client';
 
-import { AccountResponse } from '@/api/types/member';
+import { AccountSummaryResponse } from '@/api/types/member';
 
 // 커스텀 훅으로 변경
 export const useAccountConnection = () => {
@@ -11,7 +11,7 @@ export const useAccountConnection = () => {
 
   // 연결 함수
   const connectAccount = useCallback(
-    (memberId: string, setAccountData: (data: AccountResponse[]) => void) => {
+    (memberId: string, setAccountData: (data: AccountSummaryResponse) => void) => {
       // 기존 연결이 있으면 해제
       disconnectAccount();
 
@@ -23,9 +23,6 @@ export const useAccountConnection = () => {
       // STOMP 클라이언트 생성
       const client = new Client({
         webSocketFactory: () => socket,
-        debug: (str) => {
-          console.log(str);
-        },
         reconnectDelay: 5000,
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
@@ -41,7 +38,7 @@ export const useAccountConnection = () => {
           try {
             // 메시지 처리
             const receivedData = JSON.parse(message.body);
-            setAccountData(receivedData);
+            setAccountData(receivedData.result);
           } catch (error) {
             console.error('에러 발생', error);
           }

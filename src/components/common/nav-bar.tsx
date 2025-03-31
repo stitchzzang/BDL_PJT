@@ -203,20 +203,22 @@ export const NavBar = () => {
           </>
         )}
 
-        <NavLink
-          to="/member"
-          className={({ isActive }) =>
-            isActive
-              ? 'rounded-full border-2 border-primary-color transition-all duration-300 hover:border-primary-color'
-              : 'rounded-full border border-text-main-color transition-all duration-300 hover:border-text-main-color'
-          }
-        >
-          <img
-            src="/none-img/none_profile_img.png"
-            alt="profile"
-            className="h-[32px] w-[32px] rounded-full border-2 border-transparent transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
-          />
-        </NavLink>
+        {isLogin && (
+          <NavLink
+            to="/member"
+            className={({ isActive }) =>
+              isActive
+                ? 'rounded-full border-2 border-primary-color transition-all duration-300 hover:border-primary-color'
+                : 'rounded-full border border-text-main-color transition-all duration-300 hover:border-text-main-color'
+            }
+          >
+            <img
+              src="/none-img/none_profile_img.png"
+              alt="profile"
+              className="h-[32px] w-[32px] rounded-full border-2 border-transparent transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
+            />
+          </NavLink>
+        )}
         {/* 모바일 메뉴 토글 버튼 */}
         <button className="ml-2 webapp:hidden" onClick={toggleMenu}>
           {isOpen ? (

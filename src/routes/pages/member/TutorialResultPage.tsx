@@ -1,8 +1,12 @@
 import { useTutorialResults } from '@/api/tutorial.api';
 import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial-result-item';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const TutorialResultPage = () => {
-  const { data: tutorialResults } = useTutorialResults({ memberId: '1' });
+  const { userData } = useAuthStore();
+  const { data: tutorialResults } = useTutorialResults({
+    memberId: userData.memberId?.toString() ?? '',
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
