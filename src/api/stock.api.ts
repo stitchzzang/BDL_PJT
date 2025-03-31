@@ -6,6 +6,7 @@ import {
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
+  StockDayDefaultData,
   StockMinuteDefaultData,
   UserSimulatedData,
 } from '@/api/types/stock';
@@ -16,6 +17,17 @@ export const StockApi = {
     _ky
       .get(`stocks/${stockId}/minute/initial?limit=${limit}`)
       .json<ApiResponse<StockMinuteDefaultData>>(),
+
+  // 일봉 데이터 가져오기 (limit - 최대개수)
+  getStockInitDayData: (stockId: number, limit: number, periodType: number) =>
+    _ky
+      .get(`stocks/${stockId}/daily/initial`, {
+        searchParams: {
+          limit: limit,
+          periodType: periodType,
+        },
+      })
+      .json<ApiResponse<StockDayDefaultData>>(),
 
   //Order API
 
@@ -93,6 +105,14 @@ export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData'],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
+  });
+};
+
+export const useStockDayData = (stockId: number, limit: number, periodType: number) => {
+  return useQuery({
+    queryKey: ['DayData'],
+    queryFn: () =>
+      StockApi.getStockInitDayData(stockId, limit, periodType).then((res) => res.result),
   });
 };
 

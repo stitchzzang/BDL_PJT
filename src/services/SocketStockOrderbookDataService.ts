@@ -16,7 +16,7 @@ export const useOrderbookConnection = () => {
       disconnectOrderbook();
 
       //인스턴스 생성
-      const socket = new SockJS('http://192.168.100.198:8080/ws');
+      const socket = new SockJS('https://j12d202.p.ssafy.io/ws');
 
       // STOMP 클라이언트 생성
       const client = new Client({
@@ -28,6 +28,9 @@ export const useOrderbookConnection = () => {
         heartbeatIncoming: 4000,
         heartbeatOutgoing: 4000,
       });
+
+      stompClientRef.current = client;
+
       // 연결 성공 콜백
       client.onConnect = (frame: Frame) => {
         setIsConnected(true);
