@@ -3,6 +3,8 @@ import ReactECharts from 'echarts-for-react';
 import { debounce } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useStockDailyData } from '@/api/stock.api';
+
 // 타입 정의
 interface StockPeriodData {
   stockCandleId: number;
@@ -117,6 +119,9 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   periodType = 'day', // 기본값은 일봉
   apiBaseUrl = '/api',
 }) => {
+  // 초기 데이터 (일별 데이터)
+  const { data: stockDailyData, isLoading, isError } = useStockDailyData(1, 1, 50);
+
   // 상태 관리
   const [chartData, setChartData] = useState<StockPeriodDefaultData | undefined>(initialData);
   const [loading, setLoading] = useState<boolean>(false);
@@ -131,12 +136,12 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
   // 초기 데이터 설정
   useEffect(() => {
-    if (initialData) {
-      setChartData(initialData);
-      setCursorValue(initialData.cursor);
+    if (stockDailyData) {
+      setChartData(stockDailyData.result);
+      setCursorValue(stockDailyData.result.cursor);
       setHasMoreData(true); // 초기 데이터 설정 시 더 많은 데이터가 있을 수 있음
     }
-  }, [initialData]);
+  }, [stockDailyData]);
 
   // 주기 타입에 따른 차트 제목 설정
   const getChartTitle = useCallback(() => {
@@ -421,43 +426,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     [processedChartData, formatKoreanNumber, formatVolumeNumber],
   );
 
-  // 추가 데이터 로드 함수
-  const loadMoreData = useCallback(async () => {
-    if (!hasMoreData || loading || !onLoadMoreData || !cursorValue) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const newData = await onLoadMoreData(cursorValue);
-
-      if (!newData || !newData.data || newData.data.length === 0) {
-        setHasMoreData(false);
-        return;
-      }
-
-      // 기존 데이터와 새 데이터 병합
-      setChartData((prevData) => {
-        if (!prevData) return newData;
-
-        // 두 데이터 세트 병합
-        return {
-          ...newData,
-          data: [...prevData.data, ...newData.data], // 기존 데이터에 새 데이터 추가
-          cursor: newData.cursor, // 새 cursor 값으로 업데이트
-        };
-      });
-
-      // 새 커서 값 업데이트
-      setCursorValue(newData.cursor);
-    } catch (err) {
-      console.error('추가 데이터 로드 오류:', err);
-      setError('데이터를 불러오는 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  }, [hasMoreData, loading, cursorValue, onLoadMoreData]);
-
   // 데이터 줌 이벤트 처리
   const handleDataZoomChange = useCallback(
     debounce((params: any) => {
@@ -498,11 +466,11 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       }
 
       // 왼쪽 경계에 도달했을 때 추가 데이터 로드
-      if (start <= 5 && hasMoreData && !loading) {
-        loadMoreData();
+      if (start <= 5) {
+        alert('hello');
       }
     }, 300),
-    [getVisibleDataRange, hasMoreData, loading, loadMoreData],
+    [getVisibleDataRange, hasMoreData, loading],
   );
 
   // useEffect: 데이터가 변경될 때마다 Y축 범위 업데이트
@@ -954,4 +922,4 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 }; // PeriodChartComponent 함수 닫기
 
 // React.memo를 사용하여 컴포넌트 메모이제이션 - 컴포넌트 정의 밖에 위치
-export const PeriodChart = React.memo<PeriodChartProps>(PeriodChartComponent, arePropsEqual);
+export const DailyChart = React.memo<PeriodChartProps>(PeriodChartComponent, arePropsEqual);
