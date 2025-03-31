@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import { DayHistory } from '@/components/stock-tutorial/day-history';
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
@@ -78,9 +78,6 @@ const TutorialEndModal = ({
 
 export const SimulatePage = () => {
   const navigate = useNavigate();
-  const { companyId: companyIdString } = useParams<{ companyId: string }>();
-  const companyId = Number(companyIdString);
-
   const h3Style = 'text-[20px] font-bold';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [finalChangeRate, setFinalChangeRate] = useState(0);
@@ -106,7 +103,7 @@ export const SimulatePage = () => {
   return (
     <div className="flex h-full w-full flex-col">
       <div>
-        <StockTutorialInfo companyId={companyId} />
+        <StockTutorialInfo category={'반도체'} />
         <div className="my-[25px]">
           <StockProgress onProgressChange={setProgress} />
         </div>
