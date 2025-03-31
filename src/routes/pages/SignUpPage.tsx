@@ -12,22 +12,34 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-interface SignUpFormValues {
-  email: string;
-  password: string;
-  passwordConfirm: string;
-  nickname: string;
-  birthDate: Date;
-  phoneNumber: string;
-  question: number;
-  answer: string;
-}
+// 회원가입 폼 유효성 검사를 위한 스키마 정의
+const signUpSchema = z
+  .object({
+    email: z.string().email('올바른 이메일 형식이 아닙니다.'),
+    password: z.string().min(8, '비밀번호는 최소 8자 이상이어야 합니다.'),
+    passwordConfirm: z.string(),
+    nickname: z
+      .string()
+      .min(2, '닉네임은 최소 2자 이상이어야 합니다.')
+      .max(5, '닉네임은 최대 5자까지 가능합니다.'),
+    birthDate: z.date(),
+    phoneNumber: z.string().optional(),
+    question: z.number().min(1, '질문을 선택해주세요.'),
+    answer: z.string().min(1, '답변을 입력해주세요.').max(10, '답변은 최대 10자까지 가능합니다.'),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: '비밀번호가 일치하지 않습니다.',
+    path: ['passwordConfirm'],
+  });
+
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
   const { mutate: signup } = useSignup();
 
   const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: '',
       password: '',
