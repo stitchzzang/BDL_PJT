@@ -144,20 +144,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     }
   }, [stockDailyData]);
 
-  // 주기 타입에 따른 차트 제목 설정
-  const getChartTitle = useCallback(() => {
-    switch (periodType) {
-      case 'day':
-        return '일봉 차트';
-      case 'week':
-        return '주봉 차트';
-      case 'month':
-        return '월봉 차트';
-      default:
-        return '주가 차트';
-    }
-  }, [periodType]);
-
   // 날짜 포맷 유틸리티 함수
   const formatDate = useCallback((dateString: string, type: 'day' | 'week' | 'month'): string => {
     try {
@@ -585,7 +571,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
     return {
       title: {
-        text: getChartTitle(),
         left: 'center',
         textStyle: {
           color: '#FFFFFF',
@@ -929,7 +914,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     tooltipFormatter,
     yAxisRange,
     periodType,
-    getChartTitle,
     processedChartData,
     formatKoreanNumber,
     lastValidData,
@@ -942,10 +926,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         style={{ backgroundColor: '#0D192B' }}
       >
         <div className="flex items-center gap-4 p-4 text-sm text-white">
-          <div className="mr-auto">
-            <h3 className="text-lg font-bold">{getChartTitle()}</h3>
-            {lastValidData && <p>최근 종가: {formatKoreanNumber(lastValidData.close || 0)}원</p>}
-          </div>
           <div className="flex gap-2">{/* 기간 전환 버튼 또는 컨트롤 표시 영역 */}</div>
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}
