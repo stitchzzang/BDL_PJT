@@ -245,14 +245,14 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     // 데이터줌 범위 계산 (백분율을 실제 인덱스로 변환)
     const dataLength = chartData.length - EMPTY_DATA_COUNT;
     const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
-    const endIdx = Math.min(dataLength - 1, Math.floor((dataLength * dataZoomRange.end) / 100));
+    const endIdx = Math.min(dataLength, Math.floor((dataLength * dataZoomRange.end) / 100));
 
     // 추가: 표시 범위보다 더 넓은 범위를 계산에 사용 (앞뒤로 20% 더 확장)
     const visibleRange = endIdx - startIdx;
-    const extraRange = Math.ceil(visibleRange * 0.9); // 표시되는 영역의 20%를 추가로 고려
+    const extraRange = Math.ceil(visibleRange * 0.8); // 표시되는 영역의 20%를 추가로 고려
 
     const expandedStartIdx = Math.max(0, startIdx - extraRange);
-    const expandedEndIdx = Math.min(dataLength - 1, endIdx + extraRange);
+    const expandedEndIdx = Math.min(dataLength, endIdx + extraRange);
 
     console.log('범위 확장:', {
       원래범위: `${startIdx}-${endIdx} (${endIdx - startIdx + 1}개)`,

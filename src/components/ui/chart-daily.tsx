@@ -279,10 +279,24 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     // 데이터줌 범위 계산 (백분율을 실제 인덱스로 변환)
     const dataLength = processedChartData.length - EMPTY_DATA_COUNT;
     const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
-    const endIdx = Math.min(dataLength - 1, Math.floor((dataLength * dataZoomRange.end) / 100));
+    const endIdx = Math.min(dataLength, Math.floor((dataLength * dataZoomRange.end) / 100));
 
-    // 현재 보이는 데이터 추출
-    const visibleData = processedChartData.slice(startIdx, endIdx + 1);
+    // 추가: 표시 범위보다 더 넓은 범위를 계산에 사용 (앞뒤로 20% 더 확장)
+    const visibleRange = endIdx - startIdx + 1;
+    const extraRange = Math.ceil(visibleRange * 0.6); // 표시되는 영역의 20%를 추가로 고려
+
+    const expandedStartIdx = Math.max(0, startIdx - extraRange);
+    const expandedEndIdx = Math.min(dataLength - 1, endIdx + extraRange);
+
+    console.log('범위 확장:', {
+      원래범위: `${startIdx}-${endIdx} (${endIdx - startIdx + 1}개)`,
+      확장범위: `${expandedStartIdx}-${expandedEndIdx} (${expandedEndIdx - expandedStartIdx + 1}개)`,
+      추가확장: extraRange,
+    });
+
+    // 확장된 범위의 데이터 추출
+    const visibleData = processedChartData.slice(expandedStartIdx, expandedEndIdx + 1);
+    console.log('현재 보여지는 데이터', visibleData);
 
     // 빈 데이터나 무효한 가격 제외
     const prices = visibleData
@@ -291,12 +305,22 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
     if (prices.length === 0) return { min: 0, max: 1 };
 
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
+    const min = Math.min(...prices) - 5000;
+    const max = Math.max(...prices) + 5000;
     const range = max - min;
 
     // 여백 추가 (범위의 Y_AXIS_MARGIN_PERCENT %)
     const margin = range * (Y_AXIS_MARGIN_PERCENT / 100);
+
+    console.log('Y축 범위 계산:', {
+      최소값: min,
+      최대값: max,
+      범위: range,
+      여백: margin,
+      최종최소값: Math.max(0, min - margin),
+      최종최대값: max + margin,
+    });
+
     return {
       min: Math.max(0, min - margin),
       max: max + margin,
