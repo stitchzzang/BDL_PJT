@@ -12,6 +12,7 @@ export const NavBar = () => {
   const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [isRotating, setIsRotating] = useState(false);
   const navigate = useNavigate();
 
   const toggleMenu = () => {
@@ -19,15 +20,18 @@ export const NavBar = () => {
   };
 
   const handleSearch = () => {
-    navigate(`/search?q=${encodeURIComponent(searchValue)}`);
-    setSearchValue('');
+    setIsRotating(true);
+    setTimeout(() => {
+      setIsRotating(false);
+      setSearchValue('');
+      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+    }, 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
       setIsOpen(false);
-      setSearchValue('');
     }
   };
 
@@ -84,9 +88,11 @@ export const NavBar = () => {
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
           <button
             onClick={handleSearch}
-            className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
+            className="group text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
           >
-            <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
+            <MagnifyingGlassIcon
+              className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'group-hover:animate-rotate group-hover:text-primary-color'}`}
+            />
           </button>
           <input
             className="w-32 bg-transparent text-[#718096] focus:outline-none md:w-40"
@@ -151,9 +157,11 @@ export const NavBar = () => {
             <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
               <button
                 onClick={handleSearch}
-                className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
+                className="group text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
               >
-                <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
+                <MagnifyingGlassIcon
+                  className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'group-hover:animate-rotate group-hover:text-primary-color'}`}
+                />
               </button>
               <input
                 className="w-full bg-transparent text-[#718096] focus:outline-none"
@@ -195,11 +203,18 @@ export const NavBar = () => {
           </>
         )}
 
-        <NavLink to="/member">
+        <NavLink
+          to="/member"
+          className={({ isActive }) =>
+            isActive
+              ? 'rounded-full border-2 border-primary-color transition-all duration-300 hover:border-primary-color'
+              : 'rounded-full border border-text-main-color transition-all duration-300 hover:border-text-main-color'
+          }
+        >
           <img
             src="/none-img/none_profile_img.png"
             alt="profile"
-            className="h-[32px] w-[32px] rounded-full border border-primary-color webapp:h-[40px] webapp:w-[40px]"
+            className="h-[32px] w-[32px] rounded-full border-2 border-transparent transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
           />
         </NavLink>
         {/* 모바일 메뉴 토글 버튼 */}
