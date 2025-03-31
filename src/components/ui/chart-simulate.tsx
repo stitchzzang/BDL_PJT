@@ -392,10 +392,6 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   // 데이터 줌 이벤트 처리
   const handleDataZoomChange = useCallback(
     debounce((params: any) => {
-      console.log('DataZoom 이벤트 발생:', params);
-      console.log('DataZoom 이벤트 발생 타입:', params.type); // 이벤트 타입
-      console.log('DataZoom start/end:', params.start, params.end); // start와 end 값
-      console.log('DataZoom 전체 파라미터:', JSON.stringify(params)); // 전체 파라미터 구조
       if (!params || !params.batch || params.batch.length === 0) return;
 
       // batch 배열의 첫 번째 요소에서 start와 end 값을 가져옴
@@ -475,8 +471,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             // 새 데이터가 추가되었으므로 표시 범위 조정
             console.log('시작값 변경');
             setDataZoomRange({
-              start: 10,
-              end: end,
+              start: start + 10,
+              end: end + 10,
             });
           })
           .catch((error) => {
