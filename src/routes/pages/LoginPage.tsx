@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useLogin } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const LoginPage = () => {
+  const { isLogin } = useAuthStore();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +22,10 @@ export const LoginPage = () => {
       console.error('로그인 실패:', error);
     }
   };
+
+  if (isLogin) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
