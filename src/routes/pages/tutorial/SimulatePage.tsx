@@ -42,6 +42,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
+import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter';
 
 // 거래 기록을 위한 타입 정의
 interface TradeRecord {
@@ -59,31 +60,6 @@ interface TutorialEndModalProps {
   onConfirmResultClick: () => void;
   onEndTutorialClick: () => void;
 }
-
-// YYMMDD 형식의 날짜 생성 함수
-const formatDateToYYMMDD = (date: Date): string => {
-  const yy = date.getFullYear().toString().slice(2);
-  const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-  const dd = date.getDate().toString().padStart(2, '0');
-  return `${yy}${mm}${dd}`;
-};
-
-// YYMMDD 형식의 문자열을 Date 객체로 변환하는 함수
-const parseYYMMDDToDate = (dateStr: string): Date => {
-  const yy = dateStr.slice(0, 2);
-  const mm = dateStr.slice(2, 4);
-  const dd = dateStr.slice(4, 6);
-  return new Date(`20${yy}-${mm}-${dd}`);
-};
-
-// YYMMDD 형식의 문자열을 YYYY-MM-DD 형식으로 변환하는 함수
-const formatYYMMDDToYYYYMMDD = (dateStr: string): string => {
-  if (!dateStr || dateStr.length !== 6) return '';
-  const yy = dateStr.slice(0, 2);
-  const mm = dateStr.slice(2, 4);
-  const dd = dateStr.slice(4, 6);
-  return `20${yy}-${mm}-${dd}`;
-};
 
 const TutorialEndModal = ({
   isOpen,

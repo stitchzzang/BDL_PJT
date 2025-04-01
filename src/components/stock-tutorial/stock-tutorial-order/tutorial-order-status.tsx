@@ -10,6 +10,7 @@ export interface TutorialOrderStatusProps {
   isSessionActive: boolean;
   companyId: number;
   latestPrice: number;
+  currentTurn?: number;
 }
 
 export const TutorialOrderStatus = ({
@@ -17,6 +18,7 @@ export const TutorialOrderStatus = ({
   isSessionActive,
   companyId,
   latestPrice,
+  currentTurn = 0,
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';

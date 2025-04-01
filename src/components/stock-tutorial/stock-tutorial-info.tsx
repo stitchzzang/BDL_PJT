@@ -42,6 +42,7 @@ export interface StockInfoProps {
   companyId: number;
   isTutorialStarted?: boolean;
   onTutorialStart?: () => void;
+  currentTurn?: number;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -74,6 +75,7 @@ export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
   onTutorialStart,
+  currentTurn = 0,
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
