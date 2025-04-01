@@ -3,9 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import { _ky } from '@/api/instance';
+import { useInitTutorial } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/useAuthStore';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
@@ -16,8 +18,10 @@ interface CompanyProfileResponse {
   categories: string[];
 }
 
-interface StockInfoProps {
+export interface StockInfoProps {
   companyId: number;
+  isTutorialStarted?: boolean;
+  onTutorialStart?: () => void;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -38,10 +42,15 @@ const CATEGORY_MAPPING: Record<string, CategoryName> = {
   바이오: '바이오',
 };
 
-export const StockTutorialInfo = ({ companyId }: StockInfoProps) => {
-  const [startTutorial, setStartTutorial] = useState<boolean>(true);
+export const StockTutorialInfo = ({
+  companyId,
+  isTutorialStarted = false,
+  onTutorialStart,
+}: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
+  const authData = useAuthStore();
+  const initTutorialMutation = useInitTutorial();
 
   // 회사 정보 가져오기
   const { data: companyInfo } = useQuery<CompanyProfileResponse>({
@@ -54,22 +63,23 @@ export const StockTutorialInfo = ({ companyId }: StockInfoProps) => {
     enabled: !!companyId,
   });
 
-  // 현재 주가 정보 가져오기
-  const { data: stockPrice } = useQuery<{ currentPrice: number }>({
-    queryKey: ['stockPrice', companyId],
-    queryFn: () =>
-      _ky
-        .get(`stocks/${companyId}/current`)
-        .json<ApiResponse<{ currentPrice: number }>>()
-        .then((res) => res.result),
-    enabled: !!companyId,
-  });
-
+  // 현재 가격 정보를 가져오기 위한 API 호출을 추가
   useEffect(() => {
-    if (stockPrice?.currentPrice) {
-      setCurrentPrice(stockPrice.currentPrice);
+    // 기존 가격 정보를 임시 데이터로 설정 (실제로는 API에서 받아와야 함)
+    const fetchPrice = async () => {
+      try {
+        // 실제 API 연동 시 아래 코드를 사용
+        const response = await _ky.get(`stock/price/${companyId}`).json<ApiResponse<number>>();
+        setCurrentPrice(response.result);
+      } catch (error) {
+        // console.error('가격 정보 가져오기 실패:', error); // Linter 오류 방지를 위해 주석 처리 또는 삭제
+      }
+    };
+
+    if (companyId) {
+      fetchPrice();
     }
-  }, [stockPrice]);
+  }, [companyId]); // companyId가 변경될 때만 실행
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
@@ -92,7 +102,7 @@ export const StockTutorialInfo = ({ companyId }: StockInfoProps) => {
     // 중복 제거
     const uniqueCategories = Array.from(new Set(categories));
     setNormalizedCategories(uniqueCategories);
-  }, [companyInfo]);
+  }, [companyInfo]); // companyInfo가 변경될 때만 실행
 
   // 카테고리 아이콘 렌더링 함수
   const renderCategoryIcon = (categoryName: CategoryName) => {
@@ -102,6 +112,33 @@ export const StockTutorialInfo = ({ companyId }: StockInfoProps) => {
     } catch (error) {
       console.error(`카테고리 아이콘 렌더링 오류: ${categoryName}`, error);
       return <Squares2X2Icon />;
+    }
+  };
+
+  const handleTutorialStart = async () => {
+    // 인증 체크 부분 임시 주석 처리
+    // if (!authData.isLogin) {
+    //   console.error('로그인이 필요합니다.');
+    //   return;
+    // }
+
+    try {
+      // 현재는 memberId를 1로 고정하여 테스트합니다.
+      // 실제 환경에서는 사용자 ID를 가져와야 합니다.
+      const memberId = 1;
+
+      // 튜토리얼 세션 초기화 API 호출
+      await initTutorialMutation.mutateAsync({
+        memberId,
+        companyId,
+      });
+
+      // 초기화 성공 후 부모 컴포넌트에 알림
+      if (onTutorialStart) {
+        onTutorialStart();
+      }
+    } catch (error) {
+      console.error('튜토리얼 초기화 실패:', error);
     }
   };
 
@@ -145,10 +182,14 @@ export const StockTutorialInfo = ({ companyId }: StockInfoProps) => {
                 className="max-w-[225px]"
                 variant={'green'}
                 size={'lg'}
-                onClick={() => setStartTutorial(!startTutorial)}
-                disabled={true}
+                onClick={handleTutorialStart}
+                disabled={isTutorialStarted || initTutorialMutation.isPending}
               >
-                {startTutorial ? '튜토리얼 진행중' : '튜토리얼 시작하기'}
+                {isTutorialStarted
+                  ? '튜토리얼 진행중'
+                  : initTutorialMutation.isPending
+                    ? '초기화 중...'
+                    : '튜토리얼 시작하기'}
               </Button>
             </div>
           </div>

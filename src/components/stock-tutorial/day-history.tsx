@@ -1,16 +1,18 @@
-import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
+import { NewsResponse } from '@/api/types/tutorial';
+import { DayHistoryCard } from './day-history-card';
 
-export interface NewsResponse {
-  stockCandleId: number;
-  changeRate: number;
-  newsTitle: string;
-  newsDate: string;
+export interface DayHistoryProps {
+  news: NewsResponse[];
 }
 
-export const DayHistory = () => {
+export const DayHistory = ({ news }: DayHistoryProps) => {
   return (
-    <div>
-      <DayHistoryCard />
+    <div className="flex w-full flex-wrap gap-5">
+      {news.length === 0 ? (
+        <p className="text-border-color">표시할 뉴스가 없습니다.</p>
+      ) : (
+        news.map((newsItem) => <DayHistoryCard key={newsItem.newsId} newsItem={newsItem} />)
+      )}
     </div>
   );
 };

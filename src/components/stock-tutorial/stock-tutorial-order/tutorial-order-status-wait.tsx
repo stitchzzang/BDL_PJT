@@ -1,7 +1,18 @@
 import { Button } from '@/components/ui/button';
 
-export const TutorialOrderStatusWait = () => {
+export interface TutorialOrderStatusWaitProps {
+  isActive: boolean;
+  onWait?: () => void;
+}
+
+export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatusWaitProps) => {
   const h3Style = 'text-[16px] font-bold text-btn-green-color';
+
+  const handleWait = () => {
+    if (isActive && onWait) {
+      onWait();
+    }
+  };
 
   return (
     <div>
@@ -12,7 +23,13 @@ export const TutorialOrderStatusWait = () => {
           으로 넘어갑니다.
         </p>
       </div>
-      <Button variant="green" className="w-full" size="lg">
+      <Button
+        variant="green"
+        className="w-full"
+        size="lg"
+        onClick={handleWait}
+        disabled={!isActive}
+      >
         <p className=" text-[18px] font-medium text-white">관망하기</p>
       </Button>
     </div>

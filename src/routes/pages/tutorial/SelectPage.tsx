@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
+import { Company } from '@/api/types/category';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
 import { TutorialAnimation } from '@/components/common/tutorial-animation';
@@ -19,7 +20,7 @@ export const SelectPage = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>('0');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   // 현재 날짜와 1년 전 날짜 계산
   const currentDate = new Date();
@@ -40,7 +41,7 @@ export const SelectPage = () => {
   const isLoadingData = isLoading || isFetching;
   const hasCompanies = companies && companies.length > 0;
 
-  const handleCompanySelect = (company: any) => {
+  const handleCompanySelect = (company: Company) => {
     setSelectedCompany(company);
     setIsDialogOpen(true);
   };

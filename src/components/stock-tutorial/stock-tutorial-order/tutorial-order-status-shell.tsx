@@ -4,17 +4,37 @@ import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
-export const TutorialOrderStatusShell = () => {
+export interface TutorialOrderStatusShellProps {
+  onSell: (price: number, quantity: number) => void;
+  companyId: number;
+  latestPrice: number;
+  isActive: boolean;
+}
+
+export const TutorialOrderStatusShell = ({
+  onSell,
+  companyId,
+  latestPrice,
+  isActive: isSessionActive,
+}: TutorialOrderStatusShellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
-  // 구매가격
-  const [buyCost, setBuyCost] = useState<number>(0);
-  const [printCost, setPrintCost] = useState<string>(buyCost + ' 원');
+  // 판매가격
+  const [buyCost, setBuyCost] = useState<number>(latestPrice || 0);
+  const [printCost, setPrintCost] = useState<string>('0 원');
+
   useEffect(() => {
-    setPrintCost(buyCost + ' 원');
-  }, [buyCost]);
-  // +,- 기능 (구매가격)
+    if (latestPrice && buyCost === 0) {
+      setBuyCost(latestPrice);
+    }
+  }, [latestPrice]);
+
+  // 불필요한 useEffect 제거 - 무한 루프 방지
+  // printCost는 필요할 때만 계산하도록 수정
+  const formattedCost = `${buyCost} 원`;
+
+  // +,- 기능 (판매가격)
   const CostButtonHandler = (
     check: string,
     value: number,
@@ -47,6 +67,14 @@ export const TutorialOrderStatusShell = () => {
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
+
+  // 판매 처리
+  const handleSellStock = () => {
+    if (!isSessionActive || stockCount <= 0 || buyCost <= 0) return;
+    onSell(buyCost, stockCount);
+    setStockCount(0); // 판매 후 수량 초기화
+  };
+
   return (
     <div>
       <h3 className={h3Style}>판매하기</h3>
@@ -116,7 +144,13 @@ export const TutorialOrderStatusShell = () => {
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button variant="blue" className="w-full" size="lg">
+          <Button
+            variant="blue"
+            className="w-full"
+            size="lg"
+            onClick={handleSellStock}
+            disabled={!isSessionActive || stockCount <= 0}
+          >
             <p className=" text-[18px] font-medium text-white">판매하기</p>
           </Button>
           <p className="text-[14px] font-light text-[#718096]">

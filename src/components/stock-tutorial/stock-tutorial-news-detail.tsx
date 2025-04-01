@@ -1,28 +1,43 @@
-export const StockTutorialNewsDetail = () => {
+import { NewsResponseWithThumbnail } from '@/api/types/tutorial';
+
+export interface StockTutorialNewsDetailProps {
+  news: NewsResponseWithThumbnail;
+}
+
+export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) => {
+  // 변동률에 따른 스타일 결정
+  const changeStyle = news.changeRate >= 0 ? 'text-btn-red-color' : 'text-btn-blue-color';
+  const changeSymbol = news.changeRate >= 0 ? '+' : '';
+
   return (
-    <div className="grid grid-cols-6 gap-3">
-      <div className="col-span-1 overflow-hidden rounded-xl">
-        <img
-          src="/none-img/none_news_img.png"
-          alt="noneImg"
-          className="h-full w-full object-cover object-center"
-        />
-      </div>
-      <div className=" col-span-5 flex flex-col gap-3">
-        <h1 className="text-[20px] font-bold">
-          AI 신흥강자 브로드컴 호실적, 월가 강세 전망 강화…주가 8%↑
-        </h1>
-        <p className="text-[16px] font-light">
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용 뉴스내용
-          뉴스내용 뉴스내용 뉴스내용 뉴스내용
+    <div className="rounded-xl bg-modal-background-color p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[18px] font-bold">{news.newsTitle}</h2>
+        <p className="text-[14px] text-border-color">
+          {new Date(news.newsDate).toLocaleDateString('ko-KR')}
         </p>
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <span className="font-semibold text-border-color">변동률:</span>
+        <span className={`font-semibold ${changeStyle}`}>
+          {changeSymbol}
+          {news.changeRate.toFixed(2)}%
+        </span>
+      </div>
+
+      {news.newsThumbnailUrl && (
+        <div className="mt-4 max-h-[200px] overflow-hidden rounded-lg">
+          <img
+            src={news.newsThumbnailUrl}
+            alt={news.newsTitle}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+
+      <div className="mt-4">
+        <p className="text-[16px] leading-relaxed text-white">{news.newsContent}</p>
       </div>
     </div>
   );
