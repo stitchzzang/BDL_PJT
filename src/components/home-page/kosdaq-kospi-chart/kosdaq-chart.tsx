@@ -74,7 +74,7 @@ const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
         data: dates,
         axisLine: {
           lineStyle: {
-            color: '#ccc',
+            color: '#cccccc0',
           },
         },
         axisLabel: {
@@ -86,12 +86,12 @@ const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
         scale: true,
         axisLine: {
           lineStyle: {
-            color: '#ccc',
+            color: '#1818180',
           },
         },
         splitLine: {
           lineStyle: {
-            color: '#f0f0f0',
+            color: '#2424240',
           },
         },
       },
@@ -126,17 +126,6 @@ const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
             ]),
           },
           data: prices,
-        },
-      ],
-      dataZoom: [
-        {
-          type: 'inside',
-          start: 0,
-          end: 100,
-        },
-        {
-          start: 0,
-          end: 100,
         },
       ],
       animation: true,
