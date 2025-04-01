@@ -259,6 +259,9 @@ export const StockTutorialInfo = ({
             <h3 className="text-[20px] font-medium text-white">
               {companyInfo?.companyName || '회사명'}
             </h3>
+            <h3 className="text-[14px] font-light text-border-color">
+              {companyInfo?.companyCode || '회사코드'}
+            </h3>
           </div>
           <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-[18px] sm:flex-row sm:items-center">
