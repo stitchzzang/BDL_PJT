@@ -226,12 +226,9 @@ export const SimulatePage = () => {
   const getNewsComment = useGetNewsComment();
   const processUserAction = useProcessUserAction();
 
-  const { data: tutorialFeedbackResponse, refetch: refetchFeedback } = useGetTutorialFeedback(
-    memberId,
-    {
-      enabled: !!memberId && currentTurn === 4,
-    },
-  );
+  const { data: tutorialFeedbackResponse } = useGetTutorialFeedback(memberId, {
+    enabled: !!memberId && currentTurn === 4,
+  });
 
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
