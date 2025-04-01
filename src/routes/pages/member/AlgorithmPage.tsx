@@ -4,8 +4,8 @@ import { useGetAlgorithm } from '@/api/algorithm.api';
 import { Algorithm } from '@/api/types/algorithm';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { MyAlgorithmItem } from '@/components/member-info/my-algorithm-item';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/useAuthStore';
 export const AlgorithmPage = () => {
   const { userData } = useAuthStore();
@@ -39,11 +39,22 @@ export const AlgorithmPage = () => {
             ) : (
               <div className="flex h-full w-full flex-col items-center justify-center p-5">
                 <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
-                  <p className="text-center text-lg text-[#718096]">알고리즘이 없습니다.</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="cursor-pointer text-center text-lg text-[#718096] underline"
+                          onClick={() => navigate('/algorithm-lab')}
+                        >
+                          알고리즘이 없습니다.
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>알고리즘을 만들러 가볼까요?</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
-                <Button variant="blue" className="mt-4" onClick={() => navigate('/algorithm')}>
-                  알고리즘 만들러 가볼까요?
-                </Button>
               </div>
             )}
           </>
