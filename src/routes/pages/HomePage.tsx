@@ -11,10 +11,10 @@ export const HomePage = () => {
     <div className="px-6">
       <div>{/* 코스피,코스단.. 차트 */}</div>
       <div>
-        <div className="mt-[100px] w-full">
-          <div>
-            <KosdaqKospiChartContainer />
-          </div>
+        <div className="max-h-[300px]">
+          <KosdaqKospiChartContainer />
+        </div>
+        <div className="mt-[60px] w-full">
           <div className="mb-[25px] flex items-center gap-3">
             <h3 className="text-[28px] font-bold">실시간 차트</h3>
             <p className="text-[20px] font-light text-text-inactive-2-color">어제 08:25 기준</p>

@@ -3,19 +3,19 @@ import React, { useEffect, useRef } from 'react';
 
 import { HomeChartData } from '@/api/types/home';
 
-interface KosdaqChartProps {
-  kosdaqData: HomeChartData[] | undefined;
+interface KospiChartProps {
+  KospiData: HomeChartData[] | undefined;
 }
 
-export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
+export const KospiChart = ({ KospiData }: KospiChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // 차트 데이터가 없을 경우 리턴
-    if (!kosdaqData || kosdaqData.length === 0) return;
+    if (!KospiData || KospiData.length === 0) return;
 
     // 데이터를 날짜 오름차순으로 정렬
-    const sortedData = [...kosdaqData].sort((a, b) => {
+    const sortedData = [...KospiData].sort((a, b) => {
       return a.stckBsopDate.localeCompare(b.stckBsopDate);
     });
 
@@ -63,7 +63,7 @@ export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
       },
       series: [
         {
-          name: '코스닥',
+          name: '코스피',
           type: 'line',
           smooth: true,
           symbol: 'none', // 데이터 포인트 완전히 제거
@@ -115,7 +115,7 @@ export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
       window.removeEventListener('resize', resizeHandler);
       chartInstance.dispose();
     };
-  }, [kosdaqData]);
+  }, [KospiData]);
 
   return (
     <div className="flex w-full flex-col">
