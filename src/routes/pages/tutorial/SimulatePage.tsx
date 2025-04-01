@@ -192,7 +192,7 @@ export const SimulatePage = () => {
 
   // API 훅 설정
   const { data: top3PointsResponse, isLoading: isTop3PointsLoading } = useGetTop3Points(companyId);
-  const { data: startPointIdResponse } = useGetStartPointId();
+  const { data: startPointIdResponse } = useGetStartPointId(companyId);
   const { refetch: fetchTutorialStockData, isLoading: isStockDataLoading } =
     useGetTutorialStockData(
       companyId,
