@@ -1,12 +1,25 @@
+import { useNavigate } from 'react-router-dom';
+
 import { SearchedCompanyResponse } from '@/api/types/home';
+import { Button } from '@/components/ui/button';
 
 interface SearchedCompanyListItemProps {
   company: SearchedCompanyResponse;
+  categoryId: string;
 }
 
-export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProps) => {
+export const SearchedCompanyListItem = ({ company, categoryId }: SearchedCompanyListItemProps) => {
+  const navigate = useNavigate();
   const isPositive = company.closePricePercent > 0;
   const isNegative = company.closePricePercent < 0;
+
+  const handleMockInvestment = () => {
+    navigate(`/investment/select?category=${categoryId}`);
+  };
+
+  const handleTutorial = () => {
+    navigate(`/tutorial/select?category=${categoryId}`);
+  };
 
   return (
     <div className="flex h-16 w-full items-center justify-between border-b border-border-color px-4 hover:bg-modal-background-color">
@@ -43,6 +56,14 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
             {isPositive ? '+' : ''}
             {company.closePricePercent.toFixed(2)}%
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="blue" size="sm" onClick={handleMockInvestment} className="text-xs">
+            모의투자
+          </Button>
+          <Button variant="blue" size="sm" onClick={handleTutorial} className="text-xs">
+            튜토리얼
+          </Button>
         </div>
       </div>
     </div>
