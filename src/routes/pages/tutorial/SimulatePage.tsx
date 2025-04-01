@@ -42,7 +42,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
-import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter';
+import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
 // 거래 기록을 위한 타입 정의
 interface TradeRecord {
