@@ -18,11 +18,11 @@ interface CompanyProfileResponse {
   categories: string[];
 }
 
-// 변곡점 데이터 타입 정의
-interface InflectionPoint {
-  stockCandleId: number;
-  date: string;
-}
+// // 변곡점 데이터 타입 정의
+// interface InflectionPoint {
+//   stockCandleId: number;
+//   date: string;
+// }
 
 // 주가 데이터 타입 정의
 interface StockCandleData {
