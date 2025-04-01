@@ -12,8 +12,30 @@ export const memberApi = {
   getMemberInfo: (memberId: string) =>
     _ky.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
 
-  updateMemberInfo: (memberId: string, data: MemberInfo) =>
-    _ky.patch<ApiResponse<MemberInfo>>(`member/${memberId}`, { json: data }).json(),
+  updateMemberInfo: (
+    memberId: string,
+    data: { nickname?: string; profileImage?: File | null; deleteProfile?: boolean },
+  ) => {
+    const formData = new FormData();
+
+    if (data.nickname) {
+      formData.append('nickname', data.nickname);
+    }
+
+    if (data.profileImage) {
+      formData.append('profileImage', data.profileImage);
+    }
+
+    if (data.deleteProfile !== undefined) {
+      formData.append('deleteProfile', data.deleteProfile ? '1' : '0');
+    }
+
+    return _ky
+      .patch<ApiResponse<MemberInfo>>(`member/${memberId}`, {
+        body: formData,
+      })
+      .json();
+  },
 
   updateMemberPassword: (memberId: string, data: MemberPassword) =>
     _ky.post<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
@@ -42,11 +64,13 @@ export const useUpdateMemberInfo = ({
   updateUserState,
 }: {
   memberId: string;
-  data: MemberInfo | (() => MemberInfo);
+  data:
+    | { nickname?: string; profileImage?: File | null; deleteProfile?: boolean }
+    | (() => { nickname?: string; profileImage?: File | null; deleteProfile?: boolean });
   onSuccess?: () => void;
   onError?: () => void;
   navigateTo?: () => void;
-  updateUserState?: (data: MemberInfo) => void;
+  updateUserState?: (data: { nickname?: string; profile?: string | null }) => void;
 }) => {
   const queryClient = useQueryClient();
 
@@ -59,11 +83,15 @@ export const useUpdateMemberInfo = ({
       // 프로필 정보 갱신
       queryClient.invalidateQueries({ queryKey: ['memberInfo', memberId] });
       toast.success('프로필이 성공적으로 업데이트되었습니다.');
-
       // 사용자 상태 업데이트 (필요한 경우)
       if (updateUserState) {
-        const dataValue = typeof data === 'function' ? data() : data;
-        updateUserState(dataValue);
+        const updatedData = response.result || {};
+        const updateData = {
+          nickname: updatedData.nickname,
+          profile: updatedData.profileUrl,
+        };
+
+        updateUserState(updateData);
       }
 
       // 페이지 이동 (필요한 경우)
