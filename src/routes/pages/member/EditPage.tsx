@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useSignout } from '@/api/auth.api';
 import { useUpdateMemberInfo } from '@/api/member.api';
+import { MemberInfo } from '@/api/types/member';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useAuthStore } from '@/store/useAuthStore';
 import { getResizeImage } from '@/utils/getResizeImage';
 
@@ -24,8 +26,12 @@ export const EditPage = () => {
   const { userData, updateAuth: updateUserData } = useAuthStore();
   const [tempNickname, setTempNickname] = useState(userData.nickname || '');
   const [tempProfile, setTempProfile] = useState(userData.profile || '');
+  const [originalTempProfile, setOriginalTempProfile] = useState(userData.profile || '');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [useDefaultProfile, setUseDefaultProfile] = useState(false);
+  const [nicknameChanged, setNicknameChanged] = useState(false);
+  const [profileChanged, setProfileChanged] = useState(false);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,28 +52,74 @@ export const EditPage = () => {
       // 미리보기 URL 생성
       const reader = new FileReader();
       reader.onloadend = () => {
-        setTempProfile(reader.result as string);
+        const result = reader.result as string;
+        setTempProfile(result);
+        setOriginalTempProfile(result);
+        setProfileChanged(true);
       };
       reader.readAsDataURL(resizedFile);
+
+      // 기본 프로필 사용 해제
+      setUseDefaultProfile(false);
     } catch (error) {
       alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
+  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newNickname = e.target.value;
+    setTempNickname(newNickname);
+    setNicknameChanged(newNickname !== userData.nickname);
+  };
+
+  const buildUpdateData = (): MemberInfo => {
+    const updateData: MemberInfo = {};
+
+    if (nicknameChanged) {
+      updateData.nickname = tempNickname;
+    }
+
+    if (profileChanged || useDefaultProfile) {
+      updateData.profileImage = useDefaultProfile ? '' : tempProfile;
+      updateData.deleteProfile = useDefaultProfile;
+    }
+
+    return updateData;
+  };
+
   const { mutate: updateMemberInfo, isPending: updatePending } = useUpdateMemberInfo({
     memberId: userData.memberId?.toString() || '',
-    data: {
-      nickname: tempNickname,
-      profileImage: tempProfile,
-    },
+    data: buildUpdateData(),
     onSuccess: () => {
-      updateUserData({ nickname: tempNickname, profile: tempProfile });
+      const updatedData: { nickname?: string; profile?: string | null } = {};
+
+      if (nicknameChanged) {
+        updatedData.nickname = tempNickname;
+      }
+
+      if (profileChanged || useDefaultProfile) {
+        updatedData.profile = useDefaultProfile ? null : tempProfile;
+      }
+
+      updateUserData(updatedData);
       navigate('/member');
     },
     onError: () => {
       // 에러 처리는 member.api.ts에서 처리
     },
   });
+
+  const handleSwitchChange = (checked: boolean) => {
+    setUseDefaultProfile(checked);
+    setProfileChanged(true);
+
+    if (checked) {
+      setTempProfile('');
+    } else {
+      // 체크 해제시 원래 선택했던 이미지로 복원
+      setTempProfile(originalTempProfile);
+    }
+  };
 
   const { mutate: signout } = useSignout();
   const [isOpen, setIsOpen] = useState(false);
@@ -79,7 +131,11 @@ export const EditPage = () => {
         <div className="flex flex-col items-center gap-4">
           <div className="relative h-32 w-32 overflow-hidden rounded-full">
             <img
-              src={tempProfile || '/none-img/none_profile_img.png'}
+              src={
+                useDefaultProfile
+                  ? '/none-img/none_profile_img.png'
+                  : tempProfile || '/none-img/none_profile_img.png'
+              }
               alt="profile"
               className="h-full w-full object-cover"
             />
@@ -91,7 +147,16 @@ export const EditPage = () => {
             accept="image/jpeg,image/png"
             onChange={handleImageChange}
           />
-          <Button className="w-full" variant="black" onClick={() => fileInputRef.current?.click()}>
+          <div className="flex items-center justify-center gap-2">
+            <Switch checked={useDefaultProfile} onCheckedChange={handleSwitchChange} />
+            <p className="text-text-border-color text-sm">기본 프로필 사용</p>
+          </div>
+          <Button
+            className="w-full"
+            variant="black"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={useDefaultProfile}
+          >
             이미지 변경
           </Button>
         </div>
@@ -101,7 +166,7 @@ export const EditPage = () => {
             className="h-14"
             placeholder="이름"
             value={tempNickname}
-            onChange={(e) => setTempNickname(e.target.value)}
+            onChange={handleNicknameChange}
           />
           <p className="text-sm text-text-inactive-2-color">변경할 닉네임을 입력해주세요.</p>
         </div>
@@ -113,7 +178,12 @@ export const EditPage = () => {
           >
             비밀번호 변경
           </Button>
-          <Button variant="blue" className="w-full" onClick={() => updateMemberInfo()}>
+          <Button
+            variant="blue"
+            className="w-full"
+            onClick={() => updateMemberInfo()}
+            disabled={!nicknameChanged && !profileChanged}
+          >
             프로필 수정
           </Button>
           <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
