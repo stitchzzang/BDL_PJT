@@ -268,88 +268,86 @@ export const StockTutorialInfo = ({
   };
 
   return (
-    <div className="flex w-full items-start gap-[20px] sm:items-center">
-      <div className="bg-card-background-color w-full rounded-xl p-6">
-        <div className="flex items-start gap-5">
-          <div className="h-[70px] w-[70px] flex-shrink-0 overflow-hidden rounded-xl">
-            <img
-              src={companyInfo?.companyImage || TestImage}
-              alt={`${companyInfo?.companyName || '회사'}-로고`}
-              className="h-full w-full object-cover"
-            />
+    <div className="flex items-center">
+      <div className="flex w-full items-start gap-[20px] sm:items-center">
+        <div className="max-h-[70px] max-w-[70px] overflow-hidden rounded-xl">
+          <img
+            src={companyInfo?.companyImage || TestImage}
+            alt={`${companyInfo?.companyName || '회사'}-로고`}
+            className="h-full w-full object-cover"
+          />
+        </div>
+        <div className="flex w-full flex-col">
+          <div className="flex items-center gap-2">
+            <h3 className="text-[20px] font-medium text-white">
+              {companyInfo?.companyName || '회사명'}
+            </h3>
           </div>
-          <div className="flex w-full flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <h3 className="text-[20px] font-medium text-white">
-                {companyInfo?.companyName || '회사명'}
+          <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-[18px] sm:flex-row sm:items-center">
+              <h3 className="text-[30px] font-medium text-white">
+                {addCommasToThousand(currentPrice || 0)}원
               </h3>
-              <StockTutorialHelp />
-            </div>
-            <div className="flex w-full flex-col items-start justify-between gap-[20px] sm:flex-row sm:items-end">
-              <div className="flex flex-col gap-[18px] sm:flex-row sm:items-center">
-                <h3 className="text-[30px] font-medium text-white">
-                  {addCommasToThousand(currentPrice || 0)}원
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {normalizedCategories.map((categoryName, index) => (
-                    <div
-                      key={`${categoryName}-${index}`}
-                      className="flex items-center justify-center gap-2 rounded-lg bg-modal-background-color px-3 py-2"
-                    >
-                      <div className="h-5 w-5">{renderCategoryIcon(categoryName)}</div>
-                      <p className="text-sm text-border-color">{categoryName}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                {inflectionPoints.length > 0 && (
-                  <div className="flex gap-2">
-                    <Button
-                      variant={selectedSegment === 0 ? 'default' : 'outline'}
-                      onClick={() => handleSegmentChange(0)}
-                      size="sm"
-                    >
-                      구간 1
-                    </Button>
-                    <Button
-                      variant={selectedSegment === 1 ? 'default' : 'outline'}
-                      onClick={() => handleSegmentChange(1)}
-                      size="sm"
-                    >
-                      구간 2
-                    </Button>
-                    <Button
-                      variant={selectedSegment === 2 ? 'default' : 'outline'}
-                      onClick={() => handleSegmentChange(2)}
-                      size="sm"
-                    >
-                      구간 3
-                    </Button>
-                    <Button
-                      variant={selectedSegment === 3 ? 'default' : 'outline'}
-                      onClick={() => handleSegmentChange(3)}
-                      size="sm"
-                    >
-                      구간 4
-                    </Button>
-                  </div>
-                )}
-                <div>
-                  <Button
-                    className="max-h-[45px] w-[225px]"
-                    variant={'green'}
-                    size={'lg'}
-                    onClick={handleTutorialStart}
-                    disabled={isTutorialStarted || initSessionMutation.isPending}
+              <div className="flex flex-wrap gap-2">
+                {normalizedCategories.map((categoryName, index) => (
+                  <div
+                    key={`${categoryName}-${index}`}
+                    className="flex items-center justify-center gap-2 rounded-lg bg-modal-background-color px-3 py-2"
                   >
-                    {isTutorialStarted
-                      ? '튜토리얼 진행중'
-                      : initSessionMutation.isPending
-                        ? '초기화 중...'
-                        : '튜토리얼 시작하기'}
+                    <div className="h-5 w-5">{renderCategoryIcon(categoryName)}</div>
+                    <p className="text-sm text-border-color">{categoryName}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              {inflectionPoints.length > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant={selectedSegment === 0 ? 'default' : 'outline'}
+                    onClick={() => handleSegmentChange(0)}
+                    size="sm"
+                  >
+                    구간 1
+                  </Button>
+                  <Button
+                    variant={selectedSegment === 1 ? 'default' : 'outline'}
+                    onClick={() => handleSegmentChange(1)}
+                    size="sm"
+                  >
+                    구간 2
+                  </Button>
+                  <Button
+                    variant={selectedSegment === 2 ? 'default' : 'outline'}
+                    onClick={() => handleSegmentChange(2)}
+                    size="sm"
+                  >
+                    구간 3
+                  </Button>
+                  <Button
+                    variant={selectedSegment === 3 ? 'default' : 'outline'}
+                    onClick={() => handleSegmentChange(3)}
+                    size="sm"
+                  >
+                    구간 4
                   </Button>
                 </div>
+              )}
+              <div className="flex items-center gap-2">
+                <StockTutorialHelp />
+                <Button
+                  className="max-h-[45px] w-[225px]"
+                  variant={'green'}
+                  size={'lg'}
+                  onClick={handleTutorialStart}
+                  disabled={isTutorialStarted || initSessionMutation.isPending}
+                >
+                  {isTutorialStarted
+                    ? '튜토리얼 진행중'
+                    : initSessionMutation.isPending
+                      ? '초기화 중...'
+                      : '튜토리얼 시작하기'}
+                </Button>
               </div>
             </div>
           </div>
