@@ -67,12 +67,7 @@ const _kyAuth = _ky.extend({
         }
 
         // 모든 토큰 만료 및 유효하지 않은 토큰
-        if (
-          customCode === ERROR_CODES.EXPIRED_ACCESS_TOKEN ||
-          customCode === ERROR_CODES.EXPIRED_REFRESH_TOKEN ||
-          customCode === ERROR_CODES.INVALID_REFRESH_TOKEN ||
-          customCode === ERROR_CODES.NOT_FOUND_REFRESH_TOKEN
-        ) {
+        if (customCode === ERROR_CODES.REFRESH_AUTHORIZATION_FAIL) {
           useAuthStore.getState().logoutAuth();
           navigate('/login');
           throw new Error('Authentication failed');
