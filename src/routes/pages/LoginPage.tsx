@@ -61,7 +61,8 @@ export const LoginPage = () => {
           <Button variant="blue" className="mt-5 w-full" type="submit" disabled={isPending}>
             {isPending ? '로그인 중...' : '로그인'}
           </Button>
-          <div className="flex w-full flex-row items-end justify-end gap-5">
+          <div className="mt-3 flex w-full flex-row items-center justify-end gap-2">
+            <p className="text-sm text-border-color">BDL에 처음이신가요?</p>
             <button
               type="button"
               className="text-base font-semibold text-primary-color hover:text-primary-color/80"

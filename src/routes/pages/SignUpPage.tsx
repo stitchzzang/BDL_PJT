@@ -342,6 +342,16 @@ export const SignUpPage = () => {
             </Button>
           </form>
         </Form>
+        <p className="mt-5 flex w-full flex-row items-baseline justify-end gap-2 text-center text-sm text-border-color">
+          이미 회원이신가요?
+          <button
+            type="button"
+            className="text-base font-semibold text-primary-color hover:text-primary-color/80"
+            onClick={() => navigate('/login')}
+          >
+            로그인
+          </button>
+        </p>
       </div>
     </div>
   );
