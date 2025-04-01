@@ -54,24 +54,7 @@ export const KospiChart = ({ KospiData }: KospiChartProps) => {
       title: {
         show: false,
       },
-      tooltip: {
-        trigger: 'axis',
-        formatter: function (params: any) {
-          const dataIndex = params[0].dataIndex;
-          const item = sortedData[dataIndex];
-          return `
-            <div>
-              <div><strong>${formatDate(item.stckBsopDate)}</strong></div>
-              <div>시가: ${item.bstpNmixOprc}</div>
-              <div>고가: ${item.bstpNmixHgpr}</div>
-              <div>저가: ${item.bstpNmixLwpr}</div>
-              <div>종가: ${item.bstpNmixPrpr}</div>
-              <div>거래량: ${parseInt(item.acmlVol).toLocaleString()}</div>
-              <div>전일대비: ${item.bstpNmixPrdyVrss} (${item.bstpNmixPrdyCtrt}%)</div>
-            </div>
-          `;
-        },
-      },
+
       grid: {
         top: 5,
         left: 0,
