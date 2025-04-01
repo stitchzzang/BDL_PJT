@@ -125,7 +125,11 @@ export const SimulatedInvestmentPage = () => {
             </div>
           ) : (
             <div className="">
-              <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
+              {minuteData ? (
+                <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
+              ) : (
+                <LoadingAnimation />
+              )}
             </div>
           )}
         </div>
