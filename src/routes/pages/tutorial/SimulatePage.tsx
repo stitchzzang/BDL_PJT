@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -213,10 +213,17 @@ export const SimulatePage = () => {
         memberId: memberId,
       });
       setIsModalOpen(true);
+      setFinalChangeRate(assetInfo.totalReturnRate);
     } catch (error) {
       console.error('튜토리얼 결과 저장 실패:', error);
     }
-  }, [memberId, companyId, assetInfo, saveTutorialResult]); // 의존성 배열 추가
+  }, [
+    memberId,
+    companyId,
+    assetInfo.currentTotalAsset,
+    assetInfo.totalReturnRate,
+    saveTutorialResult,
+  ]); // 의존성 배열 최적화
 
   // 튜토리얼 세션 종료 시 세션 삭제
   useEffect(() => {
@@ -302,6 +309,7 @@ export const SimulatePage = () => {
       }
     };
 
+    // 데이터 로드 함수 호출
     loadTutorialStockData();
 
     // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
@@ -355,15 +363,17 @@ export const SimulatePage = () => {
       }
     }
   }, [
-    currentSession,
-    isTutorialStarted,
     companyId,
+    currentSession.currentPointIndex,
+    currentSession.endStockCandleId,
+    currentSession.startStockCandleId,
     fetchTutorialStockData,
-    getPastNews,
-    getNewsComment,
     getCurrentNews,
-    top3Points,
+    getNewsComment,
+    getPastNews,
+    isTutorialStarted,
     memberId,
+    top3Points,
   ]);
 
   // 진행 상태에 따른 변곡점 이동 및 튜토리얼 완료 시 피드백 refetch
@@ -431,61 +441,72 @@ export const SimulatePage = () => {
   };
 
   // 사용자 거래 처리 핸들러
-  const handleTrade = (action: 'buy' | 'sell', price: number, quantity: number) => {
-    if (!isTutorialStarted || currentSession.startStockCandleId === 0 || !memberId) {
-      return;
-    }
+  const handleTrade = useCallback(
+    (action: 'buy' | 'sell', price: number, quantity: number) => {
+      if (!isTutorialStarted || currentSession.startStockCandleId === 0 || !memberId) {
+        return;
+      }
 
-    // 사용자 행동에 따른 자산 계산 API 호출
-    // action: 'buy' - 구매, 'sell' - 판매
-    // price, quantity가 모두 0인 경우는 '관망'으로 처리
-    processUserAction.mutate(
-      {
-        memberId: memberId,
-        action,
-        price,
-        quantity,
-        companyId,
-        startStockCandleId: currentSession.startStockCandleId,
-        endStockCandleId: currentSession.endStockCandleId,
-      },
-      {
-        onSuccess: (response) => {
-          const assetResults = response.result?.AssetResponse;
-
-          // 거래 기록 추가 (관망이 아닌 경우에만)
-          if (price > 0 && quantity > 0) {
-            const newTrade: TradeRecord = {
-              action,
-              price,
-              quantity,
-              timestamp: new Date(),
-              stockCandleId: currentSession.endStockCandleId,
-            };
-            setTrades((prev) => [...prev, newTrade]);
-          }
-
-          // 마지막 자산 정보 업데이트
-          if (assetResults && assetResults.length > 0) {
-            const lastAsset = assetResults[assetResults.length - 1];
-            setAssetInfo(lastAsset);
-
-            // 총 수익률 업데이트
-            setFinalChangeRate(lastAsset.totalReturnRate);
-          }
-
-          // 현재 세션에 따라 진행률 업데이트
-          if (currentSession.currentPointIndex === 0) {
-            setProgress(33); // 첫 번째 변곡점 거래 완료 - 33%
-          } else if (currentSession.currentPointIndex === 1) {
-            setProgress(66); // 두 번째 변곡점 거래 완료 - 66%
-          } else if (currentSession.currentPointIndex === 2) {
-            setProgress(100); // 세 번째 변곡점 거래 완료 - 100% (튜토리얼 종료)
-          }
+      // 사용자 행동에 따른 자산 계산 API 호출
+      // action: 'buy' - 구매, 'sell' - 판매
+      // price, quantity가 모두 0인 경우는 '관망'으로 처리
+      processUserAction.mutate(
+        {
+          memberId: memberId,
+          action,
+          price,
+          quantity,
+          companyId,
+          startStockCandleId: currentSession.startStockCandleId,
+          endStockCandleId: currentSession.endStockCandleId,
         },
-      },
-    );
-  };
+        {
+          onSuccess: (response) => {
+            const assetResults = response.result?.AssetResponse;
+
+            // 거래 기록 추가 (관망이 아닌 경우에만)
+            if (price > 0 && quantity > 0) {
+              const newTrade: TradeRecord = {
+                action,
+                price,
+                quantity,
+                timestamp: new Date(),
+                stockCandleId: currentSession.endStockCandleId,
+              };
+              setTrades((prev) => [...prev, newTrade]);
+            }
+
+            // 마지막 자산 정보 업데이트
+            if (assetResults && assetResults.length > 0) {
+              const lastAsset = assetResults[assetResults.length - 1];
+              setAssetInfo(lastAsset);
+
+              // 총 수익률 업데이트
+              setFinalChangeRate(lastAsset.totalReturnRate);
+            }
+
+            // 현재 세션에 따라 진행률 업데이트
+            if (currentSession.currentPointIndex === 0) {
+              setProgress(33); // 첫 번째 변곡점 거래 완료 - 33%
+            } else if (currentSession.currentPointIndex === 1) {
+              setProgress(66); // 두 번째 변곡점 거래 완료 - 66%
+            } else if (currentSession.currentPointIndex === 2) {
+              setProgress(100); // 세 번째 변곡점 거래 완료 - 100% (튜토리얼 종료)
+            }
+          },
+        },
+      );
+    },
+    [
+      isTutorialStarted,
+      currentSession.startStockCandleId,
+      currentSession.endStockCandleId,
+      currentSession.currentPointIndex,
+      memberId,
+      companyId,
+      processUserAction,
+    ],
+  );
 
   // 결과 확인 페이지로 이동
   const handleNavigateToResult = () => {
@@ -498,6 +519,15 @@ export const SimulatePage = () => {
     navigate('/tutorial/select');
     setIsModalOpen(false);
   };
+
+  // 차트 데이터를 useMemo로 래핑
+  const memoizedChartData = useMemo(
+    () => ({
+      minuteData: chartData.minuteData,
+      periodData: chartData.periodData,
+    }),
+    [chartData.minuteData, chartData.periodData],
+  );
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -530,8 +560,8 @@ export const SimulatePage = () => {
       <div className="grid grid-cols-10 gap-3">
         <div className="col-span-8">
           <ChartComponent
-            minuteData={chartData.minuteData}
-            periodData={chartData.periodData}
+            minuteData={memoizedChartData.minuteData}
+            periodData={memoizedChartData.periodData}
             height={600}
           />
         </div>
