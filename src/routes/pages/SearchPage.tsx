@@ -112,11 +112,7 @@ export const SearchPage = () => {
             {searchedCompanies && searchedCompanies.length > 0 && (
               <div className="flex flex-col gap-2">
                 {searchedCompanies.map((company) => (
-                  <SearchedCompanyListItem
-                    key={company.companyId}
-                    company={company}
-                    categoryId={categoryId}
-                  />
+                  <SearchedCompanyListItem key={company.companyId} company={company} />
                 ))}
               </div>
             )}

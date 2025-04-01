@@ -15,10 +15,9 @@ import { Button } from '@/components/ui/button';
 
 interface SearchedCompanyListItemProps {
   company: SearchedCompanyResponse;
-  categoryId: string;
 }
 
-export const SearchedCompanyListItem = ({ company, categoryId }: SearchedCompanyListItemProps) => {
+export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProps) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isPositive = company.closePricePercent > 0;
@@ -29,7 +28,7 @@ export const SearchedCompanyListItem = ({ company, categoryId }: SearchedCompany
   };
 
   const handleConfirm = () => {
-    navigate(`/investment/select?category=${categoryId}`);
+    navigate(`/investment/simulate/${company.companyId}`);
     setIsDialogOpen(false);
   };
 
