@@ -30,7 +30,7 @@ const EMPTY_DATA_COUNT = 10;
 
 const ChartComponent: React.FC<ChartComponentProps> = React.memo(
   ({ height = 700, minuteData, periodData }) => {
-    const [period, setPeriod] = useState<PeriodType>('DAY'); // 기본값을 DAY로 설정
+    const [period, setPeriod] = useState<PeriodType>('MINUTE'); // 기본값을 DAY로 설정
     const chartRef = useRef<ReactECharts>(null);
     const [dataZoomRange] = useState({
       start: DEFAULT_DATA_ZOOM_START,
@@ -45,18 +45,26 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
     // 데이터 변환 및 필터링
     const rawChartData = useMemo(() => {
       let data: ChartDataPoint[] = [];
-      if (period === 'MINUTE' && minuteData?.data) {
-        data = minuteData.data.map(convertMinuteCandleToChartData);
-      } else if (periodData?.data) {
-        data = periodData.data
-          .filter((item) => item.periodType === '1')
-          .map(convertPeriodCandleToChartData);
+      try {
+        if (period === 'MINUTE' && minuteData?.data && minuteData.data.length > 0) {
+          data = minuteData.data.map(convertMinuteCandleToChartData);
+        } else if (periodData?.data && periodData.data.length > 0) {
+          data = periodData.data
+            .filter((item) => item.periodType === '1')
+            .map(convertPeriodCandleToChartData);
+        }
+      } catch (error) {
+        console.error('차트 데이터 변환 오류:', error);
       }
       return data;
     }, [period, minuteData, periodData]);
 
     const formatChartDate = useCallback(
       (date: Date): string => {
+        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+          return '';
+        }
+
         switch (period) {
           case 'MINUTE': {
             const hours = date.getHours();
@@ -173,11 +181,29 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
     );
 
     const chartData = useMemo(() => {
+      if (!rawChartData || rawChartData.length === 0) {
+        return Array(EMPTY_DATA_COUNT)
+          .fill(null)
+          .map(() => ({
+            date: '',
+            open: 0,
+            high: 0,
+            low: 0,
+            close: 0,
+            volume: 0,
+            changeType: 'NONE' as const,
+            fiveAverage: 0,
+            twentyAverage: 0,
+            rawDate: null,
+            periodType: period,
+          }));
+      }
+
       let data = [...rawChartData];
 
-      if (period === 'WEEK') {
+      if (period === 'WEEK' && data.length > 0) {
         data = getWeekData(data);
-      } else if (period === 'MONTH') {
+      } else if (period === 'MONTH' && data.length > 0) {
         data = getMonthData(data);
       }
 
@@ -203,7 +229,9 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
 
     const xAxisLabels = useMemo(() => {
       return chartData.map((item) => {
-        if (!item?.rawDate) return '';
+        if (!item?.rawDate || !(item.rawDate instanceof Date) || isNaN(item.rawDate.getTime())) {
+          return '';
+        }
         return formatChartDate(item.rawDate);
       });
     }, [chartData, formatChartDate]);
@@ -455,7 +483,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
         xAxis: [
           {
             type: 'category',
-            data: xAxisLabels,
+            data: xAxisLabels && xAxisLabels.length > 0 ? xAxisLabels : [''],
             boundaryGap: true,
             axisLine: { onZero: false },
             axisTick: { show: false },
@@ -489,7 +517,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
           {
             type: 'category',
             gridIndex: 1,
-            data: xAxisLabels,
+            data: xAxisLabels && xAxisLabels.length > 0 ? xAxisLabels : [''],
             boundaryGap: true,
             axisLine: { onZero: false },
             axisTick: { show: false },
@@ -690,6 +718,14 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
       ],
     );
 
+    // 데이터 유효성 체크
+    const hasValidData = useMemo(() => {
+      return (
+        (periodData?.data && periodData.data.length > 0) ||
+        (minuteData?.data && minuteData.data.length > 0)
+      );
+    }, [minuteData, periodData]);
+
     return (
       <div className="relative">
         <div
@@ -702,6 +738,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
                 className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
                 onClick={() => handlePeriodChange('MINUTE')}
                 type="button"
+                disabled={!hasValidData}
               >
                 1분
               </button>
@@ -709,6 +746,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
                 className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
                 onClick={() => handlePeriodChange('DAY')}
                 type="button"
+                disabled={!hasValidData}
               >
                 일
               </button>
@@ -716,6 +754,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
                 className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
                 onClick={() => handlePeriodChange('WEEK')}
                 type="button"
+                disabled={!hasValidData}
               >
                 주
               </button>
@@ -723,12 +762,20 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
                 className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
                 onClick={() => handlePeriodChange('MONTH')}
                 type="button"
+                disabled={!hasValidData}
               >
                 월
               </button>
             </div>
           </div>
-          <ReactECharts ref={chartRef} option={option} style={{ height: `${height}px` }} />
+          {!hasValidData && (
+            <div className="flex h-[600px] items-center justify-center p-4 text-white opacity-50">
+              차트 데이터가 없습니다.
+            </div>
+          )}
+          {hasValidData && (
+            <ReactECharts ref={chartRef} option={option} style={{ height: `${height}px` }} />
+          )}
         </div>
       </div>
     );
