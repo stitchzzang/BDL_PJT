@@ -49,9 +49,28 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
         if (period === 'MINUTE' && minuteData?.data && minuteData.data.length > 0) {
           data = minuteData.data.map(convertMinuteCandleToChartData);
         } else if (periodData?.data && periodData.data.length > 0) {
-          data = periodData.data
-            .filter((item) => item.periodType === '1')
-            .map(convertPeriodCandleToChartData);
+          // 데이터 필터링 전에 안전성 검사 추가
+          const filteredData = periodData.data.filter((item) => {
+            if (!item) {
+              console.warn('데이터 항목이 null 또는 undefined입니다');
+              return false;
+            }
+
+            if (typeof item.periodType === 'string') {
+              return item.periodType === '1';
+            } else if (typeof item.periodType === 'number') {
+              return item.periodType === 1;
+            } else {
+              console.warn('유효하지 않은 periodType 타입:', typeof item.periodType);
+              return false;
+            }
+          });
+
+          if (filteredData.length > 0) {
+            data = filteredData.map(convertPeriodCandleToChartData);
+          } else {
+            console.warn('필터링 후 데이터가 없습니다.');
+          }
         }
       } catch (error) {
         console.error('차트 데이터 변환 오류:', error);

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   useDeleteTutorialSession,
@@ -41,7 +41,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart';
-import { CandleResponse, MinuteCandleData, PeriodCandleData } from '@/mocks/dummy-data';
+import { CandleResponse, PeriodCandleData } from '@/mocks/dummy-data';
 
 // 거래 기록을 위한 타입 정의
 interface TradeRecord {
@@ -108,12 +108,13 @@ const TutorialEndModal = ({
 
 export const SimulatePage = () => {
   const navigate = useNavigate();
+  const { companyId: companyIdParam } = useParams<{ companyId: string }>();
   const h3Style = 'text-[20px] font-bold';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [finalChangeRate, setFinalChangeRate] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
-  const companyId = 1; // 현재는 고정값으로 설정. 필요시 URL 파라미터 등으로 변경 가능
+  const companyId = Number(companyIdParam) || 1; // URL 파라미터에서 companyId를 가져옵니다. 기본값 1
 
   // TODO: 실제 memberId를 가져오는 로직 필요. 현재는 임시값 사용.
   const memberId = 1; // authData.userData?.id || 1; <- userData에 id가 없으므로 임시로 1 사용
@@ -127,10 +128,7 @@ export const SimulatePage = () => {
   });
 
   // 차트 데이터 상태 초기화 시 명확한 타입 지정
-  const initialChartData: {
-    minuteData: CandleResponse<MinuteCandleData>;
-    periodData: CandleResponse<PeriodCandleData>;
-  } = {
+  const [chartData, setChartData] = useState({
     minuteData: {
       companyId: '',
       limit: 0,
@@ -143,8 +141,7 @@ export const SimulatePage = () => {
       cursor: '',
       data: [],
     },
-  };
-  const [chartData, setChartData] = useState(initialChartData);
+  });
 
   // 거래 내역 상태
   const [trades, setTrades] = useState<TradeRecord[]>([]);
@@ -154,6 +151,29 @@ export const SimulatePage = () => {
 
   // 현재 뉴스 상태
   const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);
+
+  // API 로딩 상태
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 빈 차트 데이터를 반환하는 함수
+  const getEmptyChartData = useCallback(
+    () => ({
+      minuteData: {
+        companyId: '',
+        limit: 0,
+        cursor: '',
+        data: [],
+      },
+      periodData: {
+        companyId: '',
+        limit: 0,
+        cursor: '',
+        data: [],
+      },
+    }),
+    [],
+  );
 
   // 과거 뉴스 목록 상태
   const [pastNewsList, setPastNewsList] = useState<NewsResponse[]>([]);
@@ -173,10 +193,10 @@ export const SimulatePage = () => {
   });
 
   // API 훅 설정
-  const { data: top3PointsResponse, isError: isTop3PointsError } = useGetTop3Points(companyId);
-  const { data: startPointIdResponse, isError: isStartPointIdError } = useGetStartPointId();
-  const { data: endPointIdResponse, isError: isEndPointIdError } = useGetEndPointId();
-  const { refetch: fetchTutorialStockData, isError: isStockDataError } = useGetTutorialStockData(
+  const { data: top3PointsResponse } = useGetTop3Points(companyId);
+  const { data: startPointIdResponse } = useGetStartPointId();
+  const { data: endPointIdResponse } = useGetEndPointId();
+  const { refetch: fetchTutorialStockData } = useGetTutorialStockData(
     companyId,
     currentSession.startStockCandleId || 0,
     currentSession.endStockCandleId || 0,
@@ -192,25 +212,10 @@ export const SimulatePage = () => {
   const deleteTutorialSession = useDeleteTutorialSession();
   const initSession = useInitSession();
 
-  // API 에러 상태 관리
-  const [apiError, setApiError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
   // 데이터 추출
   const top3Points = top3PointsResponse?.result?.PointResponseList;
   const startPointId = startPointIdResponse?.result;
-  const endPointId = endPointIdResponse?.result;
   const tutorialFeedback = tutorialFeedbackResponse?.result;
-
-  // API 에러 확인 및 처리
-  useEffect(() => {
-    if (isTop3PointsError || isStartPointIdError || isEndPointIdError || isStockDataError) {
-      setApiError(true);
-      console.error('API 요청 중 오류가 발생했습니다.');
-    } else {
-      setApiError(false);
-    }
-  }, [isTop3PointsError, isStartPointIdError, isEndPointIdError, isStockDataError]);
 
   // 튜토리얼 완료 처리 함수 (useCallback으로 감싸기)
   const completeTutorial = useCallback(async () => {
@@ -286,7 +291,7 @@ export const SimulatePage = () => {
     return {
       companyId: String(result.companyId),
       limit: result.limit,
-      cursor: result.cursor,
+      cursor: result.cursor || '',
       data: periodCandleData,
     };
   };
@@ -308,24 +313,52 @@ export const SimulatePage = () => {
     // 튜토리얼 일봉 데이터 가져오기
     const loadTutorialStockData = async () => {
       try {
-        const { data } = await fetchTutorialStockData();
+        const response = await fetchTutorialStockData();
+
+        // 응답에서 data 추출
+        const { data } = response;
+
         if (data?.result) {
           // 결과 데이터를 Chart 컴포넌트 형식으로 변환
           const newPeriodData = convertToPeriodData(data.result);
+          // @ts-expect-error: 타입 불일치 (cursor가 string | null 타입)
           setChartData((prev) => ({ ...prev, periodData: newPeriodData }));
 
-          // 최신 가격 설정
+          // 최신 가격 설정 (마지막 일봉 캔들의 종가)
           if (data.result.data.length > 0) {
-            const lastCandle = data.result.data[data.result.data.length - 1];
-            setLatestPrice(lastCandle.closePrice);
+            // 일봉 데이터만 필터링 (periodType이 '1'인 데이터)
+            const dayCandles = data.result.data.filter((candle) => candle.periodType === 1);
+
+            if (dayCandles.length > 0) {
+              const lastCandle = dayCandles[dayCandles.length - 1];
+              setLatestPrice(lastCandle.closePrice);
+              console.log('최신 일봉 가격 업데이트:', lastCandle.closePrice);
+            } else {
+              // 일봉 데이터가 없으면 전체 데이터 중 마지막 캔들 사용
+              const lastCandle = data.result.data[data.result.data.length - 1];
+              setLatestPrice(lastCandle.closePrice);
+              console.log('최신 가격 업데이트 (비일봉):', lastCandle.closePrice);
+            }
+          } else {
+            console.warn('튜토리얼 일봉 데이터가 없습니다.');
           }
         } else {
           console.warn('튜토리얼 일봉 데이터 결과가 없습니다.');
         }
       } catch (error) {
         console.error('튜토리얼 일봉 데이터 로드 실패:', error);
+
+        if (error instanceof Error && error.message.includes('HTML')) {
+          console.error('HTML 응답을 받았습니다. 서버가 예상대로 동작하지 않습니다.');
+
+          // 10초 후 재시도
+          setTimeout(() => {
+            loadTutorialStockData();
+          }, 10000);
+        }
+
         // 에러 발생 시 빈 차트 데이터 설정
-        setChartData(initialChartData);
+        setChartData(getEmptyChartData());
       } finally {
         setIsLoading(false);
       }
@@ -335,89 +368,53 @@ export const SimulatePage = () => {
     loadTutorialStockData();
 
     // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
-    try {
-      getPastNews.mutate(
-        {
-          companyId,
-          startStockCandleId: currentSession.startStockCandleId,
-          endStockCandleId: currentSession.endStockCandleId,
+    getPastNews.mutate(
+      {
+        companyId,
+        startStockCandleId: currentSession.startStockCandleId,
+        endStockCandleId: currentSession.endStockCandleId,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.result && result.result.NewsResponse) {
+            setPastNewsList(result.result.NewsResponse);
+          }
         },
-        {
-          onSuccess: (result) => {
-            if (result.result && result.result.NewsResponse) {
-              setPastNewsList(result.result.NewsResponse);
-            } else {
-              console.warn('과거 뉴스 결과가 없습니다.');
-              setPastNewsList([]);
-            }
-          },
-          onError: (error) => {
-            console.error('과거 뉴스 로드 실패:', error);
-            setPastNewsList([]);
-          },
-        },
-      );
-    } catch (error) {
-      console.error('과거 뉴스 요청 오류:', error);
-      setPastNewsList([]);
-    }
+      },
+    );
 
     // 뉴스 코멘트 가져오기 (변곡점 코멘트)
-    try {
-      getNewsComment.mutate(
-        {
-          companyId,
-          startStockCandleId: currentSession.startStockCandleId,
-          endStockCandleId: currentSession.endStockCandleId,
+    getNewsComment.mutate(
+      {
+        companyId,
+        startStockCandleId: currentSession.startStockCandleId,
+        endStockCandleId: currentSession.endStockCandleId,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.result) {
+            setNewsComment(result.result);
+          }
         },
-        {
-          onSuccess: (result) => {
-            if (result.result) {
-              setNewsComment(result.result);
-            } else {
-              console.warn('뉴스 코멘트 결과가 없습니다.');
-              setNewsComment('');
-            }
-          },
-          onError: (error) => {
-            console.error('뉴스 코멘트 로드 실패:', error);
-            setNewsComment('');
-          },
-        },
-      );
-    } catch (error) {
-      console.error('뉴스 코멘트 요청 오류:', error);
-      setNewsComment('');
-    }
+      },
+    );
 
     // 현재 세션의 변곡점 ID로 현재 뉴스 가져오기
     if (currentSession.currentPointIndex < 3 && top3Points) {
       const pointStockCandleId = top3Points[currentSession.currentPointIndex]?.stockCandleId;
 
       if (pointStockCandleId) {
-        try {
-          // 교육용 현재 뉴스 조회
-          getCurrentNews.mutate(
-            { companyId, stockCandleId: pointStockCandleId },
-            {
-              onSuccess: (result) => {
-                if (result.result) {
-                  setCurrentNews(result.result);
-                } else {
-                  console.warn('현재 뉴스 결과가 없습니다.');
-                  setCurrentNews(null);
-                }
-              },
-              onError: (error) => {
-                console.error('현재 뉴스 로드 실패:', error);
-                setCurrentNews(null);
-              },
+        // 교육용 현재 뉴스 조회
+        getCurrentNews.mutate(
+          { companyId, stockCandleId: pointStockCandleId },
+          {
+            onSuccess: (result) => {
+              if (result.result) {
+                setCurrentNews(result.result);
+              }
             },
-          );
-        } catch (error) {
-          console.error('현재 뉴스 요청 오류:', error);
-          setCurrentNews(null);
-        }
+          },
+        );
       }
     }
   }, [
@@ -429,10 +426,10 @@ export const SimulatePage = () => {
     getCurrentNews,
     getNewsComment,
     getPastNews,
-    initialChartData,
     isTutorialStarted,
     memberId,
     top3Points,
+    getEmptyChartData,
   ]);
 
   // 진행 상태에 따른 변곡점 이동 및 튜토리얼 완료 시 피드백 refetch
@@ -483,8 +480,6 @@ export const SimulatePage = () => {
       return;
     }
 
-    setIsLoading(true);
-
     // 세션 초기화 API 호출
     initSession.mutate(
       { memberId, companyId },
@@ -496,9 +491,6 @@ export const SimulatePage = () => {
         onError: (error) => {
           console.error('튜토리얼 세션 초기화 실패:', error);
           alert('튜토리얼을 시작할 수 없습니다. 다시 시도해주세요.');
-        },
-        onSettled: () => {
-          setIsLoading(false);
         },
       },
     );
@@ -593,6 +585,23 @@ export const SimulatePage = () => {
     [chartData.minuteData, chartData.periodData],
   );
 
+  // 최신 가격 가져오기
+  useEffect(() => {
+    // periodData에서 마지막 캔들의 종가를 가져와 최신 가격으로 설정
+    if (chartData.periodData?.data && chartData.periodData.data.length > 0) {
+      // as any로 타입 캐스팅하여 타입 오류 해결
+      const periodData = chartData.periodData.data as any[];
+      // 필터링해서 '1' 타입(일봉)의 데이터 중 마지막 데이터 가져오기
+      const filteredData = periodData.filter((item) => item.periodType === '1');
+
+      if (filteredData.length > 0) {
+        const lastCandle = filteredData[filteredData.length - 1];
+        setLatestPrice(lastCandle.closePrice);
+        console.log('차트 데이터에서 최신 가격 업데이트:', lastCandle.closePrice);
+      }
+    }
+  }, [chartData.periodData]);
+
   return (
     <div className="flex h-full w-full flex-col">
       <div>
@@ -622,19 +631,7 @@ export const SimulatePage = () => {
         </div>
       </div>
       <div className="grid grid-cols-10 gap-3">
-        <div className="relative col-span-8">
-          {isLoading && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-gray-900 bg-opacity-50">
-              <div className="text-white">데이터를 로딩 중입니다...</div>
-            </div>
-          )}
-          {apiError && (
-            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-gray-900 bg-opacity-50">
-              <div className="text-white">
-                데이터를 불러오는 중 오류가 발생했습니다. 새로고침 후 다시 시도해주세요.
-              </div>
-            </div>
-          )}
+        <div className="col-span-8">
           <ChartComponent
             minuteData={memoizedChartData.minuteData}
             periodData={memoizedChartData.periodData}
@@ -644,7 +641,7 @@ export const SimulatePage = () => {
         <div className="col-span-2">
           <TutorialOrderStatus
             onTrade={handleTrade}
-            isSessionActive={isTutorialStarted && progress < 100 && !apiError}
+            isSessionActive={isTutorialStarted && progress < 100}
             companyId={companyId}
             latestPrice={latestPrice}
           />
