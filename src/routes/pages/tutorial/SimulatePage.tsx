@@ -707,7 +707,6 @@ export const SimulatePage = () => {
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
-          dateRange={tutorialDateRange}
         />
         <div className="my-[25px]">
           <StockProgress progress={progress} onProgressChange={setProgress} />
