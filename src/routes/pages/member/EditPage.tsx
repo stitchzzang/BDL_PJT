@@ -7,17 +7,6 @@ import { z } from 'zod';
 
 import { useSignout } from '@/api/auth.api';
 import { useUpdateMemberInfo } from '@/api/member.api';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -137,6 +126,11 @@ export const EditPage = () => {
     },
   });
 
+  const handleProfileChange = () => {
+    if (window.confirm('프로필을 변경하시겠습니까?')) {
+      updateMemberInfo();
+    }
+  };
   const handleSwitchChange = (checked: boolean) => {
     setUseDefaultProfile(checked);
     setProfileChanged(true);
@@ -149,7 +143,12 @@ export const EditPage = () => {
   };
 
   const { mutate: signout } = useSignout();
-  const [isOpen, setIsOpen] = useState(false);
+
+  const handleSignout = () => {
+    if (window.confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      signout();
+    }
+  };
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -232,34 +231,16 @@ export const EditPage = () => {
             <Button
               variant="blue"
               className="w-full"
-              onClick={() => updateMemberInfo()}
+              onClick={handleProfileChange}
               disabled={
                 (!nicknameChanged && !profileChanged) || !form.getValues().nickname || !isValid
               }
             >
               프로필 수정
             </Button>
-            <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="red" className="w-full">
-                  회원탈퇴
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>회원 탈퇴</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>취소</AlertDialogCancel>
-                  <AlertDialogAction variant="red" onClick={() => signout()}>
-                    탈퇴하기
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button variant="red" className="w-full" onClick={handleSignout}>
+              회원탈퇴
+            </Button>
           </div>
         </Form>
       </div>
