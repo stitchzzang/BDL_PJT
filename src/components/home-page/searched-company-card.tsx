@@ -1,19 +1,49 @@
-import { Company } from '@/api/types/category';
+import { SearchedCompanyResponse } from '@/api/types/home';
 
 interface SearchedCompanyCardProps {
-  company: Company;
+  company: SearchedCompanyResponse;
 }
 
 export const SearchedCompanyCard = ({ company }: SearchedCompanyCardProps) => {
+  const isPositive = company.closePricePercent > 0;
+  const isNegative = company.closePricePercent < 0;
+
   return (
-    <div className="min-h-[60px] min-w-[200px] rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5 hover:bg-transparent active:bg-transparent sm:min-w-[600px]">
-      <div className="flex flex-row items-center gap-4">
+    <div className="flex h-16 w-full items-center justify-between border-b border-border-color px-4 hover:bg-modal-background-color">
+      <div className="flex items-center gap-4">
         <img
-          src={company.companyImage || 'https://placehold.co/50x50'}
+          src={company.companyImage || 'https://placehold.co/40x40'}
           alt={`${company.companyName}-logo`}
-          className="h-[50px] w-[50px] rounded-xl"
+          className="h-10 w-10 rounded-lg"
         />
-        <p className="text-base">{company.companyName}</p>
+        <div className="flex flex-col">
+          <p className="text-base font-medium">{company.companyName}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-text-sub-color text-xs">종목코드</span>
+            <p className="text-text-sub-color text-xs">{company.companyCode}</p>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-6">
+        <div className="flex flex-col items-end">
+          <span className="text-text-sub-color text-xs">현재가</span>
+          <p className="text-base font-medium">{company.closePrice.toLocaleString()}원</p>
+        </div>
+        <div className="flex flex-col items-end">
+          <span className="text-text-sub-color text-xs">등락률</span>
+          <p
+            className={`text-sm font-medium ${
+              isPositive
+                ? 'text-btn-green-color'
+                : isNegative
+                  ? 'text-btn-red-color'
+                  : 'text-text-main-color'
+            }`}
+          >
+            {isPositive ? '+' : ''}
+            {company.closePricePercent.toFixed(2)}%
+          </p>
+        </div>
       </div>
     </div>
   );
