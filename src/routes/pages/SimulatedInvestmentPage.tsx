@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useStockDayData, useStockMinuteData } from '@/api/stock.api';
+import { useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
@@ -10,21 +10,33 @@ import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { StockCostHistory } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
 import { StockInfo } from '@/components/mock-investment/stock-info/stock-info';
 import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/stock-info-detail';
-import ChartComponent from '@/components/ui/chart';
-import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
+import { ChartContainer } from '@/components/ui/chart-container';
+import { MinuteChart } from '@/components/ui/chart-simulate';
+import { TickChart } from '@/components/ui/tick-chart';
+import { TickCandleChart } from '@/components/ui/tick-chart2';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
-  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 50); // 분봉
-  const { data: DayData } = useStockDayData(1, 10, 1); // 일봉(초기 셋팅값은 limit10으로 지정)
+  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 100);
   const [closePrice, setClosePrice] = useState<number>(0);
+  // 초기 데이터  일,주,월
+  const { data: stockDailyData } = useStockDailyData(1, 1, 30);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
   const [tickData, setTickData] = useState<TickData | null>(null);
+
+  // useCallback으로 이벤트 핸들러 메모이제이션
+  const handleLoadMore = useCallback(
+    async (cursor: string) => {
+      // 추가 데이터 로드 로직
+      return null;
+    },
+    [], // 의존성 배열
+  );
 
   // 정적 데이터 확인 후 소켓 연결 시작
   useEffect(() => {
@@ -33,7 +45,7 @@ export const SimulatedInvestmentPage = () => {
       setClosePrice(minuteData.data[0].closePrice);
     }
     // 데이터 확인 후 진행
-    if (isSuccess && minuteData && DayData) {
+    if (isSuccess && minuteData && stockDailyData) {
       // 소켓 연결 시작
       connectTick('000660', setTickData);
 
@@ -42,7 +54,13 @@ export const SimulatedInvestmentPage = () => {
         disconnectTick();
       };
     }
-  }, [isSuccess, minuteData, connectTick, disconnectTick, DayData]);
+  }, [isSuccess, minuteData, connectTick, disconnectTick, stockDailyData]);
+
+  // minuteChart 컴포넌트를 useMemo로 메모이제이션
+  const memoizedChart = useMemo(() => {
+    if (!minuteData) return null;
+    return <MinuteChart initialData={minuteData} onLoadMoreData={handleLoadMore} />;
+  }, [minuteData, handleLoadMore]);
 
   if (isLoading) {
     return (
@@ -79,17 +97,45 @@ export const SimulatedInvestmentPage = () => {
           </div>
         </div>
       </div>
-      <div className="mb-[20px] grid grid-cols-1 gap-5 lg:grid-cols-10">
+      <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
-          <ChartComponent minuteData={dummyMinuteData} periodData={dummyPeriodData} height={600} />
+          {tickData ? (
+            <div className="grid grid-cols-12 gap-3">
+              <div className="col-span-10">
+                <ChartContainer initialData={minuteData} />
+              </div>
+              <div className="col-span-2">
+                <TickCandleChart
+                  tickData={tickData}
+                  height={400}
+                  basePrice={minuteData?.data[0]?.openPrice} // 초기 기준가
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="">
+              <ChartContainer initialData={minuteData} />
+            </div>
+          )}
         </div>
         <div className="col-span-1 lg:col-span-2">
           <OrderStatus closePrice={closePrice} realTime={tickData?.stckPrpr} />
         </div>
       </div>
+      {tickData ? (
+        <div className="my-2">
+          <TickChart
+            tickData={tickData}
+            height={200}
+            basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
+          />
+        </div>
+      ) : (
+        <div></div>
+      )}
       <div className="grid grid-cols-10 gap-5">
         <div className="col-span-6">
-          <StockCostHistory tickData={tickData} DayData={DayData?.data} />
+          <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>
         <div className="col-span-2">
           <StockInfoDetail />
