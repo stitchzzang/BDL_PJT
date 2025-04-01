@@ -1,6 +1,7 @@
 export interface MemberInfo {
-  profileImage: string; // 프로필 이미지
-  nickname: string; // 닉네임
+  profileImage?: string; // 프로필 이미지
+  nickname?: string; // 닉네임
+  deleteProfile?: boolean; // 프로필 삭제 여부
 }
 
 export interface MemberPassword {
