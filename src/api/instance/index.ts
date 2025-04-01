@@ -15,9 +15,7 @@ const _ky = ky.create({
   prefixUrl: __API_URL__,
   timeout: 5000,
   credentials: 'include',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: {},
 });
 
 // 인증이 필요한 요청을 위한 ky 인스턴스
