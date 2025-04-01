@@ -13,7 +13,7 @@ declare const __API_URL__: string;
 // 기본 ky 인스턴스 생성
 const _ky = ky.create({
   prefixUrl: __API_URL__,
-  timeout: 5000,
+  timeout: 100000, // 임시 수정
   credentials: 'include',
   headers: {
     'Content-Type': 'application/json',
