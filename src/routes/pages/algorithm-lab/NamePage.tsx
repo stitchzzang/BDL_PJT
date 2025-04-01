@@ -16,6 +16,37 @@ export const NamePage = () => {
   const navigate = useNavigate();
   const { algorithmName, setAlgorithmName } = useAlgorithmLabStore();
   const [nowName, setNowName] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // 유효성 검사 함수
+  const validateName = (name: string) => {
+    // 비어있는 경우
+    if (name.trim() === '') {
+      setErrorMessage('');
+      return false;
+    }
+
+    if (name.length === 1) {
+      setErrorMessage('알고리즘 이름은 2자 이상이어야 합니다.');
+      return false;
+    }
+
+    // 특수문자 검사 (한글, 영문, 숫자만 허용)
+    if (!/^[가-힣a-zA-Z0-9]+$/.test(name)) {
+      setErrorMessage('특수문자 및 자음/모음은 사용할 수 없습니다.');
+      return false;
+    }
+
+    // 길이 검사
+    if (name.length > 10) {
+      setErrorMessage('알고리즘 이름은 10자 이하여야 합니다.');
+      return false;
+    }
+
+    // 모든 검사 통과
+    setErrorMessage('');
+    return true;
+  };
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -71,12 +102,19 @@ export const NamePage = () => {
               type="text"
               value={algorithmName}
               onChange={(e) => {
-                setAlgorithmName(e.target.value);
-                setNowName(e.target.value);
+                const newValue = e.target.value;
+                setAlgorithmName(newValue);
+                setNowName(newValue);
+                validateName(newValue);
               }}
               placeholder="알고리즘 이름을 작성하세요."
-              className="h-12 transition-colors duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={`h-12 transition-colors duration-200 focus:outline-none focus:ring-2 ${
+                errorMessage
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                  : 'focus:border-blue-500 focus:ring-blue-200'
+              }`}
             />
+            {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
           </div>
           <div className="flex w-full gap-2">
             <Button variant="blue" onClick={() => navigate('/algorithm-lab')} className="flex-1">
