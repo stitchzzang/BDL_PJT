@@ -221,13 +221,6 @@ export const SimulatePage = () => {
     currentSession.endDate,
   );
 
-  // 전체 차트 데이터 가져오기 (1년 전 시작점부터 최근 일봉까지)
-  const { refetch: fetchFullChartData } = useGetTutorialStockData(
-    companyId,
-    defaultStartDate,
-    defaultEndDate,
-  );
-
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
