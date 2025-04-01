@@ -74,12 +74,25 @@ export const SimulatedInvestmentPage = () => {
       </div>
     );
   }
-  if (isError) {
+  if (isError || comparePrice === 0) {
     return (
-      <div className="flex flex-col items-center justify-center">
-        <ErrorScreen />
-        <p className="font-light text-border-color">(현재 잘못된 종목 페이지입니다.)</p>
-      </div>
+      <>
+        {comparePrice === 0 ? (
+          <div className="flex flex-col items-center justify-center">
+            <ErrorScreen />
+            <p className="font-light text-border-color">
+              (현재{' '}
+              <span className="font-bold text-btn-blue-color">{stockCompanyInfo?.companyName}</span>{' '}
+              종목에 오류가 발생했습니다.)
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center">
+            <ErrorScreen />
+            <p className="font-light text-border-color">(현재 잘못된 종목 페이지입니다.)</p>
+          </div>
+        )}
+      </>
     );
   }
   return (
@@ -90,6 +103,7 @@ export const SimulatedInvestmentPage = () => {
             stockCompanyInfo={stockCompanyInfo}
             tickData={tickData}
             closePrice={closePrice}
+            comparePrice={comparePrice}
           />
         </div>
         <div className="mb-[16px] mt-[30px] flex justify-between">
