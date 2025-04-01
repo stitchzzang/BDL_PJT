@@ -1,10 +1,10 @@
 import { SearchedCompanyResponse } from '@/api/types/home';
 
-interface SearchedCompanyCardProps {
+interface SearchedCompanyListItemProps {
   company: SearchedCompanyResponse;
 }
 
-export const SearchedCompanyCard = ({ company }: SearchedCompanyCardProps) => {
+export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProps) => {
   const isPositive = company.closePricePercent > 0;
   const isNegative = company.closePricePercent < 0;
 
