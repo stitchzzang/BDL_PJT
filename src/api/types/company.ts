@@ -2,7 +2,7 @@
 export interface CompanyProfile {
   companyImage: string;
   companyCode: string;
-  name: string;
+  companyName: string;
   categories: string[];
 }
 

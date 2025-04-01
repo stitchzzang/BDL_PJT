@@ -12,7 +12,7 @@ import {
 
 export const companyAPI = {
   getCompanyProfile: (companyId: string) =>
-    _ky.get(`stock/profile`, { searchParams: { companyId } }).json<ApiResponse<CompanyProfile>>(),
+    _ky.get(`company/${companyId}`).json<ApiResponse<CompanyProfile>>(),
 
   getCompanyBasicInfo: (companyId: string) =>
     _ky.get(`company/${companyId}/basic`).json<ApiResponse<CompanyBasicInfo>>(),

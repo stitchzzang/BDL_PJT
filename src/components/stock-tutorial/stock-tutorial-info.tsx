@@ -1,7 +1,7 @@
 import { Squares2X2Icon } from '@heroicons/react/24/solid';
-import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
+import { useGetCompanyProfile } from '@/api/company.api';
 import { _ky } from '@/api/instance';
 import { useGetPointDate, useGetTop3Points, useInitSession } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
@@ -11,13 +11,6 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
-
-// API 응답 형식에 맞게 타입 정의
-interface CompanyProfileResponse {
-  companyImage: string;
-  companyName: string;
-  categories: string[];
-}
 
 // 변곡점 데이터 타입 정의
 interface InflectionPoint {
@@ -109,24 +102,8 @@ export const StockTutorialInfo = ({
   const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
   const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
 
-  // 회사 정보 가져오기
-  const { data: companyInfo } = useQuery<CompanyProfileResponse>({
-    queryKey: ['company', companyId, 'profile'],
-    queryFn: async () => {
-      try {
-        const response = await _ky.get(`company/${companyId}`);
-        return response.json<ApiResponse<CompanyProfileResponse>>().then((res) => res.result);
-      } catch {
-        // 기본 데이터 반환
-        return {
-          companyImage: TestImage,
-          companyName: `회사 ${companyId}`,
-          categories: ['전체'],
-        } as CompanyProfileResponse;
-      }
-    },
-    enabled: !!companyId,
-  });
+  // 변경: useGetCompanyProfile 훅 사용
+  const { data: companyInfo } = useGetCompanyProfile(String(companyId));
 
   // API에서 가져온 TOP3 변곡점 데이터를 InflectionPoint로 변환
   useEffect(() => {
@@ -333,14 +310,14 @@ export const StockTutorialInfo = ({
                   </Button>
                 </div>
               )}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-4">
                 <StockTutorialHelp />
                 <Button
                   className="max-h-[45px] w-[225px]"
                   variant={'green'}
                   size={'lg'}
                   onClick={handleTutorialStart}
-                  disabled={isTutorialStarted || initSessionMutation.isPending}
+                  disabled={isTutorialStarted || initSessionMutation.isPending || !companyInfo}
                 >
                   {isTutorialStarted
                     ? '튜토리얼 진행중'
