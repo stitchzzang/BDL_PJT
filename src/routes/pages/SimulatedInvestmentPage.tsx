@@ -14,7 +14,6 @@ import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/
 import { ChartContainer } from '@/components/ui/chart-container';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { TickChart } from '@/components/ui/tick-chart';
-import { TickCandleChart } from '@/components/ui/tick-chart2';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
@@ -111,17 +110,16 @@ export const SimulatedInvestmentPage = () => {
       <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-10">
         <div className="col-span-1 lg:col-span-8">
           {tickData ? (
-            <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-10">
-                <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
-              </div>
-              <div className="col-span-2">
-                <TickCandleChart
+            <div className="">
+              {minuteData ? (
+                <ChartContainer
+                  initialData={minuteData}
+                  companyId={stockCompanyId}
                   tickData={tickData}
-                  height={400}
-                  basePrice={minuteData?.data[0]?.openPrice} // 초기 기준가
                 />
-              </div>
+              ) : (
+                <LoadingAnimation />
+              )}
             </div>
           ) : (
             <div className="">

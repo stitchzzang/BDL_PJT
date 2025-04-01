@@ -19,7 +19,7 @@ interface TickData {
 
 // 틱 차트 프롭스
 interface TickChartProps {
-  tickData: TickData | null;
+  tickData: TickData | undefined;
   height?: number;
   width?: number;
   basePrice?: number; // 기준가
@@ -323,15 +323,24 @@ const TickChartComponent: React.FC<TickChartProps> = ({
   }, [currentPoint]);
 
   return (
-    <div className="relative h-full p-2" style={{ width }}>
+    <div className="relative h-full" style={{ width }}>
       <div
         className="flex h-full w-full flex-col justify-center overflow-hidden rounded-2xl p-3"
         style={{ backgroundColor: '#0D192B' }}
       >
-        <div className="flex flex-col items-center justify-center gap-4 p-3 text-sm text-white">
-          <h3 className="text-[18px] font-bold">실시간 틱 캔들</h3>
-          <span className="text-[20px] font-bold">{tickData?.stckPrpr} 원(체결가)</span>
-          <span className="text-[20px] font-bold">{tickData?.stckOprc} 원(시가)</span>
+        <div className="items-centergap-4 flex flex-col p-3 text-sm">
+          <h3 className="mb-3 text-[16px] font-bold">실시간 틱 캔들</h3>
+          <div
+            className={`flex w-full items-center justify-between gap-2 rounded-xl border border-border-color border-opacity-40 p-4`}
+          >
+            <div className="flex flex-col">
+              <span className="text-[15px] text-border-color">{tickData?.stckPrpr} 원(체결가)</span>
+              <span className="text-[15px] text-border-color">{tickData?.stckOprc} 원(시가)</span>
+            </div>
+            <div
+              className={`duration-400 flex gap-3 rounded-md bg-opacity-80 p-3 transition-all ${tickData?.ccldDvsn === '1' ? 'border-btn-red-color bg-btn-red-color bg-opacity-10 text-btn-red-color' : 'border-btn-blue-color bg-btn-blue-color  bg-opacity-10 text-btn-blue-color'}`}
+            ></div>
+          </div>
         </div>
 
         <ReactECharts
