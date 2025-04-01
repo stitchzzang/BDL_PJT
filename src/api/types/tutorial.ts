@@ -86,10 +86,18 @@ export interface InitSessionRequest {
   companyId: number;
 }
 
+// stockCandleId 기반 요청 (기존 API)
 export interface NewsRangeRequest {
   companyId: number;
   startStockCandleId: number;
   endStockCandleId: number;
+}
+
+// 날짜 기반 요청 (새 API)
+export interface DateRangeRequest {
+  companyId: number;
+  startDate: string; // YYMMDD 형식
+  endDate: string; // YYMMDD 형식
 }
 
 export interface CurrentNewsRequest {

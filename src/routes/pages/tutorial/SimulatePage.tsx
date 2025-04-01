@@ -4,10 +4,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
-  useGetEndPointId,
   useGetNewsComment,
   useGetPastNews,
-  useGetStartPointId,
+  useGetPointDate,
   useGetTop3Points,
   useGetTutorialFeedback,
   useGetTutorialStockData,
@@ -58,6 +57,22 @@ interface TutorialEndModalProps {
   onConfirmResultClick: () => void;
   onEndTutorialClick: () => void;
 }
+
+// YYMMDD 형식의 날짜 생성 함수
+const formatDateToYYMMDD = (date: Date): string => {
+  const yy = date.getFullYear().toString().slice(2);
+  const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+  const dd = date.getDate().toString().padStart(2, '0');
+  return `${yy}${mm}${dd}`;
+};
+
+// YYMMDD 형식의 문자열을 Date 객체로 변환하는 함수
+const parseYYMMDDToDate = (dateStr: string): Date => {
+  const yy = dateStr.slice(0, 2);
+  const mm = dateStr.slice(2, 4);
+  const dd = dateStr.slice(4, 6);
+  return new Date(`20${yy}-${mm}-${dd}`);
+};
 
 const TutorialEndModal = ({
   isOpen,
@@ -152,57 +167,54 @@ export const SimulatePage = () => {
   // 전체 차트 데이터 상태 (1년 전 시점부터 현재까지)
   const [fullChartData, setFullChartData] = useState<TutorialStockResponse | null>(null);
 
-  // 현재 세션 상태
+  // 오늘부터 1년 전까지의 날짜 범위 계산
+  const today = new Date();
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+  const defaultStartDate = formatDateToYYMMDD(oneYearAgo);
+  const defaultEndDate = formatDateToYYMMDD(today);
+
+  // 현재 세션 상태 (날짜 기반으로 변경)
   const [currentSession, setCurrentSession] = useState<{
-    startStockCandleId: number;
-    endStockCandleId: number;
+    startDate: string;
+    endDate: string;
     currentPointIndex: number;
   }>({
-    startStockCandleId: 0,
-    endStockCandleId: 0,
+    startDate: defaultStartDate,
+    endDate: defaultEndDate,
     currentPointIndex: 0,
   });
 
   // 날짜 상태 추가
   const [tutorialDateRange, setTutorialDateRange] = useState({
-    startDate: '',
-    endDate: '',
+    startDate: defaultStartDate,
+    endDate: defaultEndDate,
   });
 
   // API 훅 설정
   const { data: top3PointsResponse, isLoading: isTop3PointsLoading } = useGetTop3Points(companyId);
-  const { data: startPointIdResponse } = useGetStartPointId(companyId);
-  const { data: endPointIdResponse } = useGetEndPointId(companyId); // 최근 일봉 ID 가져오기
+
+  // 변곡점 날짜 조회를 위한 설정
+  const pointStockCandleIds =
+    top3PointsResponse?.result?.PointResponseList?.map((point) => point.stockCandleId) || [];
+  const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
+  const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
+  const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
 
   // 세션별 주식 데이터 가져오기를 위한 커스텀 훅
   const {
     refetch: fetchSessionData,
     isLoading: isSessionDataLoading,
     data: sessionDataResponse,
-  } = useGetTutorialStockData(
-    companyId,
-    currentSession.startStockCandleId && currentSession.endStockCandleId
-      ? Math.min(currentSession.startStockCandleId, currentSession.endStockCandleId)
-      : currentSession.startStockCandleId || 0,
-    currentSession.startStockCandleId && currentSession.endStockCandleId
-      ? Math.max(currentSession.startStockCandleId, currentSession.endStockCandleId)
-      : currentSession.endStockCandleId || 0,
-  );
+  } = useGetTutorialStockData(companyId, currentSession.startDate, currentSession.endDate);
 
   // 전체 차트 데이터 가져오기 (1년 전 시작점부터 최근 일봉까지)
   const {
     refetch: fetchFullChartData,
     isLoading: isFullChartDataLoading,
     data: fullChartDataResponse,
-  } = useGetTutorialStockData(
-    companyId,
-    startPointIdResponse?.result && endPointIdResponse?.result
-      ? Math.min(startPointIdResponse.result, endPointIdResponse.result)
-      : startPointIdResponse?.result || 0,
-    startPointIdResponse?.result && endPointIdResponse?.result
-      ? Math.max(startPointIdResponse.result, endPointIdResponse.result)
-      : endPointIdResponse?.result || 0,
-  );
+  } = useGetTutorialStockData(companyId, defaultStartDate, defaultEndDate);
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
@@ -220,9 +232,29 @@ export const SimulatePage = () => {
 
   // 데이터 추출
   const top3Points = top3PointsResponse?.result?.PointResponseList;
-  const startPointId = startPointIdResponse?.result;
-  const endPointId = endPointIdResponse?.result;
   const tutorialFeedback = tutorialFeedbackResponse?.result;
+
+  // 변곡점 날짜를 배열로 관리
+  const [pointDates, setPointDates] = useState<string[]>([]);
+
+  // 변곡점 날짜 추출
+  useEffect(() => {
+    const dates: string[] = [];
+
+    if (point1DateQuery.data?.result) {
+      dates[0] = point1DateQuery.data.result;
+    }
+
+    if (point2DateQuery.data?.result) {
+      dates[1] = point2DateQuery.data.result;
+    }
+
+    if (point3DateQuery.data?.result) {
+      dates[2] = point3DateQuery.data.result;
+    }
+
+    setPointDates(dates);
+  }, [point1DateQuery.data?.result, point2DateQuery.data?.result, point3DateQuery.data?.result]);
 
   // 전체 로딩 상태 관리
   useEffect(() => {
@@ -231,7 +263,7 @@ export const SimulatePage = () => {
 
   // 전체 차트 데이터 로드 (1년 전부터 현재까지)
   useEffect(() => {
-    if (companyId && startPointId && endPointId) {
+    if (companyId && pointStockCandleIds.length > 0) {
       setIsChartLoading(true);
 
       // 1년 전 날짜와 현재 날짜 계산
@@ -283,7 +315,7 @@ export const SimulatePage = () => {
           setIsChartLoading(false);
         });
     }
-  }, [companyId, startPointId, endPointId, fetchFullChartData]);
+  }, [companyId, pointStockCandleIds, fetchFullChartData]);
 
   // API 응답으로부터 직접 stock data 업데이트
   useEffect(() => {
@@ -291,8 +323,8 @@ export const SimulatePage = () => {
       // 세션별 데이터가 있을 경우에만 상태 업데이트
       // 주의: 전체 차트 데이터를 덮어쓰지 않도록 함
       if (
-        currentSession.startStockCandleId !== startPointId ||
-        currentSession.endStockCandleId !== endPointId
+        currentSession.startDate !== pointDates[0] ||
+        currentSession.endDate !== pointDates[pointDates.length - 1]
       ) {
         setStockData(sessionDataResponse.result);
       }
@@ -309,23 +341,13 @@ export const SimulatePage = () => {
         }
       }
     }
-  }, [
-    sessionDataResponse,
-    currentSession.startStockCandleId,
-    currentSession.endStockCandleId,
-    startPointId,
-    endPointId,
-  ]);
+  }, [sessionDataResponse, currentSession.startDate, currentSession.endDate, pointDates]);
 
   // 세션 변경 시 데이터 로드
   useEffect(() => {
     if (!memberId) return;
 
-    if (
-      !isTutorialStarted ||
-      currentSession.startStockCandleId === 0 ||
-      currentSession.endStockCandleId === 0
-    ) {
+    if (!isTutorialStarted || currentSession.startDate === '' || currentSession.endDate === '') {
       return;
     }
 
@@ -334,21 +356,12 @@ export const SimulatePage = () => {
       setIsChartLoading(true);
     }
 
-    // 시작점과 종료점 ID 비교하여 올바른 순서로 설정
-    let actualStartId = currentSession.startStockCandleId;
-    let actualEndId = currentSession.endStockCandleId;
-
-    if (currentSession.startStockCandleId > currentSession.endStockCandleId) {
-      actualStartId = Math.min(currentSession.startStockCandleId, currentSession.endStockCandleId);
-      actualEndId = Math.max(currentSession.startStockCandleId, currentSession.endStockCandleId);
-    }
-
     // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
     getPastNews.mutate(
       {
         companyId,
-        startStockCandleId: actualStartId,
-        endStockCandleId: actualEndId,
+        startStockCandleId: pointStockCandleIds[currentSession.currentPointIndex] || 0,
+        endStockCandleId: pointStockCandleIds[currentSession.currentPointIndex + 1] || 0,
       },
       {
         onSuccess: (result) => {
@@ -363,8 +376,8 @@ export const SimulatePage = () => {
     getNewsComment.mutate(
       {
         companyId,
-        startStockCandleId: actualStartId,
-        endStockCandleId: actualEndId,
+        startStockCandleId: pointStockCandleIds[currentSession.currentPointIndex] || 0,
+        endStockCandleId: pointStockCandleIds[currentSession.currentPointIndex + 1] || 0,
       },
       {
         onSuccess: (result) => {
@@ -376,8 +389,8 @@ export const SimulatePage = () => {
     );
 
     // 현재 세션의 변곡점 ID로 현재 뉴스 가져오기
-    if (currentSession.currentPointIndex < 3 && top3Points) {
-      const pointStockCandleId = top3Points[currentSession.currentPointIndex]?.stockCandleId;
+    if (currentSession.currentPointIndex < pointStockCandleIds.length - 1 && top3Points) {
+      const pointStockCandleId = pointStockCandleIds[currentSession.currentPointIndex + 1];
 
       if (pointStockCandleId) {
         // 교육용 현재 뉴스 조회
@@ -416,16 +429,17 @@ export const SimulatePage = () => {
   }, [
     companyId,
     currentSession.currentPointIndex,
-    currentSession.endStockCandleId,
-    currentSession.startStockCandleId,
+    currentSession.endDate,
+    currentSession.startDate,
     fetchSessionData,
     getCurrentNews,
     getNewsComment,
     getPastNews,
     isTutorialStarted,
     memberId,
-    top3Points,
+    pointStockCandleIds,
     fullChartData,
+    top3Points,
   ]);
 
   // 튜토리얼 완료 처리 함수 (useCallback으로 감싸기)
@@ -471,46 +485,44 @@ export const SimulatePage = () => {
 
   // 튜토리얼 시작 시 초기 데이터 설정
   useEffect(() => {
-    if (isTutorialStarted && startPointId && top3Points && top3Points.length > 0) {
+    if (isTutorialStarted && top3Points && top3Points.length > 0 && pointDates.length > 0) {
       // 첫 번째 변곡점으로 세션 설정 (시작 ~ 첫 번째 변곡점)
-      const firstPoint = top3Points[0];
+      const firstPointDate = pointDates[0];
       setCurrentSession({
-        startStockCandleId: startPointId, // 시작 분봉 ID
-        endStockCandleId: firstPoint.stockCandleId, // 첫 번째 변곡점 분봉 ID
+        startDate: defaultStartDate, // 시작 날짜
+        endDate: firstPointDate || defaultEndDate, // 첫 번째 변곡점 날짜
         currentPointIndex: 0, // 현재 변곡점 인덱스
       });
     }
-  }, [isTutorialStarted, startPointId, top3Points, companyId]);
+  }, [isTutorialStarted, top3Points, pointDates, defaultStartDate, defaultEndDate, companyId]);
 
   // 진행 상태에 따른 변곡점 이동 및 튜토리얼 완료 시 피드백 refetch
   useEffect(() => {
-    if (!isTutorialStarted || !top3Points || !memberId) {
+    if (!isTutorialStarted || !top3Points || !memberId || pointDates.length === 0) {
       return;
     }
 
     if (progress === 33) {
       // 두 번째 변곡점으로 이동 (첫 번째 변곡점 ~ 두 번째 변곡점)
-      if (top3Points.length > 1) {
-        const pointsData = top3Points;
-        const secondPoint = pointsData[1];
-        const firstPoint = pointsData[0];
+      if (pointDates.length > 1) {
+        const firstPointDate = pointDates[0] || defaultStartDate;
+        const secondPointDate = pointDates[1] || defaultEndDate;
 
         setCurrentSession({
-          startStockCandleId: firstPoint.stockCandleId, // 첫 번째 변곡점 분봉 ID
-          endStockCandleId: secondPoint.stockCandleId, // 두 번째 변곡점 분봉 ID
+          startDate: firstPointDate, // 첫 번째 변곡점 날짜
+          endDate: secondPointDate, // 두 번째 변곡점 날짜
           currentPointIndex: 1, // 두 번째 변곡점 인덱스
         });
       }
     } else if (progress === 66) {
       // 세 번째 변곡점으로 이동 (두 번째 변곡점 ~ 세 번째 변곡점)
-      if (top3Points.length > 2) {
-        const pointsData = top3Points;
-        const thirdPoint = pointsData[2];
-        const secondPoint = pointsData[1];
+      if (pointDates.length > 2) {
+        const secondPointDate = pointDates[1] || defaultStartDate;
+        const thirdPointDate = pointDates[2] || defaultEndDate;
 
         setCurrentSession({
-          startStockCandleId: secondPoint.stockCandleId, // 두 번째 변곡점 분봉 ID
-          endStockCandleId: thirdPoint.stockCandleId, // 세 번째 변곡점 분봉 ID
+          startDate: secondPointDate, // 두 번째 변곡점 날짜
+          endDate: thirdPointDate, // 세 번째 변곡점 날짜
           currentPointIndex: 2, // 세 번째 변곡점 인덱스
         });
       }
@@ -521,7 +533,17 @@ export const SimulatePage = () => {
       }
       completeTutorial();
     }
-  }, [progress, isTutorialStarted, top3Points, memberId, refetchFeedback, completeTutorial]);
+  }, [
+    progress,
+    isTutorialStarted,
+    top3Points,
+    memberId,
+    refetchFeedback,
+    completeTutorial,
+    pointDates,
+    defaultStartDate,
+    defaultEndDate,
+  ]);
 
   // 튜토리얼 시작 핸들러
   const handleTutorialStart = () => {
@@ -531,10 +553,10 @@ export const SimulatePage = () => {
     }
 
     // 전체 차트 데이터가 없으면 재로드 시도
-    if (!fullChartData && startPointId && endPointId) {
+    if (!fullChartData) {
       setIsChartLoading(true); // 로딩 상태 설정
 
-      // ID는 이미 훅에서 최소/최대로 처리됨
+      // 날짜 기반 API 호출
       fetchFullChartData()
         .then((response) => {
           if (response.data?.result) {
@@ -580,13 +602,26 @@ export const SimulatePage = () => {
   // 사용자 거래 처리 핸들러
   const handleTrade = useCallback(
     (action: 'buy' | 'sell', price: number, quantity: number) => {
-      if (!isTutorialStarted || currentSession.startStockCandleId === 0 || !memberId) {
+      if (!isTutorialStarted || !top3Points || !memberId) {
         return;
       }
 
+      // 현재 변곡점의 stockCandleId 가져오기
+      const startPointId =
+        currentSession.currentPointIndex > 0 &&
+        top3Points.length > currentSession.currentPointIndex - 1
+          ? top3Points[currentSession.currentPointIndex - 1].stockCandleId
+          : 0;
+
+      const endPointId =
+        top3Points.length > currentSession.currentPointIndex
+          ? top3Points[currentSession.currentPointIndex].stockCandleId
+          : 0;
+
+      if (endPointId === 0) return;
+
       // 사용자 행동에 따른 자산 계산 API 호출
-      // action: 'buy' - 구매, 'sell' - 판매
-      // price, quantity가 모두 0인 경우는 '관망'으로 처리
+      // 변곡점의 stockCandleId 사용 (API는 여전히 stockCandleId 기반)
       processUserAction.mutate(
         {
           memberId: memberId,
@@ -594,8 +629,8 @@ export const SimulatePage = () => {
           price,
           quantity,
           companyId,
-          startStockCandleId: currentSession.startStockCandleId,
-          endStockCandleId: currentSession.endStockCandleId,
+          startStockCandleId: startPointId || endPointId,
+          endStockCandleId: endPointId,
         },
         {
           onSuccess: (response) => {
@@ -608,7 +643,7 @@ export const SimulatePage = () => {
                 price,
                 quantity,
                 timestamp: new Date(),
-                stockCandleId: currentSession.endStockCandleId,
+                stockCandleId: endPointId,
               };
               setTrades((prev) => [...prev, newTrade]);
             }
@@ -636,12 +671,11 @@ export const SimulatePage = () => {
     },
     [
       isTutorialStarted,
-      currentSession.startStockCandleId,
-      currentSession.endStockCandleId,
       currentSession.currentPointIndex,
       memberId,
       companyId,
       processUserAction,
+      top3Points,
     ],
   );
 
@@ -674,9 +708,14 @@ export const SimulatePage = () => {
         const firstCandle = sortedDayCandles[0];
         const lastCandle = sortedDayCandles[sortedDayCandles.length - 1];
 
-        // 날짜 형식 변환 (YYYY-MM-DD)
-        const startDate = firstCandle.tradingDate.split('T')[0];
-        const endDate = lastCandle.tradingDate.split('T')[0];
+        // 날짜 형식 추출 (YYMMDD 형식으로 변환)
+        const formatTradingDateToYYMMDD = (dateStr: string) => {
+          const date = new Date(dateStr);
+          return formatDateToYYMMDD(date);
+        };
+
+        const startDate = formatTradingDateToYYMMDD(firstCandle.tradingDate);
+        const endDate = formatTradingDateToYYMMDD(lastCandle.tradingDate);
 
         setTutorialDateRange({
           startDate,
