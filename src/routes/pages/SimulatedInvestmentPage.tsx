@@ -23,7 +23,7 @@ export const SimulatedInvestmentPage = () => {
   const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 100);
   const [closePrice, setClosePrice] = useState<number>(0);
   // 초기 데이터  일,주,월
-  const { data: stockDailyData } = useStockDailyData(1, 1, 50);
+  const { data: stockDailyData } = useStockDailyData(1, 1, 30);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
@@ -45,7 +45,7 @@ export const SimulatedInvestmentPage = () => {
       setClosePrice(minuteData.data[0].closePrice);
     }
     // 데이터 확인 후 진행
-    if (isSuccess && minuteData && DayData) {
+    if (isSuccess && minuteData && stockDailyData) {
       // 소켓 연결 시작
       connectTick('000660', setTickData);
 
@@ -54,7 +54,7 @@ export const SimulatedInvestmentPage = () => {
         disconnectTick();
       };
     }
-  }, [isSuccess, minuteData, connectTick, disconnectTick, DayData]);
+  }, [isSuccess, minuteData, connectTick, disconnectTick, stockDailyData]);
 
   // minuteChart 컴포넌트를 useMemo로 메모이제이션
   const memoizedChart = useMemo(() => {
@@ -102,7 +102,7 @@ export const SimulatedInvestmentPage = () => {
           {tickData ? (
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-10">
-                <MinuteChart initialData={minuteData} />
+                <ChartContainer initialData={minuteData} />
               </div>
               <div className="col-span-2">
                 <TickCandleChart
@@ -135,7 +135,7 @@ export const SimulatedInvestmentPage = () => {
       )}
       <div className="grid grid-cols-10 gap-5">
         <div className="col-span-6">
-          <StockCostHistory tickData={tickData} DayData={DayData?.data} />
+          <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>
         <div className="col-span-2">
           <StockInfoDetail />

@@ -6,7 +6,6 @@ import {
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
-  StockDayDefaultData,
   StockMinuteDefaultData,
   StockPeriodDefaultData,
   UserSimulatedData,
@@ -132,13 +131,13 @@ export const useStockDailyData = (companyId: number, periodType: number, limit: 
   });
 };
 
-export const useStockDayData = (stockId: number, limit: number, periodType: number) => {
-  return useQuery({
-    queryKey: ['DayData'],
-    queryFn: () =>
-      StockApi.getStockInitDayData(stockId, limit, periodType).then((res) => res.result),
-  });
-};
+// export const useStockDayData = (stockId: number, limit: number, periodType: number) => {
+//   return useQuery({
+//     queryKey: ['DayData'],
+//     queryFn: () =>
+//       StockApi.getStockInitDayData(stockId, limit, periodType).then((res) => res.result),
+//   });
+// };
 
 //orderAPI
 // 유저 자산 가져오기
