@@ -27,7 +27,10 @@ const signUpSchema = z
     nickname: z
       .string()
       .min(2, '닉네임은 최소 2자 이상이어야 합니다.')
-      .max(5, '닉네임은 최대 5자까지 가능합니다.'),
+      .max(5, '닉네임은 최대 5자까지 가능합니다.')
+      .refine((value) => /^[가-힣a-zA-Z0-9]+$/.test(value), {
+        message: '특수문자 및 자음/모음은 사용할 수 없습니다.',
+      }),
     birthDate: z.date(),
     phoneNumber: z.string().optional(),
     question: z.number().min(1, '질문을 선택해주세요.'),
@@ -233,7 +236,8 @@ export const SignUpPage = () => {
                       )}
                     </div>
                     <p className="text-xs text-text-main-color">
-                      닉네임은 2자 이상 5자 이하여야 합니다.
+                      닉네임은 2자 이상 5자 이하여야 하며, 특수문자 및 자음/모음은 사용할 수
+                      없습니다.
                     </p>
                   </FormItem>
                 );
