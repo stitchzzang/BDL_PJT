@@ -144,7 +144,7 @@ export const KospiChart = ({ KospiData }: KospiChartProps) => {
   };
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full flex-col overflow-hidden rounded-2xl">
       <div>
         {KospiData && KospiData.length > 0 && (
           <div>
