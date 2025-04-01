@@ -1,5 +1,5 @@
 import Lottie from 'lottie-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -205,8 +205,10 @@ export const SimulatePage = () => {
   const { data: top3PointsResponse } = useGetTop3Points(companyId);
 
   // 변곡점 날짜 조회를 위한 설정
-  const pointStockCandleIds =
-    top3PointsResponse?.result?.PointResponseList?.map((point) => point.stockCandleId) || [];
+  const pointStockCandleIds = useMemo(
+    () => top3PointsResponse?.result?.PointResponseList?.map((point) => point.stockCandleId) || [],
+    [top3PointsResponse],
+  );
 
   const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
   const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
