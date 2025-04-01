@@ -56,28 +56,30 @@ export const useGetTop3Points = (companyId: number) => {
 /**
  * 1년전 시작 일봉 ID 조회 API
  */
-export const useGetStartPointId = () => {
+export const useGetStartPointId = (companyId: number) => {
   return useQuery({
-    queryKey: ['tutorial', 'points', 'start'],
+    queryKey: ['tutorial', 'points', 'start', companyId],
     queryFn: async () => {
-      const response = await _ky.get('tutorial/points/start');
+      const response = await _ky.get(`tutorial/points/start?companyId=${companyId}`);
       return response.json() as Promise<ApiResponse<number>>;
     },
     retry: 3,
+    enabled: !!companyId,
   });
 };
 
 /**
  * 가장 최근 일봉 ID 조회 API
  */
-export const useGetEndPointId = () => {
+export const useGetEndPointId = (companyId: number) => {
   return useQuery({
-    queryKey: ['tutorial', 'points', 'end'],
+    queryKey: ['tutorial', 'points', 'end', companyId],
     queryFn: async () => {
-      const response = await _ky.get('tutorial/points/end');
+      const response = await _ky.get(`tutorial/points/end?companyId=${companyId}`);
       return response.json() as Promise<ApiResponse<number>>;
     },
     retry: 3,
+    enabled: !!companyId,
   });
 };
 
@@ -120,19 +122,27 @@ export const useGetTutorialStockData = (
  *
  * @param companyId 회사 ID
  * @param sectionNumber 구간 번호 (0: 시작점~변곡점1, 1: 변곡점1~변곡점2, 2: 변곡점2~변곡점3, 3: 변곡점3~최근점)
- * @param startPointId 시작점 일봉 ID (1년 전)
- * @param endPointId 최근점 일봉 ID
  * @param inflectionPoints 변곡점 배열 (상위 3개 변곡점)
  */
 export const useGetSectionTutorialStockData = (
   companyId: number,
   sectionNumber: number,
-  startPointId: number,
-  endPointId: number,
   inflectionPoints: Point[],
 ) => {
+  // 시작점과 종료점 데이터 가져오기
+  const startPointQuery = useGetStartPointId(companyId);
+  const endPointQuery = useGetEndPointId(companyId);
+
+  const startPointId = startPointQuery.data?.result;
+  const endPointId = endPointQuery.data?.result;
+
   // 구간의 시작과 끝 ID 계산
   const getStartAndEndId = () => {
+    // 시작점이나 종료점 데이터가 아직 로드되지 않은 경우
+    if (!startPointId || !endPointId) {
+      return null;
+    }
+
     // 변곡점이 없거나 충분하지 않은 경우
     if (!inflectionPoints || inflectionPoints.length === 0) {
       return { startId: startPointId, endId: endPointId };
@@ -157,9 +167,26 @@ export const useGetSectionTutorialStockData = (
     }
   };
 
-  const { startId, endId } = getStartAndEndId();
+  const range = getStartAndEndId();
 
-  return useGetTutorialStockData(companyId, startId, endId);
+  return useQuery({
+    queryKey: ['tutorial', 'stocks', 'section', companyId, sectionNumber],
+    queryFn: async () => {
+      if (!range) throw new Error('시작점과 종료점 데이터가 로드되지 않았습니다.');
+
+      const response = await _ky.get(
+        `stocks/${companyId}/tutorial?startStockCandleId=${range.startId}&endStockCandleId=${range.endId}`,
+      );
+
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error('서버에서 HTML 응답을 반환했습니다. API 형식이 올바르지 않습니다.');
+      }
+
+      return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
+    },
+    enabled: !!companyId && !!range && startPointQuery.isSuccess && endPointQuery.isSuccess,
+  });
 };
 
 /**
