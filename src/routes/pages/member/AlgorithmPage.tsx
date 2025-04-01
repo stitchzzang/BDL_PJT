@@ -1,12 +1,14 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useGetAlgorithm } from '@/api/algorithm.api';
 import { Algorithm } from '@/api/types/algorithm';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { MyAlgorithmItem } from '@/components/member-info/my-algorithm-item';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-
 export const AlgorithmPage = () => {
   const { data: algorithms, isLoading, isError } = useGetAlgorithm('1'); // 임시 1번 유저
-
+  const navigate = useNavigate();
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
       <div className="w-full">
@@ -31,6 +33,9 @@ export const AlgorithmPage = () => {
             ) : (
               <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
                 <p className="text-center text-lg text-[#718096]">알고리즘이 없습니다.</p>
+                <Button variant="blue" className="mt-4" onClick={() => navigate('/algorithm')}>
+                  알고리즘 만들러 가볼까요?
+                </Button>
               </div>
             )}
           </>
