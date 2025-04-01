@@ -233,7 +233,9 @@ export const EditPage = () => {
               variant="blue"
               className="w-full"
               onClick={() => updateMemberInfo()}
-              disabled={!nicknameChanged && !profileChanged}
+              disabled={
+                (!nicknameChanged && !profileChanged) || !form.getValues().nickname || !isValid
+              }
             >
               프로필 수정
             </Button>
