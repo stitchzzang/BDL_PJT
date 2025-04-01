@@ -127,7 +127,7 @@ const arePropsEqual = (prevProps: MinuteChartProps, nextProps: MinuteChartProps)
 
 const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   companyId,
-  height = 600,
+  height = 450,
   initialLimit = 100,
   initialData,
   onLoadMoreData,

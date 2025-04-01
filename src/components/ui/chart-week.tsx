@@ -113,7 +113,7 @@ const arePropsEqual = (prevProps: PeriodChartProps, nextProps: PeriodChartProps)
 
 const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   companyId,
-  height = 600,
+  height = 450,
   initialLimit = 100,
   initialData,
   onLoadMoreData,
