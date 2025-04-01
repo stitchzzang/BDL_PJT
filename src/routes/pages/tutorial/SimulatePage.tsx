@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
+  useGetEndPointId,
   useGetNewsComment,
   useGetPastNews,
   useGetStartPointId,
@@ -40,7 +41,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
-import { CandleResponse, PeriodCandleData } from '@/mocks/dummy-data';
 
 // 거래 기록을 위한 타입 정의
 interface TradeRecord {
@@ -126,21 +126,8 @@ export const SimulatePage = () => {
     totalReturnRate: 0,
   });
 
-  // 차트 데이터 상태 초기화 시 명확한 타입 지정
-  const [chartData, setChartData] = useState({
-    minuteData: {
-      companyId: '',
-      limit: 0,
-      cursor: '',
-      data: [],
-    },
-    periodData: {
-      companyId: '',
-      limit: 0,
-      cursor: '',
-      data: [],
-    },
-  });
+  // 튜토리얼 주식 데이터 상태
+  const [stockData, setStockData] = useState<TutorialStockResponse | null>(null);
 
   // 거래 내역 상태
   const [trades, setTrades] = useState<TradeRecord[]>([]);
@@ -152,32 +139,18 @@ export const SimulatePage = () => {
   const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);
 
   // API 로딩 상태
-  const [_isLoading, setIsLoading] = useState(false);
-
-  // 빈 차트 데이터를 반환하는 함수
-  const getEmptyChartData = useCallback(
-    () => ({
-      minuteData: {
-        companyId: '',
-        limit: 0,
-        cursor: '',
-        data: [],
-      },
-      periodData: {
-        companyId: '',
-        limit: 0,
-        cursor: '',
-        data: [],
-      },
-    }),
-    [],
-  );
+  const [isLoading, setIsLoading] = useState(false);
+  // 차트 로딩 상태 별도 관리
+  const [isChartLoading, setIsChartLoading] = useState(false);
 
   // 과거 뉴스 목록 상태
   const [pastNewsList, setPastNewsList] = useState<NewsResponse[]>([]);
 
   // 뉴스 코멘트 상태
   const [newsComment, setNewsComment] = useState('');
+
+  // 전체 차트 데이터 상태 (1년 전 시점부터 현재까지)
+  const [fullChartData, setFullChartData] = useState<TutorialStockResponse | null>(null);
 
   // 현재 세션 상태
   const [currentSession, setCurrentSession] = useState<{
@@ -193,12 +166,37 @@ export const SimulatePage = () => {
   // API 훅 설정
   const { data: top3PointsResponse, isLoading: isTop3PointsLoading } = useGetTop3Points(companyId);
   const { data: startPointIdResponse } = useGetStartPointId(companyId);
-  const { refetch: fetchTutorialStockData, isLoading: isStockDataLoading } =
-    useGetTutorialStockData(
-      companyId,
-      currentSession.startStockCandleId || 0,
-      currentSession.endStockCandleId || 0,
-    );
+  const { data: endPointIdResponse } = useGetEndPointId(companyId); // 최근 일봉 ID 가져오기
+
+  // 세션별 주식 데이터 가져오기를 위한 커스텀 훅
+  const {
+    refetch: fetchSessionData,
+    isLoading: isSessionDataLoading,
+    data: sessionDataResponse,
+  } = useGetTutorialStockData(
+    companyId,
+    currentSession.startStockCandleId && currentSession.endStockCandleId
+      ? Math.min(currentSession.startStockCandleId, currentSession.endStockCandleId)
+      : currentSession.startStockCandleId || 0,
+    currentSession.startStockCandleId && currentSession.endStockCandleId
+      ? Math.max(currentSession.startStockCandleId, currentSession.endStockCandleId)
+      : currentSession.endStockCandleId || 0,
+  );
+
+  // 전체 차트 데이터 가져오기 (1년 전 시작점부터 최근 일봉까지)
+  const {
+    refetch: fetchFullChartData,
+    isLoading: isFullChartDataLoading,
+    data: fullChartDataResponse,
+  } = useGetTutorialStockData(
+    companyId,
+    startPointIdResponse?.result && endPointIdResponse?.result
+      ? Math.min(startPointIdResponse.result, endPointIdResponse.result)
+      : startPointIdResponse?.result || 0,
+    startPointIdResponse?.result && endPointIdResponse?.result
+      ? Math.max(startPointIdResponse.result, endPointIdResponse.result)
+      : endPointIdResponse?.result || 0,
+  );
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
@@ -217,12 +215,216 @@ export const SimulatePage = () => {
   // 데이터 추출
   const top3Points = top3PointsResponse?.result?.PointResponseList;
   const startPointId = startPointIdResponse?.result;
+  const endPointId = endPointIdResponse?.result;
   const tutorialFeedback = tutorialFeedbackResponse?.result;
 
   // 전체 로딩 상태 관리
   useEffect(() => {
-    setIsLoading(isTop3PointsLoading || isStockDataLoading);
-  }, [isTop3PointsLoading, isStockDataLoading]);
+    setIsLoading(isTop3PointsLoading || isSessionDataLoading || isFullChartDataLoading);
+  }, [isTop3PointsLoading, isSessionDataLoading, isFullChartDataLoading]);
+
+  // 전체 차트 데이터 로드 (1년 전부터 현재까지)
+  useEffect(() => {
+    if (companyId && startPointId && endPointId) {
+      setIsChartLoading(true);
+      console.log('전체 차트 데이터 로드 시작:', { companyId, startPointId, endPointId });
+
+      // 시작점과 종료점 ID는 이미 훅에서 최소/최대로 처리됨
+      fetchFullChartData()
+        .then((response) => {
+          if (response.data?.result) {
+            const result = response.data.result;
+            setFullChartData(result);
+            console.log('전체 차트 데이터 로드 완료:', result);
+
+            // 초기 차트 데이터로 전체 차트 데이터 설정
+            setStockData(result);
+
+            // 최신 가격 설정
+            if (result.data && result.data.length > 0) {
+              // 일봉 데이터만 필터링 (periodType이 1인 데이터)
+              const dayCandles = result.data.filter(
+                (candle: StockCandle) => candle.periodType === 1,
+              );
+
+              if (dayCandles.length > 0) {
+                // 날짜순으로 정렬
+                const sortedDayCandles = [...dayCandles].sort((a, b) => {
+                  return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
+                });
+
+                const lastCandle = sortedDayCandles[sortedDayCandles.length - 1];
+                setLatestPrice(lastCandle.closePrice);
+                console.log('전체 차트 최신 가격 설정:', lastCandle.closePrice);
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('전체 차트 데이터 로드 실패:', error);
+        })
+        .finally(() => {
+          setIsChartLoading(false);
+        });
+    }
+  }, [companyId, startPointId, endPointId, fetchFullChartData]);
+
+  // API 응답으로부터 직접 stock data 업데이트
+  useEffect(() => {
+    if (sessionDataResponse?.result) {
+      // 세션별 데이터가 있을 경우에만 상태 업데이트
+      // 주의: 전체 차트 데이터를 덮어쓰지 않도록 함
+      if (
+        currentSession.startStockCandleId !== startPointId ||
+        currentSession.endStockCandleId !== endPointId
+      ) {
+        setStockData(sessionDataResponse.result);
+        console.log('세션별 주식 데이터 갱신됨:', sessionDataResponse.result);
+      }
+
+      if (sessionDataResponse.result.data.length > 0) {
+        // 일봉 데이터만 필터링 (periodType이 1인 데이터)
+        const dayCandles = sessionDataResponse.result.data.filter(
+          (candle: StockCandle) => candle.periodType === 1,
+        );
+
+        if (dayCandles.length > 0) {
+          const lastCandle = dayCandles[dayCandles.length - 1];
+          setLatestPrice(lastCandle.closePrice);
+          console.log('API 응답에서 최신 일봉 가격 업데이트:', lastCandle.closePrice);
+        }
+      }
+    }
+  }, [
+    sessionDataResponse,
+    currentSession.startStockCandleId,
+    currentSession.endStockCandleId,
+    startPointId,
+    endPointId,
+  ]);
+
+  // 세션 변경 시 데이터 로드
+  useEffect(() => {
+    if (!memberId) return;
+
+    if (
+      !isTutorialStarted ||
+      currentSession.startStockCandleId === 0 ||
+      currentSession.endStockCandleId === 0
+    ) {
+      return;
+    }
+
+    // 전체 차트 데이터가 이미 로드되어 있다면 차트 로딩 상태를 건너뜀
+    if (!fullChartData) {
+      setIsChartLoading(true);
+    }
+
+    console.log('세션 변경 감지, 데이터 로드 시작');
+
+    // 시작점과 종료점 ID 비교하여 올바른 순서로 설정
+    let actualStartId = currentSession.startStockCandleId;
+    let actualEndId = currentSession.endStockCandleId;
+
+    if (currentSession.startStockCandleId > currentSession.endStockCandleId) {
+      actualStartId = Math.min(currentSession.startStockCandleId, currentSession.endStockCandleId);
+      actualEndId = Math.max(currentSession.startStockCandleId, currentSession.endStockCandleId);
+
+      console.log('세션 - 시작점이 종료점보다 큽니다. ID를 교체합니다.', {
+        originalStart: currentSession.startStockCandleId,
+        originalEnd: currentSession.endStockCandleId,
+        swappedStart: actualStartId,
+        swappedEnd: actualEndId,
+      });
+    }
+
+    // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
+    getPastNews.mutate(
+      {
+        companyId,
+        startStockCandleId: actualStartId,
+        endStockCandleId: actualEndId,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.result && result.result.NewsResponse) {
+            setPastNewsList(result.result.NewsResponse);
+          }
+        },
+      },
+    );
+
+    // 뉴스 코멘트 가져오기 (변곡점 코멘트)
+    getNewsComment.mutate(
+      {
+        companyId,
+        startStockCandleId: actualStartId,
+        endStockCandleId: actualEndId,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.result) {
+            setNewsComment(result.result);
+          }
+        },
+      },
+    );
+
+    // 현재 세션의 변곡점 ID로 현재 뉴스 가져오기
+    if (currentSession.currentPointIndex < 3 && top3Points) {
+      const pointStockCandleId = top3Points[currentSession.currentPointIndex]?.stockCandleId;
+
+      if (pointStockCandleId) {
+        // 교육용 현재 뉴스 조회
+        getCurrentNews.mutate(
+          { companyId, stockCandleId: pointStockCandleId },
+          {
+            onSuccess: (result) => {
+              if (result.result) {
+                setCurrentNews(result.result);
+              }
+            },
+          },
+        );
+      }
+    }
+
+    // 전체 차트 데이터가 없는 경우에만 세션별 데이터 로드
+    if (!fullChartData) {
+      // 세션별 데이터 로드 - ID는 이미 훅에서 최소/최대로 처리됨
+      fetchSessionData()
+        .then((response) => {
+          console.log('fetchSessionData 응답:', response);
+
+          if (response.data?.result) {
+            setStockData(response.data.result);
+          }
+        })
+        .catch((error) => {
+          console.error('튜토리얼 일봉 데이터 로드 실패:', error);
+          setStockData(null);
+        })
+        .finally(() => {
+          setIsChartLoading(false);
+        });
+    } else {
+      // 전체 차트 데이터가 있다면 로딩 상태 종료
+      setIsChartLoading(false);
+    }
+  }, [
+    companyId,
+    currentSession.currentPointIndex,
+    currentSession.endStockCandleId,
+    currentSession.startStockCandleId,
+    fetchSessionData,
+    getCurrentNews,
+    getNewsComment,
+    getPastNews,
+    isTutorialStarted,
+    memberId,
+    top3Points,
+    fullChartData,
+  ]);
 
   // 튜토리얼 완료 처리 함수 (useCallback으로 감싸기)
   const completeTutorial = useCallback(async () => {
@@ -273,168 +475,6 @@ export const SimulatePage = () => {
     }
   }, [isTutorialStarted, startPointId, top3Points, companyId]);
 
-  // API 응답을 Chart 컴포넌트 형식으로 변환하는 함수
-  const convertToPeriodData = (result: TutorialStockResponse): CandleResponse<PeriodCandleData> => {
-    // API에서 받은 데이터를 Chart 컴포넌트가 사용하는 형식으로 변환
-    const periodCandleData: PeriodCandleData[] = result.data.map((candle: StockCandle) => ({
-      stockCandleId: String(candle.stockCandleId),
-      companyId: String(candle.companyId),
-      openPrice: candle.openPrice,
-      openPricePercent: candle.openPricePercent,
-      highPrice: candle.highPrice,
-      highPricePercent: candle.highPricePercent,
-      lowPrice: candle.lowPrice,
-      lowPricePercent: candle.lowPricePercent,
-      closePrice: candle.closePrice,
-      closePricePercent: candle.closePricePercent,
-      accumulatedVolume: candle.accumulatedVolume,
-      accumulatedTradeAmount: candle.accumulatedTradeAmount,
-      tradingDate: candle.tradingDate,
-      periodType: String(candle.periodType) as '1' | '2' | '3',
-      fiveAverage: candle.fiveAverage,
-      twentyAverage: candle.twentyAverage,
-    }));
-
-    return {
-      companyId: String(result.companyId),
-      limit: result.limit,
-      cursor: result.cursor || '',
-      data: periodCandleData,
-    };
-  };
-
-  // 세션 변경 시 데이터 로드
-  useEffect(() => {
-    if (!memberId) return;
-
-    if (
-      !isTutorialStarted ||
-      currentSession.startStockCandleId === 0 ||
-      currentSession.endStockCandleId === 0
-    ) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    // 튜토리얼 일봉 데이터 가져오기
-    const loadTutorialStockData = async () => {
-      try {
-        const response = await fetchTutorialStockData();
-
-        // 응답에서 data 추출
-        const { data } = response;
-
-        if (data?.result) {
-          // 결과 데이터를 Chart 컴포넌트 형식으로 변환
-          const newPeriodData = convertToPeriodData(data.result);
-          // @ts-expect-error: 타입 불일치 (cursor가 string | null 타입)
-          setChartData((prev) => ({ ...prev, periodData: newPeriodData }));
-
-          // 최신 가격 설정 (마지막 일봉 캔들의 종가)
-          if (data.result.data.length > 0) {
-            // 일봉 데이터만 필터링 (periodType이 '1'인 데이터)
-            const dayCandles = data.result.data.filter((candle) => candle.periodType === 1);
-
-            if (dayCandles.length > 0) {
-              const lastCandle = dayCandles[dayCandles.length - 1];
-              setLatestPrice(lastCandle.closePrice);
-              console.log('최신 일봉 가격 업데이트:', lastCandle.closePrice);
-            } else {
-              // 일봉 데이터가 없으면 전체 데이터 중 마지막 캔들 사용
-              const lastCandle = data.result.data[data.result.data.length - 1];
-              setLatestPrice(lastCandle.closePrice);
-              console.log('최신 가격 업데이트 (비일봉):', lastCandle.closePrice);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('튜토리얼 일봉 데이터 로드 실패:', error);
-
-        if (error instanceof Error && error.message.includes('HTML')) {
-          console.error('HTML 응답을 받았습니다. 서버가 예상대로 동작하지 않습니다.');
-
-          // 10초 후 재시도
-          setTimeout(() => {
-            loadTutorialStockData();
-          }, 10000);
-        }
-
-        // 에러 발생 시 빈 차트 데이터 설정
-        setChartData(getEmptyChartData());
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // 데이터 로드 함수 호출
-    loadTutorialStockData();
-
-    // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
-    getPastNews.mutate(
-      {
-        companyId,
-        startStockCandleId: currentSession.startStockCandleId,
-        endStockCandleId: currentSession.endStockCandleId,
-      },
-      {
-        onSuccess: (result) => {
-          if (result.result && result.result.NewsResponse) {
-            setPastNewsList(result.result.NewsResponse);
-          }
-        },
-      },
-    );
-
-    // 뉴스 코멘트 가져오기 (변곡점 코멘트)
-    getNewsComment.mutate(
-      {
-        companyId,
-        startStockCandleId: currentSession.startStockCandleId,
-        endStockCandleId: currentSession.endStockCandleId,
-      },
-      {
-        onSuccess: (result) => {
-          if (result.result) {
-            setNewsComment(result.result);
-          }
-        },
-      },
-    );
-
-    // 현재 세션의 변곡점 ID로 현재 뉴스 가져오기
-    if (currentSession.currentPointIndex < 3 && top3Points) {
-      const pointStockCandleId = top3Points[currentSession.currentPointIndex]?.stockCandleId;
-
-      if (pointStockCandleId) {
-        // 교육용 현재 뉴스 조회
-        getCurrentNews.mutate(
-          { companyId, stockCandleId: pointStockCandleId },
-          {
-            onSuccess: (result) => {
-              if (result.result) {
-                setCurrentNews(result.result);
-              }
-            },
-          },
-        );
-      }
-    }
-  }, [
-    companyId,
-    currentSession.currentPointIndex,
-    currentSession.endStockCandleId,
-    currentSession.startStockCandleId,
-    fetchTutorialStockData,
-    getCurrentNews,
-    getNewsComment,
-    getPastNews,
-    isTutorialStarted,
-    memberId,
-    top3Points,
-    getEmptyChartData,
-  ]);
-
   // 진행 상태에 따른 변곡점 이동 및 튜토리얼 완료 시 피드백 refetch
   useEffect(() => {
     if (!isTutorialStarted || !top3Points || !memberId) {
@@ -481,6 +521,40 @@ export const SimulatePage = () => {
     if (!memberId) {
       alert('사용자 정보를 가져올 수 없습니다.');
       return;
+    }
+
+    // 전체 차트 데이터가 없으면 재로드 시도
+    if (!fullChartData && startPointId && endPointId) {
+      setIsChartLoading(true); // 로딩 상태 설정
+      console.log('튜토리얼 시작 전 전체 차트 데이터 로드 시작');
+
+      // ID는 이미 훅에서 최소/최대로 처리됨
+      fetchFullChartData()
+        .then((response) => {
+          if (response.data?.result) {
+            const result = response.data.result;
+            setFullChartData(result);
+            setStockData(result);
+            console.log('튜토리얼 시작 전 전체 차트 데이터 로드 완료');
+
+            // 최신 가격 설정
+            if (result.data && result.data.length > 0) {
+              const dayCandles = result.data.filter(
+                (candle: StockCandle) => candle.periodType === 1,
+              );
+              if (dayCandles.length > 0) {
+                const lastCandle = dayCandles[dayCandles.length - 1];
+                setLatestPrice(lastCandle.closePrice);
+              }
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('튜토리얼 시작 전 전체 차트 데이터 로드 실패:', error);
+        })
+        .finally(() => {
+          setIsChartLoading(false);
+        });
     }
 
     // 세션 초기화 API 호출
@@ -579,23 +653,13 @@ export const SimulatePage = () => {
     setIsModalOpen(false);
   };
 
-  // 차트 데이터를 useMemo로 래핑
-  const memoizedChartData = useMemo(
-    () => ({
-      minuteData: chartData.minuteData,
-      periodData: chartData.periodData,
-    }),
-    [chartData.minuteData, chartData.periodData],
-  );
-
   // 최신 가격 가져오기
   useEffect(() => {
-    // periodData에서 마지막 캔들의 종가를 가져와 최신 가격으로 설정
-    if (chartData.periodData?.data && chartData.periodData.data.length > 0) {
-      // as any로 타입 캐스팅하여 타입 오류 해결
-      const periodData = chartData.periodData.data as any[];
-      // 필터링해서 '1' 타입(일봉)의 데이터 중 마지막 데이터 가져오기
-      const filteredData = periodData.filter((item) => item.periodType === '1');
+    // stockData에서 마지막 캔들의 종가를 가져와 최신 가격으로 설정
+    if (stockData?.data && stockData.data.length > 0) {
+      // 일봉 데이터만 필터링 (periodType이 1인 데이터)
+      const filteredData = stockData.data.filter((item) => item.periodType === 1);
+      console.log('stockData 변경 감지, 필터링된 일봉 데이터:', filteredData.length);
 
       if (filteredData.length > 0) {
         const lastCandle = filteredData[filteredData.length - 1];
@@ -603,7 +667,7 @@ export const SimulatePage = () => {
         console.log('차트 데이터에서 최신 가격 업데이트:', lastCandle.closePrice);
       }
     }
-  }, [chartData.periodData]);
+  }, [stockData]);
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -635,11 +699,18 @@ export const SimulatePage = () => {
       </div>
       <div className="grid grid-cols-10 gap-3">
         <div className="col-span-8">
-          <ChartComponent
-            minuteData={memoizedChartData.minuteData}
-            periodData={memoizedChartData.periodData}
-            height={600}
-          />
+          {isChartLoading ? (
+            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+              <div className="text-center">
+                <p className="mb-3 text-xl">차트 데이터를 불러오는 중입니다...</p>
+                <p className="text-sm text-gray-400">
+                  1년치 일봉 데이터를 로드하고 있습니다. 잠시만 기다려주세요.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <ChartComponent periodData={stockData || fullChartData || undefined} height={600} />
+          )}
         </div>
         <div className="col-span-2">
           <TutorialOrderStatus
