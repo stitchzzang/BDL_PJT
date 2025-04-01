@@ -25,8 +25,9 @@ export const SimulatedInvestmentPage = () => {
   const { data: stockCompanyInfo, isLoading, isError } = useCompanyInfoData(stockCompanyId);
   const { data: minuteData, isSuccess } = useStockMinuteData(stockCompanyId, 100);
   const [closePrice, setClosePrice] = useState<number>(0);
+  const [comparePrice, setComparePrice] = useState<number>(0);
   // 초기 데이터  일,주,월(1=일, 2=주, 3=월)
-  const { data: stockDailyData } = useStockDailyData(stockCompanyId, 1, 30);
+  const { data: stockDailyData } = useStockDailyData(stockCompanyId, 1, 20);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
@@ -44,8 +45,9 @@ export const SimulatedInvestmentPage = () => {
   // 정적 데이터 확인 후 소켓 연결 시작
   useEffect(() => {
     //장 마감을 위한 1분 데이터 종가 가져오기
-    if (minuteData) {
-      setClosePrice(minuteData.data[0].closePrice);
+    if (minuteData && stockDailyData) {
+      setClosePrice(minuteData.data[100].closePrice);
+      setComparePrice(stockDailyData.result.data[19].closePrice);
     }
     // 데이터 확인 후 진행
     if (isSuccess && minuteData && stockDailyData && stockCompanyInfo) {

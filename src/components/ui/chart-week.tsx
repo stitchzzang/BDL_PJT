@@ -240,7 +240,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       }));
 
     // 데이터 반환 - 역순으로 정렬 (날짜순으로)
-    return [...realData.reverse(), ...emptyData];
+    return [...realData, ...emptyData];
   }, [chartData, processChartData]);
 
   // X축 라벨 생성
@@ -481,7 +481,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
               // 두 데이터 세트 병합
               return {
                 ...newData,
-                data: [...prevData.data, ...newData.data], // 새 데이터를 앞에 추가
+                data: [...newData.data, ...prevData.data], // 새 데이터를 뒤에 추가
                 cursor: newData.cursor, // 새 cursor 값으로 업데이트
               };
             });
