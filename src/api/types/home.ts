@@ -13,6 +13,8 @@ export interface SearchedCompany {
 }
 
 export interface SearchedCompanyResponse {
+  closePrice: number;
+  closePricePercent: number;
   companyCode: string;
   companyId: number;
   companyImage: string;
