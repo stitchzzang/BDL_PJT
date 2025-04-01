@@ -662,7 +662,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
             formatter: (value: string) => value,
-            rotate: periodType === 'day' ? 0 : 30, // 일봉은 회전 없이, 주/월봉은 30도 회전
           },
         },
         {
