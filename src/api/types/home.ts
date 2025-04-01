@@ -5,6 +5,7 @@ export interface LatestNews {
   newsContent: string;
   newsDate: string;
   newsThumbnailUrl: string | null;
+  newsOriginalUrl: string | null;
 }
 
 export interface SearchedCompany {
@@ -13,6 +14,8 @@ export interface SearchedCompany {
 }
 
 export interface SearchedCompanyResponse {
+  closePrice: number;
+  closePricePercent: number;
   companyCode: string;
   companyId: number;
   companyImage: string;

@@ -4,15 +4,17 @@ import { useUpdateMemberPassword } from '@/api/member.api';
 import { QuestionsCombobox } from '@/components/member-info/questions-combo-box';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const PasswordEditPage = () => {
+  const { userData } = useAuthStore();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const { mutate: updateMemberPassword } = useUpdateMemberPassword({
-    memberId: '1',
+    memberId: userData.memberId?.toString() ?? '',
     data: {
       question,
       answer,

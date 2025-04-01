@@ -19,6 +19,7 @@ import { InvestmentResultPage } from '@/routes/pages/member/InvestmentResultPage
 import { PasswordEditPage } from '@/routes/pages/member/PasswordEditPage';
 import { TutorialResultPage } from '@/routes/pages/member/TutorialResultPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
+import { PermissionDeniedPage } from '@/routes/pages/PermissionDeniedPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
@@ -157,6 +158,14 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
+    element: <NotFoundPage />,
+  },
+  {
+    path: 'error/permission-denied',
+    element: <PermissionDeniedPage />,
+  },
+  {
+    path: 'error/not-found',
     element: <NotFoundPage />,
   },
 ]);

@@ -55,7 +55,7 @@ export const EditPage = () => {
   };
 
   const { mutate: updateMemberInfo, isPending: updatePending } = useUpdateMemberInfo({
-    memberId: '1', // 추후 useAuthStore에서 가져오기
+    memberId: userData.memberId?.toString() || '',
     data: {
       nickname: tempNickname,
       profileImage: tempProfile,

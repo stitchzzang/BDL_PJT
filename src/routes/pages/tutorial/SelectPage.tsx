@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
 import { CategoryList } from '@/components/common/category-list';
@@ -16,11 +16,18 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAuthStore } from '@/store/useAuthStore';
+
 export const SelectPage = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState<string>('0');
+  const [urlParams] = useSearchParams();
+  const categoryQuery = urlParams.get('category') || '0';
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryQuery);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
+
+  useEffect(() => {
+    setSelectedCategory(categoryQuery);
+  }, [categoryQuery]);
 
   // 현재 날짜와 1년 전 날짜 계산
   const currentDate = new Date();

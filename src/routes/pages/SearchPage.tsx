@@ -7,7 +7,7 @@ import { CategoryList } from '@/components/common/category-list';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { SearchAnimation } from '@/components/common/search-animation';
-import { SearchedCompanyCard } from '@/components/home-page/searched-company-card';
+import { SearchedCompanyListItem } from '@/components/home-page/searched-company-list';
 export const SearchPage = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
@@ -112,7 +112,11 @@ export const SearchPage = () => {
             {searchedCompanies && searchedCompanies.length > 0 && (
               <div className="flex flex-col gap-2">
                 {searchedCompanies.map((company) => (
-                  <SearchedCompanyCard key={company.companyId} company={company} />
+                  <SearchedCompanyListItem
+                    key={company.companyId}
+                    company={company}
+                    categoryId={categoryId}
+                  />
                 ))}
               </div>
             )}

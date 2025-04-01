@@ -11,16 +11,16 @@ export const memberApi = {
     _ky.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
 
   updateMemberInfo: (memberId: string, data: MemberInfo) =>
-    _ky.put<ApiResponse<MemberInfo>>(`member/${memberId}`, { json: data }).json(),
+    _ky.patch<ApiResponse<MemberInfo>>(`member/${memberId}`, { json: data }).json(),
 
   updateMemberPassword: (memberId: string, data: MemberPassword) =>
-    _ky.put<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
+    _ky.post<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
 
   getAccountSummary: (memberId: string) =>
     _ky.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
 
   resetAccount: (memberId: string) =>
-    _ky.put<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
+    _ky.delete<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
 };
 
 export const useMemberInfo = (memberId: string) => {
