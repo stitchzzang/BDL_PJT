@@ -1,3 +1,5 @@
+import { CategoryName } from '@/utils/categoryMapper';
+
 export interface StockMinuteData {
   stockCandleMinuteId: number; // 주식 봉의 고유 ID
   companyId: string; // 종목 ID
@@ -168,5 +170,5 @@ export interface CompanyInfo {
   companyImage: string;
   companyCode: string;
   companyName: string;
-  categories: string[];
+  categories: CategoryName[];
 }
