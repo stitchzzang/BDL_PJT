@@ -180,46 +180,34 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     return [...emptyData, ...data];
   }, [rawChartData]);
 
-  // 각 일봉이 해당 월의 첫 데이터인지 확인하는 함수
-  const isFirstCandleOfMonth = useCallback(
-    (index: number): boolean => {
-      if (!chartData || !chartData[index] || !chartData[index].rawDate) return false;
-
-      const currentItem = chartData[index];
-      const previousItem = index > 0 ? chartData[index - 1] : null;
-
-      // 이전 데이터가 없거나 이전 데이터와 현재 데이터의 월이 다르면 월의 첫 데이터로 간주
-      if (!previousItem || !previousItem.rawDate) return true;
-
-      const currentMonth = currentItem.rawDate?.getMonth();
-      const previousMonth = previousItem.rawDate?.getMonth();
-
-      return currentMonth !== previousMonth;
-    },
-    [chartData],
-  );
-
-  const formatXAxisLabel = useCallback(
-    (index: number): string => {
-      const item = chartData[index];
-      if (!item?.rawDate || !(item.rawDate instanceof Date) || isNaN(item.rawDate.getTime())) {
-        return '';
-      }
-
-      // 월의 첫 일봉이면 'MM월'로 표시
-      if (isFirstCandleOfMonth(index)) {
-        return `${item.rawDate.getMonth() + 1}월`;
-      }
-
-      // 일반 데이터는 날짜 표시
-      return `${item.rawDate.getDate()}일`;
-    },
-    [chartData, isFirstCandleOfMonth],
-  );
-
   const xAxisLabels = useMemo(() => {
-    return chartData.map((_, index) => formatXAxisLabel(index));
-  }, [chartData, formatXAxisLabel]);
+    const seenMonths = new Set<string>(); // 월 추적을 위한 Set (년도 포함)
+    return chartData.map((item) => {
+      if (!item?.rawDate || !(item.rawDate instanceof Date) || isNaN(item.rawDate.getTime())) {
+        return ''; // 유효하지 않은 날짜는 빈 문자열 반환
+      }
+
+      const date = item.rawDate;
+      const month = date.getMonth();
+      const day = date.getDate();
+      const yearMonthKey = `${date.getFullYear()}-${month}`; // 년도와 월을 키로 사용
+
+      if (!seenMonths.has(yearMonthKey)) {
+        seenMonths.add(yearMonthKey);
+        // 월의 첫 등장: 'MM월' 형식과 스타일 적용
+        return {
+          value: `${month + 1}월`,
+          textStyle: {
+            fontWeight: 'bold',
+            fontSize: 14,
+          },
+        };
+      } else {
+        // 이미 등장한 월: 'DD일' 형식 반환
+        return `${day}일`;
+      }
+    });
+  }, [chartData]);
 
   const candleData = useMemo(() => {
     return chartData.map((item) => [
@@ -473,20 +461,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
             color: 'rgba(255, 255, 255, 0.7)',
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
-            formatter: (value: string, index: number) => {
-              // 월의 첫 일봉 데이터인 경우 월 표시를 강조
-              if (isFirstCandleOfMonth(index)) {
-                return `{month|${value}}`;
-              }
-              return value;
-            },
-            rich: {
-              month: {
-                fontWeight: 'bold',
-                fontSize: '115%', // 기본 크기보다 15% 크게
-                color: 'rgba(255, 255, 255, 1)', // 완전 흰색으로 더 강조
-              },
-            },
+            formatter: (value: string) => value,
           },
         },
         {
@@ -503,23 +478,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
               width: 1,
             },
           },
-          axisLabel: {
-            show: false,
-            formatter: (value: string, index: number) => {
-              // 월의 첫 일봉 데이터인 경우 월 표시를 강조
-              if (isFirstCandleOfMonth(index)) {
-                return `{month|${value}}`;
-              }
-              return value;
-            },
-            rich: {
-              month: {
-                fontWeight: 'bold',
-                fontSize: '115%',
-                color: 'rgba(255, 255, 255, 1)',
-              },
-            },
-          },
+          axisLabel: { show: false },
           splitNumber: 20,
           min: 'dataMin',
           max: 'dataMax',
