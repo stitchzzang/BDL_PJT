@@ -202,7 +202,7 @@ export const SimulatePage = () => {
   const [pointDates, setPointDates] = useState<string[]>([]);
 
   // API 훅 설정 - 컴포넌트 최상단에 배치
-  const { data: top3PointsResponse, isLoading: isTop3PointsLoading } = useGetTop3Points(companyId);
+  const { data: top3PointsResponse } = useGetTop3Points(companyId);
 
   // 변곡점 날짜 조회를 위한 설정
   const pointStockCandleIds =
