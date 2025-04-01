@@ -4,12 +4,14 @@ import { toast } from 'react-hot-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 import { useAuthStore } from '@/store/useAuthStore';
+
 export const NamePage = () => {
   const isValidAccess = useAlgorithmLabGuard('name');
   const { isLogin } = useAuthStore();
@@ -65,6 +67,10 @@ export const NamePage = () => {
         description="여러분이 생성한 알고리즘은 저장하여 나중에 확인이 가능합니다.
         알고리즘 이름을 생성하여 편하게 관리해보세요!"
       />
+      <Badge variant="destructive" className="flex w-full flex-col items-baseline gap-1">
+        <span className="text-base font-bold">⚠️ 주의</span>
+        <span className="text-sm">이름은 수정이 불가능하니 신중히 결정해주세요!</span>
+      </Badge>
       <div className="relative w-full">
         <AnimatePresence>
           {nowName && (
