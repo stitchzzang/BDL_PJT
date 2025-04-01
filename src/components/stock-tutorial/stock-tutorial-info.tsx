@@ -240,11 +240,6 @@ export const StockTutorialInfo = ({
     setSelectedSegment(segmentIndex);
   };
 
-  const handleHelpClick = () => {
-    // 도움말 클릭 핸들러 구현
-    console.log('Help clicked');
-  };
-
   return (
     <div className="bg-card-background-color rounded-xl p-6">
       <div className="flex flex-col gap-6">
@@ -263,7 +258,7 @@ export const StockTutorialInfo = ({
                 <h3 className="text-[20px] font-medium text-white">
                   {companyInfo?.companyName || '회사명'}
                 </h3>
-                <StockTutorialHelp onClick={handleHelpClick} />
+                <StockTutorialHelp />
               </div>
               <h3 className="text-[30px] font-medium text-white">
                 {addCommasToThousand(currentPrice || 0)}원
