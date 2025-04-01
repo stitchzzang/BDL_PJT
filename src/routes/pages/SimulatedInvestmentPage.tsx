@@ -108,8 +108,8 @@ export const SimulatedInvestmentPage = () => {
         </div>
         <div className="mb-[16px] mt-[30px] flex justify-between">
           <div className="flex items-center gap-2">
-            <div className="rounded-2xl bg-modal-background-color px-[24px] py-[20px]">
-              <p className="font-bold">차트</p>
+            <div className="rounded-2xl bg-modal-background-color px-[18px] py-[20px]">
+              <p className="text-[14px] font-bold">차트</p>
             </div>
             <div>
               <TickInfo tickData={tickData} />
@@ -123,8 +123,8 @@ export const SimulatedInvestmentPage = () => {
           </div>
         </div>
       </div>
-      <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-10">
-        <div className="col-span-1 lg:col-span-8">
+      <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-12">
+        <div className="col-span-1 lg:col-span-9">
           {tickData ? (
             <div className="">
               {minuteData ? (
@@ -147,7 +147,7 @@ export const SimulatedInvestmentPage = () => {
             </div>
           )}
         </div>
-        <div className="col-span-1 lg:col-span-2">
+        <div className="col-span-1 lg:col-span-3">
           <OrderStatus closePrice={closePrice} realTime={tickData?.stckPrpr} />
         </div>
       </div>

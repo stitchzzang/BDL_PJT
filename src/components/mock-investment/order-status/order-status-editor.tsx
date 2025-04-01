@@ -62,7 +62,7 @@ export const OrderStatusEditor = ({
     );
   };
 
-  const h3Style = 'text-[16px] font-bold text-white';
+  const h3Style = 'text-[14px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
   // isActive 핸들러
   const isActiveHandler = (active: string) => {
@@ -160,7 +160,7 @@ export const OrderStatusEditor = ({
                     className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                     onClick={() => isActiveHandler('지정가')}
                   >
-                    <p>지정가</p>
+                    <p className="text-[14px]">지정가</p>
                   </div>
                 </div>
               </div>

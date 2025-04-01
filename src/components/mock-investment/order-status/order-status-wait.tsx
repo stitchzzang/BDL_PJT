@@ -13,7 +13,7 @@ interface OrderStatusWaitProps {
 }
 
 export const OrderStatusWait = ({ closePrice, realTime, tickSize }: OrderStatusWaitProps) => {
-  const h3Style = 'text-[16px] font-bold text-white';
+  const h3Style = 'text-[14px] font-bold text-white';
   // 유저 판매 리스트 가져오기
   const { data: userSimulated, isLoading, isError } = useUserSimulatedData(2);
   // 총 판매 금액 표시

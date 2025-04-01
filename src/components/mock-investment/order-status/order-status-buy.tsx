@@ -22,7 +22,7 @@ export const OrderStatusBuy = ({
   tickSize,
 }: OrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
-  const h3Style = 'text-[16px] font-bold text-white';
+  const h3Style = 'text-[14px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 유저 현재 자산
@@ -153,13 +153,13 @@ export const OrderStatusBuy = ({
                   className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
-                  <p>지정가</p>
+                  <p className="text-[14px]">지정가</p>
                 </div>
                 <div
                   className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('시장가')}
                 >
-                  <p>시장가</p>
+                  <p className="text-[14px]">시장가</p>
                 </div>
               </div>
             </div>
@@ -266,7 +266,7 @@ export const OrderStatusBuy = ({
                 })
               }
             >
-              <p className=" text-[18px] font-medium text-white">구매하기</p>
+              <p className=" text-[14px] font-medium text-white">구매하기</p>
             </Button>
           ) : (
             <Button
@@ -282,7 +282,7 @@ export const OrderStatusBuy = ({
                 })
               }
             >
-              <p className=" text-[18px] font-medium text-white">구매하기</p>
+              <p className=" text-[16px] font-medium text-white">구매하기</p>
             </Button>
           )}
           <p className="text-[14px] font-light text-[#718096]">

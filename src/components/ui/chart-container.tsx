@@ -69,7 +69,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
   const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
 
   return (
-    <div className="h-[100%] rounded-2xl bg-modal-background-color pt-5">
+    <div className="h-[100%] overflow-hidden rounded-2xl bg-modal-background-color p-2 pt-5">
       <div className="inline-block">
         <div className="mx-2 flex gap-2 rounded-xl border border-border-color p-2">
           <button
