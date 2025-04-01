@@ -26,6 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAccountConnection } from '@/services/SocketAccountService';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   addCommasToThousand,
   addStockValueColorClass,
@@ -34,18 +35,23 @@ import {
 } from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
-  const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
+  const { userData } = useAuthStore();
+  const {
+    data: accountSummary,
+    isLoading,
+    isError,
+  } = useGetAccountSummary(userData.memberId?.toString() ?? '');
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
   const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
   const [realTimeData, setRealTimeData] = useState(accountSummary);
   const [prevData, setPrevData] = useState(accountSummary);
   const [isFlashing, setIsFlashing] = useState(false);
 
-  const { mutate: resetAccount } = useResetAccount('1');
+  const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
 
   useEffect(() => {
     if (accountSummary) {
-      connectAccount('1', setAccountData);
+      connectAccount(userData.memberId?.toString() ?? '', setAccountData);
       return () => {
         disconnectAccount();
       };
