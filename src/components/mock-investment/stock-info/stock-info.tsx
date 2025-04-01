@@ -1,16 +1,25 @@
 import { CompanyInfo, TickData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
+import { calculatePriceChange } from '@/utils/calculate-price-change';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 interface StockInfoProps {
   stockCompanyInfo?: CompanyInfo;
   tickData: TickData | null;
   closePrice: number;
+  comparePrice?: number;
 }
 
-export const StockInfo = ({ stockCompanyInfo, tickData, closePrice }: StockInfoProps) => {
+export const StockInfo = ({
+  stockCompanyInfo,
+  tickData,
+  closePrice,
+  comparePrice,
+}: StockInfoProps) => {
   // const CategoryIcon = getCategoryIcon(stockCompanyInfo?.categories?.[0] ?? 'IT');
-
+  const priceToCompare = tickData ? tickData.stckPrpr : closePrice;
+  // 외부 함수 호출
+  const priceChange = calculatePriceChange(priceToCompare, comparePrice ?? 0);
   return (
     <div className="flex items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
@@ -36,7 +45,10 @@ export const StockInfo = ({ stockCompanyInfo, tickData, closePrice }: StockInfoP
               <div className="flex flex-col gap-[18px] sm:flex-row">
                 <div className="flex gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
                   <p className="text-border-color">어제보다</p>
-                  <p className="text-btn-red-color">{addCommasToThousand(1323)}원(23%)</p>
+                  <p className={priceChange.isRise ? 'text-btn-red-color' : 'text-btn-blue-color'}>
+                    {priceChange.isRise ? '+' : '-'}
+                    {addCommasToThousand(priceChange.change)}원({priceChange.percent}%)
+                  </p>
                 </div>
                 <div className="flex items-center justify-center gap-[15px] rounded-lg bg-modal-background-color px-[15px] py-[10px]">
                   <div className="min-h-[25px] min-w-[25px]">{/* <CategoryIcon /> */}</div>
