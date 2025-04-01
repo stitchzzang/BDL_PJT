@@ -2,6 +2,7 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 import { useUpdateMemberPassword } from '@/api/member.api';
@@ -26,6 +27,7 @@ const passwordEditSchema = z
 type PasswordEditFormValues = z.infer<typeof passwordEditSchema>;
 
 export const PasswordEditPage = () => {
+  const navigate = useNavigate();
   const { userData } = useAuthStore();
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState('');
@@ -66,6 +68,7 @@ export const PasswordEditPage = () => {
       answer,
       newPassword: form.getValues().newPassword,
     },
+    navigateTo: () => navigate('/member'),
   });
 
   return (

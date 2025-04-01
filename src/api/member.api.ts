@@ -86,16 +86,21 @@ export const useUpdateMemberPassword = ({
   data,
   onSuccess,
   onError,
+  navigateTo,
 }: {
   memberId: string;
   data: MemberPassword;
   onSuccess?: () => void;
   onError?: () => void;
+  navigateTo?: () => void;
 }) => {
   return useMutation({
     mutationFn: () => memberApi.updateMemberPassword(memberId, data),
     onSuccess: () => {
       toast.success('비밀번호가 성공적으로 업데이트되었습니다.');
+      if (navigateTo) {
+        navigateTo();
+      }
       onSuccess?.();
     },
     onError: (error: HTTPError) => {
