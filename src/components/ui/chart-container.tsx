@@ -1,9 +1,11 @@
 import { useState } from 'react';
 
+import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { DailyChart } from '@/components/ui/chart-daily';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { WeekChart } from '@/components/ui/chart-week';
 import { TickCandleChart } from '@/components/ui/tick-chart2';
+import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 // 타입 정의 (분봉데이터 - 초기 데이터 적재를 위하여)
 interface StockMinuteData {
@@ -67,10 +69,11 @@ interface MinuteChartProps {
 
 export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChartProps) => {
   const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
+  const todayInfo = getTodayFormatted();
 
   return (
     <div className="h-[100%] overflow-hidden rounded-2xl bg-modal-background-color p-2 pt-5">
-      <div className="inline-block">
+      <div className="flex justify-between">
         <div className="mx-2 flex gap-2 rounded-xl border border-border-color p-2">
           <button
             onClick={() => setChartType('minute')}
@@ -103,8 +106,18 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
             주
           </button>
         </div>
+        {tickData ? (
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-border-color border-opacity-20 p-4">
+            <p className="text-[14px]">{todayInfo}</p>
+            <TickInfo tickData={tickData} />
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-1 rounded-xl border border-border-color border-opacity-20 p-4">
+            <p className="text-[14px]">{todayInfo}</p>
+          </div>
+        )}
       </div>
-      <div className="mx-2 mb-[10px] mt-[25px] border-b  border-border-color border-opacity-20"></div>
+      <div className="mt-[22px] border-b  border-border-color border-opacity-20"></div>
       {tickData ? (
         <div className="grid grid-cols-10">
           <div className="col-span-8">
