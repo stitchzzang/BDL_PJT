@@ -1,10 +1,12 @@
 // 인증 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
 
 import { useMutation } from '@tanstack/react-query';
+import { HTTPError } from 'ky';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 
 import { _ky, _kyAuth } from '@/api/instance';
+import { handleKyError } from '@/api/instance/errorHandler';
 import { LoginResponse, SignupRequest } from '@/api/types/auth';
 import { ApiResponse } from '@/api/types/common';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -59,8 +61,8 @@ export const useLogin = () => {
       }
     },
     // 로그인 실패
-    onError: () => {
-      toast.error('로그인에 실패했습니다.');
+    onError: (error: HTTPError) => {
+      handleKyError(error, '로그인에 실패했습니다.');
     },
   });
 };
@@ -76,8 +78,8 @@ export const useLogout = () => {
       toast.success('로그아웃되었습니다.');
       navigate('/');
     },
-    onError: () => {
-      toast.error('로그아웃에 실패했습니다.');
+    onError: (error: HTTPError) => {
+      handleKyError(error, '로그아웃에 실패했습니다.');
     },
   });
 };
@@ -88,8 +90,8 @@ export const useSignup = () => {
     onSuccess: () => {
       toast.success('회원가입이 완료되었습니다.');
     },
-    onError: () => {
-      toast.error('회원가입에 실패했습니다.');
+    onError: (error: HTTPError) => {
+      handleKyError(error, '회원가입에 실패했습니다.');
     },
   });
 };
@@ -105,8 +107,8 @@ export const useSignout = () => {
       toast.success('회원탈퇴가 완료되었습니다.');
       navigate('/');
     },
-    onError: () => {
-      toast.error('회원탈퇴에 실패했습니다.');
+    onError: (error: HTTPError) => {
+      handleKyError(error, '회원탈퇴에 실패했습니다.');
     },
   });
 };
