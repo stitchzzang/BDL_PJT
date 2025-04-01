@@ -1,20 +1,28 @@
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon } from '@heroicons/react/24/solid';
+import React from 'react';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-interface StockTutorialHelpProps {
-  onClick: () => void;
+interface StockTutorialHelpProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+  onClick?: () => void;
 }
 
-export const StockTutorialHelp = ({ onClick }: StockTutorialHelpProps) => {
+export const StockTutorialHelp = ({ className, onClick, ...props }: StockTutorialHelpProps) => {
   return (
     <Button
+      type="button"
       variant="ghost"
-      size="icon"
-      className="flex h-8 w-8 items-center justify-center rounded-full bg-background-color hover:bg-gray-700"
+      className={cn(
+        'inline-flex h-8 items-center justify-center gap-1 rounded-full bg-[#2D2D2D] px-3 py-0 text-white hover:bg-[#2D2D2D]/90',
+        className,
+      )}
       onClick={onClick}
+      {...props}
     >
-      <QuestionMarkCircleIcon className="h-5 w-5 text-text-main-color" />
+      <InformationCircleIcon className="h-4 w-4" />
+      <span className="text-xs">도움말</span>
     </Button>
   );
 };
