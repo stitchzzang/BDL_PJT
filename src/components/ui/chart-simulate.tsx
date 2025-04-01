@@ -86,7 +86,7 @@ interface TickData {
 }
 
 interface MinuteChartProps {
-  companyId?: string;
+  companyId?: number;
   height?: number;
   initialLimit?: number;
   initialData?: StockMinuteDefaultData; // 부모 컴포넌트에서 받는 초기 데이터
@@ -462,7 +462,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
 
         // 직접 _ky 사용하여 API 호출
         _ky
-          .get(`stocks/${1}/minute`, {
+          .get(`stocks/${companyId}/minute`, {
             searchParams: {
               cursor: cursorValue,
               limit: 50,

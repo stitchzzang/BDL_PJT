@@ -45,11 +45,11 @@ interface StockMinuteDefaultData {
 // }
 
 interface MinuteChartProps {
-  companyId?: string;
+  companyId?: number;
   initialData?: StockMinuteDefaultData; // 부모 컴포넌트에서 받는 초기 데이터
 }
 
-export const ChartContainer = ({ initialData }: MinuteChartProps) => {
+export const ChartContainer = ({ initialData, companyId }: MinuteChartProps) => {
   const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
 
   return (
@@ -84,9 +84,9 @@ export const ChartContainer = ({ initialData }: MinuteChartProps) => {
       </div>
       <div className="mx-2 mt-[25px] border-b border-border-color  border-opacity-20"></div>
       <div>
-        {chartType === 'minute' && <MinuteChart initialData={initialData} />}
-        {chartType === 'day' && <DailyChart periodType={'day'} />}
-        {chartType === 'week' && <WeekChart periodType={'week'} />}
+        {chartType === 'minute' && <MinuteChart initialData={initialData} companyId={companyId} />}
+        {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
+        {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}
       </div>
     </div>
   );

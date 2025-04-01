@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
+  CompanyInfo,
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
@@ -12,6 +13,10 @@ import {
 } from '@/api/types/stock';
 
 export const StockApi = {
+  // 회사 기본 정보 가져오기
+  getCompanyInfoData: (stockCompanyId: number) =>
+    _ky.get(`company/${stockCompanyId}`).json<ApiResponse<CompanyInfo>>(),
+
   // 분봉 데이터 가져오기 (limit 값은 직접 입력)
   getStockInitMinuteData: (stockId: number, limit: number) =>
     _ky
@@ -107,6 +112,14 @@ export const StockApi = {
         },
       })
       .json<ApiResponse<string>>(),
+};
+
+// 회사 정보(초기) 가져오기
+export const useCompanyInfoData = (stockCompanyId: number) => {
+  return useQuery({
+    queryKey: ['stockCompanyInfo'],
+    queryFn: () => StockApi.getCompanyInfoData(stockCompanyId).then((res) => res.result),
+  });
 };
 
 export const useStockMinuteData = (stockId: number, limit: number) => {
