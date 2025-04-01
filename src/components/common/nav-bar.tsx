@@ -194,7 +194,7 @@ export const NavBar = () => {
             <img
               src={userData.profile || '/none-img/none_profile_img.png'}
               alt="profile"
-              className="h-[32px] w-[32px] rounded-full border-2 border-transparent transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
+              className="h-[32px] w-[32px] rounded-full border-2 border-transparent object-cover transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
             />
           </NavLink>
         )}
