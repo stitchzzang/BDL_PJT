@@ -40,3 +40,8 @@ export interface HomeChartData {
   bstpNmixPrdyVrss: string; //전일 대비 변화량
   bstpNmixPrdyCtrt: string; //전일 대비 변동률
 }
+
+export interface HomeChartKosdaqKospiData {
+  kosdaq: HomeChartData[];
+  kospi: HomeChartData[];
+}

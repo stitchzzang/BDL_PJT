@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
-  HomeChartData,
+  HomeChartKosdaqKospiData,
   LatestNews,
   SearchedCompany,
   SearchedCompanyResponse,
@@ -26,7 +26,8 @@ export const homeApi = {
   getUserRanking: () => _ky.get('tutorial/rankings').json<ApiResponse<UserRanking[]>>(),
 
   // 홈 코스피, 코스닥 데이터 가져오기
-  getKosdaqKospiData: () => _ky.get(`stock/index-candles`).json<ApiResponse<HomeChartData>>(),
+  getKosdaqKospiData: () =>
+    _ky.get(`stock/index-candles`).json<ApiResponse<HomeChartKosdaqKospiData>>(),
 };
 
 export const useLatestNews = () => {

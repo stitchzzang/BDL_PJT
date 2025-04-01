@@ -4,10 +4,10 @@ import React, { useEffect, useRef } from 'react';
 import { HomeChartData } from '@/api/types/home';
 
 interface KosdaqChartProps {
-  kosdaqData: HomeChartData[];
+  kosdaqData: HomeChartData[] | undefined;
 }
 
-const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
+export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -178,9 +178,9 @@ const sampleData: HomeChartData[] = [
   },
 ];
 
-// 예시 렌더링 (실제 사용 시에는 kospi prop으로 데이터 전달)
-const MainKosdaqChart = () => {
-  return <KosdaqChart kosdaqData={sampleData} />;
-};
+// // 예시 렌더링 (실제 사용 시에는 kospi prop으로 데이터 전달)
+// const MainKosdaqChart = () => {
+//   return <KosdaqChart kosdaqData={kosdaqData} />;
+// };
 
-export default MainKosdaqChart;
+// export default MainKosdaqChart;
