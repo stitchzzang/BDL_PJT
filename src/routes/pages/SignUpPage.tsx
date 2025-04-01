@@ -100,13 +100,13 @@ export const SignUpPage = () => {
       },
       onError: (error) => {
         toast.error('회원가입에 실패했습니다.');
-        console.error('회원가입 실패:', error);
       },
     });
   };
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
+      <h1 className="mb-5 text-3xl font-bold">회원가입</h1>
       <div className="w-full max-w-96 rounded-lg bg-modal-background-color p-6 shadow-lg">
         <Form {...form}>
           <form
@@ -340,14 +340,6 @@ export const SignUpPage = () => {
             >
               회원가입
             </Button>
-
-            <p className="mt-2 text-base text-text-main-color">
-              {Object.keys(errors).length > 0
-                ? '모든 필드를 올바르게 입력해주세요.'
-                : formIsValidAndFilled
-                  ? '모든 입력이 완료되었습니다. 회원가입 버튼을 눌러주세요.'
-                  : '아래 조건을 충족하는 정보를 입력해주세요.'}
-            </p>
           </form>
         </Form>
       </div>
