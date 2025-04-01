@@ -1,13 +1,15 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useTutorialResults } from '@/api/tutorial.api';
 import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial-result-item';
+import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
-
 export const TutorialResultPage = () => {
   const { userData } = useAuthStore();
   const { data: tutorialResults } = useTutorialResults({
     memberId: userData.memberId?.toString() ?? '',
   });
-
+  const navigate = useNavigate();
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
       <div className="flex w-full flex-row justify-between">
@@ -18,6 +20,14 @@ export const TutorialResultPage = () => {
       {tutorialResults?.map((tutorialResult) => (
         <StockTutorialResultItem key={tutorialResult.tutorialResultId} result={tutorialResult} />
       ))}
+      {tutorialResults?.length === 0 && (
+        <div className="flex w-full flex-col items-center justify-center">
+          <p className="text-text-inactive-2-color">튜토리얼 결과가 없습니다.</p>
+          <Button variant="blue" className="mt-4" onClick={() => navigate('/tutorial')}>
+            주식 튜토리얼 하러 가기
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
