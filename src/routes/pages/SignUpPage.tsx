@@ -132,7 +132,7 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    <p className="text-xs text-text-main-color">
+                    <p className="text-sm text-text-main-color">
                       이메일은 example@domain.com 형식이어야 합니다.
                     </p>
                   </FormItem>
@@ -163,7 +163,7 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    <p className="text-xs text-text-main-color">
+                    <p className="text-sm text-text-main-color">
                       비밀번호는 최소 8자 이상이어야 합니다.
                     </p>
                   </FormItem>
@@ -197,7 +197,7 @@ export const SignUpPage = () => {
                     {dirtyFields.passwordConfirm && (
                       <FormMessage
                         className={cn(
-                          'text-xs',
+                          'text-sm',
                           hasError
                             ? 'text-btn-red-color'
                             : isValid
@@ -235,10 +235,12 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    <p className="text-xs text-text-main-color">
-                      닉네임은 2자 이상 5자 이하여야 하며, 특수문자 및 자음/모음은 사용할 수
-                      없습니다.
+                    <p className="text-sm text-text-main-color">
+                      닉네임은 2자 이상 5자 이하여야 하며,
                     </p>
+                    <span className="text-sm text-text-main-color">
+                      특수문자 및 자음/모음은 사용할 수 없습니다.
+                    </span>
                   </FormItem>
                 );
               }}
@@ -285,7 +287,7 @@ export const SignUpPage = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  <p className="text-xs text-text-main-color">1900년 이후만 가능합니다.</p>
+                  <p className="text-sm text-text-main-color">1900년 이후만 가능합니다.</p>
                 </FormItem>
               )}
             />
@@ -325,7 +327,7 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    <p className="text-xs text-text-main-color">
+                    <p className="text-sm text-text-main-color">
                       답변은 1자 이상 10자 이하여야 합니다.
                     </p>
                   </FormItem>
