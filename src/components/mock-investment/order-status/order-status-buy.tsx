@@ -13,6 +13,8 @@ interface OrderStatusBuyProps {
   closePrice: number;
   realTime?: number;
   tickSize: number;
+  memberId: number | null;
+  companyId: number | null;
 }
 
 export const OrderStatusBuy = ({
@@ -20,6 +22,8 @@ export const OrderStatusBuy = ({
   closePrice,
   realTime,
   tickSize,
+  memberId,
+  companyId,
 }: OrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[14px] font-bold text-white';
@@ -258,8 +262,8 @@ export const OrderStatusBuy = ({
               size="lg"
               onClick={() =>
                 handleLimitOrder({
-                  memberId: 2,
-                  companyId: 1,
+                  memberId: memberId,
+                  companyId: companyId,
                   tradeType: 0,
                   quantity: stockCount,
                   price: buyCost,
@@ -275,8 +279,8 @@ export const OrderStatusBuy = ({
               size="lg"
               onClick={() =>
                 handleMarketOrder({
-                  memberId: 2,
-                  companyId: 1,
+                  memberId: memberId,
+                  companyId: companyId,
                   tradeType: 0,
                   quantity: stockCount,
                 })

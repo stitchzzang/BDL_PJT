@@ -15,14 +15,22 @@ interface OrderStatusShellProps {
   closePrice: number; // 종가
   realTime?: number; // 실시간 값
   tickSize: number; // 호가 단위
+  memberId: number | null;
+  companyId: number | null;
 }
 
-export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatusShellProps) => {
+export const OrderStatusShell = ({
+  closePrice,
+  realTime,
+  tickSize,
+  memberId,
+  companyId,
+}: OrderStatusShellProps) => {
   const h3Style = 'text-[14px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 사용자 주식 개수
-  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(2, 1);
+  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(memberId, companyId);
 
   // 구매가격
   const [shellCost, setShellCost] = useState<number>(0);
@@ -264,8 +272,8 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
               size="lg"
               onClick={() =>
                 handleLimitOrder({
-                  memberId: 2,
-                  companyId: 1,
+                  memberId: memberId,
+                  companyId: companyId,
                   tradeType: 1,
                   quantity: stockCount,
                   price: shellCost,
@@ -281,8 +289,8 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
               size="lg"
               onClick={() =>
                 handleMarketOrder({
-                  memberId: 2,
-                  companyId: 1,
+                  memberId: memberId,
+                  companyId: companyId,
                   tradeType: 1,
                   quantity: stockCount,
                 })

@@ -121,7 +121,11 @@ export const SimulatedInvestmentPage = () => {
           )}
         </div>
         <div className="col-span-1 lg:col-span-3">
-          <OrderStatus closePrice={closePrice} realTime={tickData?.stckPrpr} />
+          <OrderStatus
+            closePrice={closePrice}
+            realTime={tickData?.stckPrpr}
+            companyId={stockCompanyId}
+          />
         </div>
       </div>
       {tickData ? (

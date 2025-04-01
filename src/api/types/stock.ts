@@ -115,8 +115,8 @@ export interface TickData {
 // 매수,매도
 // 지정가
 export interface LimitOrderData {
-  memberId: number; // 회원 ID
-  companyId: number; // 종목 ID
+  memberId: number | null; // 회원 ID
+  companyId: number | null; // 종목 ID
   tradeType: number; // 0: 매수(구매), 1:매도(판매)
   quantity: number; // 주 개수
   price: number; // 지정가 - 가격
@@ -124,8 +124,8 @@ export interface LimitOrderData {
 
 // 시장가
 export interface MarketOrderData {
-  memberId: number; // 회원 ID
-  companyId: number; // 종목 ID
+  memberId: number | null; // 회원 ID
+  companyId: number | null; // 종목 ID
   tradeType: number; // 0: 매수(구매), 1:매도(판매)
   quantity: number; // 시장가 - 가격(현재 가격을 가져와야 함)
 }
