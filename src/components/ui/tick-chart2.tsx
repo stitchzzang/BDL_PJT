@@ -3,6 +3,8 @@ import ReactECharts from 'echarts-for-react';
 import { throttle } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { formatKoreanMoney } from '@/utils/numberFormatter';
+
 // 틱 데이터 인터페이스
 interface TickData {
   stockCode: string;
@@ -29,6 +31,8 @@ interface TickChartProps {
 const RISE_COLOR = '#ef5350'; // 상승 색상 (빨간색)
 const FALL_COLOR = '#1976d2'; // 하락 색상 (파란색)
 const DEFAULT_COLOR = '#888888'; // 기본 색상 (변화 없음)
+const CCLD_RISE_COLOR = '#ff0000'; // 체결 상승 색상 (새로운 빨간색)
+const CCLD_FALL_COLOR = '#0000ff'; // 체결 하락 색상 (새로운 파란색)
 const THROTTLE_MS = 100; // 업데이트 스로틀링 시간 (ms)
 
 // 틱 차트 데이터 포인트 인터페이스
@@ -191,6 +195,12 @@ const TickChartComponent: React.FC<TickChartProps> = ({
           ? FALL_COLOR
           : DEFAULT_COLOR;
 
+    // 체결 구분에 따른 마크라인 색상 설정
+    const markLineColor =
+      tickData?.ccldDvsn === '1'
+        ? CCLD_RISE_COLOR // ccldDvsn이 '1'일 때 체결 상승 색상
+        : CCLD_FALL_COLOR; // 그 외의 경우 체결 하락 색상
+
     return {
       animation: false,
       backgroundColor: '#0D192B',
@@ -198,46 +208,7 @@ const TickChartComponent: React.FC<TickChartProps> = ({
         fontFamily:
           'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
       },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'cross',
-          label: {
-            backgroundColor: '#1976d2',
-          },
-        },
-        formatter: () => {
-          if (!currentPoint) return '';
 
-          const priceChange = (
-            ((currentPoint.close - currentPoint.open) / currentPoint.open) *
-            100
-          ).toFixed(2);
-
-          const priceChangeText =
-            currentPoint.close > currentPoint.open ? `+${priceChange}%` : `${priceChange}%`;
-
-          const color =
-            currentPoint.close > currentPoint.open
-              ? RISE_COLOR
-              : currentPoint.close < currentPoint.open
-                ? FALL_COLOR
-                : DEFAULT_COLOR;
-
-          return `
-            <div style="padding: 8px;">
-              <div style="margin-bottom: 4px;">${currentPoint.time}</div>
-              <div>시가: ${new Intl.NumberFormat('ko-KR').format(currentPoint.open)}</div>
-              <div>종가: ${new Intl.NumberFormat('ko-KR').format(currentPoint.close)}
-                <span style="color: ${color}; margin-left: 4px;">${priceChangeText}</span>
-              </div>
-              <div>고가: ${new Intl.NumberFormat('ko-KR').format(currentPoint.high)}</div>
-              <div>저가: ${new Intl.NumberFormat('ko-KR').format(currentPoint.low)}</div>
-              <div>거래량: ${new Intl.NumberFormat('ko-KR').format(currentPoint.volume)}</div>
-            </div>
-          `;
-        },
-      },
       grid: {
         left: '5%',
         right: '5%',
@@ -293,7 +264,7 @@ const TickChartComponent: React.FC<TickChartProps> = ({
           markLine: {
             symbol: 'none',
             lineStyle: {
-              color: priceColor,
+              color: markLineColor,
               type: 'solid',
               width: 1,
               opacity: 0.7,
@@ -303,10 +274,10 @@ const TickChartComponent: React.FC<TickChartProps> = ({
               position: 'end',
               formatter: () =>
                 new Intl.NumberFormat('ko-KR').format(Math.floor(currentPoint.close)),
-              backgroundColor: priceColor,
+              backgroundColor: markLineColor,
               color: '#FFFFFF',
-              padding: [4, 8],
-              borderRadius: 2,
+              padding: [12, 12],
+              borderRadius: 4,
               fontSize: 12,
               fontWeight: 'bold',
             },
@@ -320,7 +291,7 @@ const TickChartComponent: React.FC<TickChartProps> = ({
         },
       ],
     };
-  }, [currentPoint]);
+  }, [currentPoint, tickData?.ccldDvsn]);
 
   return (
     <div className="relative h-full" style={{ width }}>
@@ -355,6 +326,18 @@ const TickChartComponent: React.FC<TickChartProps> = ({
             },
           }}
         />
+        {tickData ? (
+          <div className="flex flex-col gap-2 rounded-xl border border-border-color border-opacity-40 p-4">
+            <span className="text-[15px] text-border-color">
+              현재 거래량 : {formatKoreanMoney(tickData?.cntgVol)}
+            </span>
+            <span className="text-[15px] text-border-color">
+              누적 거래량 : {formatKoreanMoney(tickData?.acmlVol)}
+            </span>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );
