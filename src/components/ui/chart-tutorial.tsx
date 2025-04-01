@@ -5,7 +5,6 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   CandleResponse,
   ChartDataPoint,
-  convertMinuteCandleToChartData,
   convertPeriodCandleToChartData,
   MinuteCandleData,
   PeriodCandleData,
@@ -19,8 +18,6 @@ interface ChartComponentProps {
   readonly ratio?: number;
 }
 
-type PeriodType = 'MINUTE' | 'DAY' | 'WEEK' | 'MONTH';
-
 // 상수 정의
 const RISE_COLOR = '#ef5350';
 const FALL_COLOR = '#1976d2';
@@ -30,25 +27,17 @@ const EMPTY_DATA_COUNT = 10;
 
 const ChartComponent: React.FC<ChartComponentProps> = React.memo(
   ({ height = 700, minuteData, periodData }) => {
-    const [period, setPeriod] = useState<PeriodType>('MINUTE'); // 기본값을 DAY로 설정
     const chartRef = useRef<ReactECharts>(null);
     const [dataZoomRange] = useState({
       start: DEFAULT_DATA_ZOOM_START,
       end: DEFAULT_DATA_ZOOM_END,
     });
 
-    // 기간 선택 핸들러
-    const handlePeriodChange = (newPeriod: PeriodType) => {
-      setPeriod(newPeriod);
-    };
-
     // 데이터 변환 및 필터링
     const rawChartData = useMemo(() => {
       let data: ChartDataPoint[] = [];
       try {
-        if (period === 'MINUTE' && minuteData?.data && minuteData.data.length > 0) {
-          data = minuteData.data.map(convertMinuteCandleToChartData);
-        } else if (periodData?.data && periodData.data.length > 0) {
+        if (periodData?.data && periodData.data.length > 0) {
           // 데이터 필터링 전에 안전성 검사 추가
           const filteredData = periodData.data.filter((item) => {
             if (!item) {
@@ -76,128 +65,20 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
         console.error('차트 데이터 변환 오류:', error);
       }
       return data;
-    }, [period, minuteData, periodData]);
+    }, [periodData]);
 
-    const formatChartDate = useCallback(
-      (date: Date): string => {
-        if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-          return '';
-        }
+    const formatChartDate = useCallback((date: Date): string => {
+      if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
+        return '';
+      }
 
-        switch (period) {
-          case 'MINUTE': {
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-
-            // 09:01에는 날짜만 표시
-            if (hours === 9 && minutes === 1) {
-              return `${date.getDate()}일`;
-            }
-
-            // 그 외에는 시간만 표시
-            return date.toLocaleTimeString('ko-KR', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            });
-          }
-          case 'DAY': {
-            const day = date.getDate();
-            if (day === 1) {
-              // 월의 첫 날에는 '월'을 표시
-              return `${date.getMonth() + 1}월`;
-            }
-            return `${day}일`;
-          }
-          case 'WEEK': {
-            const day = date.getDate();
-            if (day <= 7) {
-              // 월의 첫 주에는 '월'을 표시
-              return `${date.getMonth() + 1}월`;
-            }
-            return `${day}일`;
-          }
-          case 'MONTH': {
-            const month = date.getMonth() + 1;
-            if (month === 1) {
-              // 년의 첫 월에는 '년'을 표시
-              return `${date.getFullYear()}년`;
-            }
-            return `${month}월`;
-          }
-          default:
-            return '';
-        }
-      },
-      [period],
-    );
-
-    const createChartDataPoint = useCallback(
-      (data: ChartDataPoint[], index: number, newDate: Date): ChartDataPoint => {
-        const weekData = data.slice(index, index + 5);
-        const volume = weekData.reduce((sum, item) => sum + item.volume, 0);
-        const high = Math.max(...weekData.map((item) => item.high));
-        const low = Math.min(...weekData.map((item) => item.low));
-        const open = weekData[0].open;
-        const close = weekData[weekData.length - 1].close;
-
-        return {
-          date: formatChartDate(newDate),
-          open,
-          high,
-          low,
-          close,
-          volume,
-          changeType: close >= open ? 'RISE' : 'FALL',
-          fiveAverage: 0,
-          twentyAverage: 0,
-          rawDate: newDate,
-          periodType: 'WEEK',
-        };
-      },
-      [formatChartDate],
-    );
-
-    const getWeekData = useCallback(
-      (dayData: ChartDataPoint[]): ChartDataPoint[] => {
-        const weekData: ChartDataPoint[] = [];
-        for (let i = 0; i < dayData.length; i += 5) {
-          const newDate = new Date(dayData[i].date);
-          weekData.push(createChartDataPoint(dayData, i, newDate));
-        }
-        return weekData;
-      },
-      [createChartDataPoint],
-    );
-
-    const getMonthData = useCallback(
-      (dayData: ChartDataPoint[]): ChartDataPoint[] => {
-        const monthData: ChartDataPoint[] = [];
-        let currentMonth = -1;
-        let monthCache: ChartDataPoint[] = [];
-
-        dayData.forEach((item) => {
-          const date = new Date(item.date);
-          const month = date.getMonth();
-
-          if (month !== currentMonth) {
-            if (monthCache.length > 0) {
-              monthData.push(createChartDataPoint(monthCache, 0, new Date(monthCache[0].date)));
-            }
-            monthCache = [];
-            currentMonth = month;
-          }
-          monthCache.push(item);
-        });
-
-        if (monthCache.length > 0) {
-          monthData.push(createChartDataPoint(monthCache, 0, new Date(monthCache[0].date)));
-        }
-
-        return monthData;
-      },
-      [createChartDataPoint],
-    );
+      const day = date.getDate();
+      if (day === 1) {
+        // 월의 첫 날에는 '월'을 표시
+        return `${date.getMonth() + 1}월`;
+      }
+      return `${day}일`;
+    }, []);
 
     const chartData = useMemo(() => {
       if (!rawChartData || rawChartData.length === 0) {
@@ -214,17 +95,11 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
             fiveAverage: 0,
             twentyAverage: 0,
             rawDate: null,
-            periodType: period,
+            periodType: 'DAY',
           }));
       }
 
-      let data = [...rawChartData];
-
-      if (period === 'WEEK' && data.length > 0) {
-        data = getWeekData(data);
-      } else if (period === 'MONTH' && data.length > 0) {
-        data = getMonthData(data);
-      }
+      const data = [...rawChartData];
 
       // 빈 데이터 추가
       const emptyData = Array(EMPTY_DATA_COUNT)
@@ -240,11 +115,11 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
           fiveAverage: 0,
           twentyAverage: 0,
           rawDate: null,
-          periodType: period,
+          periodType: 'DAY',
         }));
 
       return [...emptyData, ...data];
-    }, [rawChartData, period, getWeekData, getMonthData]);
+    }, [rawChartData]);
 
     const xAxisLabels = useMemo(() => {
       return chartData.map((item) => {
@@ -364,14 +239,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
         // 차트데이터와 원본 데이터 매핑
         const realIndex = dataIndex - EMPTY_DATA_COUNT;
         let originalData;
-        if (
-          period === 'MINUTE' &&
-          minuteData?.data &&
-          realIndex >= 0 &&
-          realIndex < minuteData.data.length
-        ) {
-          originalData = minuteData.data[realIndex];
-        } else if (periodData?.data && realIndex >= 0) {
+        if (periodData?.data && realIndex >= 0) {
           const filteredData = periodData.data.filter((d) => d.periodType === '1');
           if (realIndex < filteredData.length) {
             originalData = filteredData[realIndex];
@@ -386,23 +254,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
           const year = rawDate.getFullYear();
           const month = String(rawDate.getMonth() + 1).padStart(2, '0');
           const day = String(rawDate.getDate()).padStart(2, '0');
-          const hours = String(rawDate.getHours()).padStart(2, '0');
-          const minutes = String(rawDate.getMinutes()).padStart(2, '0');
-
-          switch (period) {
-            case 'MINUTE':
-              formattedDate = `${year}-${month}-${day} ${hours}:${minutes}`;
-              break;
-            case 'DAY':
-            case 'WEEK':
-              formattedDate = `${year}-${month}-${day}`;
-              break;
-            case 'MONTH':
-              formattedDate = `${year}-${month}`;
-              break;
-            default:
-              formattedDate = item.date;
-          }
+          formattedDate = `${year}-${month}-${day}`;
         }
 
         let openPercent = 0;
@@ -444,7 +296,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
         거래량: ${formatVolumeNumber(volume)}<br />
       `;
       },
-      [chartData, formatKoreanNumber, formatVolumeNumber, period, minuteData, periodData],
+      [chartData, formatKoreanNumber, formatVolumeNumber, periodData],
     );
 
     const option: EChartsOption = useMemo(
@@ -739,11 +591,8 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
 
     // 데이터 유효성 체크
     const hasValidData = useMemo(() => {
-      return (
-        (periodData?.data && periodData.data.length > 0) ||
-        (minuteData?.data && minuteData.data.length > 0)
-      );
-    }, [minuteData, periodData]);
+      return periodData?.data && periodData.data.length > 0;
+    }, [periodData]);
 
     return (
       <div className="relative">
@@ -751,42 +600,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
           className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
           style={{ backgroundColor: '#0D192B' }}
         >
-          <div className="flex items-center gap-4 p-4 text-sm text-white">
-            <div className="ml-auto flex items-center gap-2">
-              <button
-                className={`rounded px-4 py-2 ${period === 'MINUTE' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-                onClick={() => handlePeriodChange('MINUTE')}
-                type="button"
-                disabled={!hasValidData}
-              >
-                1분
-              </button>
-              <button
-                className={`rounded px-4 py-2 ${period === 'DAY' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-                onClick={() => handlePeriodChange('DAY')}
-                type="button"
-                disabled={!hasValidData}
-              >
-                일
-              </button>
-              <button
-                className={`rounded px-4 py-2 ${period === 'WEEK' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-                onClick={() => handlePeriodChange('WEEK')}
-                type="button"
-                disabled={!hasValidData}
-              >
-                주
-              </button>
-              <button
-                className={`rounded px-4 py-2 ${period === 'MONTH' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-300'}`}
-                onClick={() => handlePeriodChange('MONTH')}
-                type="button"
-                disabled={!hasValidData}
-              >
-                월
-              </button>
-            </div>
-          </div>
+          <div className="flex items-center p-4 text-sm text-white"></div>
           {!hasValidData && (
             <div className="flex h-[600px] items-center justify-center p-4 text-white opacity-50">
               차트 데이터가 없습니다.
