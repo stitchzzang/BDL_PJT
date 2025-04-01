@@ -1,4 +1,7 @@
 // 상수 정의
+import { HTTPError } from 'ky';
+import { toast } from 'react-hot-toast';
+
 const ERROR_CODES = {
   // 1000번대: 회원 관련 오류
   NOT_FOUND_MEMBER: 1000,
@@ -80,12 +83,41 @@ const ERROR_CODES = {
 };
 
 /**
+ * KY 라이브러리 HTTP 에러 처리 함수
+ * @param {HTTPError} error - KY 라이브러리 에러 객체
+ * @param {string} defaultMessage - 기본 에러 메시지
+ */
+const handleKyError = (error: HTTPError, defaultMessage = '요청 처리 중 오류가 발생했습니다.') => {
+  try {
+    if (error.response) {
+      error.response
+        .json()
+        .then((errorData) => {
+          const data = errorData as { message?: string };
+          if (data?.message) {
+            toast.error(data.message);
+          } else {
+            toast.error(defaultMessage);
+          }
+        })
+        .catch(() => {
+          toast.error(defaultMessage);
+        });
+    } else {
+      toast.error(defaultMessage);
+    }
+  } catch (parseError) {
+    toast.error(defaultMessage);
+  }
+};
+
+/**
  * API 에러 응답 처리 함수
  * @param {object} response - API 응답 객체
  */
 const handleApiError = (response: { data: { body: { message: string } } }) => {
   const { message } = response.data.body;
-  alert(message);
+  toast.error(message);
 };
 
-export { ERROR_CODES, handleApiError };
+export { ERROR_CODES, handleApiError, handleKyError };
