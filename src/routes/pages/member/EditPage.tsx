@@ -7,7 +7,6 @@ import { z } from 'zod';
 
 import { useSignout } from '@/api/auth.api';
 import { useUpdateMemberInfo } from '@/api/member.api';
-import { MemberInfo } from '@/api/types/member';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,12 +40,11 @@ export const EditPage = () => {
   const navigate = useNavigate();
   const { userData, updateAuth: updateUserData } = useAuthStore();
   const [tempProfile, setTempProfile] = useState(userData.profile || '');
-  const [originalTempProfile, setOriginalTempProfile] = useState(userData.profile || '');
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [useDefaultProfile, setUseDefaultProfile] = useState(false);
   const [profileChanged, setProfileChanged] = useState(false);
-
+  const [originalTempProfile, setOriginalTempProfile] = useState(userData.profile || '');
   // form 관련 설정
   const form = useForm<EditProfileFormValues>({
     resolver: zodResolver(editProfileSchema),
@@ -69,6 +67,8 @@ export const EditPage = () => {
     form.trigger();
   }, [form]);
 
+  // 이미지 리사이징 함수
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -82,15 +82,14 @@ export const EditPage = () => {
 
     try {
       // 이미지 리사이즈
-      const resizedFile = await getResizeImage(file, 400, 400);
-      setSelectedImage(resizedFile);
+      const resizedFile = await getResizeImage(file);
+      setSelectedFile(resizedFile);
 
       // 미리보기 URL 생성
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
         setTempProfile(result);
-        setOriginalTempProfile(result);
         setProfileChanged(true);
       };
       reader.readAsDataURL(resizedFile);
@@ -102,24 +101,26 @@ export const EditPage = () => {
     }
   };
 
-  const buildUpdateData = (): MemberInfo => {
-    const updateData: MemberInfo = {};
-    const formValues = form.getValues();
-
-    if (nicknameChanged) {
-      updateData.nickname = formValues.nickname;
-    }
-
-    if (profileChanged || useDefaultProfile) {
-      updateData.profileImage = useDefaultProfile ? '' : tempProfile;
-      updateData.deleteProfile = useDefaultProfile;
-    }
-    return updateData;
-  };
-
   const { mutate: updateMemberInfo } = useUpdateMemberInfo({
     memberId: userData.memberId?.toString() || '',
-    data: buildUpdateData,
+    data: () => {
+      const updateData: { nickname?: string; profileImage?: File | null; deleteProfile?: boolean } =
+        {};
+      const formValues = form.getValues();
+
+      if (nicknameChanged) {
+        updateData.nickname = formValues.nickname;
+      }
+
+      if (profileChanged) {
+        if (useDefaultProfile) {
+          updateData.deleteProfile = true;
+        } else if (selectedFile) {
+          updateData.profileImage = selectedFile;
+        }
+      }
+      return updateData;
+    },
     navigateTo: () => navigate('/member'),
     updateUserState: (data) => {
       const updatedData: { nickname?: string; profile?: string | null } = {};
@@ -128,8 +129,8 @@ export const EditPage = () => {
         updatedData.nickname = data.nickname;
       }
 
-      if (data.profileImage !== undefined || data.deleteProfile) {
-        updatedData.profile = data.deleteProfile ? null : data.profileImage || null;
+      if (data.profile !== undefined) {
+        updatedData.profile = data.profile;
       }
 
       updateUserData(updatedData);
@@ -142,8 +143,7 @@ export const EditPage = () => {
 
     if (checked) {
       setTempProfile('');
-    } else {
-      // 체크 해제시 원래 선택했던 이미지로 복원
+      setSelectedFile(null);
       setTempProfile(originalTempProfile);
     }
   };
