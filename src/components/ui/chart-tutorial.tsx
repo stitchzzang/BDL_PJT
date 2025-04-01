@@ -133,7 +133,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
     const day = date.getDate();
     if (day === 1) {
-      // 월의 첫 날에는 '월'을 표시
+      // 월의 첫 날에는 '월'만 표시
       return `${date.getMonth() + 1}월`;
     }
     return `${day}일`;
@@ -188,6 +188,25 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
       return formatChartDate(item.rawDate);
     });
   }, [chartData, formatChartDate]);
+
+  // 날짜가 월의 첫 날인지 확인하는 함수
+  const isFirstDayOfMonth = useCallback((date: Date): boolean => {
+    return date instanceof Date && !isNaN(date.getTime()) && date.getDate() === 1;
+  }, []);
+
+  // X축 라벨 스타일 설정 (월의 첫 날은 굵게 표시)
+  const getXAxisLabelStyle = useCallback(
+    (index: number): any => {
+      const item = chartData[index];
+      if (item?.rawDate && isFirstDayOfMonth(item.rawDate)) {
+        return {
+          fontWeight: 'bold',
+        };
+      }
+      return {};
+    },
+    [chartData, isFirstDayOfMonth],
+  );
 
   const candleData = useMemo(() => {
     return chartData.map((item) => [
@@ -441,7 +460,20 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
             color: 'rgba(255, 255, 255, 0.7)',
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
-            formatter: (value: string) => value,
+            formatter: (value: string, index: number) => {
+              // 날짜가 월의 첫 날인 경우 굵게 표시
+              const item = chartData[index];
+              if (item?.rawDate && isFirstDayOfMonth(item.rawDate)) {
+                return `{bold|${value}}`;
+              }
+              return value;
+            },
+            rich: {
+              bold: {
+                fontWeight: 'bold',
+                color: 'rgba(255, 255, 255, 0.9)',
+              },
+            },
           },
         },
         {
@@ -645,6 +677,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
       getItemStyle,
       dataZoomRange,
       tooltipFormatter,
+      isFirstDayOfMonth,
     ],
   );
 

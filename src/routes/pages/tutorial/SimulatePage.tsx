@@ -749,7 +749,7 @@ export const SimulatePage = () => {
   }, [stockData]);
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col px-6">
       <div>
         <StockTutorialInfo
           companyId={companyId}
