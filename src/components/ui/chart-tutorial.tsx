@@ -96,39 +96,31 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
   // 데이터가 변경될 때마다 로그 출력
   useEffect(() => {
-    if (periodData) {
-      // 일봉 데이터만 필터링
-      const dayCandles =
-        periodData.data?.filter((item) => item.periodType === DAY_PERIOD_TYPE) || [];
-    }
+    // 차트 데이터 변경 시 필요한 작업이 있다면 여기에 추가
   }, [periodData]);
 
   // 데이터 변환 및 필터링
   const rawChartData = useMemo(() => {
     let data: ChartDataPoint[] = [];
 
-    try {
-      if (periodData?.data && Array.isArray(periodData.data) && periodData.data.length > 0) {
-        // 일봉 데이터만 필터링 (periodType이 1인 데이터)
-        const filteredData = periodData.data.filter(
-          (item) => item && item.periodType === DAY_PERIOD_TYPE,
-        );
+    if (periodData?.data && Array.isArray(periodData.data) && periodData.data.length > 0) {
+      // 일봉 데이터만 필터링 (periodType이 1인 데이터)
+      const filteredData = periodData.data.filter(
+        (item) => item && item.periodType === DAY_PERIOD_TYPE,
+      );
 
-        if (filteredData.length > 0) {
-          // 날짜 기준으로 정렬
-          const sortedData = [...filteredData].sort((a, b) => {
-            if (!a.tradingDate || !b.tradingDate) return 0;
-            const dateA = new Date(a.tradingDate);
-            const dateB = new Date(b.tradingDate);
-            return dateA.getTime() - dateB.getTime();
-          });
+      if (filteredData.length > 0) {
+        // 날짜 기준으로 정렬
+        const sortedData = [...filteredData].sort((a, b) => {
+          if (!a.tradingDate || !b.tradingDate) return 0;
+          const dateA = new Date(a.tradingDate);
+          const dateB = new Date(b.tradingDate);
+          return dateA.getTime() - dateB.getTime();
+        });
 
-          // 필터링 및 정렬된 데이터만 변환
-          data = sortedData.map(convertPeriodCandleToChartData);
-        }
+        // 필터링 및 정렬된 데이터만 변환
+        data = sortedData.map(convertPeriodCandleToChartData);
       }
-    } catch (error) {
-      // 오류 처리
     }
 
     return data;
@@ -665,7 +657,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     return false;
   }, [periodData]);
 
-  // 디버깅을 위한 로그
   useEffect(() => {
     if (hasValidData && chartRef.current) {
       // 차트 인스턴스에 접근하여 필요한 경우 추가 설정
