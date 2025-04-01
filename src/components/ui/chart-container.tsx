@@ -99,22 +99,32 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
         </div>
       </div>
       <div className="mx-2 mb-[10px] mt-[25px] border-b  border-border-color border-opacity-20"></div>
-      <div className="grid grid-cols-10">
-        <div className="col-span-8">
+      {tickData ? (
+        <div className="grid grid-cols-10">
+          <div className="col-span-8">
+            {chartType === 'minute' && (
+              <MinuteChart initialData={initialData} companyId={companyId} />
+            )}
+            {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
+            {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}
+          </div>
+          <div className="col-span-2 mb-2  mr-2  rounded-2xl border border-border-color border-opacity-20">
+            <TickCandleChart
+              tickData={tickData}
+              height={400}
+              basePrice={initialData?.data[0]?.openPrice} // 초기 기준가
+            />
+          </div>
+        </div>
+      ) : (
+        <>
           {chartType === 'minute' && (
             <MinuteChart initialData={initialData} companyId={companyId} />
           )}
           {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
           {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}
-        </div>
-        <div className="col-span-2 mb-2  mr-2  rounded-2xl border border-border-color border-opacity-20">
-          <TickCandleChart
-            tickData={tickData}
-            height={400}
-            basePrice={initialData?.data[0]?.openPrice} // 초기 기준가
-          />
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };
