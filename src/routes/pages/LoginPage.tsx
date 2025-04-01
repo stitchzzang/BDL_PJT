@@ -62,12 +62,9 @@ export const LoginPage = () => {
             {isPending ? '로그인 중...' : '로그인'}
           </Button>
           <div className="flex w-full flex-row items-end justify-end gap-5">
-            <button type="button" className="text-base text-border-color hover:text-primary-color">
-              비밀번호 찾기
-            </button>
             <button
               type="button"
-              className="text-base text-border-color hover:text-primary-color"
+              className="text-base font-semibold text-primary-color hover:text-primary-color/80"
               onClick={() => navigate('/signup')}
             >
               회원가입
