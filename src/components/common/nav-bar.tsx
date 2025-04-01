@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export const NavBar = () => {
-  const { isLogin } = useAuthStore();
+  const { isLogin, userData } = useAuthStore();
   const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -192,7 +192,7 @@ export const NavBar = () => {
             }
           >
             <img
-              src="/none-img/none_profile_img.png"
+              src={userData.profile || '/none-img/none_profile_img.png'}
               alt="profile"
               className="h-[32px] w-[32px] rounded-full border-2 border-transparent transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
             />
