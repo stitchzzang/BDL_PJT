@@ -669,11 +669,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
         className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
         style={{ backgroundColor: '#0D192B' }}
       >
-        <div className="flex items-center p-4 text-sm text-white">
-          <div className="ml-auto">
-            <p className="font-medium">일봉 차트</p>
-          </div>
-        </div>
+        <div className="flex items-center p-4 text-sm text-white"></div>
         {!hasValidData && (
           <div className="flex h-[600px] items-center justify-center p-4 text-white opacity-50">
             <div className="text-center">

@@ -760,9 +760,9 @@ export const SimulatePage = () => {
           <div className="flex items-center gap-2">
             <p className="text-border-color">진행 기간 : </p>
             <div className="flex gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
-              <p>{tutorialDateRange.startDate || '2024-03-21'}</p>
+              <p>{tutorialDateRange.startDate}</p>
               <span className="font-bold text-border-color"> - </span>
-              <p>{tutorialDateRange.endDate || '2024-11-21'}</p>
+              <p>{tutorialDateRange.endDate}</p>
             </div>
           </div>
         </div>
