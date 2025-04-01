@@ -85,7 +85,11 @@ export const SimulatedInvestmentPage = () => {
     <div className="flex h-full w-full flex-col px-6">
       <div>
         <div>
-          <StockInfo category="반도체" tickData={tickData} closePrice={closePrice} />
+          <StockInfo
+            stockCompanyInfo={stockCompanyInfo}
+            tickData={tickData}
+            closePrice={closePrice}
+          />
         </div>
         <div className="mb-[16px] mt-[30px] flex justify-between">
           <div className="flex items-center gap-2">
@@ -109,7 +113,7 @@ export const SimulatedInvestmentPage = () => {
           {tickData ? (
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-10">
-                <ChartContainer initialData={minuteData} />
+                <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
               </div>
               <div className="col-span-2">
                 <TickCandleChart
@@ -121,7 +125,7 @@ export const SimulatedInvestmentPage = () => {
             </div>
           ) : (
             <div className="">
-              <ChartContainer initialData={minuteData} />
+              <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
             </div>
           )}
         </div>

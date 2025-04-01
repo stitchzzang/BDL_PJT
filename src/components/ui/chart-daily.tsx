@@ -62,7 +62,7 @@ enum PeriodType {
 }
 
 interface PeriodChartProps {
-  companyId?: string;
+  companyId?: number;
   height?: number;
   initialLimit?: number;
   initialData?: StockPeriodDefaultData;
@@ -121,7 +121,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   apiBaseUrl = '/api',
 }) => {
   // 초기 데이터 (일별 데이터)
-  const { data: stockDailyData, isLoading, isError } = useStockDailyData(1, 1, 50);
+  const { data: stockDailyData, isLoading, isError } = useStockDailyData(companyId ?? 1, 1, 50);
 
   // 상태 관리
   const [chartData, setChartData] = useState<StockPeriodDefaultData | undefined>(initialData);
@@ -483,7 +483,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
         // 직접 _ky 사용하여 API 호출
         _ky
-          .get(`stocks/${1}/daily`, {
+          .get(`stocks/${companyId}/daily`, {
             searchParams: {
               periodType: 1,
               cursor: cursorValue,
