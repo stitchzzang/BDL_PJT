@@ -74,6 +74,15 @@ const parseYYMMDDToDate = (dateStr: string): Date => {
   return new Date(`20${yy}-${mm}-${dd}`);
 };
 
+// YYMMDD 형식의 문자열을 YYYY-MM-DD 형식으로 변환하는 함수
+const formatYYMMDDToYYYYMMDD = (dateStr: string): string => {
+  if (!dateStr || dateStr.length !== 6) return '';
+  const yy = dateStr.slice(0, 2);
+  const mm = dateStr.slice(2, 4);
+  const dd = dateStr.slice(4, 6);
+  return `20${yy}-${mm}-${dd}`;
+};
+
 const TutorialEndModal = ({
   isOpen,
   onClose,
@@ -760,9 +769,9 @@ export const SimulatePage = () => {
           <div className="flex items-center gap-2">
             <p className="text-border-color">진행 기간 : </p>
             <div className="flex gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
-              <p>{tutorialDateRange.startDate}</p>
+              <p>{formatYYMMDDToYYYYMMDD(tutorialDateRange.startDate)}</p>
               <span className="font-bold text-border-color"> - </span>
-              <p>{tutorialDateRange.endDate}</p>
+              <p>{formatYYMMDDToYYYYMMDD(tutorialDateRange.endDate)}</p>
             </div>
           </div>
         </div>
