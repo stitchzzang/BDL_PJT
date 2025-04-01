@@ -82,7 +82,7 @@ export const NavBar = () => {
               }`
             }
           >
-            종목 검색
+            모의 투자
           </NavLink>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
@@ -152,7 +152,7 @@ export const NavBar = () => {
               }
               onClick={() => setIsOpen(false)}
             >
-              종목 검색
+              모의 투자
             </NavLink>
             <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
               <button

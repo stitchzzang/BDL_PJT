@@ -62,13 +62,13 @@ export const SearchPage = () => {
       <div className="mx-5 flex max-w-xl flex-col items-center justify-center gap-4">
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="group flex flex-col items-center justify-center gap-[10px]">
-            <h1 className="text-[28px] font-bold">종목 검색</h1>
+            <h1 className="text-[28px] font-bold">모의 투자</h1>
             <div className="flex w-full items-center justify-center gap-4 rounded-xl border border-border-color border-opacity-40 p-2 py-4 transition-all duration-300 group-hover:border-btn-blue-color">
               <div>
                 <SearchAnimation />
               </div>
               <div>
-                <p className="text-[16px]">원하시는 기업의 정보를 확인할 수 있습니다.</p>
+                <p className="text-[16px]">원하시는 기업의 정보를 확인해보세요!</p>
                 <p>
                   <span className="text-[16px] font-bold text-btn-blue-color">기업명</span>을
                   입력하거나{' '}
@@ -76,11 +76,9 @@ export const SearchPage = () => {
                   선택해보세요.
                 </p>
                 <p className="text-[16px]">
-                  관심있는 기업을 검색하고{' '}
-                  <span className="text-[16px] font-bold text-btn-blue-color">
-                    투자 및 튜토리얼을 시작
-                  </span>
-                  해보세요!
+                  현재가를 확인하고{' '}
+                  <span className="text-[16px] font-bold text-btn-blue-color">모의 투자</span>를
+                  시작해보세요!
                 </p>
               </div>
             </div>
