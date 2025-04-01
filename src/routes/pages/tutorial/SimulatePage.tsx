@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
-  useGetEndPointId,
   useGetNewsComment,
   useGetPastNews,
   useGetStartPointId,
@@ -153,8 +152,7 @@ export const SimulatePage = () => {
   const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);
 
   // API 로딩 상태
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
 
   // 빈 차트 데이터를 반환하는 함수
   const getEmptyChartData = useCallback(
@@ -193,14 +191,14 @@ export const SimulatePage = () => {
   });
 
   // API 훅 설정
-  const { data: top3PointsResponse } = useGetTop3Points(companyId);
+  const { data: top3PointsResponse, isLoading: isTop3PointsLoading } = useGetTop3Points(companyId);
   const { data: startPointIdResponse } = useGetStartPointId();
-  const { data: endPointIdResponse } = useGetEndPointId();
-  const { refetch: fetchTutorialStockData } = useGetTutorialStockData(
-    companyId,
-    currentSession.startStockCandleId || 0,
-    currentSession.endStockCandleId || 0,
-  );
+  const { refetch: fetchTutorialStockData, isLoading: isStockDataLoading } =
+    useGetTutorialStockData(
+      companyId,
+      currentSession.startStockCandleId || 0,
+      currentSession.endStockCandleId || 0,
+    );
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
@@ -216,6 +214,11 @@ export const SimulatePage = () => {
   const top3Points = top3PointsResponse?.result?.PointResponseList;
   const startPointId = startPointIdResponse?.result;
   const tutorialFeedback = tutorialFeedbackResponse?.result;
+
+  // 전체 로딩 상태 관리
+  useEffect(() => {
+    setIsLoading(isTop3PointsLoading || isStockDataLoading);
+  }, [isTop3PointsLoading, isStockDataLoading]);
 
   // 튜토리얼 완료 처리 함수 (useCallback으로 감싸기)
   const completeTutorial = useCallback(async () => {
@@ -264,7 +267,7 @@ export const SimulatePage = () => {
         currentPointIndex: 0, // 현재 변곡점 인덱스
       });
     }
-  }, [isTutorialStarted, startPointId, top3Points]);
+  }, [isTutorialStarted, startPointId, top3Points, companyId]);
 
   // API 응답을 Chart 컴포넌트 형식으로 변환하는 함수
   const convertToPeriodData = (result: TutorialStockResponse): CandleResponse<PeriodCandleData> => {
@@ -339,11 +342,7 @@ export const SimulatePage = () => {
               setLatestPrice(lastCandle.closePrice);
               console.log('최신 가격 업데이트 (비일봉):', lastCandle.closePrice);
             }
-          } else {
-            console.warn('튜토리얼 일봉 데이터가 없습니다.');
           }
-        } else {
-          console.warn('튜토리얼 일봉 데이터 결과가 없습니다.');
         }
       } catch (error) {
         console.error('튜토리얼 일봉 데이터 로드 실패:', error);

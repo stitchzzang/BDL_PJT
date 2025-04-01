@@ -18,6 +18,32 @@ interface CompanyProfileResponse {
   categories: string[];
 }
 
+// 변곡점 데이터 타입 정의
+interface InflectionPoint {
+  stockCandleId: number;
+  date: string;
+}
+
+// 주가 데이터 타입 정의
+interface StockCandleData {
+  stockCandleId: number;
+  companyId: string;
+  openPrice: number;
+  openPricePercent: number;
+  highPrice: number;
+  highPricePercent: number;
+  lowPrice: number;
+  lowPricePercent: number;
+  closePrice: number;
+  closePricePercent: number;
+  accumulatedVolume: number;
+  accumulatedTradeAmount: number;
+  tradingDate: string;
+  periodType: number;
+  fiveAverage: number;
+  twentyAverage: number;
+}
+
 export interface StockInfoProps {
   companyId: number;
   isTutorialStarted?: boolean;
@@ -49,37 +75,157 @@ export const StockTutorialInfo = ({
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
+  const [inflectionPoints, setInflectionPoints] = useState<InflectionPoint[]>([]);
+  const [selectedSegment, setSelectedSegment] = useState<number>(0);
   const authData = useAuthStore();
   const initSessionMutation = useInitSession();
 
   // 회사 정보 가져오기
   const { data: companyInfo } = useQuery<CompanyProfileResponse>({
     queryKey: ['company', companyId, 'profile'],
-    queryFn: () =>
-      _ky
-        .get(`company/${companyId}`)
-        .json<ApiResponse<CompanyProfileResponse>>()
-        .then((res) => res.result),
+    queryFn: async () => {
+      try {
+        const response = await _ky.get(`company/${companyId}`);
+        return response.json<ApiResponse<CompanyProfileResponse>>().then((res) => res.result);
+      } catch (error) {
+        console.error(`회사 정보 가져오기 실패 (CompanyID: ${companyId}):`, error);
+        // 기본 데이터 반환
+        return {
+          companyImage: TestImage,
+          companyName: `회사 ${companyId}`,
+          categories: ['전체'],
+        } as CompanyProfileResponse;
+      }
+    },
     enabled: !!companyId,
   });
 
-  // 현재 가격 정보를 가져오기 위한 API 호출을 추가
+  // 변곡점 정보 가져오기
   useEffect(() => {
-    // 기존 가격 정보를 임시 데이터로 설정 (실제로는 API에서 받아와야 함)
+    const fetchInflectionPoints = async () => {
+      try {
+        // 기존 API를 활용하여 데이터를 가져온 후 변곡점을 계산
+        const response = await _ky
+          .get(`stocks/${companyId}/tutorial?startStockCandleId=1&endStockCandleId=1000`)
+          .json<ApiResponse<{ data: StockCandleData[] }>>();
+
+        // 받아온 데이터에서 변곡점 계산 (예: 가격 변화가 큰 지점)
+        const stockData = response.result.data;
+        const calculatedPoints: InflectionPoint[] = [];
+
+        if (stockData.length > 0) {
+          // 전체 데이터를 5개 구간으로 나누어 각 구간의 중요 지점을 찾기
+          const chunkSize = Math.floor(stockData.length / 5);
+
+          for (let i = 1; i < 4; i++) {
+            // TOP3 변곡점만 필요
+            const startIndex = i * chunkSize;
+            const endIndex = Math.min((i + 1) * chunkSize, stockData.length - 1);
+
+            // 구간 내에서 가장 가격 변화가 큰 포인트 찾기
+            let maxChangePoint = stockData[startIndex];
+            let maxChange = 0;
+
+            for (let j = startIndex; j < endIndex; j++) {
+              const priceChange = Math.abs(
+                stockData[j].closePrice - stockData[j > 0 ? j - 1 : 0].closePrice,
+              );
+              if (priceChange > maxChange) {
+                maxChange = priceChange;
+                maxChangePoint = stockData[j];
+              }
+            }
+
+            calculatedPoints.push({
+              stockCandleId: maxChangePoint.stockCandleId,
+              date: maxChangePoint.tradingDate,
+            });
+          }
+        }
+
+        setInflectionPoints(calculatedPoints);
+        console.log(`회사 ${companyId}의 변곡점 정보 계산 완료:`, calculatedPoints);
+      } catch (error) {
+        console.error(`회사 ${companyId}의 주가 데이터 가져오기 실패:`, error);
+        setInflectionPoints([]);
+      }
+    };
+
+    if (companyId) {
+      fetchInflectionPoints();
+    }
+  }, [companyId]);
+
+  // 현재 가격 정보를 가져오기 위한 API 호출
+  useEffect(() => {
     const fetchPrice = async () => {
       try {
-        // 실제 API 연동 시 아래 코드를 사용
-        const response = await _ky.get(`stock/price/${companyId}`).json<ApiResponse<number>>();
-        setCurrentPrice(response.result);
+        if (inflectionPoints.length === 0) {
+          // 변곡점 정보가 없는 경우 기본 범위로 조회
+          const response = await _ky
+            .get(`stocks/${companyId}/tutorial?startStockCandleId=30&endStockCandleId=100`)
+            .json<ApiResponse<{ data: StockCandleData[] }>>();
+
+          const latestData = response.result.data[response.result.data.length - 1];
+          setCurrentPrice(latestData.closePrice);
+          return;
+        }
+
+        // 선택된 세그먼트에 따라 시작점과 끝점 결정
+        let startId: number;
+        let endId: number;
+
+        // 기본 시작점과 끝점 (고정 값 대체)
+        const initialPoint = 1; // 가장 초기 지점 (ID 1번으로 가정)
+        const latestPoint = 1000; // 가장 최근 지점 (ID 1000번으로 가정)
+
+        switch (selectedSegment) {
+          case 0: // 첫 번째 구간: 초기 지점 ~ 변곡점 1
+            startId = initialPoint;
+            endId = inflectionPoints[0]?.stockCandleId || 100;
+            break;
+          case 1: // 두 번째 구간: 변곡점 1 ~ 변곡점 2
+            startId = inflectionPoints[0]?.stockCandleId || 100;
+            endId = inflectionPoints[1]?.stockCandleId || 200;
+            break;
+          case 2: // 세 번째 구간: 변곡점 2 ~ 변곡점 3
+            startId = inflectionPoints[1]?.stockCandleId || 200;
+            endId = inflectionPoints[2]?.stockCandleId || 300;
+            break;
+          case 3: // 네 번째 구간: 변곡점 3 ~ 최근 지점
+            startId = inflectionPoints[2]?.stockCandleId || 300;
+            endId = latestPoint;
+            break;
+          default:
+            startId = initialPoint;
+            endId = latestPoint;
+        }
+
+        // 선택된 구간에 따라 가격 데이터 조회
+        const response = await _ky
+          .get(
+            `stocks/${companyId}/tutorial?startStockCandleId=${startId}&endStockCandleId=${endId}`,
+          )
+          .json<ApiResponse<{ data: StockCandleData[] }>>();
+
+        // 데이터 배열에서 가장 최신 값(마지막 값)의 closePrice 가져오기
+        const latestData = response.result.data[response.result.data.length - 1];
+        setCurrentPrice(latestData.closePrice);
+        console.log(
+          `회사 ${companyId}의 가격 정보 로드 성공 (구간 ${selectedSegment}):`,
+          latestData.closePrice,
+        );
       } catch (error) {
-        // console.error('가격 정보 가져오기 실패:', error); // Linter 오류 방지를 위해 주석 처리 또는 삭제
+        console.error(`회사 ${companyId}의 튜토리얼 가격 정보 가져오기 실패:`, error);
+        // 오류 발생 시 기본 가격 설정 (예: 50000원)
+        setCurrentPrice(50000);
       }
     };
 
     if (companyId) {
       fetchPrice();
     }
-  }, [companyId]); // companyId가 변경될 때만 실행
+  }, [companyId, inflectionPoints, selectedSegment]); // companyId, inflectionPoints, selectedSegment가 변경될 때 실행
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
@@ -142,6 +288,11 @@ export const StockTutorialInfo = ({
     }
   };
 
+  // 구간 선택 버튼 핸들러
+  const handleSegmentChange = (segmentIndex: number) => {
+    setSelectedSegment(segmentIndex);
+  };
+
   return (
     <div>
       <div className="flex items-center">
@@ -177,6 +328,38 @@ export const StockTutorialInfo = ({
                 ))}
               </div>
             </div>
+            {inflectionPoints.length > 0 && (
+              <div className="mt-2 flex gap-2">
+                <Button
+                  variant={selectedSegment === 0 ? 'default' : 'outline'}
+                  onClick={() => handleSegmentChange(0)}
+                  size="sm"
+                >
+                  구간 1
+                </Button>
+                <Button
+                  variant={selectedSegment === 1 ? 'default' : 'outline'}
+                  onClick={() => handleSegmentChange(1)}
+                  size="sm"
+                >
+                  구간 2
+                </Button>
+                <Button
+                  variant={selectedSegment === 2 ? 'default' : 'outline'}
+                  onClick={() => handleSegmentChange(2)}
+                  size="sm"
+                >
+                  구간 3
+                </Button>
+                <Button
+                  variant={selectedSegment === 3 ? 'default' : 'outline'}
+                  onClick={() => handleSegmentChange(3)}
+                  size="sm"
+                >
+                  구간 4
+                </Button>
+              </div>
+            )}
             <div className="mt-2">
               <Button
                 className="max-w-[225px]"
