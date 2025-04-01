@@ -162,3 +162,11 @@ export interface OrderbookDatas {
   askLevels: OrderbookData[];
   bidLevels: OrderbookData[];
 }
+
+// 회사 정보
+export interface CompanyInfo {
+  companyImage: string;
+  companyCode: string;
+  companyName: string;
+  categories: string[];
+}

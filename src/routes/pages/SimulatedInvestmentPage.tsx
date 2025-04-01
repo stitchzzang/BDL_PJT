@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
@@ -18,9 +19,16 @@ import { useTickConnection } from '@/services/SocketStockTickDataService';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 
 export const SimulatedInvestmentPage = () => {
+  const { companyId } = useParams(); // companyId 주소 파라미터에서 가져오기
+  const stockCompanyId = Number(companyId); // 숫자로 변환
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
-  const { data: minuteData, isLoading, isError, isSuccess } = useStockMinuteData(1, 100);
+  const {
+    data: minuteData,
+    isLoading,
+    isError,
+    isSuccess,
+  } = useStockMinuteData(stockCompanyId, 100);
   const [closePrice, setClosePrice] = useState<number>(0);
   // 초기 데이터  일,주,월
   const { data: stockDailyData } = useStockDailyData(1, 1, 30);
