@@ -4,6 +4,7 @@ import { useChangeUserSimulated } from '@/api/stock.api';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { queryClient } from '@/lib/queryClient';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 export interface OrderStatusShellProps {
   closePrice: number; // 종가
@@ -54,6 +55,7 @@ export const OrderStatusEditor = ({
       {
         onSuccess: () => {
           alert('주문이 성공적으로 수정되었습니다.');
+          queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
         },
         onError: () => {
           alert('주문 수정에 실패했습니다.');
@@ -170,7 +172,7 @@ export const OrderStatusEditor = ({
               <div className="min-w-[74px]" />
               <div className="relative flex w-full max-w-[80%] flex-col gap-2">
                 <NumberPriceInput
-                  value={0}
+                  value={shellCost}
                   setValue={setShellCost}
                   placeholder={`${shellCost.toLocaleString()}원`}
                   tickSize={tickSize}
