@@ -163,6 +163,12 @@ export const SimulatePage = () => {
     currentPointIndex: 0,
   });
 
+  // 날짜 상태 추가
+  const [tutorialDateRange, setTutorialDateRange] = useState({
+    startDate: '',
+    endDate: '',
+  });
+
   // API 훅 설정
   const { data: top3PointsResponse, isLoading: isTop3PointsLoading } = useGetTop3Points(companyId);
   const { data: startPointIdResponse } = useGetStartPointId(companyId);
@@ -228,6 +234,26 @@ export const SimulatePage = () => {
     if (companyId && startPointId && endPointId) {
       setIsChartLoading(true);
       console.log('전체 차트 데이터 로드 시작:', { companyId, startPointId, endPointId });
+
+      // 1년 전 날짜와 현재 날짜 계산
+      const currentDate = new Date();
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
+
+      // YYYY-MM-DD 형식
+      const formattedStartDate = oneYearAgo.toISOString().split('T')[0];
+      const formattedEndDate = currentDate.toISOString().split('T')[0];
+
+      // 날짜 상태 업데이트
+      setTutorialDateRange({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+      });
+
+      console.log('기간 설정:', {
+        startDate: formattedStartDate,
+        endDate: formattedEndDate,
+      });
 
       // 시작점과 종료점 ID는 이미 훅에서 최소/최대로 처리됨
       fetchFullChartData()
@@ -431,13 +457,18 @@ export const SimulatePage = () => {
     if (!memberId) return; // memberId 확인
 
     try {
+      // 현재 날짜와 1년 전 날짜 계산
+      const currentDate = new Date();
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
+
       await saveTutorialResult.mutateAsync({
         companyId,
         startMoney: 10000000,
         endMoney: assetInfo.currentTotalAsset,
         changeRate: assetInfo.totalReturnRate,
-        startDate: new Date().toISOString(), // TODO: 실제 시작 날짜 필요
-        endDate: new Date().toISOString(), // TODO: 실제 종료 날짜 필요
+        startDate: oneYearAgo.toISOString(), // 1년 전 날짜
+        endDate: currentDate.toISOString(), // 현재 날짜
         memberId: memberId,
       });
       setIsModalOpen(true);
@@ -676,6 +707,7 @@ export const SimulatePage = () => {
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
+          dateRange={tutorialDateRange}
         />
         <div className="my-[25px]">
           <StockProgress progress={progress} onProgressChange={setProgress} />
@@ -690,9 +722,9 @@ export const SimulatePage = () => {
           <div className="flex items-center gap-2">
             <p className="text-border-color">진행 기간 : </p>
             <div className="flex gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
-              <p>2024-03-21</p> {/* TODO: 실제 시작/종료 날짜 반영 */}
+              <p>{tutorialDateRange.startDate || '2024-03-21'}</p>
               <span className="font-bold text-border-color"> - </span>
-              <p>2024-11-21</p> {/* TODO: 실제 시작/종료 날짜 반영 */}
+              <p>{tutorialDateRange.endDate || '2024-11-21'}</p>
             </div>
           </div>
         </div>

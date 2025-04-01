@@ -117,16 +117,19 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     let data: ChartDataPoint[] = [];
 
     try {
-      if (periodData?.data && periodData.data.length > 0) {
+      if (periodData?.data && Array.isArray(periodData.data) && periodData.data.length > 0) {
         console.log('periodData 받음, 데이터 수:', periodData.data.length);
 
         // 일봉 데이터만 필터링 (periodType이 1인 데이터)
-        const filteredData = periodData.data.filter((item) => item.periodType === DAY_PERIOD_TYPE);
+        const filteredData = periodData.data.filter(
+          (item) => item && item.periodType === DAY_PERIOD_TYPE,
+        );
         console.log('일봉 데이터 필터링 결과:', filteredData.length);
 
         if (filteredData.length > 0) {
           // 날짜 기준으로 정렬
           const sortedData = [...filteredData].sort((a, b) => {
+            if (!a.tradingDate || !b.tradingDate) return 0;
             const dateA = new Date(a.tradingDate);
             const dateB = new Date(b.tradingDate);
             return dateA.getTime() - dateB.getTime();
@@ -162,7 +165,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
   }, []);
 
   const chartData = useMemo(() => {
-    if (!rawChartData || rawChartData.length === 0) {
+    if (!rawChartData || !Array.isArray(rawChartData) || rawChartData.length === 0) {
       console.log('rawChartData가 없어 빈 차트 데이터 생성');
       return Array(EMPTY_DATA_COUNT)
         .fill(null)

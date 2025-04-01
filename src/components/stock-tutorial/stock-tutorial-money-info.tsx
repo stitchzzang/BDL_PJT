@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 export interface StockTutorialMoneyInfoProps {
