@@ -11,6 +11,7 @@ import {
 } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
 import TestImage from '@/assets/test/stock-test.png';
+import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
@@ -239,24 +240,33 @@ export const StockTutorialInfo = ({
     setSelectedSegment(segmentIndex);
   };
 
+  const handleHelpClick = () => {
+    // 도움말 클릭 핸들러 구현
+    console.log('Help clicked');
+  };
+
   return (
-    <div>
-      <div className="flex items-center">
+    <div className="bg-card-background-color rounded-xl p-6">
+      <div className="flex items-start justify-between">
         <div className="flex w-full items-start gap-[20px] sm:items-center">
           <div className="max-h-[70px] max-w-[70px] overflow-hidden rounded-xl">
             <img
               src={companyInfo?.companyImage || TestImage}
               alt={`${companyInfo?.companyName || '회사'}-로고`}
+              className="h-full w-full object-cover"
             />
           </div>
           <div className="flex w-full flex-col">
-            <div className="flex items-center gap-2">
-              <h3 className="text-[20px] font-medium text-white">
-                {companyInfo?.companyName || '회사명'}
-              </h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h3 className="text-[20px] font-medium text-white">
+                  {companyInfo?.companyName || '회사명'}
+                </h3>
+              </div>
+              <StockTutorialHelp onClick={handleHelpClick} />
             </div>
 
-            <div className="flex flex-col gap-[18px] sm:flex-row">
+            <div className="mt-2 flex flex-col gap-[18px] sm:flex-row">
               <h3 className="text-[30px] font-medium text-white">
                 {addCommasToThousand(currentPrice || 0)}원
               </h3>
@@ -275,7 +285,7 @@ export const StockTutorialInfo = ({
               </div>
             </div>
             {inflectionPoints.length > 0 && (
-              <div className="mt-2 flex gap-2">
+              <div className="mt-4 flex gap-2">
                 <Button
                   variant={selectedSegment === 0 ? 'default' : 'outline'}
                   onClick={() => handleSegmentChange(0)}
@@ -306,9 +316,9 @@ export const StockTutorialInfo = ({
                 </Button>
               </div>
             )}
-            <div className="mt-2">
+            <div className="mt-4">
               <Button
-                className="max-w-[225px]"
+                className="w-full max-w-[225px]"
                 variant={'green'}
                 size={'lg'}
                 onClick={handleTutorialStart}
