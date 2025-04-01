@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { useStockDailyData, useStockMinuteData } from '@/api/stock.api';
+import { useCompanyInfoData, useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
@@ -23,15 +23,11 @@ export const SimulatedInvestmentPage = () => {
   const stockCompanyId = Number(companyId); // 숫자로 변환
   const todayData = getTodayFormatted();
   //초기 데이터 설정 및 소켓 연결
-  const {
-    data: minuteData,
-    isLoading,
-    isError,
-    isSuccess,
-  } = useStockMinuteData(stockCompanyId, 100);
+  const { data: stockCompanyInfo, isLoading, isError } = useCompanyInfoData(stockCompanyId);
+  const { data: minuteData, isSuccess } = useStockMinuteData(stockCompanyId, 100);
   const [closePrice, setClosePrice] = useState<number>(0);
-  // 초기 데이터  일,주,월
-  const { data: stockDailyData } = useStockDailyData(1, 1, 30);
+  // 초기 데이터  일,주,월(1=일, 2=주, 3=월)
+  const { data: stockDailyData } = useStockDailyData(stockCompanyId, 1, 30);
 
   // 소켓 연결 관련 훅
   const { IsConnected, connectTick, disconnectTick } = useTickConnection();
@@ -53,9 +49,9 @@ export const SimulatedInvestmentPage = () => {
       setClosePrice(minuteData.data[0].closePrice);
     }
     // 데이터 확인 후 진행
-    if (isSuccess && minuteData && stockDailyData) {
+    if (isSuccess && minuteData && stockDailyData && stockCompanyInfo) {
       // 소켓 연결 시작
-      connectTick('000660', setTickData);
+      connectTick(stockCompanyInfo?.companyCode, setTickData);
 
       //컴포넌트 언마운트 시 해제
       return () => {
@@ -78,9 +74,12 @@ export const SimulatedInvestmentPage = () => {
     );
   }
   if (isError) {
-    <div>
-      <ErrorScreen />
-    </div>;
+    return (
+      <div className="flex flex-col items-center justify-center">
+        <ErrorScreen />
+        <p className="font-light text-border-color">(현재 잘못된 종목 페이지입니다.)</p>
+      </div>
+    );
   }
   return (
     <div className="flex h-full w-full flex-col px-6">
@@ -149,7 +148,7 @@ export const SimulatedInvestmentPage = () => {
           <StockInfoDetail />
         </div>
         <div className="col-span-2">
-          <SellingPrice />
+          <SellingPrice stockCompanyInfo={stockCompanyInfo} />
         </div>
       </div>
     </div>
