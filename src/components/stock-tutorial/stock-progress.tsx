@@ -2,13 +2,24 @@ import { useEffect, useRef, useState } from 'react';
 
 // Props 인터페이스 정의
 interface StockProgressProps {
+  progress?: number; // 외부에서 받은 진행률
   onProgressChange: (progress: number) => void; // 진행률 변경 시 호출될 콜백
 }
 
-export const StockProgress = ({ onProgressChange }: StockProgressProps) => {
-  const [progress, setProgress] = useState<number>(0);
+export const StockProgress = ({
+  progress: externalProgress,
+  onProgressChange,
+}: StockProgressProps) => {
+  const [internalProgress, setInternalProgress] = useState<number>(externalProgress || 0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
+
+  // 외부 progress가 변경되면 내부 상태도 업데이트
+  useEffect(() => {
+    if (externalProgress !== undefined && !isDragging) {
+      setInternalProgress(externalProgress);
+    }
+  }, [externalProgress, isDragging]);
 
   const updateProgressFromPosition = (clientX: number) => {
     if (!progressBarRef.current) return;
@@ -19,7 +30,7 @@ export const StockProgress = ({ onProgressChange }: StockProgressProps) => {
 
     // 0-100 사이의 퍼센트 계산
     const newProgress = Math.min(100, Math.max(0, Math.round((x / width) * 100)));
-    setProgress(newProgress);
+    setInternalProgress(newProgress);
     onProgressChange(newProgress); // 부모 컴포넌트에 진행률 알림
   };
 
@@ -57,7 +68,7 @@ export const StockProgress = ({ onProgressChange }: StockProgressProps) => {
       <div className="flex flex-col gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
         <div className="flex items-center justify-between">
           <p className="text-[16px] text-border-color">진행률 :</p>
-          <span className="font-medium">{progress}%</span>
+          <span className="font-medium">{internalProgress}%</span>
         </div>
       </div>
       <div className="min-w-[230px]">
@@ -68,7 +79,7 @@ export const StockProgress = ({ onProgressChange }: StockProgressProps) => {
         >
           <div
             className="transition-width absolute left-0 top-0 h-full rounded-xl border-4 border-[#032F2A] bg-btn-green-color duration-75"
-            style={{ width: `${progress}%` }}
+            style={{ width: `${internalProgress}%` }}
           ></div>
         </div>
       </div>

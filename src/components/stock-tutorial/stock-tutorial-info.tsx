@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import { _ky } from '@/api/instance';
-import { useInitTutorial } from '@/api/tutorial.api';
+import { useInitSession } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ export const StockTutorialInfo = ({
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const authData = useAuthStore();
-  const initTutorialMutation = useInitTutorial();
+  const initSessionMutation = useInitSession();
 
   // 회사 정보 가져오기
   const { data: companyInfo } = useQuery<CompanyProfileResponse>({
@@ -128,7 +128,7 @@ export const StockTutorialInfo = ({
       const memberId = 1;
 
       // 튜토리얼 세션 초기화 API 호출
-      await initTutorialMutation.mutateAsync({
+      await initSessionMutation.mutateAsync({
         memberId,
         companyId,
       });
@@ -183,11 +183,11 @@ export const StockTutorialInfo = ({
                 variant={'green'}
                 size={'lg'}
                 onClick={handleTutorialStart}
-                disabled={isTutorialStarted || initTutorialMutation.isPending}
+                disabled={isTutorialStarted || initSessionMutation.isPending}
               >
                 {isTutorialStarted
                   ? '튜토리얼 진행중'
-                  : initTutorialMutation.isPending
+                  : initSessionMutation.isPending
                     ? '초기화 중...'
                     : '튜토리얼 시작하기'}
               </Button>

@@ -2,23 +2,25 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
-  useDeleteSession,
+  useDeleteTutorialSession,
   useGetCurrentNews,
   useGetEndPointId,
   useGetNewsComment,
   useGetPastNews,
   useGetStartPointId,
   useGetTop3Points,
-  useGetTutorialCandles,
   useGetTutorialFeedback,
-  usePostAction,
+  useGetTutorialStockData,
+  useInitSession,
+  useProcessUserAction,
   useSaveTutorialResult,
 } from '@/api/tutorial.api';
 import {
   AssetResponse,
   NewsResponse,
-  TradeRecord,
-  TutorialCandleResponse,
+  NewsResponseWithThumbnail,
+  StockCandle,
+  TutorialStockResponse,
 } from '@/api/types/tutorial';
 import { DayHistory } from '@/components/stock-tutorial/day-history';
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
@@ -40,6 +42,15 @@ import {
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart';
 import { CandleResponse, MinuteCandleData, PeriodCandleData } from '@/mocks/dummy-data';
+
+// 거래 기록을 위한 타입 정의
+interface TradeRecord {
+  action: 'buy' | 'sell';
+  price: number;
+  quantity: number;
+  timestamp: Date;
+  stockCandleId: number;
+}
 
 interface TutorialEndModalProps {
   isOpen: boolean;
@@ -142,7 +153,7 @@ export const SimulatePage = () => {
   const [latestPrice, setLatestPrice] = useState(50000);
 
   // 현재 뉴스 상태
-  const [currentNews, setCurrentNews] = useState<any>(null);
+  const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);
 
   // 과거 뉴스 목록 상태
   const [pastNewsList, setPastNewsList] = useState<NewsResponse[]>([]);
@@ -162,18 +173,30 @@ export const SimulatePage = () => {
   });
 
   // API 훅 설정
-  const { data: top3Points } = useGetTop3Points(companyId);
-  const { data: startPointId } = useGetStartPointId();
-  const { data: endPointId } = useGetEndPointId();
-  const getTutorialCandles = useGetTutorialCandles();
+  const { data: top3PointsResponse } = useGetTop3Points(companyId);
+  const { data: startPointIdResponse } = useGetStartPointId();
+  const { data: endPointIdResponse } = useGetEndPointId();
+  const { refetch: fetchTutorialStockData } = useGetTutorialStockData(
+    companyId,
+    currentSession.startStockCandleId || 0,
+    currentSession.endStockCandleId || 0,
+  );
+
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
-  const postAction = usePostAction();
-  // useGetTutorialFeedback 수정: memberId만 전달, enabled 옵션은 useQuery 내부에서 처리 가정
-  const { data: tutorialFeedbackData, refetch: refetchFeedback } = useGetTutorialFeedback(memberId);
+  const processUserAction = useProcessUserAction();
+  const { data: tutorialFeedbackResponse, refetch: refetchFeedback } =
+    useGetTutorialFeedback(memberId);
   const saveTutorialResult = useSaveTutorialResult();
-  const deleteSession = useDeleteSession();
+  const deleteTutorialSession = useDeleteTutorialSession();
+  const initSession = useInitSession();
+
+  // 데이터 추출
+  const top3Points = top3PointsResponse?.result?.PointResponseList;
+  const startPointId = startPointIdResponse?.result;
+  const endPointId = endPointIdResponse?.result;
+  const tutorialFeedback = tutorialFeedbackResponse?.result;
 
   // 튜토리얼 완료 처리 함수 (useCallback으로 감싸기)
   const completeTutorial = useCallback(async () => {
@@ -199,34 +222,28 @@ export const SimulatePage = () => {
   useEffect(() => {
     return () => {
       if (isTutorialStarted && memberId) {
-        deleteSession.mutate(memberId);
+        deleteTutorialSession.mutate(memberId);
       }
     };
-  }, [isTutorialStarted, deleteSession, memberId]);
+  }, [isTutorialStarted, deleteTutorialSession, memberId]);
 
   // 튜토리얼 시작 시 초기 데이터 설정
   useEffect(() => {
-    if (
-      isTutorialStarted &&
-      startPointId &&
-      top3Points?.PointResponseList &&
-      top3Points.PointResponseList.length > 0
-    ) {
-      const firstPoint = top3Points.PointResponseList[0];
+    if (isTutorialStarted && startPointId && top3Points && top3Points.length > 0) {
+      // 첫 번째 변곡점으로 세션 설정 (시작 ~ 첫 번째 변곡점)
+      const firstPoint = top3Points[0];
       setCurrentSession({
-        startStockCandleId: startPointId,
-        endStockCandleId: firstPoint.stockCandleId,
-        currentPointIndex: 0,
+        startStockCandleId: startPointId, // 시작 분봉 ID
+        endStockCandleId: firstPoint.stockCandleId, // 첫 번째 변곡점 분봉 ID
+        currentPointIndex: 0, // 현재 변곡점 인덱스
       });
     }
   }, [isTutorialStarted, startPointId, top3Points]);
 
   // API 응답을 Chart 컴포넌트 형식으로 변환하는 함수
-  const convertToPeriodData = (
-    result: TutorialCandleResponse,
-  ): CandleResponse<PeriodCandleData> => {
+  const convertToPeriodData = (result: TutorialStockResponse): CandleResponse<PeriodCandleData> => {
     // API에서 받은 데이터를 Chart 컴포넌트가 사용하는 형식으로 변환
-    const periodCandleData: PeriodCandleData[] = result.data.map((candle) => ({
+    const periodCandleData: PeriodCandleData[] = result.data.map((candle: StockCandle) => ({
       stockCandleId: String(candle.stockCandleId),
       companyId: String(candle.companyId),
       openPrice: candle.openPrice,
@@ -265,58 +282,73 @@ export const SimulatePage = () => {
       return;
     }
 
-    const { startStockCandleId, endStockCandleId } = currentSession;
-
     // 튜토리얼 일봉 데이터 가져오기
-    getTutorialCandles.mutate(
-      { companyId, startStockCandleId, endStockCandleId },
-      {
-        onSuccess: (result: TutorialCandleResponse) => {
+    const loadTutorialStockData = async () => {
+      try {
+        const { data } = await fetchTutorialStockData();
+        if (data?.result) {
           // 결과 데이터를 Chart 컴포넌트 형식으로 변환
-          const newPeriodData = convertToPeriodData(result);
-
+          const newPeriodData = convertToPeriodData(data.result);
           setChartData((prev) => ({ ...prev, periodData: newPeriodData }));
 
           // 최신 가격 설정
-          if (result.data.length > 0) {
-            const lastCandle = result.data[result.data.length - 1];
+          if (data.result.data.length > 0) {
+            const lastCandle = data.result.data[data.result.data.length - 1];
             setLatestPrice(lastCandle.closePrice);
+          }
+        }
+      } catch (error) {
+        console.error('튜토리얼 일봉 데이터 로드 실패:', error);
+      }
+    };
+
+    loadTutorialStockData();
+
+    // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
+    getPastNews.mutate(
+      {
+        companyId,
+        startStockCandleId: currentSession.startStockCandleId,
+        endStockCandleId: currentSession.endStockCandleId,
+      },
+      {
+        onSuccess: (result) => {
+          if (result.result && result.result.NewsResponse) {
+            setPastNewsList(result.result.NewsResponse);
           }
         },
       },
     );
 
-    // 과거 뉴스 목록 가져오기
-    getPastNews.mutate(
-      { companyId, startStockCandleId, endStockCandleId },
-      {
-        onSuccess: (result) => {
-          setPastNewsList(result);
-        },
-      },
-    );
-
-    // 뉴스 코멘트 가져오기
+    // 뉴스 코멘트 가져오기 (변곡점 코멘트)
     getNewsComment.mutate(
-      { companyId, startStockCandleId, endStockCandleId },
+      {
+        companyId,
+        startStockCandleId: currentSession.startStockCandleId,
+        endStockCandleId: currentSession.endStockCandleId,
+      },
       {
         onSuccess: (result) => {
-          setNewsComment(result);
+          if (result.result) {
+            setNewsComment(result.result);
+          }
         },
       },
     );
 
     // 현재 세션의 변곡점 ID로 현재 뉴스 가져오기
-    if (currentSession.currentPointIndex < 3) {
-      const pointStockCandleId =
-        top3Points?.PointResponseList[currentSession.currentPointIndex]?.stockCandleId;
+    if (currentSession.currentPointIndex < 3 && top3Points) {
+      const pointStockCandleId = top3Points[currentSession.currentPointIndex]?.stockCandleId;
 
       if (pointStockCandleId) {
+        // 교육용 현재 뉴스 조회
         getCurrentNews.mutate(
           { companyId, stockCandleId: pointStockCandleId },
           {
             onSuccess: (result) => {
-              setCurrentNews(result);
+              if (result.result) {
+                setCurrentNews(result.result);
+              }
             },
           },
         );
@@ -326,7 +358,7 @@ export const SimulatePage = () => {
     currentSession,
     isTutorialStarted,
     companyId,
-    getTutorialCandles,
+    fetchTutorialStockData,
     getPastNews,
     getNewsComment,
     getCurrentNews,
@@ -336,37 +368,38 @@ export const SimulatePage = () => {
 
   // 진행 상태에 따른 변곡점 이동 및 튜토리얼 완료 시 피드백 refetch
   useEffect(() => {
-    if (!isTutorialStarted || !top3Points?.PointResponseList || !memberId) {
+    if (!isTutorialStarted || !top3Points || !memberId) {
       return;
     }
 
     if (progress === 33) {
-      // 두 번째 변곡점으로 이동
-      if (top3Points.PointResponseList.length > 1) {
-        const pointsData = top3Points.PointResponseList;
+      // 두 번째 변곡점으로 이동 (첫 번째 변곡점 ~ 두 번째 변곡점)
+      if (top3Points.length > 1) {
+        const pointsData = top3Points;
         const secondPoint = pointsData[1];
         const firstPoint = pointsData[0];
 
         setCurrentSession({
-          startStockCandleId: firstPoint.stockCandleId,
-          endStockCandleId: secondPoint.stockCandleId,
-          currentPointIndex: 1,
+          startStockCandleId: firstPoint.stockCandleId, // 첫 번째 변곡점 분봉 ID
+          endStockCandleId: secondPoint.stockCandleId, // 두 번째 변곡점 분봉 ID
+          currentPointIndex: 1, // 두 번째 변곡점 인덱스
         });
       }
     } else if (progress === 66) {
-      // 세 번째 변곡점으로 이동
-      if (top3Points.PointResponseList.length > 2) {
-        const pointsData = top3Points.PointResponseList;
+      // 세 번째 변곡점으로 이동 (두 번째 변곡점 ~ 세 번째 변곡점)
+      if (top3Points.length > 2) {
+        const pointsData = top3Points;
         const thirdPoint = pointsData[2];
         const secondPoint = pointsData[1];
 
         setCurrentSession({
-          startStockCandleId: secondPoint.stockCandleId,
-          endStockCandleId: thirdPoint.stockCandleId,
-          currentPointIndex: 2,
+          startStockCandleId: secondPoint.stockCandleId, // 두 번째 변곡점 분봉 ID
+          endStockCandleId: thirdPoint.stockCandleId, // 세 번째 변곡점 분봉 ID
+          currentPointIndex: 2, // 세 번째 변곡점 인덱스
         });
       }
     } else if (progress === 100) {
+      // 튜토리얼 완료 - 피드백 가져오기 및 결과 저장
       if (refetchFeedback) {
         refetchFeedback();
       }
@@ -381,9 +414,20 @@ export const SimulatePage = () => {
       return;
     }
 
-    // StockTutorialInfo 컴포넌트 내부에서 API 호출이 이루어짐
-    setIsTutorialStarted(true);
-    setProgress(10);
+    // 세션 초기화 API 호출
+    initSession.mutate(
+      { memberId, companyId },
+      {
+        onSuccess: () => {
+          setIsTutorialStarted(true);
+          setProgress(10);
+        },
+        onError: (error) => {
+          console.error('튜토리얼 세션 초기화 실패:', error);
+          alert('튜토리얼을 시작할 수 없습니다. 다시 시도해주세요.');
+        },
+      },
+    );
   };
 
   // 사용자 거래 처리 핸들러
@@ -392,23 +436,25 @@ export const SimulatePage = () => {
       return;
     }
 
-    postAction.mutate(
+    // 사용자 행동에 따른 자산 계산 API 호출
+    // action: 'buy' - 구매, 'sell' - 판매
+    // price, quantity가 모두 0인 경우는 '관망'으로 처리
+    processUserAction.mutate(
       {
-        memberId: memberId, // 실제 memberId 사용
-        data: {
-          action,
-          price,
-          quantity,
-          companyId,
-          startStockCandleId: currentSession.startStockCandleId,
-          endStockCandleId: currentSession.endStockCandleId,
-        },
+        memberId: memberId,
+        action,
+        price,
+        quantity,
+        companyId,
+        startStockCandleId: currentSession.startStockCandleId,
+        endStockCandleId: currentSession.endStockCandleId,
       },
       {
-        onSuccess: (assetResults) => {
-          // 거래 기록 추가
+        onSuccess: (response) => {
+          const assetResults = response.result?.AssetResponse;
+
+          // 거래 기록 추가 (관망이 아닌 경우에만)
           if (price > 0 && quantity > 0) {
-            // 관망이 아닌 경우에만 거래 기록 추가
             const newTrade: TradeRecord = {
               action,
               price,
@@ -420,7 +466,7 @@ export const SimulatePage = () => {
           }
 
           // 마지막 자산 정보 업데이트
-          if (assetResults.length > 0) {
+          if (assetResults && assetResults.length > 0) {
             const lastAsset = assetResults[assetResults.length - 1];
             setAssetInfo(lastAsset);
 
@@ -430,11 +476,11 @@ export const SimulatePage = () => {
 
           // 현재 세션에 따라 진행률 업데이트
           if (currentSession.currentPointIndex === 0) {
-            setProgress(33);
+            setProgress(33); // 첫 번째 변곡점 거래 완료 - 33%
           } else if (currentSession.currentPointIndex === 1) {
-            setProgress(66);
+            setProgress(66); // 두 번째 변곡점 거래 완료 - 66%
           } else if (currentSession.currentPointIndex === 2) {
-            setProgress(100);
+            setProgress(100); // 세 번째 변곡점 거래 완료 - 100% (튜토리얼 종료)
           }
         },
       },
@@ -462,7 +508,7 @@ export const SimulatePage = () => {
           onTutorialStart={handleTutorialStart}
         />
         <div className="my-[25px]">
-          <StockProgress onProgressChange={setProgress} />
+          <StockProgress progress={progress} onProgressChange={setProgress} />
         </div>
         <div className="mb-[25px] flex justify-between">
           <StockTutorialMoneyInfo
@@ -514,7 +560,7 @@ export const SimulatePage = () => {
         <div className="col-span-1">
           <StockTutorialConclusion
             trades={trades}
-            feedback={tutorialFeedbackData || ''} // useGetTutorialFeedback에서 받아온 데이터 사용
+            feedback={tutorialFeedback || ''}
             isCompleted={progress === 100}
           />
         </div>
