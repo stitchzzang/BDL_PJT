@@ -123,7 +123,7 @@ export const SimulatedInvestmentPage = () => {
           </div>
         </div>
       </div>
-      <div className="mb-[20px] grid grid-cols-1 gap-3 lg:grid-cols-12">
+      <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-9">
           {tickData ? (
             <div className="">
@@ -152,7 +152,7 @@ export const SimulatedInvestmentPage = () => {
         </div>
       </div>
       {tickData ? (
-        <div className="my-2">
+        <div className="my-3">
           <TickChart
             tickData={tickData}
             height={200}
@@ -162,7 +162,7 @@ export const SimulatedInvestmentPage = () => {
       ) : (
         <div></div>
       )}
-      <div className="grid grid-cols-10 gap-5">
+      <div className="grid grid-cols-10 gap-3">
         <div className="col-span-6">
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>

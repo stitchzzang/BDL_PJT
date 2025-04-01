@@ -24,7 +24,7 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
     };
   }, [connectOrderbook, disconnectOrderbook]);
   return (
-    <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
+    <div className="flex h-full items-center justify-center rounded-2xl bg-modal-background-color p-[20px]">
       {orderbooks ? (
         <>
           <div className="flex justify-between">
@@ -42,7 +42,10 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
           </div>
         </>
       ) : (
-        <ChartLoadingAnimation />
+        <div className="flex flex-col items-center justify-center">
+          <ChartLoadingAnimation />
+          <p className="text-[16px] text-border-color">현재 장 시간이 아닙니다.</p>
+        </div>
       )}
     </div>
   );

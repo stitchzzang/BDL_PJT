@@ -75,7 +75,9 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
           <button
             onClick={() => setChartType('minute')}
             className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
-              chartType === 'minute' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+              chartType === 'minute'
+                ? 'bg-btn-blue-color bg-opacity-20 text-white'
+                : 'bg-modal-background-color'
             }`}
           >
             분 <span className="text-[14px] font-light opacity-40">(1분)</span>
@@ -83,7 +85,9 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
           <button
             onClick={() => setChartType('day')}
             className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
-              chartType === 'day' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+              chartType === 'day'
+                ? 'bg-btn-blue-color bg-opacity-20 text-white'
+                : 'bg-modal-background-color'
             }`}
           >
             일
@@ -91,7 +95,9 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
           <button
             onClick={() => setChartType('week')}
             className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
-              chartType === 'week' ? 'bg-btn-blue-color text-white' : 'bg-modal-background-color'
+              chartType === 'week'
+                ? 'bg-btn-blue-color bg-opacity-20 text-white'
+                : 'bg-modal-background-color'
             }`}
           >
             주
