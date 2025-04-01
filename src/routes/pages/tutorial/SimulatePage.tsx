@@ -204,8 +204,12 @@ export const SimulatePage = () => {
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
   const processUserAction = useProcessUserAction();
-  const { data: tutorialFeedbackResponse, refetch: refetchFeedback } =
-    useGetTutorialFeedback(memberId);
+  const { data: tutorialFeedbackResponse, refetch: refetchFeedback } = useGetTutorialFeedback(
+    memberId,
+    {
+      enabled: !!memberId && progress === 100,
+    },
+  );
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
   const initSession = useInitSession();

@@ -229,7 +229,7 @@ export const useProcessUserAction = () => {
 /**
  * 튜토리얼 피드백 조회 API
  */
-export const useGetTutorialFeedback = (memberId: number) => {
+export const useGetTutorialFeedback = (memberId: number, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['tutorial', 'result', 'feedback', memberId],
     queryFn: async () => {
@@ -246,7 +246,7 @@ export const useGetTutorialFeedback = (memberId: number) => {
         } as ApiResponse<string>;
       }
     },
-    enabled: !!memberId,
+    enabled: options?.enabled !== undefined ? options.enabled : !!memberId,
     retry: 3,
   });
 };
