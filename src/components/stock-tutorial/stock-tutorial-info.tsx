@@ -5,6 +5,7 @@ import { useGetCompanyProfile } from '@/api/company.api';
 import { _ky } from '@/api/instance';
 import { useGetPointDate, useGetTop3Points, useInitSession } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
+import { Point } from '@/api/types/tutorial';
 import TestImage from '@/assets/test/stock-test.png';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
@@ -97,7 +98,7 @@ export const StockTutorialInfo = ({
 
   // 변곡점 날짜 가져오기
   const pointStockCandleIds =
-    top3PointsData?.result?.PointResponseList?.map((point) => point.stockCandleId) || [];
+    top3PointsData?.result?.PointResponseList?.map((point: Point) => point.stockCandleId) || [];
 
   // 각 변곡점에 대한 날짜 정보 가져오기
   const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
