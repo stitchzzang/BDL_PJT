@@ -3,12 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import { _ky } from '@/api/instance';
-import {
-  useGetEndPointId,
-  useGetStartPointId,
-  useGetTop3Points,
-  useInitSession,
-} from '@/api/tutorial.api';
+import { useGetPointDate, useGetTop3Points, useInitSession } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
 import TestImage from '@/assets/test/stock-test.png';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
@@ -74,6 +69,14 @@ const CATEGORY_MAPPING: Record<string, CategoryName> = {
   바이오: '바이오',
 };
 
+// YYMMDD 형식의 날짜 생성 함수
+const formatDateToYYMMDD = (date: Date): string => {
+  const yy = date.getFullYear().toString().slice(2);
+  const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+  const dd = date.getDate().toString().padStart(2, '0');
+  return `${yy}${mm}${dd}`;
+};
+
 export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
@@ -86,10 +89,25 @@ export const StockTutorialInfo = ({
   const _authData = useAuthStore();
   const initSessionMutation = useInitSession();
 
-  // 1년전 시작 일봉 ID와 최근 일봉 ID 가져오기
-  const { data: startPointData } = useGetStartPointId(companyId);
-  const { data: endPointData } = useGetEndPointId(companyId);
+  // 오늘부터 1년 전까지의 날짜 범위 계산
+  const today = new Date();
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(today.getFullYear() - 1);
+
+  const startDate = formatDateToYYMMDD(oneYearAgo);
+  const endDate = formatDateToYYMMDD(today);
+
+  // 변곡점 TOP3 가져오기
   const { data: top3PointsData } = useGetTop3Points(companyId);
+
+  // 변곡점 날짜 가져오기
+  const pointStockCandleIds =
+    top3PointsData?.result?.PointResponseList?.map((point) => point.stockCandleId) || [];
+
+  // 각 변곡점에 대한 날짜 정보 가져오기
+  const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
+  const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
+  const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
 
   // 회사 정보 가져오기
   const { data: companyInfo } = useQuery<CompanyProfileResponse>({
@@ -114,61 +132,70 @@ export const StockTutorialInfo = ({
   useEffect(() => {
     if (top3PointsData?.result?.PointResponseList) {
       const points = top3PointsData.result.PointResponseList;
-      const convertedPoints: InflectionPoint[] = points.map((point) => ({
-        stockCandleId: point.stockCandleId,
-        date: new Date(point.pointId).toLocaleDateString(), // pointId를 날짜로 가정. 실제로는 API에서 제공하는 날짜 필드 사용
-      }));
+      const convertedPoints: InflectionPoint[] = [];
+
+      // 각 변곡점에 대해 날짜 정보 추가
+      if (points.length > 0 && point1DateQuery.data?.result) {
+        convertedPoints.push({
+          stockCandleId: points[0].stockCandleId,
+          date: point1DateQuery.data.result,
+        });
+      }
+
+      if (points.length > 1 && point2DateQuery.data?.result) {
+        convertedPoints.push({
+          stockCandleId: points[1].stockCandleId,
+          date: point2DateQuery.data.result,
+        });
+      }
+
+      if (points.length > 2 && point3DateQuery.data?.result) {
+        convertedPoints.push({
+          stockCandleId: points[2].stockCandleId,
+          date: point3DateQuery.data.result,
+        });
+      }
+
       setInflectionPoints(convertedPoints);
     }
-  }, [top3PointsData, companyId]);
+  }, [top3PointsData, point1DateQuery.data, point2DateQuery.data, point3DateQuery.data]);
 
   // 현재 가격 정보를 가져오기 위한 API 호출
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        if (!startPointData || !endPointData) {
-          return;
-        }
+        // 현재 선택된 세그먼트에 따라 날짜 범위 결정
+        let segStartDate = startDate;
+        let segEndDate = endDate;
 
-        // 선택된 세그먼트에 따라 시작점과 끝점 결정
-        let startId: number;
-        let endId: number;
-        const startPointId = startPointData.result;
-        const endPointId = endPointData.result;
-        const points = top3PointsData?.result?.PointResponseList || [];
-
-        switch (selectedSegment) {
-          case 0: // 첫 번째 구간: 시작 지점 ~ 변곡점 1
-            startId = startPointId;
-            endId = points.length > 0 ? points[0].stockCandleId : endPointId;
-            break;
-          case 1: // 두 번째 구간: 변곡점 1 ~ 변곡점 2
-            startId = points.length > 0 ? points[0].stockCandleId : startPointId;
-            endId = points.length > 1 ? points[1].stockCandleId : endPointId;
-            break;
-          case 2: // 세 번째 구간: 변곡점 2 ~ 변곡점 3
-            startId = points.length > 1 ? points[1].stockCandleId : startPointId;
-            endId = points.length > 2 ? points[2].stockCandleId : endPointId;
-            break;
-          case 3: // 네 번째 구간: 변곡점 3 ~ 최근 지점
-            startId = points.length > 2 ? points[2].stockCandleId : startPointId;
-            endId = endPointId;
-            break;
-          default:
-            startId = startPointId;
-            endId = endPointId;
-        }
-
-        // 시작점이 끝점보다 크면 두 값을 swap
-        if (startId > endId) {
-          [startId, endId] = [endId, startId];
+        // 변곡점이 로드되었을 경우 구간별 날짜 설정
+        if (inflectionPoints.length > 0) {
+          switch (selectedSegment) {
+            case 0: // 첫 번째 구간: 시작 지점 ~ 변곡점 1
+              segStartDate = startDate;
+              segEndDate = inflectionPoints[0]?.date || endDate;
+              break;
+            case 1: // 두 번째 구간: 변곡점 1 ~ 변곡점 2
+              segStartDate = inflectionPoints[0]?.date || startDate;
+              segEndDate = inflectionPoints[1]?.date || endDate;
+              break;
+            case 2: // 세 번째 구간: 변곡점 2 ~ 변곡점 3
+              segStartDate = inflectionPoints[1]?.date || startDate;
+              segEndDate = inflectionPoints[2]?.date || endDate;
+              break;
+            case 3: // 네 번째 구간: 변곡점 3 ~ 최근 지점
+              segStartDate = inflectionPoints[2]?.date || startDate;
+              segEndDate = endDate;
+              break;
+            default:
+              segStartDate = startDate;
+              segEndDate = endDate;
+          }
         }
 
         // 선택된 구간에 따라 가격 데이터 조회
         const response = await _ky
-          .get(
-            `stocks/${companyId}/tutorial?startStockCandleId=${startId}&endStockCandleId=${endId}`,
-          )
+          .get(`stocks/${companyId}/tutorial?startDate=${segStartDate}&endDate=${segEndDate}`)
           .json<ApiResponse<{ data: StockCandleData[] }>>();
 
         // 데이터 배열에서 가장 최신 값(마지막 값)의 closePrice 가져오기
@@ -183,7 +210,7 @@ export const StockTutorialInfo = ({
     if (companyId) {
       fetchPrice();
     }
-  }, [companyId, top3PointsData, selectedSegment, startPointData, endPointData]);
+  }, [companyId, inflectionPoints, selectedSegment, startDate, endDate]);
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {

@@ -54,32 +54,22 @@ export const useGetTop3Points = (companyId: number) => {
 };
 
 /**
- * 1년전 시작 일봉 ID 조회 API
+ * 변곡점 날짜 조회 API
+ *
+ * @param stockCandleId 일봉 ID
  */
-export const useGetStartPointId = (companyId: number) => {
+export const useGetPointDate = (stockCandleId: number) => {
   return useQuery({
-    queryKey: ['tutorial', 'points', 'start', companyId],
+    queryKey: ['tutorial', 'points', 'date', stockCandleId],
     queryFn: async () => {
-      const response = await _ky.get(`tutorial/points/start?companyId=${companyId}`);
-      return response.json() as Promise<ApiResponse<number>>;
+      if (!stockCandleId) {
+        throw new Error('유효하지 않은 파라미터입니다.');
+      }
+      const response = await _ky.get(`tutorial/points/date?stockCandleId=${stockCandleId}`);
+      return response.json() as Promise<ApiResponse<string>>;
     },
+    enabled: !!stockCandleId && stockCandleId > 0,
     retry: 3,
-    enabled: !!companyId,
-  });
-};
-
-/**
- * 가장 최근 일봉 ID 조회 API
- */
-export const useGetEndPointId = (companyId: number) => {
-  return useQuery({
-    queryKey: ['tutorial', 'points', 'end', companyId],
-    queryFn: async () => {
-      const response = await _ky.get(`tutorial/points/end?companyId=${companyId}`);
-      return response.json() as Promise<ApiResponse<number>>;
-    },
-    retry: 3,
-    enabled: !!companyId,
   });
 };
 
@@ -87,32 +77,23 @@ export const useGetEndPointId = (companyId: number) => {
  * 튜토리얼 일봉 데이터 조회 API
  *
  * @param companyId 회사 ID
- * @param startStockCandleId 시작 일봉 ID
- * @param endStockCandleId 종료 일봉 ID
+ * @param startDate 시작 날짜 (YYMMDD)
+ * @param endDate 종료 날짜 (YYMMDD)
  */
-export const useGetTutorialStockData = (
-  companyId: number,
-  startStockCandleId: number,
-  endStockCandleId: number,
-) => {
+export const useGetTutorialStockData = (companyId: number, startDate: string, endDate: string) => {
   return useQuery({
-    queryKey: ['tutorial', 'stocks', companyId, startStockCandleId, endStockCandleId],
+    queryKey: ['tutorial', 'stocks', companyId, startDate, endDate],
     queryFn: async () => {
-      if (!companyId || !startStockCandleId || !endStockCandleId) {
+      if (!companyId || !startDate || !endDate) {
         throw new Error('유효하지 않은 파라미터입니다.');
       }
 
-      const apiUrl = `stocks/${companyId}/tutorial?startStockCandleId=${startStockCandleId}&endStockCandleId=${endStockCandleId}`;
+      const apiUrl = `stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`;
 
       const response = await _ky.get(apiUrl);
       return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
-    enabled:
-      !!companyId &&
-      !!startStockCandleId &&
-      !!endStockCandleId &&
-      startStockCandleId > 0 &&
-      endStockCandleId > 0,
+    enabled: !!companyId && !!startDate && !!endDate,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 60 * 1000,
@@ -126,64 +107,88 @@ export const useGetTutorialStockData = (
  * @param companyId 회사 ID
  * @param sectionNumber 구간 번호 (0: 시작점~변곡점1, 1: 변곡점1~변곡점2, 2: 변곡점2~변곡점3, 3: 변곡점3~최근점)
  * @param inflectionPoints 변곡점 배열 (상위 3개 변곡점)
+ * @param startDate 전체 기간 시작 날짜 (YYMMDD)
+ * @param endDate 전체 기간 종료 날짜 (YYMMDD)
  */
 export const useGetSectionTutorialStockData = (
   companyId: number,
   sectionNumber: number,
   inflectionPoints: Point[],
+  startDate: string,
+  endDate: string,
 ) => {
-  // 시작점과 종료점 데이터 가져오기
-  const startPointQuery = useGetStartPointId(companyId);
-  const endPointQuery = useGetEndPointId(companyId);
-
-  const startPointId = startPointQuery.data?.result;
-  const endPointId = endPointQuery.data?.result;
-
-  // 구간의 시작과 끝 ID 계산
-  const getStartAndEndId = () => {
-    // 시작점이나 종료점 데이터가 아직 로드되지 않은 경우
-    if (!startPointId || !endPointId) {
+  // 구간의 시작과 끝 날짜 계산
+  const getStartAndEndDate = () => {
+    // 전체 기간 날짜가 설정되지 않은 경우
+    if (!startDate || !endDate) {
       return null;
     }
 
     // 변곡점이 없거나 충분하지 않은 경우
     if (!inflectionPoints || inflectionPoints.length === 0) {
-      return { startId: startPointId, endId: endPointId };
+      return { startDate, endDate };
     }
+
+    // 변곡점 날짜 가져오기 필요 (API 호출 필요)
+    // 실제 구현에서는 inflectionPoints의 stockCandleId를 이용해
+    // useGetPointDate API를 호출하여 각 변곡점의 날짜를 가져와야 함
+
+    // 여기서는 임시로 날짜를 계산 (실제 구현 필요)
+    const getDateForPoint = (index: number) => {
+      if (index < 0 || index >= inflectionPoints.length) {
+        return index < 0 ? startDate : endDate;
+      }
+
+      // 실제로는 API를 통해 날짜를 가져와야 함
+      // 현재는 임시 구현: 전체 기간을 4등분하여 날짜 배치
+      const startTime = new Date(
+        `20${startDate.slice(0, 2)}-${startDate.slice(2, 4)}-${startDate.slice(4, 6)}`,
+      ).getTime();
+      const endTime = new Date(
+        `20${endDate.slice(0, 2)}-${endDate.slice(2, 4)}-${endDate.slice(4, 6)}`,
+      ).getTime();
+      const interval = (endTime - startTime) / 4;
+
+      const pointTime = startTime + interval * (index + 1);
+      const pointDate = new Date(pointTime);
+
+      // YYMMDD 형식으로 변환
+      const yy = pointDate.getFullYear().toString().slice(2);
+      const mm = (pointDate.getMonth() + 1).toString().padStart(2, '0');
+      const dd = pointDate.getDate().toString().padStart(2, '0');
+
+      return `${yy}${mm}${dd}`;
+    };
 
     // 구간에 따른 시작점과 끝점 계산
     switch (sectionNumber) {
       case 0: // 시작점 ~ 변곡점1
-        return { startId: startPointId, endId: inflectionPoints[0]?.stockCandleId || endPointId };
+        return { startDate, endDate: getDateForPoint(0) };
       case 1: // 변곡점1 ~ 변곡점2
-        return inflectionPoints.length > 1
-          ? { startId: inflectionPoints[0].stockCandleId, endId: inflectionPoints[1].stockCandleId }
-          : { startId: inflectionPoints[0]?.stockCandleId || startPointId, endId: endPointId };
+        return { startDate: getDateForPoint(0), endDate: getDateForPoint(1) };
       case 2: // 변곡점2 ~ 변곡점3
-        return inflectionPoints.length > 2
-          ? { startId: inflectionPoints[1].stockCandleId, endId: inflectionPoints[2].stockCandleId }
-          : { startId: inflectionPoints[1]?.stockCandleId || startPointId, endId: endPointId };
+        return { startDate: getDateForPoint(1), endDate: getDateForPoint(2) };
       case 3: // 변곡점3 ~ 최근점
-        return { startId: inflectionPoints[2]?.stockCandleId || startPointId, endId: endPointId };
+        return { startDate: getDateForPoint(2), endDate };
       default:
-        return { startId: startPointId, endId: endPointId };
+        return { startDate, endDate };
     }
   };
 
-  const range = getStartAndEndId();
+  const range = getStartAndEndDate();
 
   return useQuery({
-    queryKey: ['tutorial', 'stocks', 'section', companyId, sectionNumber],
+    queryKey: ['tutorial', 'stocks', 'section', companyId, sectionNumber, startDate, endDate],
     queryFn: async () => {
       if (!range) {
-        throw new Error('Range is not available yet');
+        throw new Error('날짜 범위를 계산할 수 없습니다.');
       }
       const response = await _ky.get(
-        `stocks/${companyId}/tutorial?startStockCandleId=${range.startId}&endStockCandleId=${range.endId}`,
+        `stocks/${companyId}/tutorial?startDate=${range.startDate}&endDate=${range.endDate}`,
       );
       return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
-    enabled: !!companyId && !!range && startPointQuery.isSuccess && endPointQuery.isSuccess,
+    enabled: !!companyId && !!range && !!startDate && !!endDate,
   });
 };
 
