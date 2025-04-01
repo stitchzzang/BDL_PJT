@@ -48,7 +48,25 @@ export const useGetTop3Points = (companyId: number) => {
     queryKey: ['tutorial', 'points', 'top3', companyId],
     queryFn: async () => {
       const response = await _ky.get(`tutorial/points/top3?companyId=${companyId}`);
-      return response.json() as Promise<ApiResponse<{ PointResponseList: Point[] }>>;
+      const responseData = (await response.json()) as ApiResponse<any>; // 타입을 any로 변경
+
+      // 응답 로그 추가
+      console.log('[API] useGetTop3Points 응답:', responseData);
+
+      // 결과가 배열이라면 Point[] 형태로 가정, 객체라면 PointResponseList 필드 확인
+      if (responseData.result) {
+        console.log('[API] useGetTop3Points result 타입:', typeof responseData.result);
+        if (Array.isArray(responseData.result)) {
+          console.log('[API] result는 직접 배열:', responseData.result.length);
+        } else if (responseData.result.PointResponseList) {
+          console.log(
+            '[API] result는 PointResponseList 객체:',
+            responseData.result.PointResponseList,
+          );
+        }
+      }
+
+      return responseData;
     },
   });
 };
