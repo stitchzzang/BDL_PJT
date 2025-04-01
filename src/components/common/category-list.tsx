@@ -1,4 +1,5 @@
 import { type CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
+import { scrollToTop } from '@/utils/scrollToTop';
 
 // DB의 카테고리 순서대로 이름 정의
 const DB_CATEGORY_NAMES: CategoryName[] = [
@@ -22,8 +23,10 @@ export interface CategoryListProps {
 }
 
 export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListProps) => {
+  // 카테고리 변경 시 페이지 상단으로 스크롤하는 기능
   const handleCategoryClick = (categoryId: number) => {
     setCategoryId(categoryId.toString());
+    scrollToTop();
   };
 
   const AllCompaniesIcon = getCategoryIcon('전체');
@@ -35,7 +38,10 @@ export const CategoryList = ({ setCategoryId, activeCategoryId }: CategoryListPr
           className={`group flex w-full items-center justify-center gap-2 rounded-xl ${
             activeCategoryId === '0' ? 'bg-btn-blue-color' : 'bg-modal-background-color'
           } px-[14px] py-[12px] transition-all duration-200 hover:bg-btn-blue-color`}
-          onClick={() => setCategoryId('0')}
+          onClick={() => {
+            setCategoryId('0');
+            scrollToTop();
+          }}
         >
           <div className="min-h-[25px] min-w-[25px]">
             <AllCompaniesIcon />
