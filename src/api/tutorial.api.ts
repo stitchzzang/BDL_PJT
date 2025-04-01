@@ -200,3 +200,27 @@ export const useGetTutorialResults = (memberId: number) => {
     enabled: !!memberId,
   });
 };
+
+/**
+ * 멤버별 튜토리얼 결과 리스트 조회 API
+ */
+export const useTutorialResults = ({ memberId }: { memberId: string }) => {
+  return useQuery({
+    queryKey: ['tutorialResults', memberId],
+    queryFn: async () => {
+      const response = await _kyAuth.get(`tutorial/result/${memberId}`);
+      return response.json() as Promise<
+        ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>
+      >;
+    },
+    enabled: !!memberId,
+  });
+};
+
+// 직접 호출용 API 객체
+export const tutorialApi = {
+  getTutorialResults: ({ memberId }: { memberId: string }) =>
+    _kyAuth
+      .get(`tutorial/result/${memberId}`)
+      .json<ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>>(),
+};
