@@ -15,7 +15,7 @@ export const TutorialResultPage = () => {
         <p className="text-text-inactive-2-color">{new Date().toISOString().split('T')[0]}</p>
       </div>
       <hr className="my-3 w-full border-t border-btn-primary-inactive-color" />
-      {tutorialResults?.map((tutorialResult) => (
+      {tutorialResults?.result.TutorialResultResponse.map((tutorialResult) => (
         <StockTutorialResultItem key={tutorialResult.tutorialResultId} result={tutorialResult} />
       ))}
     </div>
