@@ -126,19 +126,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     return data;
   }, [periodData]);
 
-  const formatChartDate = useCallback((date: Date): string => {
-    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-      return '';
-    }
-
-    const day = date.getDate();
-    if (day === 1) {
-      // 월의 첫 날에는 '월'을 표시
-      return `${date.getMonth() + 1}월`;
-    }
-    return `${day}일`;
-  }, []);
-
   const chartData = useMemo(() => {
     if (!rawChartData || !Array.isArray(rawChartData) || rawChartData.length === 0) {
       return Array(EMPTY_DATA_COUNT)
