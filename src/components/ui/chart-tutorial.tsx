@@ -118,13 +118,60 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
     try {
       if (periodData?.data && Array.isArray(periodData.data) && periodData.data.length > 0) {
-        console.log('periodData 받음, 데이터 수:', periodData.data.length);
+        console.log(
+          'periodData 받음, 전체 데이터 수:',
+          periodData.data.length,
+          '첫 번째 아이템 타입:',
+          periodData.data[0]?.periodType,
+        );
+
+        // 원본 데이터에서 일봉 처음/마지막 날짜 확인
+        const allDates = periodData.data
+          .filter((item) => item?.tradingDate)
+          .map((item) => new Date(item.tradingDate));
+
+        if (allDates.length > 0) {
+          const minDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
+          const maxDate = new Date(Math.max(...allDates.map((d) => d.getTime())));
+
+          console.log('원본 데이터 날짜 범위:', {
+            시작: minDate.toISOString().split('T')[0],
+            종료: maxDate.toISOString().split('T')[0],
+            데이터수: allDates.length,
+          });
+        }
+
+        // periodType 타입 검사 및 로깅
+        const periodTypes = [...new Set(periodData.data.map((item) => item?.periodType))];
+        console.log('데이터에 존재하는 periodType:', periodTypes);
 
         // 일봉 데이터만 필터링 (periodType이 1인 데이터)
-        const filteredData = periodData.data.filter(
-          (item) => item && item.periodType === DAY_PERIOD_TYPE,
-        );
-        console.log('일봉 데이터 필터링 결과:', filteredData.length);
+        const filteredData = periodData.data.filter((item) => {
+          // null 체크
+          if (!item) {
+            console.warn('데이터 항목이 null 또는 undefined입니다');
+            return false;
+          }
+
+          // periodType 타입 확인
+          const validPeriodType =
+            (typeof item.periodType === 'number' && item.periodType === DAY_PERIOD_TYPE) ||
+            (typeof item.periodType === 'string' && item.periodType === '1');
+
+          if (!validPeriodType && item.periodType !== undefined) {
+            console.warn(
+              `일봉이 아닌 periodType 발견: ${item.periodType} (타입: ${typeof item.periodType})`,
+            );
+          }
+
+          return validPeriodType;
+        });
+
+        console.log('일봉 데이터 필터링 결과:', {
+          총개수: periodData.data.length,
+          일봉개수: filteredData.length,
+          일봉아닌것: periodData.data.length - filteredData.length,
+        });
 
         if (filteredData.length > 0) {
           // 날짜 기준으로 정렬
@@ -135,14 +182,27 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
             return dateA.getTime() - dateB.getTime();
           });
 
+          // 정렬된 데이터의 처음/마지막 날짜 로깅
+          if (sortedData.length > 0) {
+            console.log('정렬된 일봉 데이터 범위:', {
+              첫날짜: sortedData[0].tradingDate,
+              마지막날짜: sortedData[sortedData.length - 1].tradingDate,
+              개수: sortedData.length,
+            });
+          }
+
           // 필터링 및 정렬된 데이터만 변환
           data = sortedData.map(convertPeriodCandleToChartData);
-          console.log('차트 데이터 변환 완료, 데이터 수:', data.length);
+          console.log('차트 데이터 변환 완료, 일봉 데이터 수:', data.length);
         } else {
-          console.warn('일봉 데이터가 없습니다.');
+          console.warn('일봉 데이터(periodType=1)가 없습니다.');
         }
       } else {
-        console.warn('periodData가 없거나 데이터가 비어 있습니다.');
+        console.warn('periodData가 없거나 데이터가 비어 있습니다.', {
+          periodData있음: !!periodData,
+          data배열있음: !!periodData?.data,
+          데이터길이: periodData?.data?.length || 0,
+        });
       }
     } catch (error) {
       console.error('차트 데이터 변환 오류:', error);
@@ -680,13 +740,31 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     // periodData가 존재하고, data 배열이 있는지 확인
     if (periodData && periodData.data && Array.isArray(periodData.data)) {
       // 일봉 데이터만 필터링
-      const filteredData = periodData.data.filter((item) => item.periodType === DAY_PERIOD_TYPE);
+      const filteredData = periodData.data.filter((item) => {
+        if (!item) return false;
+
+        return (
+          (typeof item.periodType === 'number' && item.periodType === DAY_PERIOD_TYPE) ||
+          (typeof item.periodType === 'string' && item.periodType === '1')
+        );
+      });
+
       // 데이터 배열에 최소 하나의 요소가 있어도 유효하다고 판단
       const isValid = filteredData.length > 0;
-      console.log('차트 데이터 유효성 체크:', isValid, '일봉 데이터 수:', filteredData.length);
+      console.log('차트 데이터 유효성 체크:', {
+        isValid,
+        '일봉 데이터 수': filteredData.length,
+        '전체 데이터 수': periodData.data.length,
+        '첫번째 아이템 periodType': periodData.data[0]?.periodType,
+      });
+
       return isValid;
     }
-    console.log('periodData가 유효하지 않음');
+    console.log('periodData가 유효하지 않음', {
+      periodData있음: !!periodData,
+      data배열있음: !!periodData?.data,
+      배열유형맞음: Array.isArray(periodData?.data),
+    });
     return false;
   }, [periodData]);
 
