@@ -24,7 +24,7 @@ export const TutorialResultPage = () => {
         <div className="flex w-full flex-col items-center justify-center">
           <p className="text-text-inactive-2-color">튜토리얼 결과가 없습니다.</p>
           <Button variant="blue" className="mt-4" onClick={() => navigate('/tutorial')}>
-            주식 튜토리얼 하러 가기
+            주식 튜토리얼 하러 가볼까요?
           </Button>
         </div>
       )}
