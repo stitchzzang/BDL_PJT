@@ -109,7 +109,7 @@ export const StockTutorialInfo = ({
           .get(`stocks/${companyId}/tutorial?startStockCandleId=1&endStockCandleId=1000`)
           .json<ApiResponse<{ data: StockCandleData[] }>>();
 
-        // 받아온 데이터에서 변곡점 계산 (예: 가격 변화가 큰 지점)
+        // 받아온 데이터에서 변곡점 계산
         const stockData = response.result.data;
         const calculatedPoints: InflectionPoint[] = [];
 
@@ -161,13 +161,6 @@ export const StockTutorialInfo = ({
     const fetchPrice = async () => {
       try {
         if (inflectionPoints.length === 0) {
-          // 변곡점 정보가 없는 경우 기본 범위로 조회
-          const response = await _ky
-            .get(`stocks/${companyId}/tutorial?startStockCandleId=30&endStockCandleId=100`)
-            .json<ApiResponse<{ data: StockCandleData[] }>>();
-
-          const latestData = response.result.data[response.result.data.length - 1];
-          setCurrentPrice(latestData.closePrice);
           return;
         }
 
@@ -175,7 +168,7 @@ export const StockTutorialInfo = ({
         let startId: number;
         let endId: number;
 
-        // 기본 시작점과 끝점 (고정 값 대체)
+        // 기본 시작점과 끝점
         const initialPoint = 1; // 가장 초기 지점 (ID 1번으로 가정)
         const latestPoint = 1000; // 가장 최근 지점 (ID 1000번으로 가정)
 
@@ -269,9 +262,8 @@ export const StockTutorialInfo = ({
     // }
 
     try {
-      // 현재는 memberId를 1로 고정하여 테스트합니다.
-      // 실제 환경에서는 사용자 ID를 가져와야 합니다.
-      const memberId = 1;
+      // TODO: 실제 환경에서는 사용자 ID를 인증 스토어에서 가져와야 함
+      const memberId = 1; // 임시 사용자 ID
 
       // 튜토리얼 세션 초기화 API 호출
       await initSessionMutation.mutateAsync({

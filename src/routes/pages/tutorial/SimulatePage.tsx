@@ -346,16 +346,6 @@ export const SimulatePage = () => {
         }
       } catch (error) {
         console.error('튜토리얼 일봉 데이터 로드 실패:', error);
-
-        if (error instanceof Error && error.message.includes('HTML')) {
-          console.error('HTML 응답을 받았습니다. 서버가 예상대로 동작하지 않습니다.');
-
-          // 10초 후 재시도
-          setTimeout(() => {
-            loadTutorialStockData();
-          }, 10000);
-        }
-
         // 에러 발생 시 빈 차트 데이터 설정
         setChartData(getEmptyChartData());
       } finally {
