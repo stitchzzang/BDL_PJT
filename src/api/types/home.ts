@@ -5,6 +5,7 @@ export interface LatestNews {
   newsContent: string;
   newsDate: string;
   newsThumbnailUrl: string | null;
+  newsOriginalUrl: string | null;
 }
 
 export interface SearchedCompany {
