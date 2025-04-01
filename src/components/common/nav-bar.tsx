@@ -74,6 +74,16 @@ export const NavBar = () => {
           >
             주식 튜토리얼
           </NavLink>
+          <NavLink
+            to="/search"
+            className={({ isActive }) =>
+              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
+                isActive ? 'text-text-main-color' : ''
+              }`
+            }
+          >
+            종목 검색
+          </NavLink>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
           <button
@@ -132,6 +142,17 @@ export const NavBar = () => {
               onClick={() => setIsOpen(false)}
             >
               주식 튜토리얼
+            </NavLink>
+            <NavLink
+              to="/search"
+              className={({ isActive }) =>
+                `text-left text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
+                  isActive ? 'text-text-main-color' : ''
+                }`
+              }
+              onClick={() => setIsOpen(false)}
+            >
+              종목 검색
             </NavLink>
             <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
               <button
