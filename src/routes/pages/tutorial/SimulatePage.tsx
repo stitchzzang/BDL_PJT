@@ -215,15 +215,18 @@ export const SimulatePage = () => {
   const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
 
   // 세션별 주식 데이터 가져오기를 위한 커스텀 훅
-  const { refetch: fetchSessionData, isLoading: isSessionDataLoading } = useGetTutorialStockData(
+  const { refetch: fetchSessionData } = useGetTutorialStockData(
     companyId,
     currentSession.startDate,
     currentSession.endDate,
   );
 
   // 전체 차트 데이터 가져오기 (1년 전 시작점부터 최근 일봉까지)
-  const { refetch: fetchFullChartData, isLoading: isFullChartDataLoading } =
-    useGetTutorialStockData(companyId, defaultStartDate, defaultEndDate);
+  const { refetch: fetchFullChartData } = useGetTutorialStockData(
+    companyId,
+    defaultStartDate,
+    defaultEndDate,
+  );
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
@@ -345,45 +348,6 @@ export const SimulatePage = () => {
     defaultEndDate,
   ]);
 
-  // 전체 차트 데이터 로드
-  useEffect(() => {
-    const loadFullChartData = async () => {
-      if (!isTutorialStarted || !companyId || fullChartData) return;
-
-      setIsChartLoading(true);
-      try {
-        const response = await fetchFullChartData();
-        if (response.data?.result) {
-          const result = response.data.result;
-          setFullChartData(result);
-          setStockData(result);
-
-          // 최신 가격 설정
-          if (result.data && result.data.length > 0) {
-            // 일봉 데이터만 필터링 (periodType이 1인 데이터)
-            const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
-
-            if (dayCandles.length > 0) {
-              // 날짜순으로 정렬
-              const sortedDayCandles = [...dayCandles].sort((a, b) => {
-                return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
-              });
-
-              const lastCandle = sortedDayCandles[sortedDayCandles.length - 1];
-              setLatestPrice(lastCandle.closePrice);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('차트 데이터 로드 오류:', error);
-      } finally {
-        setIsChartLoading(false);
-      }
-    };
-
-    loadFullChartData();
-  }, [isTutorialStarted, companyId, fullChartData, fetchFullChartData]);
-
   // 세션 변경 시 데이터 로드
   useEffect(() => {
     const loadSessionData = async () => {
@@ -402,10 +366,14 @@ export const SimulatePage = () => {
         // 현재 세션의 주식 데이터 로드
         const sessionResponse = await fetchSessionData();
         if (sessionResponse.data?.result) {
-          setStockData(sessionResponse.data.result);
+          const result = sessionResponse.data.result;
+          setStockData(result);
+          // 현재 세션이 첫 번째 턴인 경우 fullChartData도 설정
+          if (currentTurn === 1) {
+            setFullChartData(result);
+          }
 
           // 최신 가격 설정
-          const result = sessionResponse.data.result;
           if (result.data && result.data.length > 0) {
             // 일봉 데이터만 필터링
             const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
