@@ -3,7 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 
 import { _ky } from '@/api/instance';
-import { useInitSession } from '@/api/tutorial.api';
+import {
+  useGetEndPointId,
+  useGetStartPointId,
+  useGetTop3Points,
+  useInitSession,
+} from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
 import TestImage from '@/assets/test/stock-test.png';
 import { Button } from '@/components/ui/button';
@@ -18,11 +23,11 @@ interface CompanyProfileResponse {
   categories: string[];
 }
 
-// // 변곡점 데이터 타입 정의
-// interface InflectionPoint {
-//   stockCandleId: number;
-//   date: string;
-// }
+// 변곡점 데이터 타입 정의
+interface InflectionPoint {
+  stockCandleId: number;
+  date: string;
+}
 
 // 주가 데이터 타입 정의
 interface StockCandleData {
@@ -77,8 +82,13 @@ export const StockTutorialInfo = ({
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const [inflectionPoints, setInflectionPoints] = useState<InflectionPoint[]>([]);
   const [selectedSegment, setSelectedSegment] = useState<number>(0);
-  const authData = useAuthStore();
+  const _authData = useAuthStore();
   const initSessionMutation = useInitSession();
+
+  // 1년전 시작 일봉 ID와 최근 일봉 ID 가져오기
+  const { data: startPointData } = useGetStartPointId(companyId);
+  const { data: endPointData } = useGetEndPointId(companyId);
+  const { data: top3PointsData } = useGetTop3Points(companyId);
 
   // 회사 정보 가져오기
   const { data: companyInfo } = useQuery<CompanyProfileResponse>({
@@ -87,8 +97,7 @@ export const StockTutorialInfo = ({
       try {
         const response = await _ky.get(`company/${companyId}`);
         return response.json<ApiResponse<CompanyProfileResponse>>().then((res) => res.result);
-      } catch (error) {
-        console.error(`회사 정보 가져오기 실패 (CompanyID: ${companyId}):`, error);
+      } catch {
         // 기본 데이터 반환
         return {
           companyImage: TestImage,
@@ -100,98 +109,58 @@ export const StockTutorialInfo = ({
     enabled: !!companyId,
   });
 
-  // 변곡점 정보 가져오기
+  // API에서 가져온 TOP3 변곡점 데이터를 InflectionPoint로 변환
   useEffect(() => {
-    const fetchInflectionPoints = async () => {
-      try {
-        // 기존 API를 활용하여 데이터를 가져온 후 변곡점을 계산
-        const response = await _ky
-          .get(`stocks/${companyId}/tutorial?startStockCandleId=1&endStockCandleId=1000`)
-          .json<ApiResponse<{ data: StockCandleData[] }>>();
-
-        // 받아온 데이터에서 변곡점 계산
-        const stockData = response.result.data;
-        const calculatedPoints: InflectionPoint[] = [];
-
-        if (stockData.length > 0) {
-          // 전체 데이터를 5개 구간으로 나누어 각 구간의 중요 지점을 찾기
-          const chunkSize = Math.floor(stockData.length / 5);
-
-          for (let i = 1; i < 4; i++) {
-            // TOP3 변곡점만 필요
-            const startIndex = i * chunkSize;
-            const endIndex = Math.min((i + 1) * chunkSize, stockData.length - 1);
-
-            // 구간 내에서 가장 가격 변화가 큰 포인트 찾기
-            let maxChangePoint = stockData[startIndex];
-            let maxChange = 0;
-
-            for (let j = startIndex; j < endIndex; j++) {
-              const priceChange = Math.abs(
-                stockData[j].closePrice - stockData[j > 0 ? j - 1 : 0].closePrice,
-              );
-              if (priceChange > maxChange) {
-                maxChange = priceChange;
-                maxChangePoint = stockData[j];
-              }
-            }
-
-            calculatedPoints.push({
-              stockCandleId: maxChangePoint.stockCandleId,
-              date: maxChangePoint.tradingDate,
-            });
-          }
-        }
-
-        setInflectionPoints(calculatedPoints);
-        console.log(`회사 ${companyId}의 변곡점 정보 계산 완료:`, calculatedPoints);
-      } catch (error) {
-        console.error(`회사 ${companyId}의 주가 데이터 가져오기 실패:`, error);
-        setInflectionPoints([]);
-      }
-    };
-
-    if (companyId) {
-      fetchInflectionPoints();
+    if (top3PointsData?.result?.PointResponseList) {
+      const points = top3PointsData.result.PointResponseList;
+      const convertedPoints: InflectionPoint[] = points.map((point) => ({
+        stockCandleId: point.stockCandleId,
+        date: new Date(point.pointId).toLocaleDateString(), // pointId를 날짜로 가정. 실제로는 API에서 제공하는 날짜 필드 사용
+      }));
+      setInflectionPoints(convertedPoints);
     }
-  }, [companyId]);
+  }, [top3PointsData, companyId]);
 
   // 현재 가격 정보를 가져오기 위한 API 호출
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        if (inflectionPoints.length === 0) {
+        if (!startPointData || !endPointData) {
           return;
         }
 
         // 선택된 세그먼트에 따라 시작점과 끝점 결정
         let startId: number;
         let endId: number;
-
-        // 기본 시작점과 끝점
-        const initialPoint = 1; // 가장 초기 지점 (ID 1번으로 가정)
-        const latestPoint = 1000; // 가장 최근 지점 (ID 1000번으로 가정)
+        const startPointId = startPointData.result;
+        const endPointId = endPointData.result;
+        const points = top3PointsData?.result?.PointResponseList || [];
 
         switch (selectedSegment) {
-          case 0: // 첫 번째 구간: 초기 지점 ~ 변곡점 1
-            startId = initialPoint;
-            endId = inflectionPoints[0]?.stockCandleId || 100;
+          case 0: // 첫 번째 구간: 시작 지점 ~ 변곡점 1
+            startId = startPointId;
+            endId = points.length > 0 ? points[0].stockCandleId : endPointId;
             break;
           case 1: // 두 번째 구간: 변곡점 1 ~ 변곡점 2
-            startId = inflectionPoints[0]?.stockCandleId || 100;
-            endId = inflectionPoints[1]?.stockCandleId || 200;
+            startId = points.length > 0 ? points[0].stockCandleId : startPointId;
+            endId = points.length > 1 ? points[1].stockCandleId : endPointId;
             break;
           case 2: // 세 번째 구간: 변곡점 2 ~ 변곡점 3
-            startId = inflectionPoints[1]?.stockCandleId || 200;
-            endId = inflectionPoints[2]?.stockCandleId || 300;
+            startId = points.length > 1 ? points[1].stockCandleId : startPointId;
+            endId = points.length > 2 ? points[2].stockCandleId : endPointId;
             break;
           case 3: // 네 번째 구간: 변곡점 3 ~ 최근 지점
-            startId = inflectionPoints[2]?.stockCandleId || 300;
-            endId = latestPoint;
+            startId = points.length > 2 ? points[2].stockCandleId : startPointId;
+            endId = endPointId;
             break;
           default:
-            startId = initialPoint;
-            endId = latestPoint;
+            startId = startPointId;
+            endId = endPointId;
+        }
+
+        // 시작점이 끝점보다 크면 두 값을 swap
+        if (startId > endId) {
+          [startId, endId] = [endId, startId];
         }
 
         // 선택된 구간에 따라 가격 데이터 조회
@@ -204,12 +173,7 @@ export const StockTutorialInfo = ({
         // 데이터 배열에서 가장 최신 값(마지막 값)의 closePrice 가져오기
         const latestData = response.result.data[response.result.data.length - 1];
         setCurrentPrice(latestData.closePrice);
-        console.log(
-          `회사 ${companyId}의 가격 정보 로드 성공 (구간 ${selectedSegment}):`,
-          latestData.closePrice,
-        );
-      } catch (error) {
-        console.error(`회사 ${companyId}의 튜토리얼 가격 정보 가져오기 실패:`, error);
+      } catch {
         // 오류 발생 시 기본 가격 설정 (예: 50000원)
         setCurrentPrice(50000);
       }
@@ -218,7 +182,7 @@ export const StockTutorialInfo = ({
     if (companyId) {
       fetchPrice();
     }
-  }, [companyId, inflectionPoints, selectedSegment]); // companyId, inflectionPoints, selectedSegment가 변경될 때 실행
+  }, [companyId, top3PointsData, selectedSegment, startPointData, endPointData]);
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
@@ -248,15 +212,14 @@ export const StockTutorialInfo = ({
     try {
       const IconComponent = getCategoryIcon(categoryName);
       return <IconComponent />;
-    } catch (error) {
-      console.error(`카테고리 아이콘 렌더링 오류: ${categoryName}`, error);
+    } catch {
       return <Squares2X2Icon />;
     }
   };
 
   const handleTutorialStart = async () => {
     // 인증 체크 부분 임시 주석 처리
-    // if (!authData.isLogin) {
+    // if (!_authData.isLogin) {
     //   console.error('로그인이 필요합니다.');
     //   return;
     // }
@@ -275,8 +238,8 @@ export const StockTutorialInfo = ({
       if (onTutorialStart) {
         onTutorialStart();
       }
-    } catch (error) {
-      console.error('튜토리얼 초기화 실패:', error);
+    } catch {
+      // 오류 처리
     }
   };
 

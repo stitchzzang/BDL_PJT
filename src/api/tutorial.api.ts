@@ -102,12 +102,6 @@ export const useGetTutorialStockData = (
         `stocks/${companyId}/tutorial?startStockCandleId=${startStockCandleId}&endStockCandleId=${endStockCandleId}`,
       );
 
-      // 응답 헤더 확인
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('text/html')) {
-        throw new Error('서버에서 HTML 응답을 반환했습니다. API 형식이 올바르지 않습니다.');
-      }
-
       return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
     enabled: !!companyId && !!startStockCandleId && !!endStockCandleId,
@@ -172,17 +166,12 @@ export const useGetSectionTutorialStockData = (
   return useQuery({
     queryKey: ['tutorial', 'stocks', 'section', companyId, sectionNumber],
     queryFn: async () => {
-      if (!range) throw new Error('시작점과 종료점 데이터가 로드되지 않았습니다.');
-
+      if (!range) {
+        throw new Error('Range is not available yet');
+      }
       const response = await _ky.get(
         `stocks/${companyId}/tutorial?startStockCandleId=${range.startId}&endStockCandleId=${range.endId}`,
       );
-
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('text/html')) {
-        throw new Error('서버에서 HTML 응답을 반환했습니다. API 형식이 올바르지 않습니다.');
-      }
-
       return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
     enabled: !!companyId && !!range && startPointQuery.isSuccess && endPointQuery.isSuccess,

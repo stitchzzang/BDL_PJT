@@ -39,7 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import ChartComponent from '@/components/ui/chart';
+import ChartComponent from '@/components/ui/chart-tutorial';
 import { CandleResponse, PeriodCandleData } from '@/mocks/dummy-data';
 
 // 거래 기록을 위한 타입 정의
