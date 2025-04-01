@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useGetAlgorithm } from '@/api/algorithm.api';
 import { Algorithm } from '@/api/types/algorithm';
 import { ErrorScreen } from '@/components/common/error-screen';
+import { RocketAnimation } from '@/components/common/rocket-animation';
 import { MyAlgorithmItem } from '@/components/member-info/my-algorithm-item';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -50,7 +51,10 @@ export const AlgorithmPage = () => {
                         </p>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>알고리즘을 만들러 가볼까요?</p>
+                        <div className="flex flex-row items-center gap-1">
+                          <RocketAnimation />
+                          <p>알고리즘을 만들러 가볼까요?</p>
+                        </div>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useTutorialResults } from '@/api/tutorial.api';
 import { ErrorScreen } from '@/components/common/error-screen';
+import { RocketAnimation } from '@/components/common/rocket-animation';
 import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial-result-item';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -55,7 +56,10 @@ export const TutorialResultPage = () => {
                   </p>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>주식 튜토리얼을 하러 가볼까요?</p>
+                  <div className="flex flex-row items-center gap-1">
+                    <RocketAnimation />
+                    <p>주식 튜토리얼을 하러 가볼까요?</p>
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
