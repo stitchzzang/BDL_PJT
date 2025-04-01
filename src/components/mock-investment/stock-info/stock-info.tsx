@@ -40,15 +40,15 @@ export const StockInfo = ({
               </p>
             </div>
             <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-1 sm:flex-row">
-                <h3 className="text-[22px] font-medium text-white">
-                  {tickData
-                    ? addCommasToThousand(tickData?.stckPrpr)
-                    : addCommasToThousand(closePrice)}
-                  원
-                </h3>
-                <div className="flex flex-col gap-2 text-[14px] sm:flex-row">
-                  <div className="flex items-center gap-2 rounded-lg p-2">
+              <div className="ite flex flex-col gap-1 sm:flex-row">
+                <div className="flex flex-col items-center gap-2 text-[14px] sm:flex-row">
+                  <h3 className="text-[22px] font-medium text-white">
+                    {tickData
+                      ? addCommasToThousand(tickData?.stckPrpr)
+                      : addCommasToThousand(closePrice)}
+                    원
+                  </h3>
+                  <div className="flex justify-center gap-2 rounded-lg">
                     <p className="text-border-color">어제보다</p>
                     <p
                       className={priceChange.isRise ? 'text-btn-red-color' : 'text-btn-blue-color'}
@@ -57,22 +57,22 @@ export const StockInfo = ({
                       {addCommasToThousand(priceChange.change)}원({priceChange.percent}%)
                     </p>
                   </div>
-                  <div className="flex items-center justify-center gap-[15px] rounded-lg border border-border-color border-opacity-20 bg-modal-background-color p-2">
-                    {stockCompanyInfo?.categories.map((name, index) => {
-                      const IconComponent = getCategoryIcon(name);
-                      return (
-                        <div
-                          className="flex min-h-[25px] min-w-[25px] items-center justify-center gap-1"
-                          key={index}
-                        >
-                          <div className="h-5 w-5">
-                            <IconComponent />
-                          </div>
-                          <p className="text-border-color">{name}</p>
+                </div>
+                <div className="flex items-center justify-center gap-[15px] rounded-lg border border-border-color border-opacity-20 bg-modal-background-color p-2">
+                  {stockCompanyInfo?.categories.map((name, index) => {
+                    const IconComponent = getCategoryIcon(name);
+                    return (
+                      <div
+                        className="flex min-h-[25px] min-w-[25px] items-center justify-center gap-1"
+                        key={index}
+                      >
+                        <div className="h-5 w-5">
+                          <IconComponent />
                         </div>
-                      );
-                    })}
-                  </div>
+                        <p className="text-border-color">{name}</p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <div>
