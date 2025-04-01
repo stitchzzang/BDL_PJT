@@ -114,30 +114,25 @@ export const EditPage = () => {
       updateData.profileImage = useDefaultProfile ? '' : tempProfile;
       updateData.deleteProfile = useDefaultProfile;
     }
-
     return updateData;
   };
 
-  const { mutate: updateMemberInfo, isPending: updatePending } = useUpdateMemberInfo({
+  const { mutate: updateMemberInfo } = useUpdateMemberInfo({
     memberId: userData.memberId?.toString() || '',
-    data: buildUpdateData(),
-    onSuccess: () => {
+    data: buildUpdateData,
+    navigateTo: () => navigate('/member'),
+    updateUserState: (data) => {
       const updatedData: { nickname?: string; profile?: string | null } = {};
-      const formValues = form.getValues();
 
-      if (nicknameChanged) {
-        updatedData.nickname = formValues.nickname;
+      if (data.nickname) {
+        updatedData.nickname = data.nickname;
       }
 
-      if (profileChanged || useDefaultProfile) {
-        updatedData.profile = useDefaultProfile ? null : tempProfile;
+      if (data.profileImage !== undefined || data.deleteProfile) {
+        updatedData.profile = data.deleteProfile ? null : data.profileImage || null;
       }
 
       updateUserData(updatedData);
-      navigate('/member');
-    },
-    onError: () => {
-      // 에러 처리는 member.api.ts에서 처리
     },
   });
 

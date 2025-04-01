@@ -38,20 +38,40 @@ export const useUpdateMemberInfo = ({
   data,
   onSuccess,
   onError,
+  navigateTo,
+  updateUserState,
 }: {
   memberId: string;
-  data: MemberInfo;
+  data: MemberInfo | (() => MemberInfo);
   onSuccess?: () => void;
   onError?: () => void;
+  navigateTo?: () => void;
+  updateUserState?: (data: MemberInfo) => void;
 }) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => memberApi.updateMemberInfo(memberId, data),
-    onSuccess: () => {
+    mutationFn: () => {
+      const dataToSend = typeof data === 'function' ? data() : data;
+      return memberApi.updateMemberInfo(memberId, dataToSend);
+    },
+    onSuccess: (response) => {
       // 프로필 정보 갱신
       queryClient.invalidateQueries({ queryKey: ['memberInfo', memberId] });
       toast.success('프로필이 성공적으로 업데이트되었습니다.');
+
+      // 사용자 상태 업데이트 (필요한 경우)
+      if (updateUserState) {
+        const dataValue = typeof data === 'function' ? data() : data;
+        updateUserState(dataValue);
+      }
+
+      // 페이지 이동 (필요한 경우)
+      if (navigateTo) {
+        navigateTo();
+      }
+
+      // 추가 콜백 실행
       onSuccess?.();
     },
     onError: (error: HTTPError) => {
