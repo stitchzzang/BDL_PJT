@@ -37,7 +37,7 @@ export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
     // 그래프 옵션 설정
     const option = {
       title: {
-        text: '코스닥 지수',
+        text: '',
         left: 'center',
         textStyle: {
           fontSize: 18,
@@ -101,13 +101,13 @@ export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
           type: 'line',
           smooth: true,
           symbol: 'circle',
-          symbolSize: 6,
+          symbolSize: 0,
           sampling: 'average',
           itemStyle: {
             color: '#1E88E5',
           },
           lineStyle: {
-            width: 3,
+            width: 2,
           },
           areaStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -153,34 +153,3 @@ export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
     </div>
   );
 };
-
-// 샘플 데이터
-const sampleData: HomeChartData[] = [
-  {
-    bstpNmixPrpr: '2529.77',
-    acmlVol: '329105',
-    bstpNmixOprc: '2511.24',
-    bstpNmixHgpr: '2530.27',
-    bstpNmixLwpr: '2494.43',
-    stckBsopDate: '20250401',
-    bstpNmixPrdyVrss: '48.65',
-    bstpNmixPrdyCtrt: '1.96',
-  },
-  {
-    bstpNmixPrpr: '2481.12',
-    acmlVol: '391593',
-    bstpNmixOprc: '2513.44',
-    bstpNmixHgpr: '2514.22',
-    bstpNmixLwpr: '2479.46',
-    stckBsopDate: '20250331',
-    bstpNmixPrdyVrss: '-76.86',
-    bstpNmixPrdyCtrt: '-3.00',
-  },
-];
-
-// // 예시 렌더링 (실제 사용 시에는 kospi prop으로 데이터 전달)
-// const MainKosdaqChart = () => {
-//   return <KosdaqChart kosdaqData={kosdaqData} />;
-// };
-
-// export default MainKosdaqChart;
