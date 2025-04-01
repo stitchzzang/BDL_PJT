@@ -7,6 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import { _ky, _kyAuth } from '@/api/instance';
 import { LoginResponse, SignupRequest } from '@/api/types/auth';
 import { ApiResponse } from '@/api/types/common';
+import {
+  subscribeToNotifications,
+  unsubscribeFromNotifications,
+} from '@/services/notificationService';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export const authApi = {
@@ -54,6 +58,7 @@ export const useLogin = () => {
           nickname: result.nickname,
           profile: result.profile,
         });
+        subscribeToNotifications(); // SSE 연결 시작
         toast.success('로그인되었습니다.');
         navigate('/');
       }
@@ -72,6 +77,7 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
+      unsubscribeFromNotifications(); // SSE 연결 종료
       logoutAuth();
       toast.success('로그아웃되었습니다.');
       navigate('/');
