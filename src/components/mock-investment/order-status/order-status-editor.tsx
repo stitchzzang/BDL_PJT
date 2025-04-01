@@ -54,6 +54,7 @@ export const OrderStatusEditor = ({
       },
       {
         onSuccess: () => {
+          setEditor(!editor);
           alert('주문이 성공적으로 수정되었습니다.');
           queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
         },
@@ -140,7 +141,7 @@ export const OrderStatusEditor = ({
     }
   };
   return (
-    <div className="my-3">
+    <div className="my-3 animate-fadeIn">
       <div
         className={`rounded-xl  bg-opacity-20 p-2 ${tradeType === 1 ? 'bg-btn-blue-color' : 'bg-btn-red-color'}`}
       >

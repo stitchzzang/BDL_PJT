@@ -142,7 +142,7 @@ export const OrderStatusBuy = ({
     setIsActive(active);
   };
   return (
-    <div className="h-full">
+    <div className="h-full animate-fadeIn">
       <h3 className={h3Style}>구매하기</h3>
       <div className="flex h-full flex-col justify-between">
         <div className="mb-[25px] flex w-full flex-col gap-4">

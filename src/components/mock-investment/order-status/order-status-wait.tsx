@@ -50,7 +50,7 @@ export const OrderStatusWait = ({
     );
   }
   return (
-    <div>
+    <div className="max-h-[450px] animate-fadeIn overflow-y-auto">
       <div className="mb-1">
         <h3 className={h3Style}>대기 주문</h3>
       </div>
