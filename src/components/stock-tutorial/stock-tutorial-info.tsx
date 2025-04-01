@@ -110,7 +110,10 @@ export const StockTutorialInfo = ({
 
   // API에서 가져온 TOP3 변곡점 데이터를 InflectionPoint로 변환
   useEffect(() => {
-    if (top3PointsData?.result?.PointResponseList) {
+    if (
+      top3PointsData?.result?.PointResponseList &&
+      Array.isArray(top3PointsData.result.PointResponseList)
+    ) {
       const points = top3PointsData.result.PointResponseList;
       const convertedPoints: InflectionPoint[] = [];
 

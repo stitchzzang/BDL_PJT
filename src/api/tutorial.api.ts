@@ -47,27 +47,65 @@ export const useGetTop3Points = (companyId: number) => {
   return useQuery({
     queryKey: ['tutorial', 'points', 'top3', companyId],
     queryFn: async () => {
-      const response = await _ky.get(`tutorial/points/top3?companyId=${companyId}`);
-      const responseData = (await response.json()) as ApiResponse<any>; // 타입을 any로 변경
+      try {
+        const response = await _ky.get(`tutorial/points/top3?companyId=${companyId}`);
+        const responseData = (await response.json()) as ApiResponse<{
+          PointResponseList: Point[];
+        }>;
 
-      // 응답 로그 추가
-      console.log('[API] useGetTop3Points 응답:', responseData);
+        // 응답 로그 추가
+        console.log('[API] useGetTop3Points 응답:', responseData);
 
-      // 결과가 배열이라면 Point[] 형태로 가정, 객체라면 PointResponseList 필드 확인
-      if (responseData.result) {
-        console.log('[API] useGetTop3Points result 타입:', typeof responseData.result);
-        if (Array.isArray(responseData.result)) {
-          console.log('[API] result는 직접 배열:', responseData.result.length);
-        } else if (responseData.result.PointResponseList) {
-          console.log(
-            '[API] result는 PointResponseList 객체:',
-            responseData.result.PointResponseList,
-          );
+        // 결과 유효성 검증
+        if (!responseData.isSuccess) {
+          console.error('[API] useGetTop3Points 응답 실패:', responseData.message);
+          throw new Error(`API 응답 실패: ${responseData.message}`);
         }
-      }
 
-      return responseData;
+        if (!responseData.result) {
+          console.error('[API] useGetTop3Points result가 없음');
+          throw new Error('API 응답에 result가 없습니다');
+        }
+
+        // 응답 구조 확인
+        if (!responseData.result.PointResponseList) {
+          console.error('[API] useGetTop3Points PointResponseList가 없음:', responseData.result);
+
+          // 서버에서 다른 형태로 응답하는 경우를 처리 (result가 직접 배열인 경우)
+          if (Array.isArray(responseData.result)) {
+            console.log(
+              '[API] result가 직접 배열로 응답됨, 변환 처리:',
+              responseData.result.length,
+            );
+            // 결과를 예상 형식으로 변환
+            return {
+              ...responseData,
+              result: {
+                PointResponseList: responseData.result as unknown as Point[],
+              },
+            };
+          }
+
+          throw new Error('API 응답에 PointResponseList가 없습니다');
+        }
+
+        // 배열 확인
+        if (!Array.isArray(responseData.result.PointResponseList)) {
+          console.error(
+            '[API] PointResponseList가 배열이 아님:',
+            typeof responseData.result.PointResponseList,
+          );
+          throw new Error('PointResponseList가 배열이 아닙니다');
+        }
+
+        return responseData;
+      } catch (error) {
+        console.error('[API] useGetTop3Points 예외 발생:', error);
+        throw error;
+      }
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 };
 

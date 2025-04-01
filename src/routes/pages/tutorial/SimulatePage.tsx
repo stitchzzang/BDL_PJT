@@ -207,12 +207,28 @@ export const SimulatePage = () => {
   const { data: top3PointsResponse, refetch: refetchTop3Points } = useGetTop3Points(companyId);
 
   // 변곡점 날짜 조회를 위한 설정
-  const pointStockCandleIds = useMemo(
-    () =>
-      top3PointsResponse?.result?.PointResponseList?.map((point: Point) => point.stockCandleId) ||
-      [],
-    [top3PointsResponse],
-  );
+  const pointStockCandleIds = useMemo(() => {
+    // 응답 데이터 검증
+    if (!top3PointsResponse?.result) return [];
+
+    // PointResponseList 필드 확인
+    if (!top3PointsResponse.result.PointResponseList) {
+      console.error('변곡점 응답에 PointResponseList가 없음:', top3PointsResponse.result);
+      return [];
+    }
+
+    // 배열 확인
+    if (!Array.isArray(top3PointsResponse.result.PointResponseList)) {
+      console.error(
+        'PointResponseList가 배열이 아님:',
+        typeof top3PointsResponse.result.PointResponseList,
+      );
+      return [];
+    }
+
+    // 유효한 경우 stockCandleId 추출
+    return top3PointsResponse.result.PointResponseList.map((point: Point) => point.stockCandleId);
+  }, [top3PointsResponse]);
 
   const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
   const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
@@ -239,7 +255,16 @@ export const SimulatePage = () => {
   const initSession = useInitSession();
 
   // 데이터 추출
-  const top3Points = top3PointsResponse?.result?.PointResponseList;
+  const top3Points = useMemo(() => {
+    if (
+      !top3PointsResponse?.result?.PointResponseList ||
+      !Array.isArray(top3PointsResponse.result.PointResponseList)
+    ) {
+      return [];
+    }
+    return top3PointsResponse.result.PointResponseList;
+  }, [top3PointsResponse]);
+
   const tutorialFeedback = tutorialFeedbackResponse?.result;
 
   // 전체 상태 관리 - 하나의 통합된 useEffect
@@ -662,13 +687,45 @@ export const SimulatePage = () => {
 
           // 변곡점 데이터 다시 가져오기
           const pointsResponse = await refetchTop3Points();
-          console.log('변곡점 데이터 새로고침:', pointsResponse.data);
+          console.log('변곡점 데이터 새로고침 응답:', pointsResponse);
 
-          if (pointsResponse.data?.result?.PointResponseList) {
+          // 응답 데이터 구조 디버깅
+          if (pointsResponse.data) {
+            console.log('응답 데이터 구조:', {
+              isSuccess: pointsResponse.data.isSuccess,
+              code: pointsResponse.data.code,
+              message: pointsResponse.data.message,
+              resultType: typeof pointsResponse.data.result,
+              hasPointResponseList:
+                pointsResponse.data.result && 'PointResponseList' in pointsResponse.data.result,
+              pointResponseListType:
+                pointsResponse.data.result && 'PointResponseList' in pointsResponse.data.result
+                  ? typeof pointsResponse.data.result.PointResponseList
+                  : 'undefined',
+              isArray:
+                pointsResponse.data.result && 'PointResponseList' in pointsResponse.data.result
+                  ? Array.isArray(pointsResponse.data.result.PointResponseList)
+                  : false,
+              length:
+                pointsResponse.data.result &&
+                'PointResponseList' in pointsResponse.data.result &&
+                Array.isArray(pointsResponse.data.result.PointResponseList)
+                  ? pointsResponse.data.result.PointResponseList.length
+                  : 0,
+            });
+          }
+
+          // PointResponseList가 존재하고 배열인지 확인
+          if (
+            pointsResponse.data?.result &&
+            'PointResponseList' in pointsResponse.data.result &&
+            Array.isArray(pointsResponse.data.result.PointResponseList) &&
+            pointsResponse.data.result.PointResponseList.length > 0
+          ) {
             setIsTutorialStarted(true);
             setProgress(10);
           } else {
-            console.error('변곡점 데이터를 가져오는데 실패했습니다');
+            console.error('변곡점 데이터를 가져오는데 실패했습니다', pointsResponse.data);
             setHasChartError(true);
             setIsChartLoading(false);
           }
