@@ -233,7 +233,6 @@ export const SimulatePage = () => {
   useEffect(() => {
     if (companyId && startPointId && endPointId) {
       setIsChartLoading(true);
-      console.log('전체 차트 데이터 로드 시작:', { companyId, startPointId, endPointId });
 
       // 1년 전 날짜와 현재 날짜 계산
       const currentDate = new Date();
@@ -250,20 +249,12 @@ export const SimulatePage = () => {
         endDate: formattedEndDate,
       });
 
-      console.log('기간 설정:', {
-        startDate: formattedStartDate,
-        endDate: formattedEndDate,
-      });
-
       // 시작점과 종료점 ID는 이미 훅에서 최소/최대로 처리됨
       fetchFullChartData()
         .then((response) => {
           if (response.data?.result) {
             const result = response.data.result;
             setFullChartData(result);
-            console.log('전체 차트 데이터 로드 완료:', result);
-
-            // 초기 차트 데이터로 전체 차트 데이터 설정
             setStockData(result);
 
             // 최신 가격 설정
@@ -281,13 +272,12 @@ export const SimulatePage = () => {
 
                 const lastCandle = sortedDayCandles[sortedDayCandles.length - 1];
                 setLatestPrice(lastCandle.closePrice);
-                console.log('전체 차트 최신 가격 설정:', lastCandle.closePrice);
               }
             }
           }
         })
-        .catch((error) => {
-          console.error('전체 차트 데이터 로드 실패:', error);
+        .catch(() => {
+          // 에러 발생 시 처리
         })
         .finally(() => {
           setIsChartLoading(false);
@@ -305,7 +295,6 @@ export const SimulatePage = () => {
         currentSession.endStockCandleId !== endPointId
       ) {
         setStockData(sessionDataResponse.result);
-        console.log('세션별 주식 데이터 갱신됨:', sessionDataResponse.result);
       }
 
       if (sessionDataResponse.result.data.length > 0) {
@@ -317,7 +306,6 @@ export const SimulatePage = () => {
         if (dayCandles.length > 0) {
           const lastCandle = dayCandles[dayCandles.length - 1];
           setLatestPrice(lastCandle.closePrice);
-          console.log('API 응답에서 최신 일봉 가격 업데이트:', lastCandle.closePrice);
         }
       }
     }
@@ -346,8 +334,6 @@ export const SimulatePage = () => {
       setIsChartLoading(true);
     }
 
-    console.log('세션 변경 감지, 데이터 로드 시작');
-
     // 시작점과 종료점 ID 비교하여 올바른 순서로 설정
     let actualStartId = currentSession.startStockCandleId;
     let actualEndId = currentSession.endStockCandleId;
@@ -355,13 +341,6 @@ export const SimulatePage = () => {
     if (currentSession.startStockCandleId > currentSession.endStockCandleId) {
       actualStartId = Math.min(currentSession.startStockCandleId, currentSession.endStockCandleId);
       actualEndId = Math.max(currentSession.startStockCandleId, currentSession.endStockCandleId);
-
-      console.log('세션 - 시작점이 종료점보다 큽니다. ID를 교체합니다.', {
-        originalStart: currentSession.startStockCandleId,
-        originalEnd: currentSession.endStockCandleId,
-        swappedStart: actualStartId,
-        swappedEnd: actualEndId,
-      });
     }
 
     // 과거 뉴스 목록 가져오기 (변곡점 뉴스)
@@ -420,14 +399,11 @@ export const SimulatePage = () => {
       // 세션별 데이터 로드 - ID는 이미 훅에서 최소/최대로 처리됨
       fetchSessionData()
         .then((response) => {
-          console.log('fetchSessionData 응답:', response);
-
           if (response.data?.result) {
             setStockData(response.data.result);
           }
         })
-        .catch((error) => {
-          console.error('튜토리얼 일봉 데이터 로드 실패:', error);
+        .catch(() => {
           setStockData(null);
         })
         .finally(() => {
@@ -473,8 +449,8 @@ export const SimulatePage = () => {
       });
       setIsModalOpen(true);
       setFinalChangeRate(assetInfo.totalReturnRate);
-    } catch (error) {
-      console.error('튜토리얼 결과 저장 실패:', error);
+    } catch {
+      // 에러 무시
     }
   }, [
     memberId,
@@ -557,7 +533,6 @@ export const SimulatePage = () => {
     // 전체 차트 데이터가 없으면 재로드 시도
     if (!fullChartData && startPointId && endPointId) {
       setIsChartLoading(true); // 로딩 상태 설정
-      console.log('튜토리얼 시작 전 전체 차트 데이터 로드 시작');
 
       // ID는 이미 훅에서 최소/최대로 처리됨
       fetchFullChartData()
@@ -566,7 +541,6 @@ export const SimulatePage = () => {
             const result = response.data.result;
             setFullChartData(result);
             setStockData(result);
-            console.log('튜토리얼 시작 전 전체 차트 데이터 로드 완료');
 
             // 최신 가격 설정
             if (result.data && result.data.length > 0) {
@@ -580,8 +554,8 @@ export const SimulatePage = () => {
             }
           }
         })
-        .catch((error) => {
-          console.error('튜토리얼 시작 전 전체 차트 데이터 로드 실패:', error);
+        .catch(() => {
+          // 에러 처리
         })
         .finally(() => {
           setIsChartLoading(false);
@@ -596,8 +570,7 @@ export const SimulatePage = () => {
           setIsTutorialStarted(true);
           setProgress(10);
         },
-        onError: (error) => {
-          console.error('튜토리얼 세션 초기화 실패:', error);
+        onError: () => {
           alert('튜토리얼을 시작할 수 없습니다. 다시 시도해주세요.');
         },
       },
@@ -684,22 +657,6 @@ export const SimulatePage = () => {
     setIsModalOpen(false);
   };
 
-  // 최신 가격 가져오기
-  useEffect(() => {
-    // stockData에서 마지막 캔들의 종가를 가져와 최신 가격으로 설정
-    if (stockData?.data && stockData.data.length > 0) {
-      // 일봉 데이터만 필터링 (periodType이 1인 데이터)
-      const filteredData = stockData.data.filter((item) => item.periodType === 1);
-      console.log('stockData 변경 감지, 필터링된 일봉 데이터:', filteredData.length);
-
-      if (filteredData.length > 0) {
-        const lastCandle = filteredData[filteredData.length - 1];
-        setLatestPrice(lastCandle.closePrice);
-        console.log('차트 데이터에서 최신 가격 업데이트:', lastCandle.closePrice);
-      }
-    }
-  }, [stockData]);
-
   // 차트 데이터에서 실제 날짜 범위 업데이트
   useEffect(() => {
     const source = stockData || fullChartData;
@@ -725,11 +682,23 @@ export const SimulatePage = () => {
           startDate,
           endDate,
         });
-
-        console.log('실제 차트 날짜 범위 업데이트:', { startDate, endDate });
       }
     }
   }, [stockData, fullChartData]);
+
+  // 최신 가격 가져오기
+  useEffect(() => {
+    // stockData에서 마지막 캔들의 종가를 가져와 최신 가격으로 설정
+    if (stockData?.data && stockData.data.length > 0) {
+      // 일봉 데이터만 필터링 (periodType이 1인 데이터)
+      const filteredData = stockData.data.filter((item) => item.periodType === 1);
+
+      if (filteredData.length > 0) {
+        const lastCandle = filteredData[filteredData.length - 1];
+        setLatestPrice(lastCandle.closePrice);
+      }
+    }
+  }, [stockData]);
 
   return (
     <div className="flex h-full w-full flex-col">

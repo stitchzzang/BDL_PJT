@@ -100,15 +100,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
       // 일봉 데이터만 필터링
       const dayCandles =
         periodData.data?.filter((item) => item.periodType === DAY_PERIOD_TYPE) || [];
-
-      console.log('차트 컴포넌트 periodData 업데이트됨:', {
-        companyId: periodData.companyId,
-        dataLength: periodData.data?.length || 0,
-        hasDayCandles: dayCandles.length > 0,
-        dayCandles: dayCandles.length,
-      });
-    } else {
-      console.log('차트 컴포넌트 periodData 없음');
     }
   }, [periodData]);
 
@@ -118,13 +109,10 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
     try {
       if (periodData?.data && Array.isArray(periodData.data) && periodData.data.length > 0) {
-        console.log('periodData 받음, 데이터 수:', periodData.data.length);
-
         // 일봉 데이터만 필터링 (periodType이 1인 데이터)
         const filteredData = periodData.data.filter(
           (item) => item && item.periodType === DAY_PERIOD_TYPE,
         );
-        console.log('일봉 데이터 필터링 결과:', filteredData.length);
 
         if (filteredData.length > 0) {
           // 날짜 기준으로 정렬
@@ -137,15 +125,10 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
           // 필터링 및 정렬된 데이터만 변환
           data = sortedData.map(convertPeriodCandleToChartData);
-          console.log('차트 데이터 변환 완료, 데이터 수:', data.length);
-        } else {
-          console.warn('일봉 데이터가 없습니다.');
         }
-      } else {
-        console.warn('periodData가 없거나 데이터가 비어 있습니다.');
       }
     } catch (error) {
-      console.error('차트 데이터 변환 오류:', error);
+      // 오류 처리
     }
 
     return data;
@@ -166,7 +149,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
   const chartData = useMemo(() => {
     if (!rawChartData || !Array.isArray(rawChartData) || rawChartData.length === 0) {
-      console.log('rawChartData가 없어 빈 차트 데이터 생성');
       return Array(EMPTY_DATA_COUNT)
         .fill(null)
         .map(() => ({
@@ -185,7 +167,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     }
 
     const data = [...rawChartData];
-    console.log('chartData 생성, 실제 데이터 수:', data.length);
 
     // 빈 데이터 추가
     const emptyData = Array(EMPTY_DATA_COUNT)
@@ -677,34 +658,17 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
   // 차트 데이터 유효성 체크 - periodData가 있다면 차트를 표시
   const hasValidData = useMemo(() => {
-    // periodData가 존재하고, data 배열이 있는지 확인
     if (periodData && periodData.data && Array.isArray(periodData.data)) {
-      // 일봉 데이터만 필터링
       const filteredData = periodData.data.filter((item) => item.periodType === DAY_PERIOD_TYPE);
-      // 데이터 배열에 최소 하나의 요소가 있어도 유효하다고 판단
-      const isValid = filteredData.length > 0;
-      console.log('차트 데이터 유효성 체크:', isValid, '일봉 데이터 수:', filteredData.length);
-      return isValid;
+      return filteredData.length > 0;
     }
-    console.log('periodData가 유효하지 않음');
     return false;
   }, [periodData]);
 
   // 디버깅을 위한 로그
   useEffect(() => {
-    console.log('차트 컴포넌트 상태:', {
-      periodDataLength: periodData?.data?.length,
-      rawChartDataLength: rawChartData.length,
-      hasValidData: hasValidData,
-      candleDataLength: candleData.length,
-      volumeDataLength: volumeData.length,
-    });
-  }, [periodData, rawChartData, hasValidData, candleData, volumeData]);
-
-  useEffect(() => {
     if (hasValidData && chartRef.current) {
       // 차트 인스턴스에 접근하여 필요한 경우 추가 설정
-      console.log('차트 준비됨');
     }
   }, [hasValidData]);
 

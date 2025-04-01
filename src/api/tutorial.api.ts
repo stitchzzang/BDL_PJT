@@ -98,41 +98,14 @@ export const useGetTutorialStockData = (
   return useQuery({
     queryKey: ['tutorial', 'stocks', companyId, startStockCandleId, endStockCandleId],
     queryFn: async () => {
-      console.log(
-        `튜토리얼 일봉 데이터 요청: companyId=${companyId}, startStockCandleId=${startStockCandleId}, endStockCandleId=${endStockCandleId}`,
-      );
-
       if (!companyId || !startStockCandleId || !endStockCandleId) {
-        console.error('튜토리얼 일봉 데이터 요청 파라미터 오류:', {
-          companyId,
-          startStockCandleId,
-          endStockCandleId,
-        });
         throw new Error('유효하지 않은 파라미터입니다.');
       }
 
       const apiUrl = `stocks/${companyId}/tutorial?startStockCandleId=${startStockCandleId}&endStockCandleId=${endStockCandleId}`;
-      console.log('API URL:', apiUrl);
 
-      try {
-        const response = await _ky.get(apiUrl);
-        const data = (await response.json()) as ApiResponse<TutorialStockResponse>;
-
-        // 응답 데이터 확인
-        if (data && data.result) {
-          const dayCandles = data.result.data?.filter((candle) => candle.periodType === 1) || [];
-          console.log(
-            `튜토리얼 일봉 데이터 응답: 총 ${data.result.data?.length || 0}개, 일봉 데이터 ${dayCandles.length}개`,
-          );
-        } else {
-          console.warn('튜토리얼 일봉 데이터가 없거나 응답 형식이 올바르지 않습니다:', data);
-        }
-
-        return data;
-      } catch (error) {
-        console.error('튜토리얼 일봉 데이터 요청 실패:', error);
-        throw error;
-      }
+      const response = await _ky.get(apiUrl);
+      return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
     enabled:
       !!companyId &&
@@ -142,7 +115,7 @@ export const useGetTutorialStockData = (
       endStockCandleId > 0,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 60 * 1000, // 1분 동안 캐시 데이터 사용
+    staleTime: 60 * 1000,
   });
 };
 
@@ -272,13 +245,12 @@ export const useGetTutorialFeedback = (memberId: number, options?: { enabled?: b
       try {
         const response = await _kyAuth.get(`tutorial/result/feedback/${memberId}`);
         return response.json() as Promise<ApiResponse<string>>;
-      } catch (error) {
-        console.error('튜토리얼 피드백 조회 실패:', error);
+      } catch {
         return {
           isSuccess: true,
           code: 200,
           message: '기본 피드백 제공',
-          result: '튜토리얼을 완료하셨습니다. 실제 투자 시에는 더 신중하게 결정해보세요.', // 기본 피드백 메시지
+          result: '튜토리얼을 완료하셨습니다. 실제 투자 시에는 더 신중하게 결정해보세요.',
         } as ApiResponse<string>;
       }
     },

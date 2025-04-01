@@ -223,23 +223,14 @@ export const StockTutorialInfo = ({
   };
 
   const handleTutorialStart = async () => {
-    // 인증 체크 부분 임시 주석 처리
-    // if (!_authData.isLogin) {
-    //   console.error('로그인이 필요합니다.');
-    //   return;
-    // }
-
     try {
-      // TODO: 실제 환경에서는 사용자 ID를 인증 스토어에서 가져와야 함
-      const memberId = 1; // 임시 사용자 ID
+      const memberId = 1;
 
-      // 튜토리얼 세션 초기화 API 호출
       await initSessionMutation.mutateAsync({
         memberId,
         companyId,
       });
 
-      // 초기화 성공 후 부모 컴포넌트에 알림
       if (onTutorialStart) {
         onTutorialStart();
       }
