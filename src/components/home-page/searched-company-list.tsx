@@ -17,10 +17,6 @@ export const SearchedCompanyListItem = ({ company, categoryId }: SearchedCompany
     navigate(`/investment/select?category=${categoryId}`);
   };
 
-  const handleTutorial = () => {
-    navigate(`/tutorial/select?category=${categoryId}`);
-  };
-
   return (
     <div className="flex h-16 w-full items-center justify-between border-b border-border-color px-4 hover:bg-modal-background-color">
       <div className="flex items-center gap-4">
@@ -60,9 +56,6 @@ export const SearchedCompanyListItem = ({ company, categoryId }: SearchedCompany
         <div className="flex gap-2">
           <Button variant="blue" size="sm" onClick={handleMockInvestment} className="text-xs">
             모의투자
-          </Button>
-          <Button variant="blue" size="sm" onClick={handleTutorial} className="text-xs">
-            튜토리얼
           </Button>
         </div>
       </div>
