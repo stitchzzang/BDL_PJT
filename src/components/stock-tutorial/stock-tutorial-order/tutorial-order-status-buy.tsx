@@ -141,7 +141,7 @@ export const TutorialOrderStatusBuy = ({
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(buyCost)}</h3>
+            <h3 className={h3Style}>{formatKoreanMoney(buyCost)} 원</h3>
           </div>
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>충 주문 금액</h3>

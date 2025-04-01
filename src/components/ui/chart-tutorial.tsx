@@ -133,7 +133,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
     const day = date.getDate();
     if (day === 1) {
-      // 월의 첫 날에는 '월'만 표시
+      // 월의 첫 날에는 '월'을 표시
       return `${date.getMonth() + 1}월`;
     }
     return `${day}일`;
@@ -180,33 +180,46 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     return [...emptyData, ...data];
   }, [rawChartData]);
 
-  const xAxisLabels = useMemo(() => {
-    return chartData.map((item) => {
+  // 각 일봉이 해당 월의 첫 데이터인지 확인하는 함수
+  const isFirstCandleOfMonth = useCallback(
+    (index: number): boolean => {
+      if (!chartData || !chartData[index] || !chartData[index].rawDate) return false;
+
+      const currentItem = chartData[index];
+      const previousItem = index > 0 ? chartData[index - 1] : null;
+
+      // 이전 데이터가 없거나 이전 데이터와 현재 데이터의 월이 다르면 월의 첫 데이터로 간주
+      if (!previousItem || !previousItem.rawDate) return true;
+
+      const currentMonth = currentItem.rawDate?.getMonth();
+      const previousMonth = previousItem.rawDate?.getMonth();
+
+      return currentMonth !== previousMonth;
+    },
+    [chartData],
+  );
+
+  const formatXAxisLabel = useCallback(
+    (index: number): string => {
+      const item = chartData[index];
       if (!item?.rawDate || !(item.rawDate instanceof Date) || isNaN(item.rawDate.getTime())) {
         return '';
       }
-      return formatChartDate(item.rawDate);
-    });
-  }, [chartData, formatChartDate]);
 
-  // 날짜가 월의 첫 날인지 확인하는 함수
-  const isFirstDayOfMonth = useCallback((date: Date): boolean => {
-    return date instanceof Date && !isNaN(date.getTime()) && date.getDate() === 1;
-  }, []);
-
-  // X축 라벨 스타일 설정 (월의 첫 날은 굵게 표시)
-  const getXAxisLabelStyle = useCallback(
-    (index: number): any => {
-      const item = chartData[index];
-      if (item?.rawDate && isFirstDayOfMonth(item.rawDate)) {
-        return {
-          fontWeight: 'bold',
-        };
+      // 월의 첫 일봉이면 'MM월'로 표시
+      if (isFirstCandleOfMonth(index)) {
+        return `${item.rawDate.getMonth() + 1}월`;
       }
-      return {};
+
+      // 일반 데이터는 날짜 표시
+      return `${item.rawDate.getDate()}일`;
     },
-    [chartData, isFirstDayOfMonth],
+    [chartData, isFirstCandleOfMonth],
   );
+
+  const xAxisLabels = useMemo(() => {
+    return chartData.map((_, index) => formatXAxisLabel(index));
+  }, [chartData, formatXAxisLabel]);
 
   const candleData = useMemo(() => {
     return chartData.map((item) => [
@@ -461,17 +474,17 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
             formatter: (value: string, index: number) => {
-              // 날짜가 월의 첫 날인 경우 굵게 표시
-              const item = chartData[index];
-              if (item?.rawDate && isFirstDayOfMonth(item.rawDate)) {
-                return `{bold|${value}}`;
+              // 월의 첫 일봉 데이터인 경우 월 표시를 강조
+              if (isFirstCandleOfMonth(index)) {
+                return `{month|${value}}`;
               }
               return value;
             },
             rich: {
-              bold: {
+              month: {
                 fontWeight: 'bold',
-                color: 'rgba(255, 255, 255, 0.9)',
+                fontSize: '115%', // 기본 크기보다 15% 크게
+                color: 'rgba(255, 255, 255, 1)', // 완전 흰색으로 더 강조
               },
             },
           },
@@ -490,7 +503,23 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
               width: 1,
             },
           },
-          axisLabel: { show: false },
+          axisLabel: {
+            show: false,
+            formatter: (value: string, index: number) => {
+              // 월의 첫 일봉 데이터인 경우 월 표시를 강조
+              if (isFirstCandleOfMonth(index)) {
+                return `{month|${value}}`;
+              }
+              return value;
+            },
+            rich: {
+              month: {
+                fontWeight: 'bold',
+                fontSize: '115%',
+                color: 'rgba(255, 255, 255, 1)',
+              },
+            },
+          },
           splitNumber: 20,
           min: 'dataMin',
           max: 'dataMax',
@@ -677,7 +706,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
       getItemStyle,
       dataZoomRange,
       tooltipFormatter,
-      isFirstDayOfMonth,
     ],
   );
 
