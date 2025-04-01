@@ -19,6 +19,7 @@ import {
   AssetResponse,
   NewsResponse,
   NewsResponseWithThumbnail,
+  Point,
   StockCandle,
   TutorialStockResponse,
 } from '@/api/types/tutorial';
@@ -207,7 +208,9 @@ export const SimulatePage = () => {
 
   // 변곡점 날짜 조회를 위한 설정
   const pointStockCandleIds = useMemo(
-    () => top3PointsResponse?.result?.PointResponseList?.map((point) => point.stockCandleId) || [],
+    () =>
+      top3PointsResponse?.result?.PointResponseList?.map((point: Point) => point.stockCandleId) ||
+      [],
     [top3PointsResponse],
   );
 
