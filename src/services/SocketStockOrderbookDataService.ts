@@ -18,7 +18,7 @@ export const useOrderbookConnection = () => {
       //인스턴스 생성
       //https://j12d202.p.ssafy.io/ws
       //http://192.168.100.198:8080/ws
-      const socket = new SockJS('http://192.168.100.198:8080/ws');
+      const socket = new SockJS('https://j12d202.p.ssafy.io/ws');
 
       // STOMP 클라이언트 생성
       const client = new Client({
