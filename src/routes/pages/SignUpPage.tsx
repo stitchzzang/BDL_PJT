@@ -267,17 +267,16 @@ export const SignUpPage = () => {
                         <FormControl>
                           <div className="relative">
                             <Input
-                              placeholder="생년월일"
-                              className="h-12 pr-10"
+                              placeholder="생년월일 (YYYY-MM-DD)"
+                              className="h-12 cursor-pointer pr-10"
                               value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                              onChange={(e) => {
-                                const date = new Date(e.target.value);
-                                if (!isNaN(date.getTime())) {
-                                  field.onChange(date);
-                                }
-                              }}
+                              readOnly
+                              onClick={() => setCalendarOpen(true)}
                             />
-                            <CalendarIcon className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-border-color" />
+                            <CalendarIcon
+                              className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 cursor-pointer text-border-color"
+                              onClick={() => setCalendarOpen(true)}
+                            />
                           </div>
                         </FormControl>
                       </PopoverTrigger>
@@ -290,7 +289,11 @@ export const SignUpPage = () => {
                             // 날짜 선택 후 팝오버 닫기
                             setCalendarOpen(false);
                           }}
-                          disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
+                          disabled={(date) =>
+                            date > new Date() ||
+                            date < new Date('1900-01-01') ||
+                            date > new Date('2004-01-01')
+                          }
                           className="w-auto"
                           fromYear={1900}
                           toYear={new Date().getFullYear()}
@@ -299,7 +302,11 @@ export const SignUpPage = () => {
                         />
                       </PopoverContent>
                     </Popover>
-                    <p className="text-sm text-text-main-color">1900년 이후만 가능합니다.</p>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm text-text-main-color">
+                        달력 아이콘을 클릭하여 생년월일을 선택해주세요.
+                      </p>
+                    </div>
                   </FormItem>
                 )}
               />
