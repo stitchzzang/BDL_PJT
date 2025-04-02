@@ -48,3 +48,11 @@ export interface HomeChartKosdaqKospiData {
   kosdaq: HomeChartData[];
   kospi: HomeChartData[];
 }
+
+// 홈 랭킹 인터페이스
+export interface HomeCompanyRankData {
+  companyId: number;
+  companyCode: string;
+  companyImage: string;
+  companyName: string;
+}
