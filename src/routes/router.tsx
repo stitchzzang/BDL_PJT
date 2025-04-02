@@ -10,6 +10,7 @@ import { MethodPage } from '@/routes/pages/algorithm-lab/MethodPage';
 import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
 import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
+import { BadGatewayPage } from '@/routes/pages/BadGatewayPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
 import { AlgorithmPage } from '@/routes/pages/member/AlgorithmPage';
@@ -153,5 +154,9 @@ export const router = createBrowserRouter([
   {
     path: 'error/not-found',
     element: <NotFoundPage />,
+  },
+  {
+    path: 'error/bad-gateway',
+    element: <BadGatewayPage />,
   },
 ]);
