@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { _kyAuth } from '@/api/instance';
 import { Algorithm, AlgorithmResponse, CreateAlgorithmRequest } from '@/api/types/algorithm';
-import { ApiResponse } from '@/api/types/common';
+import { ApiResponse, ApiSuccess } from '@/api/types/common';
 
 export const algorithmAPI = {
   createAlgorithm: (memberId: string, algorithm: CreateAlgorithmRequest) =>
@@ -12,6 +12,15 @@ export const algorithmAPI = {
     _kyAuth.get(`algorithm/${memberId}`).json<ApiResponse<AlgorithmResponse>>(),
   deleteAlgorithm: (memberId: string | undefined, algorithmId: string) =>
     _kyAuth.delete(`algorithm/${memberId}/${algorithmId}`).json<ApiResponse<void>>(),
+  startAlgorithm: (algorithmId: number, companyId: number) =>
+    _kyAuth
+      .post(`simulated/auto-trading/start`, {
+        json: {
+          algorithmId,
+          companyId,
+        },
+      })
+      .json<ApiSuccess<string>>(),
 };
 
 export const useCreateAlgorithm = () => {
@@ -42,5 +51,12 @@ export const useDeleteAlgorithm = () => {
       memberId: string | undefined;
       algorithmId: string;
     }) => algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
+  });
+};
+
+export const useStartAlgorithm = () => {
+  return useMutation({
+    mutationFn: ({ algorithmId, companyId }: { algorithmId: number; companyId: number }) =>
+      algorithmAPI.startAlgorithm(algorithmId, companyId).then((res) => res.message),
   });
 };
