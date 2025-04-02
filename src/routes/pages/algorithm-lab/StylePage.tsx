@@ -72,7 +72,7 @@ export const StylePage = () => {
       </div>
       <HelpBadge
         title="어떤 투자 스타일을 선호하시나요?"
-        description="3가지 선택지 중 가장 선호하는 투자 스타일을 선택해주세요."
+        description="3가지 선택지 중 가장 선호하는 투자 스타일을 선택하거나 바를 드래그하여 원하는 값을 선택해주세요."
       />
       <div className="flex w-full flex-col gap-4">
         <Button
