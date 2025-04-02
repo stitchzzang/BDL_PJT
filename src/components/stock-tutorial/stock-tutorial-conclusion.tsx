@@ -7,6 +7,7 @@ interface TradeRecord {
   quantity: number;
   timestamp: Date;
   stockCandleId: number;
+  turnNumber: number;
 }
 
 // 컴포넌트 props 인터페이스 정의

@@ -52,6 +52,7 @@ interface TradeRecord {
   quantity: number;
   timestamp: Date;
   stockCandleId: number;
+  turnNumber: number; // 턴 번호 추가 (1~4)
 }
 
 interface TutorialEndModalProps {
@@ -612,6 +613,7 @@ export const SimulatePage = () => {
           quantity: action === 'wait' ? 0 : quantity,
           timestamp: new Date(),
           stockCandleId: endPointId,
+          turnNumber: currentTurn,
         },
       ]);
 
@@ -672,6 +674,7 @@ export const SimulatePage = () => {
         //     quantity: action === 'wait' ? 0 : quantity,
         //     timestamp: new Date(),
         //     stockCandleId: endPointId,
+        //     turnNumber: currentTurn,
         //   },
         // ]);
       }
@@ -976,10 +979,10 @@ export const SimulatePage = () => {
         <StockTutorialComment comment={newsComment} />
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3 ">
-        <div className="col-span-5">
+        <div className="col-span-4">
           <StockTutorialNews currentNews={currentNews} companyId={companyId} />
         </div>
-        <div className="col-span-1">
+        <div className="col-span-2">
           <StockTutorialConclusion
             trades={trades}
             feedback={tutorialFeedback || ''}
