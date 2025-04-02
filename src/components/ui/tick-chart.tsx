@@ -79,7 +79,7 @@ const transitionStyle = `
 
 const TickChartComponent: React.FC<TickChartProps> = ({
   tickData,
-  height = 300,
+  height = 200,
   width = '100%',
   basePrice,
 }) => {
@@ -309,7 +309,14 @@ const TickChartComponent: React.FC<TickChartProps> = ({
           showMaxLabel: true,
           formatter: (value: string, index: number) => {
             if (index % 5 === 0 || index === times.length - 1) {
-              return value.substring(0, 5); // HH:MM 만 표시
+              // 형식이 'HH:MM:SS'일 경우
+              const parts = value.split(':');
+              if (parts.length >= 3) {
+                return `${parts[1]}:${parts[2]}`; // MM분 SS초 형식으로 표시
+              } else if (parts.length >= 2) {
+                return `${parts[1]}`; // 초가 없을 경우 MM분만 표시
+              }
+              return value; // 원래 형식을 유지
             }
             return '';
           },

@@ -96,7 +96,7 @@ export const SimulatedInvestmentPage = () => {
           comparePrice={comparePrice}
         />
       </div>
-      <div className="mb-3 grid grid-cols-1 gap-3 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-9">
           {tickData ? (
             <div className="">
@@ -132,7 +132,7 @@ export const SimulatedInvestmentPage = () => {
         <div className="my-3">
           <TickChart
             tickData={tickData}
-            height={200}
+            height={150}
             basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
           />
         </div>
