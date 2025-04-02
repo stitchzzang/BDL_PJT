@@ -321,9 +321,7 @@ const TickChartComponent: React.FC<TickChartProps> = ({
           notMerge={false}
           lazyUpdate={true}
           onEvents={{
-            rendered: () => {
-              console.log('틱 캔들 차트 렌더링 완료');
-            },
+            rendered: () => {},
           }}
         />
         {tickData ? (

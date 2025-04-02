@@ -124,10 +124,13 @@ export const useCompanyInfoData = (stockCompanyId: number) => {
 
 export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
-    queryKey: ['stockInitMinData'],
+    queryKey: ['stockInitMinData', stockId, limit],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
+    refetchInterval: 20000, // 60,000ms = 1분마다 자동 refetch
+    refetchIntervalInBackground: true, // 탭이 백그라운드에 있어도 refetch 수행
   });
 };
+
 // 분봉(추가데이터 요청)
 export const useStockMinuteDataCursor = (companyId: number, cursor: string, limit: number) => {
   return useQuery({
