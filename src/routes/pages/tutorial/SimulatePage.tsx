@@ -115,14 +115,6 @@ export interface StockInfoProps {
   currentTurn?: number;
 }
 
-export interface TutorialOrderStatusProps {
-  onTrade: (action: 'buy' | 'sell', price: number, quantity: number) => void;
-  isSessionActive: boolean;
-  companyId: number;
-  latestPrice: number;
-  currentTurn?: number;
-}
-
 export const SimulatePage = () => {
   const navigate = useNavigate();
   const { companyId: companyIdParam } = useParams<{ companyId: string }>();
@@ -219,11 +211,11 @@ export const SimulatePage = () => {
   const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
 
   // 세션별 주식 데이터 가져오기를 위한 커스텀 훅
-  const {
-    data: sessionDataResponse,
-    refetch: fetchSessionData,
-    isLoading: isSessionDataLoading,
-  } = useGetTutorialStockData(companyId, currentSession.startDate, currentSession.endDate);
+  const { refetch: fetchSessionData } = useGetTutorialStockData(
+    companyId,
+    currentSession.startDate,
+    currentSession.endDate,
+  );
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
@@ -270,7 +262,6 @@ export const SimulatePage = () => {
       }
 
       if (dates.length > 0 && JSON.stringify(dates) !== JSON.stringify(pointDates)) {
-        console.log('변곡점 날짜 업데이트:', dates);
         setPointDates(dates);
       }
     }
@@ -279,7 +270,6 @@ export const SimulatePage = () => {
   // 튜토리얼 시작 시 초기 데이터 설정 및 턴 관리
   useEffect(() => {
     if (isTutorialStarted && pointDates.length >= 3 && currentTurn === 0) {
-      console.log('튜토리얼 첫 번째 턴 시작');
       setCurrentTurn(1);
     }
   }, [isTutorialStarted, pointDates.length, currentTurn]);
@@ -331,7 +321,6 @@ export const SimulatePage = () => {
       const newSession = turnToSessionMap[currentTurn];
       // 세션이 변경되었을 때만 상태를 업데이트
       if (JSON.stringify(newSession) !== JSON.stringify(currentSession)) {
-        console.log(`턴 ${currentTurn} 세션 설정:`, newSession);
         setCurrentSession(newSession);
       }
       setProgress(turnToProgressMap[currentTurn]);
@@ -360,17 +349,13 @@ export const SimulatePage = () => {
       try {
         setIsChartLoading(true);
         setHasChartError(false);
-        console.log(`턴 ${currentTurn} 세션 데이터 로드 시작:`, currentSession);
-
         // 현재 세션의 주식 데이터 로드
         const sessionResponse = await fetchSessionData();
-        console.log('세션 데이터 응답:', sessionResponse);
 
         if (sessionResponse.data?.result) {
           const result = sessionResponse.data.result;
 
           if (result.data && result.data.length > 0) {
-            console.log(`턴 ${currentTurn} 차트 데이터 설정 성공:`, result.data.length);
             setStockData(result);
 
             // 현재 세션이 첫 번째 턴인 경우 fullChartData도 설정
@@ -385,11 +370,9 @@ export const SimulatePage = () => {
               setLatestPrice(lastCandle.closePrice);
             }
           } else {
-            console.error('차트 데이터가 비어있음:', result);
             setHasChartError(true);
           }
         } else {
-          console.error('세션 데이터 로드 실패:', sessionResponse);
           setHasChartError(true);
         }
 
@@ -398,18 +381,13 @@ export const SimulatePage = () => {
           const startStockCandleId = pointStockCandleIds[currentTurn - 2] || 0;
           const endStockCandleId = pointStockCandleIds[currentTurn - 1] || 0;
 
-          console.log('과거 뉴스 로드 시작:', { startStockCandleId, endStockCandleId });
           getPastNews.mutate(
             { companyId, startStockCandleId, endStockCandleId },
             {
               onSuccess: (result) => {
                 if (result.result && result.result.NewsResponse) {
-                  console.log('과거 뉴스 로드 성공:', result.result.NewsResponse);
                   setPastNewsList(result.result.NewsResponse);
                 }
-              },
-              onError: (error) => {
-                console.error('과거 뉴스 로드 실패:', error);
               },
             },
           );
@@ -420,12 +398,8 @@ export const SimulatePage = () => {
             {
               onSuccess: (result) => {
                 if (result.result) {
-                  console.log('뉴스 코멘트 로드 성공:', result.result);
                   setNewsComment(result.result);
                 }
-              },
-              onError: (error) => {
-                console.error('뉴스 코멘트 로드 실패:', error);
               },
             },
           );
@@ -435,25 +409,19 @@ export const SimulatePage = () => {
         if (currentTurn > 0 && currentTurn <= pointStockCandleIds.length) {
           const pointStockCandleId = pointStockCandleIds[currentTurn - 1];
           if (pointStockCandleId) {
-            console.log('현재 뉴스 로드 시작:', { pointStockCandleId });
             getCurrentNews.mutate(
               { companyId, stockCandleId: pointStockCandleId },
               {
                 onSuccess: (result) => {
                   if (result.result) {
-                    console.log('현재 뉴스 로드 성공:', result.result);
                     setCurrentNews(result.result);
                   }
-                },
-                onError: (error) => {
-                  console.error('현재 뉴스 로드 실패:', error);
                 },
               },
             );
           }
         }
-      } catch (error) {
-        console.error('세션 데이터 로드 오류:', error);
+      } catch {
         setHasChartError(true);
       } finally {
         setIsChartLoading(false);
@@ -547,8 +515,8 @@ export const SimulatePage = () => {
       });
       setIsModalOpen(true);
       setFinalChangeRate(assetInfo.totalReturnRate);
-    } catch (error) {
-      console.error('튜토리얼 결과 저장 오류:', error);
+    } catch {
+      // 에러 처리
     }
   }, [
     memberId,
@@ -565,8 +533,6 @@ export const SimulatePage = () => {
         return;
       }
 
-      console.log('거래 요청:', { action, price, quantity, currentTurn });
-
       // 현재 변곡점의 stockCandleId 가져오기
       const startPointId =
         currentTurn > 1 && pointStockCandleIds.length >= currentTurn - 1
@@ -577,7 +543,6 @@ export const SimulatePage = () => {
         pointStockCandleIds.length >= currentTurn - 1 ? pointStockCandleIds[currentTurn - 1] : 0;
 
       if (endPointId === 0) {
-        console.error('유효한 변곡점 ID를 찾을 수 없습니다');
         return;
       }
 
@@ -593,7 +558,6 @@ export const SimulatePage = () => {
         },
         {
           onSuccess: (response) => {
-            console.log('거래 처리 성공:', response);
             const assetResults = response.result?.AssetResponse;
 
             // 거래 기록 추가
@@ -624,10 +588,6 @@ export const SimulatePage = () => {
               completeTutorial();
             }
           },
-          onError: (error) => {
-            console.error('거래 처리 오류:', error);
-            alert('거래 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-          },
         },
       );
     },
@@ -650,7 +610,6 @@ export const SimulatePage = () => {
       return;
     }
 
-    console.log('튜토리얼 시작 요청:', { memberId, companyId });
     setIsChartLoading(true);
     setHasChartError(false);
 
@@ -658,26 +617,16 @@ export const SimulatePage = () => {
       { memberId, companyId },
       {
         onSuccess: async () => {
-          console.log('튜토리얼 세션 초기화 성공');
-
           // 변곡점 데이터 다시 가져오기
           const pointsResponse = await refetchTop3Points();
-          console.log('변곡점 데이터 새로고침:', pointsResponse.data);
 
           if (pointsResponse.data?.result?.PointResponseList) {
             setIsTutorialStarted(true);
             setProgress(10);
           } else {
-            console.error('변곡점 데이터를 가져오는데 실패했습니다');
             setHasChartError(true);
             setIsChartLoading(false);
           }
-        },
-        onError: (error) => {
-          console.error('튜토리얼 초기화 오류:', error);
-          alert('튜토리얼을 시작할 수 없습니다. 다시 시도해주세요.');
-          setHasChartError(true);
-          setIsChartLoading(false);
         },
       },
     );
@@ -767,7 +716,6 @@ export const SimulatePage = () => {
             isSessionActive={isTutorialStarted && progress < 100}
             companyId={companyId}
             latestPrice={latestPrice}
-            currentTurn={currentTurn}
           />
         </div>
       </div>

@@ -1,4 +1,10 @@
 import { EChartsOption } from 'echarts';
+interface CallbackDataParams {
+  dataIndex: number;
+  value?: unknown;
+  axisValue?: string;
+  name?: string;
+}
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -269,7 +275,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
   }, [chartData, calculateEMA]);
 
   const getItemStyle = useCallback(
-    (params: any) => {
+    (params: CallbackDataParams) => {
       const item = chartData[params.dataIndex];
       return item?.open <= item?.close ? RISE_COLOR : FALL_COLOR;
     },
@@ -286,10 +292,14 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
   };
 
   const tooltipFormatter = useCallback(
-    (params: any): string => {
-      if (!params || params.length === 0) return 'No data';
+    (params: CallbackDataParams | CallbackDataParams[]): string => {
+      if (!params) return 'No data';
 
-      const { dataIndex } = params[0];
+      // 배열인지 확인하고 항상 배열로 처리
+      const paramsArray = Array.isArray(params) ? params : [params];
+      if (paramsArray.length === 0) return 'No data';
+
+      const { dataIndex } = paramsArray[0];
       const item = chartData[dataIndex] as ChartDataPoint;
 
       if (!item) return 'No data';

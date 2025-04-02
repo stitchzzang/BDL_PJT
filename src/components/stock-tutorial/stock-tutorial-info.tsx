@@ -81,7 +81,7 @@ export const StockTutorialInfo = ({
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const [inflectionPoints, setInflectionPoints] = useState<InflectionPoint[]>([]);
-  const [selectedSegment, setSelectedSegment] = useState<number>(0);
+  const [selectedSegment, _setSelectedSegment] = useState<number>(0);
   // const _authData = useAuthStore();
   const initSessionMutation = useInitSession();
 
@@ -285,11 +285,6 @@ export const StockTutorialInfo = ({
     } catch {
       // 오류 처리
     }
-  };
-
-  // 구간 선택 버튼 핸들러
-  const handleSegmentChange = (segmentIndex: number) => {
-    setSelectedSegment(segmentIndex);
   };
 
   return (
