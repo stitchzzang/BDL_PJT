@@ -98,6 +98,9 @@ export const OrderStatusBuy = ({
         onSuccess: () => {
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
+        onError: (err) => {
+          toast.error(`지정가를 활용하세요.`);
+        },
       },
     );
   };
@@ -111,7 +114,7 @@ export const OrderStatusBuy = ({
     price,
   }: LimitOrderData) => {
     if (price <= 0 || quantity <= 0) {
-      alert('가격,수량 입력하세요');
+      toast.error('가격,수량 입력하세요');
       return;
     }
     limitOrderMutation.mutate(
@@ -124,17 +127,12 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: (res) => {
-          console.log(res);
-          if (res.isSuccess === false) {
-            //에러 처리
-            console.log('에러 체크');
-            if (res.code === 5100) {
-              alert(`${res.message}`);
-            }
-          }
-          alert(
-            `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
-          );
+          setBuyCost(0);
+          toast('주문이 성공적으로 처리되었습니다.');
+        },
+        onError: (err) => {
+          console.log(err);
+          toast.error('잔액이 부족합니다.');
         },
       },
     );
