@@ -76,7 +76,7 @@ export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
   onTutorialStart,
-  currentTurn: _currentTurn,
+  currentTurn = 0,
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -333,7 +333,11 @@ export const StockTutorialInfo = ({
                 disabled={isTutorialStarted || initSessionMutation.isPending || !companyInfo}
               >
                 {isTutorialStarted
-                  ? '튜토리얼 진행중'
+                  ? currentTurn === 4
+                    ? '튜토리얼 완료'
+                    : currentTurn > 0
+                      ? '다음 턴으로'
+                      : '튜토리얼 진행중'
                   : initSessionMutation.isPending
                     ? '초기화 중...'
                     : '튜토리얼 시작하기'}

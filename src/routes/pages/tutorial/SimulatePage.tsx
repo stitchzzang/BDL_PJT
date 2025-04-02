@@ -167,6 +167,19 @@ export const SimulatePage = () => {
   // 전체 차트 데이터 상태 (1년 전 시점부터 현재까지)
   const [fullChartData, setFullChartData] = useState<TutorialStockResponse | null>(null);
 
+  // 턴별 차트 데이터를 저장할 상태 추가
+  const [turnChartData, setTurnChartData] = useState<Record<number, TutorialStockResponse | null>>({
+    1: null,
+    2: null,
+    3: null,
+    4: null,
+  });
+
+  // 누적 차트 데이터 상태 추가
+  const [accumulatedChartData, setAccumulatedChartData] = useState<TutorialStockResponse | null>(
+    null,
+  );
+
   // 오늘부터 1년 전까지의 날짜 범위 계산
   const today = new Date();
   const oneYearAgo = new Date();
@@ -356,11 +369,51 @@ export const SimulatePage = () => {
           const result = sessionResponse.data.result;
 
           if (result.data && result.data.length > 0) {
+            // 현재 턴의 데이터를 저장
             setStockData(result);
+            setTurnChartData((prev) => ({
+              ...prev,
+              [currentTurn]: result,
+            }));
 
             // 현재 세션이 첫 번째 턴인 경우 fullChartData도 설정
             if (currentTurn === 1) {
               setFullChartData(result);
+              setAccumulatedChartData(result);
+            } else {
+              // 현재 턴까지의 모든 데이터를 누적
+              const accumulatedData = {
+                ...result,
+                data: [] as StockCandle[],
+              };
+
+              // 이전 턴들의 데이터 모두 누적
+              for (let i = 1; i <= currentTurn; i++) {
+                const turnData = turnChartData[i];
+                if (turnData && turnData.data.length > 0) {
+                  accumulatedData.data = [...accumulatedData.data, ...turnData.data];
+                }
+              }
+
+              // 중복 데이터 제거 (stockCandleId 기준)
+              const uniqueData = accumulatedData.data.reduce(
+                (acc: StockCandle[], curr: StockCandle) => {
+                  const isDuplicate = acc.some((item) => item.stockCandleId === curr.stockCandleId);
+                  if (!isDuplicate) {
+                    acc.push(curr);
+                  }
+                  return acc;
+                },
+                [] as StockCandle[],
+              );
+
+              // 날짜순 정렬
+              const sortedData = [...uniqueData].sort((a, b) => {
+                return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
+              });
+
+              accumulatedData.data = sortedData;
+              setAccumulatedChartData(accumulatedData);
             }
 
             // 최신 가격 설정
@@ -440,6 +493,7 @@ export const SimulatePage = () => {
     getPastNews,
     getNewsComment,
     getCurrentNews,
+    turnChartData,
   ]);
 
   // 차트 데이터에서 실제 날짜 범위 업데이트
@@ -581,6 +635,14 @@ export const SimulatePage = () => {
               setFinalChangeRate(lastAsset.totalReturnRate);
             }
 
+            // 현재 턴의 데이터를 저장
+            if (stockData) {
+              setTurnChartData((prev) => ({
+                ...prev,
+                [currentTurn]: stockData,
+              }));
+            }
+
             // 다음 턴으로 이동
             if (currentTurn < 4) {
               setCurrentTurn((prevTurn) => prevTurn + 1);
@@ -600,6 +662,7 @@ export const SimulatePage = () => {
       companyId,
       processUserAction,
       completeTutorial,
+      stockData,
     ],
   );
 
@@ -707,7 +770,10 @@ export const SimulatePage = () => {
               </div>
             </div>
           ) : (
-            <ChartComponent periodData={stockData || fullChartData || undefined} height={600} />
+            <ChartComponent
+              periodData={accumulatedChartData || stockData || fullChartData || undefined}
+              height={600}
+            />
           )}
         </div>
         <div className="col-span-2">
