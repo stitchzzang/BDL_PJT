@@ -1,3 +1,4 @@
+import { useGetAlgorithm } from '@/api/algorithm.api';
 import { CompanyInfo, TickData } from '@/api/types/stock';
 import {
   AlertDialog,
@@ -11,6 +12,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/useAuthStore';
 import { calculatePriceChange } from '@/utils/calculate-price-change';
 import { getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
@@ -28,6 +30,13 @@ export const StockInfo = ({
   closePrice,
   comparePrice,
 }: StockInfoProps) => {
+  // 알고리즘 리스트
+  const { userData } = useAuthStore();
+  const {
+    data: algorithms,
+    isLoading,
+    isError,
+  } = useGetAlgorithm(userData.memberId?.toString() ?? '');
   // const CategoryIcon = getCategoryIcon(stockCompanyInfo?.categories?.[0] ?? 'IT');
   const priceToCompare = tickData ? tickData.stckPrpr : closePrice;
   const AutoIcon = getCategoryIcon(stockCompanyInfo?.categories[0] ?? '전체');
@@ -95,8 +104,24 @@ export const StockInfo = ({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>알고리즘 선택</AlertDialogTitle>
-                      <AlertDialogDescription>여기에 설명을 입력하세요.</AlertDialogDescription>
+                      <AlertDialogTitle>알고리즘을 선택하세요.</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        <>
+                          {algorithms?.length !== 0 && algorithms ? (
+                            <div>
+                              {algorithms.map((algorithm) => (
+                                <div className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 transition-all duration-300 hover:bg-modal-background-color">
+                                  <p>{algorithm.algorithmName}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div>
+                              <p>현재 생성된 알고리즘이 없습니다.</p>
+                            </div>
+                          )}
+                        </>
+                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>취소</AlertDialogCancel>
