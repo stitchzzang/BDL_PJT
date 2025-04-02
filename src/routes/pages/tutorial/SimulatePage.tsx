@@ -576,7 +576,7 @@ export const SimulatePage = () => {
         setFinalChangeRate(lastAsset.totalReturnRate);
       }
 
-      // 현재 턴 완료 처리
+      // 모든 액션(구매/판매/관망)에 대해 턴 완료 처리
       setIsCurrentTurnCompleted(true);
     } catch (error) {
       console.error('거래 처리 오류:', error);
@@ -855,9 +855,7 @@ export const SimulatePage = () => {
         <div className="col-span-2">
           <TutorialOrderStatus
             onTrade={handleTrade}
-            isSessionActive={
-              isTutorialStarted && currentTurn > 0 && currentTurn <= 4 && !isCurrentTurnCompleted
-            }
+            isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn <= 4}
             companyId={companyId}
             latestPrice={latestPrice}
           />
