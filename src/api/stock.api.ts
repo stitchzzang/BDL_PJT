@@ -126,7 +126,7 @@ export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData', stockId, limit],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
-    refetchInterval: 20000, // 60,000ms = 1분마다 자동 refetch
+    refetchInterval: 5000, // 5,000ms = 5초마다 자동 refetch
     refetchIntervalInBackground: true, // 탭이 백그라운드에 있어도 refetch 수행
   });
 };
