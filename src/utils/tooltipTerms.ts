@@ -217,7 +217,17 @@ export const financialTerms: Record<string, TermDefinition> = {
   },
   '1주 평균 금액': {
     term: '1주 평균 금액',
-    definition: '총 투자 금액을 보유 주식 수로 나눈 평균 가격',
+    definition: '구매금액 / 보유수량',
+    category: '마이페이지',
+  },
+  구매금액: {
+    term: '구매금액',
+    definition: '1주 평균 금액 * 보유수량',
+    category: '마이페이지',
+  },
+  보유수량: {
+    term: '보유수량',
+    definition: '보유한 주식의 총 수',
     category: '마이페이지',
   },
 };
