@@ -566,24 +566,38 @@ export const SimulatePage = () => {
       return;
     }
 
-    // 백엔드가 기대하는 정확한 액션 문자열 매핑
-    // "buy", "sell", "wait"는 소문자로 그대로 사용 (백엔드 요구사항에 맞게 조정)
-    const actionValue = action.toLowerCase();
-
-    // 관망일 경우 가격/수량 0으로 설정
-    let apiPrice = price;
-    let apiQuantity = quantity;
+    // 관망인 경우 API 호출 없이 바로 턴 완료 처리
     if (action === 'wait') {
-      apiPrice = 0;
-      apiQuantity = 0;
+      console.log('관망 선택: 다음 턴으로 넘어갑니다.');
+
+      // 거래 기록 추가
+      setTrades((prev) => [
+        ...prev,
+        {
+          action: 'wait',
+          price: 0,
+          quantity: 0,
+          timestamp: new Date(),
+          stockCandleId: endPointId,
+          turnNumber: currentTurn,
+        },
+      ]);
+
+      // 턴 완료 처리하여 다음 턴으로 진행 가능하게 함
+      setIsCurrentTurnCompleted(true);
+      return;
     }
+
+    // 백엔드가 기대하는 정확한 액션 문자열 매핑
+    // "buy", "sell" 등 백엔드가 이해하는 형식으로 변환
+    const actionValue = action.toLowerCase();
 
     // API 요청 데이터 로깅
     console.log('API 요청 데이터:', {
       memberId,
       action: actionValue,
-      price: apiPrice,
-      quantity: apiQuantity,
+      price,
+      quantity,
       companyId,
       startStockCandleId: startPointId || endPointId,
       endStockCandleId: endPointId,
@@ -593,8 +607,8 @@ export const SimulatePage = () => {
       const response = await processUserAction.mutateAsync({
         memberId,
         action: actionValue,
-        price: apiPrice,
-        quantity: apiQuantity,
+        price,
+        quantity,
         companyId,
         startStockCandleId: startPointId || endPointId,
         endStockCandleId: endPointId,
@@ -663,24 +677,26 @@ export const SimulatePage = () => {
         } catch (e) {
           console.error('오류 응답 추출 실패:', e);
         }
-
-        // 오류 발생해도 UI에서는 진행되도록 거래 기록 추가
-        // 실패한 거래는 기록하지 않음
-        // setTrades((prev) => [
-        //   ...prev,
-        //   {
-        //     action,
-        //     price: action === 'wait' ? 0 : price,
-        //     quantity: action === 'wait' ? 0 : quantity,
-        //     timestamp: new Date(),
-        //     stockCandleId: endPointId,
-        //     turnNumber: currentTurn,
-        //   },
-        // ]);
       }
 
-      // API 오류 발생 시에는 턴 완료 처리하지 않음
-      // setIsCurrentTurnCompleted(true);
+      // 오류 발생해도 "관망"으로 처리하고 턴 완료
+      console.log('오류 발생으로 관망 처리되어 다음 턴으로 넘어갑니다.');
+
+      // 거래 실패해도 관망으로 기록하고 턴 완료 처리
+      setTrades((prev) => [
+        ...prev,
+        {
+          action: 'wait',
+          price: 0,
+          quantity: 0,
+          timestamp: new Date(),
+          stockCandleId: endPointId,
+          turnNumber: currentTurn,
+        },
+      ]);
+
+      // 오류 발생해도 무조건 턴 완료 처리하여 다음 단계로 진행될 수 있게 함
+      setIsCurrentTurnCompleted(true);
     }
   };
 
