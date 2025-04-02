@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { _ky } from '@/api/instance';
+import { _kyAuth } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
   CompanyInfo,
@@ -15,17 +15,17 @@ import {
 export const StockApi = {
   // 회사 기본 정보 가져오기
   getCompanyInfoData: (stockCompanyId: number) =>
-    _ky.get(`company/${stockCompanyId}`).json<ApiResponse<CompanyInfo>>(),
+    _kyAuth.get(`company/${stockCompanyId}`).json<ApiResponse<CompanyInfo>>(),
 
   // 분봉 데이터 가져오기 (limit 값은 직접 입력)
   getStockInitMinuteData: (stockId: number, limit: number) =>
-    _ky
+    _kyAuth
       .get(`stocks/${stockId}/minute/initial?limit=${limit}`)
       .json<ApiResponse<StockMinuteDefaultData>>(),
 
   // 분봉 데이터 추가 가져오기
   getStockInitMinunteDataCurser: (companyId: number, cursor: string, limit: number) =>
-    _ky
+    _kyAuth
       .get(`stocks/${companyId}/minute`, {
         searchParams: {
           cursor,
@@ -35,7 +35,7 @@ export const StockApi = {
       .json<ApiResponse<StockMinuteDefaultData>>(),
   // 일,주,월 데이터 가져오기
   getStockInitDailyData: (companyId: number, periodType: number, limit: number) =>
-    _ky
+    _kyAuth
       .get(`stocks/${companyId}/daily/initial`, {
         searchParams: {
           periodType,
@@ -46,18 +46,18 @@ export const StockApi = {
 
   // 유저 현재 보유 자산
   getUserAsset: (memberId: number | null) =>
-    _ky.get(`member/${memberId}/money`).json<ApiResponse<number>>(),
+    _kyAuth.get(`member/${memberId}/money`).json<ApiResponse<number>>(),
 
   // 종목별 주식 소유 개수
   getUserStockAccount: (memberId: number | null, companyId: number | null) =>
-    _ky.get(`simulated/account/${memberId}/${companyId}`).json<ApiResponse<number>>(),
+    _kyAuth.get(`simulated/account/${memberId}/${companyId}`).json<ApiResponse<number>>(),
 
   // 주문 대기 목록
   getUserSimulated: (memberId: number | null) =>
-    _ky.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData[]>>(),
+    _kyAuth.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData[]>>(),
   // 주문 취소
   deleteUserSimulated: (orderId: number) =>
-    _ky.delete(`simulated/${orderId}`).json<ApiResponse<string>>(),
+    _kyAuth.delete(`simulated/${orderId}`).json<ApiResponse<string>>(),
   // 주문 정정
   changeUserSimulated: (
     orderId: number,
@@ -69,7 +69,7 @@ export const StockApi = {
       price: number;
     },
   ) =>
-    _ky
+    _kyAuth
       .put(`simulated/${orderId}`, {
         json: orderData,
       })
@@ -83,7 +83,7 @@ export const StockApi = {
     quantity: number, // 주 개수
     price: number, // 지정가 - 가격
   ) =>
-    _ky
+    _kyAuth
       .post(`simulated/limitorder`, {
         json: {
           memberId: memberId,
@@ -102,7 +102,7 @@ export const StockApi = {
     tradeType: number,
     quantity: number,
   ) =>
-    _ky
+    _kyAuth
       .post(`simulated/marketorder`, {
         json: {
           memberId: memberId,
