@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { _ky } from '@/api/instance';
 import {
   useDeleteTutorialSession,
+  useGetCurrentNews,
   useGetTutorialFeedback,
   useInitSession,
   useProcessUserAction,
@@ -224,6 +225,7 @@ export const SimulatePage = () => {
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
   const initSession = useInitSession();
+  const getCurrentNews = useGetCurrentNews();
 
   // 날짜 범위에 따른 세션 설정
   const calculateSession = (turn: number) => {
@@ -455,11 +457,10 @@ export const SimulatePage = () => {
       const pointStockCandleId = pointStockCandleIds[turn - 1];
       if (pointStockCandleId) {
         try {
-          const currentNewsResponse = (await _ky
-            .post('tutorial/news/current', {
-              json: { companyId, stockCandleId: pointStockCandleId },
-            })
-            .json()) as ApiResponse<NewsResponseWithThumbnail>;
+          const currentNewsResponse = await getCurrentNews.mutateAsync({
+            companyId,
+            stockCandleId: pointStockCandleId,
+          });
 
           if (currentNewsResponse?.result) {
             setCurrentNews(currentNewsResponse.result);
