@@ -10,7 +10,7 @@ export const useRankVolumeConnection = () => {
   const [IsConnected, setIsConnected] = useState<boolean>(false);
 
   // 연결함수
-  const connectRankVolume = useCallback((setRankVolume: (data: HomeCompanyRankData) => void) => {
+  const connectRankVolume = useCallback((setRankVolume: (data: HomeCompanyRankData[]) => void) => {
     //기존 연결일 경우 해제
     disconnectRankVolume();
 
