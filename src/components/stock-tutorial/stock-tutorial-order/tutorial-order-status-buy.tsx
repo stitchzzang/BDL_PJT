@@ -5,7 +5,7 @@ import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 export interface TutorialOrderStatusBuyProps {
-  onBuy: (price: number, quantity: number) => void;
+  onBuy: (price: number, quantity: number, companyId: number) => void;
   companyId: number;
   latestPrice: number;
   isActive: boolean;
@@ -70,7 +70,7 @@ export const TutorialOrderStatusBuy = ({
   // 구매 처리
   const handleBuyStock = () => {
     if (!isSessionActive || stockCount <= 0 || buyCost <= 0) return;
-    onBuy(buyCost, stockCount);
+    onBuy(buyCost, stockCount, companyId);
     setStockCount(0); // 구매 후 수량 초기화
   };
 
