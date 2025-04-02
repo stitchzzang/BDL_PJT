@@ -1,4 +1,5 @@
 import { Algorithm } from '@/api/types/algorithm';
+import { TermTooltip } from '@/components/ui/TermTooltip';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 type AlgorithmOptionProps = {
@@ -19,7 +20,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
 
   const options = [
     {
-      optionName: '매수',
+      optionName: '구매',
       optionDescription: `${algorithm.entryMethod === 'ONCE' ? '일시' : '분할'} | ${
         algorithm.entryInvestmentMethod === 'FIXED_AMOUNT'
           ? `${algorithm.entryFixedAmount ? addCommasToThousand(algorithm.entryFixedAmount) : 0}원`
@@ -27,21 +28,21 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
       }`,
     },
     {
-      optionName: '매도',
+      optionName: '판매',
       optionDescription: `${algorithm.exitMethod === 'ONCE' ? '일시' : '분할'} | ${
         algorithm.exitInvestmentMethod === 'FIXED_AMOUNT'
           ? `${algorithm.exitFixedAmount ? addCommasToThousand(algorithm.exitFixedAmount) : 0}원`
           : `${algorithm.exitFixedPercentage}%`
       }`,
     },
-    {
-      optionName: '수수료',
-      optionDescription: algorithm.isFee ? '포함' : '미포함',
-    },
+    // {
+    //   optionName: '수수료',
+    //   optionDescription: algorithm.isFee ? '포함' : '미포함',
+    // },
     ...(algorithm.profitPercentToSell
       ? [
           {
-            optionName: '이익 실현',
+            optionName: <TermTooltip term="이익률">이익률</TermTooltip>,
             optionDescription: `${algorithm.profitPercentToSell}%`,
           },
         ]
@@ -49,7 +50,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.lossPercentToSell
       ? [
           {
-            optionName: '손절매',
+            optionName: <TermTooltip term="손절매">손절매</TermTooltip>,
             optionDescription: `${algorithm.lossPercentToSell}%`,
           },
         ]
