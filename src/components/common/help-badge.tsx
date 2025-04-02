@@ -9,10 +9,11 @@ export const HelpBadge = ({
   bgColor = 'bg-modal-background-color',
 }: {
   title: string;
-  description: string;
+  description: string | React.ReactNode;
   bgColor?: string;
 }) => {
-  const descriptionParts = description.split('\n\n');
+  const descriptionParts =
+    typeof description === 'string' ? description.split('\n\n') : [description];
 
   return (
     <div
