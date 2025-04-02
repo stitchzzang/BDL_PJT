@@ -2,7 +2,7 @@ import Lottie from 'lottie-react';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { _ky } from '@/api/instance';
+import { _ky } from '@/api/instance/index';
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
