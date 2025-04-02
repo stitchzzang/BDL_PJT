@@ -14,7 +14,7 @@ export const algorithmAPI = {
     _kyAuth.delete(`algorithm/${memberId}/${algorithmId}`).json<ApiResponse<void>>(),
   startAlgorithm: (algorithmId: number, companyId: number) =>
     _kyAuth
-      .post(`simulated/autotrading/start`, {
+      .post(`algorithm/auto-trading/start`, {
         json: {
           algorithmId,
           companyId,
