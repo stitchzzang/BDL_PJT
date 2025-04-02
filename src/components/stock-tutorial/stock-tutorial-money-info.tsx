@@ -18,7 +18,7 @@ export const StockTutorialMoneyInfo = ({
   // 값에 따른 배경색 변경
   const textProfitColor = totalReturnRate >= 0 ? 'text-btn-red-color' : 'text-btn-blue-color';
   // 퍼센트 부호 표시
-  const displayPercentage = `${totalReturnRate >= 0 ? '+' : ''}${totalReturnRate.toFixed(2)}%`;
+  const displayPercentage = `${totalReturnRate >= 0 ? '+ ' : ''}${totalReturnRate.toFixed(2)}%`;
 
   return (
     <div className="flex gap-3">
