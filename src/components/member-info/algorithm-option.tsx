@@ -1,4 +1,5 @@
 import { Algorithm } from '@/api/types/algorithm';
+import { TermTooltip } from '@/components/ui/TermTooltip';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 type AlgorithmOptionProps = {
@@ -41,7 +42,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.profitPercentToSell
       ? [
           {
-            optionName: '이익률',
+            optionName: <TermTooltip term="이익률">이익률</TermTooltip>,
             optionDescription: `${algorithm.profitPercentToSell}%`,
           },
         ]
@@ -49,7 +50,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.lossPercentToSell
       ? [
           {
-            optionName: '손절매',
+            optionName: <TermTooltip term="손절매">손절매</TermTooltip>,
             optionDescription: `${algorithm.lossPercentToSell}%`,
           },
         ]
