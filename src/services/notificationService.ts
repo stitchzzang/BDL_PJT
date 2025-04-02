@@ -47,14 +47,15 @@ export const subscribeToNotifications = () => {
 
   const connect = () => {
     try {
-      console.log('SSE 연결 시도...', {
-        memberId: userData.memberId,
-        hasToken: !!accessToken,
-        url: `/api/notification/subscribe/${userData.memberId}`,
-      });
-
       const newEventSource = new EventSourcePolyfill(
         `/api/notification/subscribe/${userData.memberId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          withCredentials: true,
+          heartbeatTimeout: 60000,
+        },
       );
 
       // 연결 상태 문자열로 변환
@@ -73,7 +74,6 @@ export const subscribeToNotifications = () => {
 
       const connectionTimeout = setTimeout(() => {
         const state = getReadyState(newEventSource.readyState);
-        console.log(`SSE 연결 타임아웃 (상태: ${state})`);
         if (newEventSource.readyState !== EventSource.OPEN) {
           newEventSource.close();
           reconnectSSE();
@@ -81,19 +81,16 @@ export const subscribeToNotifications = () => {
       }, 10000);
 
       newEventSource.onopen = (event) => {
-        console.log('SSE 연결 성공', event);
         clearTimeout(connectionTimeout);
         reconnectAttempts = 0;
         currentReconnectDelay = INITIAL_RECONNECT_DELAY;
       };
 
       const reconnectSSE = () => {
-        console.log(`SSE 재연결 시도 (시도 횟수: ${reconnectAttempts + 1})`);
         NotificationEventSource.closeConnection();
         reconnectAttempts++;
 
         currentReconnectDelay = Math.min(currentReconnectDelay * 1.5, MAX_RECONNECT_DELAY);
-        console.log(`${currentReconnectDelay}ms 후 재연결 시도`);
 
         setTimeout(() => {
           if (!NotificationEventSource.getInstance()) {
@@ -105,10 +102,7 @@ export const subscribeToNotifications = () => {
       // 주기적으로 연결 상태 체크
       const connectionCheck = setInterval(() => {
         const state = getReadyState(newEventSource.readyState);
-        console.log('SSE 상태:', state);
-
         if (newEventSource.readyState === EventSource.CLOSED) {
-          console.log('SSE 연결 끊김 감지');
           clearInterval(connectionCheck);
           reconnectSSE();
         }
@@ -117,23 +111,16 @@ export const subscribeToNotifications = () => {
       // @ts-expect-error EventSource type mismatch
       newEventSource.onerror = (ev: Event) => {
         const state = getReadyState(newEventSource.readyState);
-        console.error('SSE 연결 오류:', {
-          error: ev,
-          state,
-          readyState: newEventSource.readyState,
-        });
 
         clearInterval(connectionCheck);
 
         if (newEventSource.readyState === EventSource.CLOSED) {
-          console.log('오류로 인한 재연결 시도');
           reconnectSSE();
         }
       };
 
       // @ts-expect-error Custom event type
-      newEventSource.addEventListener('AUTOTRADESIGNAL', (event: MessageEvent) => {
-        console.log('자동매매 신호 수신:', event.data);
+      newEventSource.addEventListener('AUTO_TRADING_SIGNAL', (event: MessageEvent) => {
         try {
           const rawData = JSON.parse(event.data);
           if (isTradeSignal(rawData)) {
@@ -141,14 +128,12 @@ export const subscribeToNotifications = () => {
             showTradeNotification(signal, true);
           }
         } catch (error) {
-          console.error('자동매매 신호 처리 중 오류 발생:', error);
           toast.error('자동매매 신호를 처리하는 중 오류가 발생했습니다.');
         }
       });
 
       // @ts-expect-error Custom event type
-      newEventSource.addEventListener('TRADESIGNAL', (event: MessageEvent) => {
-        console.log('매매 신호 수신:', event.data);
+      newEventSource.addEventListener('TRADING_SIGNAL', (event: MessageEvent) => {
         try {
           const rawData = JSON.parse(event.data);
           if (isTradeSignal(rawData)) {
@@ -156,14 +141,12 @@ export const subscribeToNotifications = () => {
             showTradeNotification(signal, false);
           }
         } catch (error) {
-          console.error('매매 신호 처리 중 오류 발생:', error);
           toast.error('매매 신호를 처리하는 중 오류가 발생했습니다.');
         }
       });
 
       NotificationEventSource.setInstance(newEventSource);
     } catch (error) {
-      console.error('SSE 초기 연결 실패:', error);
       setTimeout(connect, currentReconnectDelay);
     }
   };
@@ -189,35 +172,23 @@ function isTradeSignal(data: unknown): data is TradeSignal {
 // 거래 알림 표시 함수
 function showTradeNotification(data: TradeSignal, isAuto: boolean) {
   toast.dismiss();
-
   const { signalType, companyName, price, quantity } = data;
-  const prefix = isAuto ? '[자동매매]' : '[매매]';
-  const toastMessage = `${prefix} ${signalType === 'BUY' ? '매수' : '매도'} 신호: ${companyName}\n가격: ${price.toLocaleString()}원 / 수량: ${quantity}주`;
+  const prefix = isAuto ? '[자동매매]' : '[수동매매]';
+  const toastMessage = `${prefix} ${signalType === 'BUY' ? '구매' : '판매'} ${companyName}\n가격: ${price.toLocaleString()}원 / 수량: ${quantity}주`;
 
-  if (isAuto) {
-    if (signalType === 'BUY') {
-      toast.success(toastMessage, {
-        duration: 5000,
-        position: 'top-right',
-        style: { background: '#4CAF50', color: 'white' },
-      });
-    } else {
-      toast.error(toastMessage, {
-        duration: 5000,
-        position: 'top-right',
-        style: { background: '#f44336', color: 'white' },
-      });
-    }
-  } else {
-    toast(toastMessage, {
-      duration: 5000,
-      position: 'top-right',
-      style: {
-        background: signalType === 'BUY' ? '#2196F3' : '#FF9800',
-        color: 'white',
-      },
-    });
-  }
+  const backgroundColor = isAuto ? '#00AC4F' : '#FFB800'; // 자동매매는 초록색, 일반매매는 노란색
+  const textColor = signalType === 'BUY' ? '#076BFD' : '#F23636'; // 매수는 파란색, 매도는 빨간색
+
+  toast(toastMessage, {
+    icon: signalType === 'BUY' ? '💰' : '💸',
+    duration: 5000,
+    position: 'top-right',
+    style: {
+      background: backgroundColor,
+      color: 'white',
+      borderLeft: `4px solid ${textColor}`,
+    },
+  });
 }
 
 // SSE 연결 수동 해제 함수
