@@ -52,7 +52,7 @@ export interface HomeChartKosdaqKospiData {
 // 홈 랭킹 인터페이스
 export interface HomeCompanyRankData {
   companyId: number;
-  companyCode: string;
+  stockCode: string;
   companyImage: string;
   companyName: string;
 }

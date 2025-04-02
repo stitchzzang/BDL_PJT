@@ -137,7 +137,7 @@ export const SimulatedInvestmentPage = () => {
           />
         </div>
       ) : (
-        <div></div>
+        <div className="my-1"></div>
       )}
       <div className="grid grid-cols-10 gap-3">
         <div className="col-span-6">
