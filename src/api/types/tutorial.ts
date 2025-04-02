@@ -6,6 +6,18 @@ export interface ApiResponse<T> {
   result: T;
 }
 
+// 거래 액션 타입 정의
+export type TradeAction = 'buy' | 'sell' | 'wait';
+
+// 거래 기록 인터페이스 정의
+export interface TradeRecord {
+  action: TradeAction;
+  price: number;
+  quantity: number;
+  timestamp: Date;
+  stockCandleId: number;
+}
+
 // 변곡점 타입
 export interface Point {
   pointId: number;
@@ -106,7 +118,7 @@ export interface CurrentNewsRequest {
 }
 
 export interface UserActionRequest {
-  action: string;
+  action: TradeAction;
   price: number;
   quantity: number;
   companyId: number;

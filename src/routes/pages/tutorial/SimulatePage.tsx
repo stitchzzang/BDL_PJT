@@ -17,6 +17,8 @@ import {
   NewsResponseWithThumbnail,
   Point,
   StockCandle,
+  TradeAction,
+  TradeRecord,
   TutorialStockResponse,
 } from '@/api/types/tutorial';
 import ChartAnimation from '@/assets/lottie/chart-animation.json';
@@ -40,17 +42,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
-
-// 거래 기록을 위한 타입 정의 (외부 컴포넌트와 호환되는 타입)
-type TradeAction = 'buy' | 'sell' | 'wait';
-
-interface TradeRecord {
-  action: TradeAction;
-  price: number;
-  quantity: number;
-  timestamp: Date;
-  stockCandleId: number;
-}
 
 interface TutorialEndModalProps {
   isOpen: boolean;
@@ -511,7 +502,7 @@ export const SimulatePage = () => {
   };
 
   // 거래 처리 핸들러
-  const handleTrade = async (action: 'buy' | 'sell' | 'wait', price: number, quantity: number) => {
+  const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
     if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
       return;
     }
@@ -526,10 +517,15 @@ export const SimulatePage = () => {
       pointStockCandleIds.length >= currentTurn - 1 ? pointStockCandleIds[currentTurn - 1] : 0;
 
     if (endPointId === 0) {
+      console.error('유효한 변곡점 ID를 찾을 수 없습니다.');
       return;
     }
 
     try {
+      console.log(
+        `거래 처리 요청: ${action}, 가격: ${price}, 수량: ${quantity}, 종료 ID: ${endPointId}`,
+      );
+
       const response = await processUserAction.mutateAsync({
         memberId,
         action,

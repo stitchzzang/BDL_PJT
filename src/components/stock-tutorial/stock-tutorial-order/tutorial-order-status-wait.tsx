@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 
 export interface TutorialOrderStatusWaitProps {
   isActive: boolean;
-  onWait?: () => void;
+  onWait: () => void;
 }
 
 export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatusWaitProps) => {

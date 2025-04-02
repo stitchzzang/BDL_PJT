@@ -23,48 +23,46 @@ export const TutorialOrderStatusBuy = ({
 
   // 구매가격
   const [buyCost, setBuyCost] = useState<number>(latestPrice || 0);
-  const [printCost, setPrintCost] = useState<string>('0 원');
 
+  // 최신 가격으로 buyCost 초기화
   useEffect(() => {
     if (latestPrice && buyCost === 0) {
       setBuyCost(latestPrice);
     }
-  }, [latestPrice]);
-
-  // 불필요한 useEffect 제거 - 무한 루프 방지
-  // printCost는 필요할 때만 계산하도록 수정
-  const formattedCost = `${buyCost} 원`;
+  }, [latestPrice, buyCost]);
 
   // +,- 기능 (구매가격)
   const CostButtonHandler = (
     check: string,
     value: number,
     setValue: React.Dispatch<React.SetStateAction<number>>,
-    chagneValue: number,
+    changeValue: number,
   ) => {
     if (check === '+') {
-      const checkValue = value + chagneValue;
+      const checkValue = value + changeValue;
       if (checkValue < 0) {
         setValue(0);
         return;
       }
-      setValue(value + chagneValue);
+      setValue(value + changeValue);
     } else if (check === '-') {
-      const checkValue = value - chagneValue;
+      const checkValue = value - changeValue;
       if (checkValue < 0) {
         setValue(0);
         return;
       }
-      setValue(value - chagneValue);
+      setValue(value - changeValue);
     }
   };
+
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
+
   // 총 주문 금액
   const totalPrice = () => {
-    const printTotalPrice: number = buyCost * stockCount;
-    return printTotalPrice;
+    return buyCost * stockCount;
   };
+
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -144,7 +142,7 @@ export const TutorialOrderStatusBuy = ({
             <h3 className={h3Style}>{formatKoreanMoney(buyCost)} 원</h3>
           </div>
           <div className="flex items-center justify-between">
-            <h3 className={h3Style}>충 주문 금액</h3>
+            <h3 className={h3Style}>총 주문 금액</h3>
             <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
           </div>
         </div>

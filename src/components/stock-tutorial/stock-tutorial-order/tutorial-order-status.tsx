@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
+import { TradeAction } from '@/api/types/tutorial';
 import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-buy';
 import { TutorialOrderStatusCategory } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-category';
 import { TutorialOrderStatusSell } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-sell';
 import { TutorialOrderStatusWait } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-wait';
 
 export interface TutorialOrderStatusProps {
-  onTrade: (action: 'buy' | 'sell' | 'wait', price: number, quantity: number) => void;
+  onTrade: (action: TradeAction, price: number, quantity: number) => void;
   isSessionActive: boolean;
   companyId: number;
   latestPrice: number;

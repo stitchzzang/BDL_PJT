@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
-export interface TutorialOrderStatusShellProps {
+export interface TutorialOrderStatusSellProps {
   onSell: (price: number, quantity: number) => void;
   companyId: number;
   latestPrice: number;
@@ -16,62 +16,60 @@ export const TutorialOrderStatusSell = ({
   companyId,
   latestPrice,
   isActive: isSessionActive,
-}: TutorialOrderStatusShellProps) => {
+}: TutorialOrderStatusSellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 판매가격
-  const [buyCost, setBuyCost] = useState<number>(latestPrice || 0);
-  const [printCost, setPrintCost] = useState<string>('0 원');
+  const [sellPrice, setSellPrice] = useState<number>(latestPrice || 0);
 
+  // 최신 가격으로 sellPrice 초기화
   useEffect(() => {
-    if (latestPrice && buyCost === 0) {
-      setBuyCost(latestPrice);
+    if (latestPrice && sellPrice === 0) {
+      setSellPrice(latestPrice);
     }
-  }, [latestPrice]);
-
-  // 불필요한 useEffect 제거 - 무한 루프 방지
-  // printCost는 필요할 때만 계산하도록 수정
-  const formattedCost = `${buyCost} 원`;
+  }, [latestPrice, sellPrice]);
 
   // +,- 기능 (판매가격)
-  const CostButtonHandler = (
+  const priceButtonHandler = (
     check: string,
     value: number,
     setValue: React.Dispatch<React.SetStateAction<number>>,
-    chagneValue: number,
+    changeValue: number,
   ) => {
     if (check === '+') {
-      const checkValue = value + chagneValue;
+      const checkValue = value + changeValue;
       if (checkValue < 0) {
         setValue(0);
         return;
       }
-      setValue(value + chagneValue);
+      setValue(value + changeValue);
     } else if (check === '-') {
-      const checkValue = value - chagneValue;
+      const checkValue = value - changeValue;
       if (checkValue < 0) {
         setValue(0);
         return;
       }
-      setValue(value - chagneValue);
+      setValue(value - changeValue);
     }
   };
+
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
+
   // 총 주문 금액
   const totalPrice = () => {
-    const printTotalPrice: number = buyCost * stockCount;
-    return printTotalPrice;
+    return sellPrice * stockCount;
   };
+
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
 
   // 판매 처리
   const handleSellStock = () => {
-    if (!isSessionActive || stockCount <= 0 || buyCost <= 0) return;
-    onSell(buyCost, stockCount);
+    if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) return;
+    onSell(sellPrice, stockCount);
     setStockCount(0); // 판매 후 수량 초기화
   };
 
@@ -101,7 +99,7 @@ export const TutorialOrderStatusSell = ({
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <div className="pointer-events-none">
-                <NumberInput value={buyCost} setValue={setBuyCost} placeholder="시장가원." />
+                <NumberInput value={sellPrice} setValue={setSellPrice} placeholder="시장가원." />
               </div>
             </div>
           </div>
@@ -119,7 +117,7 @@ export const TutorialOrderStatusSell = ({
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                    onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
                   >
                     -
                   </button>
@@ -127,7 +125,7 @@ export const TutorialOrderStatusSell = ({
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                    onClick={() => priceButtonHandler('+', stockCount, setStockCount, 1)}
                   >
                     +
                   </button>
