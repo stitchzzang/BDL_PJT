@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { StockDayCandle, TickData } from '@/api/types/stock';
 import { StockCostHistoryDay } from '@/components/mock-investment/stock-cost-history/stock-cost-history-day';
@@ -65,7 +66,7 @@ export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) =
   const handleModeChange = (mode: string) => {
     if (mode === '실시간' && !checkKoreanTradingHours()) {
       // 거래 시간이 아니면 '실시간' 모드로 변경 불가
-      alert('거래 시간(09:00~15:30)에만 실시간 정보를 볼 수 있습니다.');
+      toast.error('거래 시간(09:00~15:30)에만 실시간 정보를 볼 수 있습니다.');
       return;
     }
     setIsActive(mode);
