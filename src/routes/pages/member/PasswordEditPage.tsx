@@ -81,6 +81,9 @@ export const PasswordEditPage = () => {
             className="flex w-full flex-col items-center gap-4"
           >
             <div className="w-full">
+              <h1 className="mb-2 w-full text-left text-lg font-bold text-primary-color">
+                질문 및 답변
+              </h1>
               <QuestionsCombobox
                 onSelect={(selectedQuestion) => setQuestion(selectedQuestion.toString())}
               />
@@ -96,85 +99,87 @@ export const PasswordEditPage = () => {
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="newPassword"
-              render={({ field }) => {
-                const isValid = !errors.newPassword && dirtyFields.newPassword;
-                const hasError = !!errors.newPassword && dirtyFields.newPassword;
-                return (
-                  <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="새로운 비밀번호를 입력해주세요."
-                          className="h-14 pr-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      {isValid && (
-                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
-                      )}
-                      {hasError && (
-                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
-                      )}
-                    </div>
-                    <p className="text-xs text-text-main-color">
-                      비밀번호는 최소 8자 이상이어야 합니다.
-                    </p>
-                  </FormItem>
-                );
-              }}
-            />
-
-            <FormField
-              control={form.control}
-              name="passwordConfirm"
-              render={({ field }) => {
-                const isValid = !errors.passwordConfirm && dirtyFields.passwordConfirm;
-                const hasError = !!errors.passwordConfirm && dirtyFields.passwordConfirm;
-                return (
-                  <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="비밀번호를 확인해주세요."
-                          className="h-14 pr-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      {isValid && (
-                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
-                      )}
-                      {hasError && (
-                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
-                      )}
-                    </div>
-                    {dirtyFields.passwordConfirm && (
-                      <FormMessage
-                        className={cn(
-                          'text-xs',
-                          hasError
-                            ? 'text-btn-red-color'
-                            : isValid
-                              ? 'text-btn-green-color'
-                              : 'text-text-main-color',
+            <div className="flex w-full flex-col gap-2">
+              <h1 className="w-full text-left text-lg font-bold text-primary-color">비밀번호</h1>
+              <FormField
+                control={form.control}
+                name="newPassword"
+                render={({ field }) => {
+                  const isValid = !errors.newPassword && dirtyFields.newPassword;
+                  const hasError = !!errors.newPassword && dirtyFields.newPassword;
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="새로운 비밀번호를 입력해주세요."
+                            className="h-14 pr-10"
+                            {...field}
+                          />
+                        </FormControl>
+                        {isValid && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
                         )}
-                      >
-                        {hasError
-                          ? '비밀번호가 일치하지 않습니다.'
-                          : isValid
-                            ? '비밀번호가 일치합니다.'
-                            : '비밀번호와 정확히 일치해야 합니다.'}
-                      </FormMessage>
-                    )}
-                  </FormItem>
-                );
-              }}
-            />
+                        {hasError && (
+                          <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                        )}
+                      </div>
+                      <p className="text-xs text-text-main-color">
+                        비밀번호는 최소 8자 이상이어야 합니다.
+                      </p>
+                    </FormItem>
+                  );
+                }}
+              />
 
+              <FormField
+                control={form.control}
+                name="passwordConfirm"
+                render={({ field }) => {
+                  const isValid = !errors.passwordConfirm && dirtyFields.passwordConfirm;
+                  const hasError = !!errors.passwordConfirm && dirtyFields.passwordConfirm;
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="비밀번호를 확인해주세요."
+                            className="h-14 pr-10"
+                            {...field}
+                          />
+                        </FormControl>
+                        {isValid && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                        )}
+                        {hasError && (
+                          <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                        )}
+                      </div>
+                      {dirtyFields.passwordConfirm && (
+                        <FormMessage
+                          className={cn(
+                            'text-xs',
+                            hasError
+                              ? 'text-btn-red-color'
+                              : isValid
+                                ? 'text-btn-green-color'
+                                : 'text-text-main-color',
+                          )}
+                        >
+                          {hasError
+                            ? '비밀번호가 일치하지 않습니다.'
+                            : isValid
+                              ? '비밀번호가 일치합니다.'
+                              : '비밀번호와 정확히 일치해야 합니다.'}
+                        </FormMessage>
+                      )}
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
             <Button
               type="submit"
               variant="blue"
@@ -183,10 +188,6 @@ export const PasswordEditPage = () => {
             >
               비밀번호 변경
             </Button>
-
-            {Object.keys(errors).length > 0 && (
-              <p className="text-sm text-btn-red-color">모든 필드를 올바르게 입력해주세요.</p>
-            )}
           </form>
         </Form>
       </div>
