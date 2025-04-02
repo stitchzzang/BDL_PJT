@@ -105,8 +105,11 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
           const percentWidth = (data.quantity / maxAskQuantity) * 100;
 
           return (
-            <div key={`ask-${data.price}`} className="relative my-1 flex w-full justify-between">
-              <div className="relative w-[50%] overflow-hidden p-[14px]">
+            <div
+              key={`ask-${data.price}`}
+              className="relative my-1 flex w-full justify-between text-[14px]"
+            >
+              <div className="relative w-[50%] overflow-hidden p-[10px]">
                 <div
                   className="bar-transition absolute bottom-0 right-0 top-0 rounded-l-xl bg-btn-blue-color bg-opacity-20"
                   style={{
@@ -116,7 +119,7 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
                 ></div>
                 <p className="relative z-10 text-btn-blue-color">{data.quantity}</p>
               </div>
-              <div className="w-[50%] p-[14px]">
+              <div className="w-[50%] p-[10px]">
                 <p>{data.price} 원</p>
               </div>
             </div>
@@ -129,11 +132,14 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
           const percentWidth = (data.quantity / maxBidQuantity) * 100;
 
           return (
-            <div key={`bid-${data.price}`} className="relative my-1 flex w-full justify-between">
-              <div className="flex w-[50%] justify-end p-[14px]">
+            <div
+              key={`bid-${data.price}`}
+              className="relative my-1 flex w-full justify-between text-[14px]"
+            >
+              <div className="flex w-[50%] justify-end p-[10px]">
                 <p>{data.price} 원</p>
               </div>
-              <div className="relative flex w-[50%] justify-end overflow-hidden p-[14px]">
+              <div className="relative flex w-[50%] justify-end overflow-hidden p-[10px]">
                 <div
                   className="bar-transition absolute bottom-0 left-0 top-0 rounded-r-xl bg-btn-red-color bg-opacity-20"
                   style={{
@@ -146,15 +152,15 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
             </div>
           );
         })}
-        <div className="mt-8 flex items-center justify-between rounded-xl border border-border-color border-opacity-20 p-4 pt-4">
-          <p>
-            <span className="text-btn-blue-color">매도대기 : </span>{' '}
-            {totalAskQuantity.toLocaleString()}
-          </p>
-          <p>
-            <span className="text-btn-red-color">매수대기 : </span>{' '}
-            {totalBidQuantity.toLocaleString()}
-          </p>
+        <div className="mt-8 flex items-center justify-between rounded-xl border border-border-color border-opacity-20 p-4 px-8 pt-4">
+          <div className="flex flex-col items-center justify-center gap-1">
+            <span className="text-btn-blue-color">매도대기</span>
+            <p>{totalAskQuantity.toLocaleString()}</p>
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <span className="text-btn-red-color">매수대기</span>
+            <p>{totalBidQuantity.toLocaleString()}</p>
+          </div>
         </div>
       </div>
     </div>

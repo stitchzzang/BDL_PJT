@@ -24,7 +24,7 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
     };
   }, [connectOrderbook, disconnectOrderbook]);
   return (
-    <div className="flex h-full items-center justify-center rounded-2xl bg-modal-background-color p-[20px]">
+    <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
       {orderbooks ? (
         <>
           <div className="flex justify-between">
