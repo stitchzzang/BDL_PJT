@@ -107,7 +107,13 @@ export const InvestmentResultPage = () => {
               내 <TermTooltip term="평가금">평가금</TermTooltip>
             </p>
             <div className="flex flex-row items-end gap-1">
-              <p className="text-3xl font-bold text-btn-red-color">
+              <p
+                className={`text-3xl font-bold ${
+                  displayData?.totalProfit && displayData.totalProfit > 0
+                    ? 'text-btn-red-color'
+                    : 'text-btn-blue-color'
+                }`}
+              >
                 {displayData?.totalEvaluation
                   ? addCommasToThousand(displayData.totalEvaluation)
                   : '0'}
