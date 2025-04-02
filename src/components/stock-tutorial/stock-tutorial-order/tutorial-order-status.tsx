@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-buy';
 import { TutorialOrderStatusCategory } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-category';
-import { TutorialOrderStatusShell } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-shell';
+import { TutorialOrderStatusSell } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-sell';
 import { TutorialOrderStatusWait } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-wait';
 
 export interface TutorialOrderStatusProps {
@@ -56,7 +56,7 @@ export const TutorialOrderStatus = ({
             />
           )}
           {isActiveCategory === '판매' && (
-            <TutorialOrderStatusShell
+            <TutorialOrderStatusSell
               onSell={(price, quantity) => handleTrade('sell', price, quantity)}
               companyId={companyId}
               latestPrice={latestPrice}

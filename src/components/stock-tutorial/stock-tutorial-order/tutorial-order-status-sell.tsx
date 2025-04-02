@@ -11,7 +11,7 @@ export interface TutorialOrderStatusShellProps {
   isActive: boolean;
 }
 
-export const TutorialOrderStatusShell = ({
+export const TutorialOrderStatusSell = ({
   onSell,
   companyId,
   latestPrice,
