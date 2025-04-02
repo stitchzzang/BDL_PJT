@@ -284,8 +284,10 @@ export const SimulatePage = () => {
   // 튜토리얼 시작 시 초기 데이터 설정 및 턴 관리
   useEffect(() => {
     if (isTutorialStarted && pointDates.length >= 3 && currentTurn === 0) {
+      // 변곡점 데이터가 로드되었고 튜토리얼이 시작되었으나 현재 턴이 0인 경우, 첫 번째 턴으로 설정
       setCurrentTurn(1);
       setIsCurrentTurnCompleted(false);
+      setProgress(25); // 첫 번째 턴 진행률 설정
     }
   }, [isTutorialStarted, pointDates.length, currentTurn]);
 
@@ -366,26 +368,9 @@ export const SimulatePage = () => {
         setHasChartError(false);
         setIsCurrentTurnCompleted(false);
 
-        // 섹션 데이터 사용 (turnChartData에 이미 있는지 확인)
-        if (turnChartData[currentTurn]) {
-          // 이미 로드된 데이터가 있으면 그대로 사용
-          setStockData(turnChartData[currentTurn]);
-
-          // 최신 가격 업데이트
-          const currentData = turnChartData[currentTurn];
-          if (currentData && currentData.data) {
-            const dayCandles = currentData.data.filter(
-              (candle: StockCandle) => candle.periodType === 1,
-            );
-            if (dayCandles.length > 0) {
-              const lastCandle = dayCandles[dayCandles.length - 1];
-              setLatestPrice(lastCandle.closePrice);
-            }
-          }
-
-          setIsChartLoading(false);
-        } else if (sectionStockData?.result && !isSectionDataLoading) {
-          // API에서 새로 가져온 섹션 데이터가 있으면 사용
+        // 섹션 데이터 로드 (currentTurn - 1을 인덱스로 사용)
+        const sectionIndex = currentTurn - 1;
+        if (sectionIndex >= 0 && sectionStockData?.result) {
           const result = sectionStockData.result;
 
           if (result.data && result.data.length > 0) {
@@ -448,8 +433,8 @@ export const SimulatePage = () => {
             setHasChartError(true);
             setIsChartLoading(false);
           }
-        } else {
-          // 섹션 데이터가 없을 경우 fetchSessionData로 로드
+        } else if (!isSectionDataLoading) {
+          // 기존 세션 데이터 로드 로직은 그대로 유지 (만약 섹션 데이터가 없을 경우)
           const sessionResponse = await fetchSessionData();
 
           if (sessionResponse.data?.result) {
@@ -477,7 +462,7 @@ export const SimulatePage = () => {
                 // 이전 턴들의 데이터 모두 누적
                 for (let i = 1; i <= currentTurn; i++) {
                   const turnData = turnChartData[i];
-                  if (turnData && turnData.data.length > 0) {
+                  if (turnData && turnData.data && turnData.data.length > 0) {
                     accumulatedData.data = [...accumulatedData.data, ...turnData.data];
                   }
                 }
@@ -513,15 +498,11 @@ export const SimulatePage = () => {
                 const lastCandle = dayCandles[dayCandles.length - 1];
                 setLatestPrice(lastCandle.closePrice);
               }
-
-              setIsChartLoading(false);
             } else {
               setHasChartError(true);
-              setIsChartLoading(false);
             }
           } else {
             setHasChartError(true);
-            setIsChartLoading(false);
           }
         }
 
@@ -530,36 +511,28 @@ export const SimulatePage = () => {
           const startStockCandleId = pointStockCandleIds[currentTurn - 2] || 0;
           const endStockCandleId = pointStockCandleIds[currentTurn - 1] || 0;
 
-          if (startStockCandleId > 0 && endStockCandleId > 0) {
-            getPastNews.mutate(
-              { companyId, startStockCandleId, endStockCandleId },
-              {
-                onSuccess: (result) => {
-                  if (result.result && result.result.NewsResponse) {
-                    setPastNewsList(result.result.NewsResponse);
-                  }
-                },
+          getPastNews.mutate(
+            { companyId, startStockCandleId, endStockCandleId },
+            {
+              onSuccess: (result) => {
+                if (result.result && result.result.NewsResponse) {
+                  setPastNewsList(result.result.NewsResponse);
+                }
               },
-            );
+            },
+          );
 
-            // 뉴스 코멘트 가져오기
-            getNewsComment.mutate(
-              { companyId, startStockCandleId, endStockCandleId },
-              {
-                onSuccess: (result) => {
-                  if (result.result) {
-                    setNewsComment(result.result);
-                  } else {
-                    setNewsComment('');
-                  }
-                },
+          // 뉴스 코멘트 가져오기
+          getNewsComment.mutate(
+            { companyId, startStockCandleId, endStockCandleId },
+            {
+              onSuccess: (result) => {
+                if (result.result) {
+                  setNewsComment(result.result);
+                }
               },
-            );
-          }
-        } else {
-          // 첫 번째 턴에서는 과거 뉴스와 코멘트를 초기화
-          setPastNewsList([]);
-          setNewsComment('');
+            },
+          );
         }
 
         // 현재 뉴스 가져오기
@@ -572,16 +545,16 @@ export const SimulatePage = () => {
                 onSuccess: (result) => {
                   if (result.result) {
                     setCurrentNews(result.result);
-                  } else {
-                    setCurrentNews(null);
                   }
                 },
               },
             );
           }
         }
-      } catch (error) {
+      } catch {
         setHasChartError(true);
+        setIsChartLoading(false);
+      } finally {
         setIsChartLoading(false);
       }
     };
@@ -676,7 +649,7 @@ export const SimulatePage = () => {
       });
       setIsModalOpen(true);
       setFinalChangeRate(assetInfo.totalReturnRate);
-    } catch (error) {
+    } catch {
       // 에러 처리
     }
   }, [
@@ -794,6 +767,7 @@ export const SimulatePage = () => {
     setIsChartLoading(true);
     setHasChartError(false);
 
+    // 초기화 API 호출
     initSession.mutate(
       { memberId, companyId },
       {
@@ -803,25 +777,12 @@ export const SimulatePage = () => {
 
           if (pointsResponse.data?.result?.PointResponseList) {
             setIsTutorialStarted(true);
-            setCurrentTurn(0); // 초기화 후 useEffect에서 1로 설정됨
-            setProgress(10);
-            // 이전 거래 내역 초기화
-            setTrades([]);
-            // 자산 정보 초기화
-            setAssetInfo({
-              tradingDate: '',
-              availableOrderAsset: 10000000,
-              currentTotalAsset: 10000000,
-              totalReturnRate: 0,
-            });
+            setCurrentTurn(1); // 첫 번째 턴으로 명시적 설정
+            setProgress(25); // 첫 번째 턴의 진행률(25%)
           } else {
             setHasChartError(true);
             setIsChartLoading(false);
           }
-        },
-        onError: () => {
-          setHasChartError(true);
-          setIsChartLoading(false);
         },
       },
     );
@@ -914,7 +875,10 @@ export const SimulatePage = () => {
                 </p>
               </div>
             </div>
-          ) : hasChartError || !stockData || !stockData.data || stockData.data.length === 0 ? (
+          ) : hasChartError ||
+            (!accumulatedChartData?.data?.length &&
+              !stockData?.data?.length &&
+              !fullChartData?.data?.length) ? (
             <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터가 없습니다.</p>
@@ -926,7 +890,9 @@ export const SimulatePage = () => {
             </div>
           ) : (
             <ChartComponent
-              periodData={currentTurn === 1 ? stockData : accumulatedChartData || stockData}
+              periodData={
+                stockData && stockData.data && stockData.data.length > 0 ? stockData : undefined
+              }
               height={600}
             />
           )}
@@ -934,7 +900,9 @@ export const SimulatePage = () => {
         <div className="col-span-2">
           <TutorialOrderStatus
             onTrade={handleTrade}
-            isSessionActive={isTutorialStarted && progress < 100 && !isCurrentTurnCompleted}
+            isSessionActive={
+              isTutorialStarted && currentTurn > 0 && currentTurn <= 4 && !isCurrentTurnCompleted
+            }
             companyId={companyId}
             latestPrice={latestPrice}
           />
