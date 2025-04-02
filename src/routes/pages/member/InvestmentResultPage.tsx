@@ -43,64 +43,31 @@ export const InvestmentResultPage = () => {
   } = useGetAccountSummary(userData.memberId?.toString() ?? '');
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
   const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
-  const [realTimeData, setRealTimeData] = useState(accountSummary);
-  const [prevData, setPrevData] = useState(accountSummary);
+  const [realTimeData, setRealTimeData] = useState<AccountSummaryResponse | null>(null);
+  const [prevData, setPrevData] = useState<AccountSummaryResponse | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
 
   const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
 
   useEffect(() => {
     if (accountSummary) {
+      // 초기값 설정
+      setRealTimeData(accountSummary);
+      setPrevData(accountSummary);
+
+      // 웹소켓 연결
       connectAccount(userData.memberId?.toString() ?? '', setAccountData);
       return () => {
         disconnectAccount();
       };
     }
-  }, [accountSummary, connectAccount, disconnectAccount]);
+  }, [accountSummary, connectAccount, disconnectAccount, userData.memberId]);
 
   useEffect(() => {
-    if (accountData && accountSummary) {
-      // 웹소켓으로 받은 데이터로 accountSummary 업데이트
-      const updatedAccounts = accountSummary.accounts.map((account) => {
-        // accountData가 배열이 아닐 경우를 처리
-        const realTimeAccount = accountData.accounts.find(
-          (rt) => rt.companyId === account.companyId,
-        );
-
-        if (realTimeAccount) {
-          return {
-            ...account,
-            currentPrice: realTimeAccount.currentPrice,
-            evaluation: realTimeAccount.evaluation,
-            profit: realTimeAccount.profit,
-            profitRate: realTimeAccount.profitRate,
-            dailyProfit: realTimeAccount.dailyProfit,
-            dailyProfitRate: realTimeAccount.dailyProfitRate,
-          };
-        }
-        return account;
-      });
-
-      // 총 자산, 평가금액, 현금 업데이트
-      const totalEvaluation = accountData.totalEvaluation;
-      const totalProfit = accountData.totalProfit;
-      const totalDailyProfit = accountData.dailyProfit;
-
-      const newData = {
-        ...accountSummary,
-        accounts: updatedAccounts,
-        totalEvaluation,
-        totalProfit,
-        dailyProfit: totalDailyProfit,
-        totalProfitRate: accountData.totalProfitRate,
-        dailyProfitRate: accountData.dailyProfitRate,
-        totalAsset: accountData.totalAsset,
-      };
-
-      // 미리 현재 데이터를 이전 데이터로 저장
-      setPrevData(realTimeData || accountSummary);
-      // 새 데이터 설정
-      setRealTimeData(newData);
+    if (accountData) {
+      // 웹소켓으로 받은 데이터로 상태 업데이트
+      setPrevData(realTimeData || accountSummary || null);
+      setRealTimeData(accountData);
 
       // 깜빡임 효과 적용
       setIsFlashing(true);
@@ -108,7 +75,7 @@ export const InvestmentResultPage = () => {
         setIsFlashing(false);
       }, 300);
     }
-  }, [accountData, accountSummary]);
+  }, [accountData, accountSummary, realTimeData]);
 
   if (isLoading) {
     return <LoadingAnimation />;
@@ -119,6 +86,7 @@ export const InvestmentResultPage = () => {
   }
 
   const displayData = realTimeData || accountSummary;
+  if (!displayData) return <LoadingAnimation />;
 
   return (
     <div className="flex w-full flex-col gap-4 px-6">
