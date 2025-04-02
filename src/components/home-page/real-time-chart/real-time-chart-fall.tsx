@@ -27,7 +27,7 @@ export const RealTimeChartFall = () => {
   }, [connectRankRiseFall, disconnectRankRiseFall]);
   return (
     <div>
-      <div className="w-full">
+      <div className="w-full animate-fadeIn">
         <div className="!mt-0 flex flex-col">
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">
