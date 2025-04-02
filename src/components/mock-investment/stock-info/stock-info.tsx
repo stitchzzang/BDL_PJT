@@ -1,4 +1,15 @@
 import { CompanyInfo, TickData } from '@/api/types/stock';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { calculatePriceChange } from '@/utils/calculate-price-change';
 import { getCategoryIcon } from '@/utils/categoryMapper';
@@ -76,9 +87,23 @@ export const StockInfo = ({
                 </div>
               </div>
               <div>
-                <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
-                  알고리즘 선택
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
+                      알고리즘 선택
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>알고리즘 선택</AlertDialogTitle>
+                      <AlertDialogDescription>여기에 설명을 입력하세요.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>취소</AlertDialogCancel>
+                      <AlertDialogAction>확인</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           </div>
