@@ -16,24 +16,28 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAuthStore } from '@/store/useAuthStore';
 
 interface MyAlgorithmItemProps {
   algorithm: Algorithm;
 }
 
 export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
+  const { userData } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
   const { mutate: deleteAlgorithm } = useDeleteAlgorithm();
 
   const handleDelete = () => {
-    deleteAlgorithm(
-      { memberId: '1', algorithmId: algorithm.algorithmId.toString() },
-      {
-        onSuccess: () => {
-          setIsOpen(false);
+    if (userData?.memberId) {
+      deleteAlgorithm(
+        { memberId: userData.memberId.toString(), algorithmId: algorithm.algorithmId.toString() },
+        {
+          onSuccess: () => {
+            setIsOpen(false);
+          },
         },
-      },
-    );
+      );
+    }
   };
 
   return (
