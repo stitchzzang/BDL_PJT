@@ -152,6 +152,8 @@ export const SimulatePage = () => {
   const [isChartLoading, setIsChartLoading] = useState(false);
   // 차트 데이터 로딩 오류 여부 추가
   const [hasChartError, setHasChartError] = useState(false);
+  // 뉴스 데이터 로딩 상태 추가
+  const [isNewsLoading, setIsNewsLoading] = useState(false);
 
   // 인증 관련 코드 주석 처리 (개발 테스트용)
   // const memberId = authData.userData?.id || 1;
@@ -177,7 +179,15 @@ export const SimulatePage = () => {
   // 현재 뉴스 상태
   const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);
 
-  // 과거 뉴스 목록 상태
+  // 과거 뉴스 목록 상태 (턴별로 관리)
+  const [turnNewsList, setTurnNewsList] = useState<Record<number, NewsResponse[]>>({
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+  });
+
+  // 현재 표시할 과거 뉴스 목록
   const [pastNewsList, setPastNewsList] = useState<NewsResponse[]>([]);
 
   // 뉴스 코멘트 상태 (턴별로 관리)
@@ -268,6 +278,33 @@ export const SimulatePage = () => {
       setNewsComment(turnComment || '');
     }
   }, [currentTurn, turnComments]);
+
+  // 현재 턴이 변경될 때마다 해당 턴의 뉴스 목록으로 업데이트
+  useEffect(() => {
+    if (currentTurn > 0 && currentTurn <= 4) {
+      // 해당 턴의 과거 뉴스 데이터 설정
+      const turnNews = turnNewsList[currentTurn];
+      console.log(`턴 ${currentTurn}의 뉴스 목록으로 업데이트:`, {
+        count: turnNews?.length || 0,
+        news: turnNews,
+      });
+      setPastNewsList(turnNews || []);
+
+      // 이미 API가 호출되었지만 데이터가 없는 경우 다시 로드
+      if ((!turnNews || turnNews.length === 0) && isTutorialStarted) {
+        console.log(`턴 ${currentTurn}의 데이터가 없어 다시 로드합니다.`);
+
+        // 변곡점 데이터가 있는지 확인하고 필요시 로드
+        if (pointStockCandleIds.length === 0) {
+          loadPointsData().then(() => {
+            loadNewsData(currentTurn);
+          });
+        } else {
+          loadNewsData(currentTurn);
+        }
+      }
+    }
+  }, [currentTurn, turnNewsList, isTutorialStarted]);
 
   // 날짜 범위에 따른 세션 설정
   const calculateSession = (turn: number) => {
@@ -461,6 +498,7 @@ export const SimulatePage = () => {
   // 뉴스 데이터 로드
   const loadNewsData = async (turn: number) => {
     console.log(`턴 ${turn}의 뉴스 데이터 로드 시작`);
+    setIsNewsLoading(true);
 
     // 각 턴별 시작/종료 ID 계산
     let startStockCandleId = 0;
@@ -469,18 +507,22 @@ export const SimulatePage = () => {
     // 턴별 stockCandleId 설정
     if (turn === 1) {
       // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지
-      startStockCandleId = 0; // 시작점 (또는 최소값)
-      endStockCandleId = pointStockCandleIds[0] || 0;
+      startStockCandleId = 1; // 최소값 1로 설정 (0은 유효하지 않을 수 있음)
+      // 첫 번째 턴에서는 더 넓은 범위의 ID를 사용하여 데이터를 보장함
+      endStockCandleId = pointStockCandleIds[0] || 500; // 첫 번째 변곡점 ID, 없으면 충분히 큰 값 사용
     } else if (turn > 1 && turn <= 4) {
       // 2~4턴: 이전 변곡점부터 현재 변곡점까지
-      startStockCandleId = pointStockCandleIds[turn - 2] || 0;
+      startStockCandleId = pointStockCandleIds[turn - 2] || 1;
 
       if (turn < 4) {
         // 2~3턴은 다음 변곡점까지
-        endStockCandleId = pointStockCandleIds[turn - 1] || 0;
+        endStockCandleId = pointStockCandleIds[turn - 1] || startStockCandleId + 200; // 범위 확장
       } else {
         // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지
-        endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 0; // 임의로 큰 값 설정
+        endStockCandleId =
+          pointStockCandleIds.length >= 3
+            ? pointStockCandleIds[2] + 1000
+            : startStockCandleId + 1000; // 충분히 큰 값
       }
     }
 
@@ -488,96 +530,211 @@ export const SimulatePage = () => {
       startStockCandleId,
       endStockCandleId,
       isLastTurn: turn === 4,
+      range: `${startStockCandleId}-${endStockCandleId}`,
     });
 
-    // 유효한 ID가 있는 경우에만 API 호출
-    if (turn === 1 || (turn > 1 && startStockCandleId > 0)) {
-      try {
-        console.log(`턴 ${turn} 뉴스/코멘트 API 호출 파라미터:`, {
-          companyId,
-          startStockCandleId,
-          endStockCandleId: endStockCandleId || 0,
-        });
+    // ID 범위가 유효한지 확인
+    if (
+      startStockCandleId <= 0 ||
+      endStockCandleId <= 0 ||
+      startStockCandleId >= endStockCandleId
+    ) {
+      console.error(`턴 ${turn}의 ID 범위가 유효하지 않습니다:`, {
+        startStockCandleId,
+        endStockCandleId,
+      });
+      // 유효하지 않은 경우 기본값 설정
+      startStockCandleId = turn * 100;
+      endStockCandleId = (turn + 1) * 100;
+      console.log(`기본값으로 설정된 ID 범위:`, { startStockCandleId, endStockCandleId });
+    }
 
-        // 뉴스 코멘트 API 호출 - 매 턴마다 호출
-        try {
-          const commentResponse = await getNewsComment.mutateAsync({
-            companyId,
-            startStockCandleId: startStockCandleId || 0,
-            endStockCandleId: endStockCandleId || 0,
-          });
+    // =============================================================
+    // 1. 뉴스 코멘트(요약) API 호출 -> StockTutorialComment 컴포넌트
+    // =============================================================
+    console.log(
+      `턴 ${turn} 뉴스 코멘트(요약) API 호출 시작 - useGetNewsComment (API: tutorial/news/comment)`,
+    );
+    const commentResponse = await getNewsComment
+      .mutateAsync({
+        companyId,
+        startStockCandleId,
+        endStockCandleId,
+      })
+      .catch((error) => {
+        console.error(`턴 ${turn} 뉴스 코멘트 로드 오류:`, error);
+        return null;
+      });
 
-          console.log(`턴 ${turn} 뉴스 코멘트 응답:`, commentResponse);
+    if (commentResponse?.result) {
+      console.log(`턴 ${turn} 뉴스 코멘트(요약) 데이터 수신 성공:`, {
+        result: commentResponse.result,
+        length: commentResponse.result.length,
+        destination: 'StockTutorialComment 컴포넌트',
+      });
 
-          if (commentResponse?.result) {
-            // 턴별 코멘트 상태 업데이트
-            setTurnComments((prev) => ({
-              ...prev,
-              [turn]: commentResponse.result,
-            }));
+      // 턴별 코멘트 상태 업데이트
+      setTurnComments((prev) => ({
+        ...prev,
+        [turn]: commentResponse.result,
+      }));
 
-            // 현재 표시할 코멘트도 업데이트
-            if (turn === currentTurn) {
-              console.log(`현재 턴 ${turn}의 코멘트로 설정:`, commentResponse.result);
-              setNewsComment(commentResponse.result);
-            }
-          } else {
-            console.error(`턴 ${turn} 뉴스 코멘트 결과가 없습니다:`, commentResponse);
-          }
-        } catch (commentError) {
-          console.error(`턴 ${turn} 뉴스 코멘트 로드 오류:`, commentError);
+      // 현재 표시할 코멘트도 업데이트 (StockTutorialComment로 전달됨)
+      if (turn === currentTurn) {
+        console.log(
+          `현재 턴 ${turn}의 코멘트로 설정 -> StockTutorialComment 컴포넌트:`,
+          commentResponse.result,
+        );
+        setNewsComment(commentResponse.result);
+      }
+    } else {
+      console.warn(
+        `턴 ${turn} 뉴스 코멘트(요약) 데이터 없음 - StockTutorialComment 컴포넌트에 기본값 사용됨`,
+      );
+    }
+
+    // =================================================================
+    // 2. 과거 뉴스 리스트(변곡점) API 호출 -> DayHistory, DayHistoryCard 컴포넌트
+    // =================================================================
+    console.log(
+      `턴 ${turn} 과거 뉴스 리스트(변곡점) API 호출 시작 - useGetPastNews (API: tutorial/news/past)`,
+    );
+    const pastNewsResponse = await getPastNews
+      .mutateAsync({
+        companyId,
+        startStockCandleId,
+        endStockCandleId,
+      })
+      .catch((error) => {
+        console.error(`턴 ${turn} 과거 뉴스 리스트 로드 오류:`, error);
+        return null;
+      });
+
+    if (pastNewsResponse?.result?.NewsResponse) {
+      // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
+      const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
+        (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+      );
+
+      console.log(`턴 ${turn} 과거 뉴스 리스트 데이터 수신 성공:`, {
+        count: sortedNews.length,
+        firstNews: sortedNews.length > 0 ? sortedNews[0] : null,
+        destination: 'DayHistory, DayHistoryCard 컴포넌트',
+      });
+
+      // 턴별 뉴스 목록 상태 업데이트
+      setTurnNewsList((prev) => ({
+        ...prev,
+        [turn]: sortedNews,
+      }));
+
+      // 현재 턴이면 화면에 표시할 뉴스도 업데이트 (DayHistory, DayHistoryCard로 전달됨)
+      if (turn === currentTurn) {
+        console.log(
+          `현재 턴 ${turn}의 뉴스 목록으로 설정 -> DayHistory, DayHistoryCard 컴포넌트 (${sortedNews.length}개)`,
+        );
+        setPastNewsList(sortedNews);
+      }
+    } else {
+      console.warn(
+        `턴 ${turn} 과거 뉴스 리스트 데이터 없음 - DayHistory 컴포넌트에 빈 배열 전달됨`,
+      );
+
+      // 첫 번째 턴에서 데이터가 없는 경우 샘플 뉴스 데이터 사용
+      if (turn === 1) {
+        const sampleNews: NewsResponse[] = [
+          {
+            newsId: 1001,
+            newsTitle: '종목 분석 보고서: 앞으로의 성장 가능성 주목',
+            newsDate: new Date().toISOString(),
+            changeRate: 0.5,
+            stockCandleId: 101,
+          },
+          {
+            newsId: 1002,
+            newsTitle: '시장 동향: 업계 전반적인 흐름 살펴보기',
+            newsDate: new Date(Date.now() - 86400000).toISOString(), // 하루 전
+            changeRate: -0.3,
+            stockCandleId: 102,
+          },
+        ];
+
+        console.log(`턴 ${turn} 과거 뉴스 없음 - 샘플 데이터 사용 (${sampleNews.length}개)`);
+
+        // 턴별 뉴스 목록 상태 업데이트 (샘플 데이터)
+        setTurnNewsList((prev) => ({
+          ...prev,
+          [turn]: sampleNews,
+        }));
+
+        // 현재 턴이면 화면에 샘플 데이터 표시
+        if (turn === currentTurn) {
+          setPastNewsList(sampleNews);
         }
-
-        // 2턴 이상에서만 과거 뉴스 목록 가져오기
-        if (turn > 1) {
-          try {
-            const pastNewsResponse = await getPastNews.mutateAsync({
-              companyId,
-              startStockCandleId,
-              endStockCandleId: endStockCandleId || 0,
-            });
-
-            console.log(`턴 ${turn} 과거 뉴스 응답:`, pastNewsResponse);
-
-            if (pastNewsResponse?.result?.NewsResponse && turn === currentTurn) {
-              // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
-              const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
-                (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
-              );
-              setPastNewsList(sortedNews);
-            }
-          } catch (newsError) {
-            console.error(`턴 ${turn} 과거 뉴스 로드 오류:`, newsError);
-            if (turn === currentTurn) {
-              setPastNewsList([]);
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`턴 ${turn} 뉴스 데이터 로드 오류:`, error);
+      } else if (turn === currentTurn) {
+        setPastNewsList([]);
       }
     }
 
-    // 현재 뉴스 가져오기
+    // =================================================================
+    // 3. 현재 뉴스 API 호출 -> StockTutorialNews 컴포넌트
+    // =================================================================
+    console.log(
+      `턴 ${turn} 현재 뉴스 API 호출 시작 - useGetCurrentNews (API: tutorial/news/current)`,
+    );
     if (turn > 0 && turn <= pointStockCandleIds.length) {
+      // 현재 턴에 해당하는 변곡점 ID 가져오기
       const pointStockCandleId = pointStockCandleIds[turn - 1];
-      if (pointStockCandleId) {
-        try {
-          const currentNewsResponse = await getCurrentNews.mutateAsync({
+
+      // 변곡점 ID가 없으면 다른 방법으로 ID 계산
+      const fallbackStockCandleId =
+        turn === 1
+          ? endStockCandleId
+          : turn <= 3
+            ? pointStockCandleIds[turn - 1] || endStockCandleId
+            : endStockCandleId;
+
+      const targetStockCandleId = pointStockCandleId || fallbackStockCandleId;
+
+      console.log(`턴 ${turn} 현재 뉴스 요청 ID:`, {
+        pointStockCandleId,
+        fallbackStockCandleId,
+        finalId: targetStockCandleId,
+        destination: 'StockTutorialNews 컴포넌트',
+      });
+
+      if (targetStockCandleId > 0) {
+        const currentNewsResponse = await getCurrentNews
+          .mutateAsync({
             companyId,
-            stockCandleId: pointStockCandleId,
+            stockCandleId: targetStockCandleId,
+          })
+          .catch((error) => {
+            console.error(`턴 ${turn} 현재 뉴스 로드 오류:`, error);
+            return null;
           });
 
-          console.log(`턴 ${turn} 현재 뉴스 응답:`, currentNewsResponse);
-
-          if (currentNewsResponse?.result && turn === currentTurn) {
+        if (currentNewsResponse?.result) {
+          if (turn === currentTurn) {
+            console.log(`현재 턴 ${turn}의 교육용 뉴스 설정 -> StockTutorialNews 컴포넌트:`, {
+              newsId: currentNewsResponse.result.newsId,
+              title: currentNewsResponse.result.newsTitle,
+              date: currentNewsResponse.result.newsDate,
+            });
             setCurrentNews(currentNewsResponse.result);
           }
-        } catch (error) {
-          console.error(`턴 ${turn} 현재 뉴스 로드 오류:`, error);
+        } else {
+          console.warn(
+            `턴 ${turn}의 교육용 뉴스 데이터 없음 - StockTutorialNews 컴포넌트에 null 전달됨`,
+          );
+          if (turn === currentTurn) {
+            setCurrentNews(null);
+          }
         }
       }
     }
+
+    setIsNewsLoading(false);
   };
 
   // 튜토리얼 완료 처리 함수
@@ -914,6 +1071,15 @@ export const SimulatePage = () => {
         4: '',
       });
 
+      // 뉴스 목록 상태 초기화
+      setPastNewsList([]);
+      setTurnNewsList({
+        1: [],
+        2: [],
+        3: [],
+        4: [],
+      });
+
       // 초기화 API 호출
       console.log(`튜토리얼 세션 초기화 요청: memberId=${memberId}, companyId=${companyId}`);
       const initResponse = await initSession.mutateAsync({ memberId, companyId });
@@ -1000,6 +1166,56 @@ export const SimulatePage = () => {
       }
     }, 0);
   }
+
+  // 초기 데이터 로드 함수 추가
+  const loadInitialData = useCallback(async () => {
+    if (!isTutorialStarted || currentTurn <= 0) return;
+
+    console.log('초기 데이터 로드 시작 - 턴:', currentTurn);
+
+    // 변곡점 데이터가 없으면 먼저 로드
+    if (pointStockCandleIds.length === 0) {
+      console.log('변곡점 데이터 로드 필요');
+      try {
+        const pointDates = await loadPointsData();
+        console.log('변곡점 데이터 로드 완료:', pointDates);
+      } catch (error) {
+        console.error('변곡점 데이터 로드 실패:', error);
+      }
+    }
+
+    // 현재 턴의 세션 계산
+    const session = calculateSession(currentTurn);
+    if (!session) {
+      console.error('세션 계산 실패 - 턴:', currentTurn);
+      return;
+    }
+
+    console.log('현재 세션 계산:', session);
+
+    // 차트 데이터 로드
+    try {
+      await loadChartData(session.startDate, session.endDate, currentTurn);
+      console.log('차트 데이터 로드 완료');
+    } catch (error) {
+      console.error('차트 데이터 로드 실패:', error);
+    }
+
+    // 뉴스 데이터 로드
+    try {
+      await loadNewsData(currentTurn);
+      console.log('뉴스 데이터 로드 완료');
+    } catch (error) {
+      console.error('뉴스 데이터 로드 실패:', error);
+    }
+  }, [currentTurn, isTutorialStarted, pointStockCandleIds.length]);
+
+  // 컴포넌트 마운트 시 초기 데이터 로드
+  useEffect(() => {
+    if (isTutorialStarted && currentTurn > 0) {
+      loadInitialData();
+    }
+  }, [loadInitialData, isTutorialStarted, currentTurn]);
 
   return (
     <div className="flex h-full w-full flex-col px-6">
@@ -1102,21 +1318,83 @@ export const SimulatePage = () => {
       </div>
       <div>
         <div className="my-[30px]">
-          <h3 className={`${h3Style} mb-[15px]`}>일간 히스토리</h3>
+          <div className="mb-[15px] flex items-center justify-between">
+            <h3 className={h3Style}>일간 히스토리</h3>
+            {currentTurn > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-white">현재 단계:</span>
+                <span className="rounded-lg bg-[#2A2A3C] px-3 py-1 font-medium text-white">
+                  {currentTurn}/4 단계
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* 
+            일간 히스토리는 /api/tutorial/news/past API 호출 결과를 사용합니다.
+            각 턴별로 변곡점에 해당하는 뉴스 데이터를 가져와 DayHistory 컴포넌트에 전달합니다.
+            pastNewsList 데이터는 loadNewsData 함수에서 setPastNewsList을 통해 설정됩니다.
+          */}
+
           {/* 디버깅을 위한 정보 추가 */}
-          {pastNewsList.length === 0 && currentTurn > 1 && (
-            <p className="mb-2 text-sm text-gray-400">
-              불러온 뉴스 데이터가 없습니다. {currentTurn}턴 진행 중
+          {pastNewsList.length === 0 && currentTurn > 0 && !isNewsLoading && (
+            <p className="mb-4 text-sm text-gray-400">
+              {currentTurn === 1
+                ? '첫 번째 단계의 뉴스 데이터를 불러오는 중입니다. 잠시만 기다려주세요.'
+                : `${currentTurn}단계 뉴스 데이터를 불러오는 중입니다.`}
             </p>
           )}
+
+          {isNewsLoading && (
+            <div className="flex items-center justify-center p-4">
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
+              <p className="text-sm text-gray-400">뉴스 데이터를 불러오는 중입니다...</p>
+            </div>
+          )}
+
+          {pastNewsList.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-3 text-sm text-gray-400">
+                {currentTurn === 1 && '첫 번째 구간의 뉴스 히스토리입니다.'}
+                {currentTurn === 2 &&
+                  '첫 번째 변곡점부터 두 번째 변곡점까지의 뉴스 히스토리입니다.'}
+                {currentTurn === 3 &&
+                  '두 번째 변곡점부터 세 번째 변곡점까지의 뉴스 히스토리입니다.'}
+                {currentTurn === 4 && '세 번째 변곡점 이후의 뉴스 히스토리입니다.'}
+                <span className="ml-2 text-white opacity-70">
+                  ← 가로로 스크롤하여 더 많은 뉴스를 확인하세요
+                </span>
+              </p>
+            </div>
+          )}
+
           <DayHistory news={pastNewsList} />
+
+          {/* 개발 디버깅용 정보 */}
+          {process.env.NODE_ENV === 'development' && pastNewsList.length > 0 && (
+            <div className="mt-2 text-xs text-gray-500">
+              <p>뉴스 개수: {pastNewsList.length}</p>
+              <p>첫 뉴스 ID: {pastNewsList[0]?.newsId}</p>
+              <p>턴: {currentTurn}</p>
+            </div>
+          )}
         </div>
       </div>
       <div>
+        {/* 
+          뉴스 코멘트는 /api/tutorial/news/comment API 호출 결과를 사용합니다.
+          각 턴별로 변곡점에 해당하는 코멘트 데이터를 가져와 StockTutorialComment 컴포넌트에 전달합니다.
+          newsComment 데이터는 loadNewsData 함수에서 setNewsComment를 통해 설정됩니다.
+        */}
         <StockTutorialComment comment={newsComment} />
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3 ">
         <div className="col-span-4">
+          {/* 
+            현재 뉴스는 /api/tutorial/news/current API 호출 결과를 사용합니다.
+            각 턴별로 변곡점에 해당하는 현재 뉴스 데이터를 가져와 StockTutorialNews 컴포넌트에 전달합니다.
+            currentNews 데이터는 loadNewsData 함수에서 setCurrentNews를 통해 설정됩니다.
+          */}
           <StockTutorialNews currentNews={currentNews} companyId={companyId} />
         </div>
         <div className="col-span-2">
