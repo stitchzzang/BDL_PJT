@@ -539,35 +539,73 @@ export const SimulatePage = () => {
       pointStockCandleIds.length >= currentTurn - 1 ? pointStockCandleIds[currentTurn - 1] : 0;
 
     if (endPointId === 0) {
+      console.error('종료 지점 ID를 찾을 수 없습니다.');
       return;
     }
 
+    if (!memberId) {
+      console.error('멤버 ID가 유효하지 않습니다.');
+      return;
+    }
+
+    // 백엔드가 이해할 수 있는 형식으로 action 값 변환
+    // 대문자로 변환하여 서버에서 기대하는 형식 맞추기
+    const actionMap: Record<string, string> = {
+      buy: 'BUY',
+      sell: 'SELL',
+      wait: 'WAIT',
+    };
+
+    const apiAction = actionMap[action] || action.toUpperCase();
+    let apiPrice = price;
+    let apiQuantity = quantity;
+
+    // 관망일 경우 서버에 맞는 형식으로 데이터 설정
+    if (action === 'wait') {
+      apiPrice = 0;
+      apiQuantity = 0;
+    }
+
+    // API 요청 데이터 로깅
+    console.log('API 요청 데이터:', {
+      memberId,
+      action: apiAction,
+      price: apiPrice,
+      quantity: apiQuantity,
+      companyId,
+      startStockCandleId: startPointId || endPointId,
+      endStockCandleId: endPointId,
+    });
+
     try {
-      const response = await processUserAction.mutateAsync({
+      // 관망일 경우 API 호출 파라미터 조정
+      const requestData = {
         memberId,
-        action,
-        price,
-        quantity,
+        action: apiAction,
+        price: apiPrice,
+        quantity: apiQuantity,
         companyId,
         startStockCandleId: startPointId || endPointId,
         endStockCandleId: endPointId,
-      });
+      };
+
+      const response = await processUserAction.mutateAsync(requestData);
+
+      console.log('거래 응답:', response);
 
       const assetResults = response.result?.AssetResponse;
 
-      // 거래 기록 추가
-      if ((price > 0 && quantity > 0) || action === 'wait') {
-        setTrades((prev) => [
-          ...prev,
-          {
-            action,
-            price,
-            quantity,
-            timestamp: new Date(),
-            stockCandleId: endPointId,
-          },
-        ]);
-      }
+      // 거래 기록 추가 - 모든 액션 기록
+      setTrades((prev) => [
+        ...prev,
+        {
+          action,
+          price: action === 'wait' ? 0 : price,
+          quantity: action === 'wait' ? 0 : quantity,
+          timestamp: new Date(),
+          stockCandleId: endPointId,
+        },
+      ]);
 
       // 자산 정보 업데이트
       if (assetResults && assetResults.length > 0) {
@@ -580,6 +618,26 @@ export const SimulatePage = () => {
       setIsCurrentTurnCompleted(true);
     } catch (error) {
       console.error('거래 처리 오류:', error);
+      // 오류 상세 정보 표시
+      if (error instanceof Error) {
+        console.error('오류 상세:', error.message);
+        console.error('오류 스택:', error.stack);
+
+        // 요청 실패해도 UI에서는 다음 턴으로 넘어갈 수 있게 함
+        setTrades((prev) => [
+          ...prev,
+          {
+            action,
+            price: action === 'wait' ? 0 : price,
+            quantity: action === 'wait' ? 0 : quantity,
+            timestamp: new Date(),
+            stockCandleId: endPointId,
+          },
+        ]);
+      }
+
+      // 오류 발생해도 턴 완료로 처리하여 진행 가능하게 함
+      setIsCurrentTurnCompleted(true);
     }
   };
 
