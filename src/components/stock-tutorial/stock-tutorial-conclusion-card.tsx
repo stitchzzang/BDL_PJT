@@ -16,11 +16,7 @@ export interface StockTutorialConclusionCardProps {
   isCompleted: boolean;
 }
 
-export const StockTutorialConclusionCard = ({
-  trades,
-  feedback,
-  isCompleted,
-}: StockTutorialConclusionCardProps) => {
+export const StockTutorialConclusionCard = ({ trades }: StockTutorialConclusionCardProps) => {
   return (
     <div>
       {trades.length === 0 ? (
