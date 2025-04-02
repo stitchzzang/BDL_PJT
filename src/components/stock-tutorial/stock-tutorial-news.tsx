@@ -21,7 +21,7 @@ export const StockTutorialNews = ({ currentNews, companyId }: StockTutorialNewsP
   return (
     <div>
       <h1 className="mb-[10px] text-[20px] font-bold">교육용 뉴스</h1>
-      <StockTutorialNewsDetail news={currentNews} />
+      <StockTutorialNewsDetail news={currentNews} companyId={companyId} />
     </div>
   );
 };
