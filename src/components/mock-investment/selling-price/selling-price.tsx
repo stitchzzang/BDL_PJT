@@ -42,7 +42,10 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
           </div>
         </>
       ) : (
-        <ChartLoadingAnimation />
+        <div className="flex flex-col items-center justify-center">
+          <ChartLoadingAnimation />
+          <p className="text-[16px] text-border-color">현재 장 시간이 아닙니다.</p>
+        </div>
       )}
     </div>
   );

@@ -120,13 +120,14 @@ const arePropsEqual = (prevProps: MinuteChartProps, nextProps: MinuteChartProps)
 
   // onLoadMoreData는 함수이므로 참조 변경을 확인하지 않음
   // 함수는 useCallback으로 메모이제이션하는 것이 좋음
+  if (prevProps.initialData !== nextProps.initialData) return false;
 
   return true;
 };
 
 const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   companyId,
-  height = 600,
+  height = 450,
   initialLimit = 100,
   initialData,
   onLoadMoreData,

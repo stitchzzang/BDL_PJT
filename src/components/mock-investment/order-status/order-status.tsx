@@ -5,16 +5,21 @@ import { OrderStatusBuy } from '@/components/mock-investment/order-status/order-
 import { OrderStatusCategory } from '@/components/mock-investment/order-status/order-status-category';
 import { OrderStatusShell } from '@/components/mock-investment/order-status/order-status-shell';
 import { OrderStatusWait } from '@/components/mock-investment/order-status/order-status-wait';
+import { useAuthStore } from '@/store/useAuthStore';
 import { getTickSize } from '@/utils/getTickSize';
 
 interface orderStatusProps {
   closePrice: number;
   realTime?: number;
+  companyId: number | null;
 }
 
-export const OrderStatus = ({ closePrice, realTime }: orderStatusProps) => {
+export const OrderStatus = ({ closePrice, realTime, companyId }: orderStatusProps) => {
+  // 유저 정보
+  const { userData } = useAuthStore();
+  const memberId = userData.memberId;
   // 유저 자산 가져오기
-  const { data: userAssetData } = useUserAssetData(2);
+  const { data: userAssetData } = useUserAssetData(memberId);
   // 호가 단위 계산
   const [tickSize, setTickSize] = useState<number>(0);
   useEffect(() => {
@@ -37,10 +42,28 @@ export const OrderStatus = ({ closePrice, realTime }: orderStatusProps) => {
         closePrice={closePrice}
         realTime={realTime}
         tickSize={tickSize}
+        memberId={memberId}
+        companyId={companyId}
       />
     ),
-    판매: <OrderStatusShell closePrice={closePrice} realTime={realTime} tickSize={tickSize} />,
-    대기: <OrderStatusWait closePrice={closePrice} realTime={realTime} tickSize={tickSize} />,
+    판매: (
+      <OrderStatusShell
+        closePrice={closePrice}
+        realTime={realTime}
+        tickSize={tickSize}
+        memberId={memberId}
+        companyId={companyId}
+      />
+    ),
+    대기: (
+      <OrderStatusWait
+        closePrice={closePrice}
+        realTime={realTime}
+        tickSize={tickSize}
+        memberId={memberId}
+        companyId={companyId}
+      />
+    ),
   };
   return (
     <div className="h-full">

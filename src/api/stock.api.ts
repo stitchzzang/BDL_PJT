@@ -45,15 +45,15 @@ export const StockApi = {
       .json<ApiResponse<StockPeriodDefaultData>>(),
 
   // 유저 현재 보유 자산
-  getUserAsset: (memberId: number) =>
+  getUserAsset: (memberId: number | null) =>
     _ky.get(`member/${memberId}/money`).json<ApiResponse<number>>(),
 
   // 종목별 주식 소유 개수
-  getUserStockAccount: (memberId: number, companyId: number) =>
+  getUserStockAccount: (memberId: number | null, companyId: number | null) =>
     _ky.get(`simulated/account/${memberId}/${companyId}`).json<ApiResponse<number>>(),
 
   // 주문 대기 목록
-  getUserSimulated: (memberId: number) =>
+  getUserSimulated: (memberId: number | null) =>
     _ky.get(`simulated/${memberId}`).json<ApiResponse<UserSimulatedData[]>>(),
   // 주문 취소
   deleteUserSimulated: (orderId: number) =>
@@ -77,8 +77,8 @@ export const StockApi = {
 
   // 지정가 post
   postStockLimitOrder: (
-    memberId: number, // 회원 ID
-    companyId: number, // 종목 ID
+    memberId: number | null, // 회원 ID
+    companyId: number | null, // 종목 ID
     tradeType: number, // 0: 매수(구매), 1:매도(판매)
     quantity: number, // 주 개수
     price: number, // 지정가 - 가격
@@ -97,8 +97,8 @@ export const StockApi = {
 
   // 시장가 post
   postStockMarketOrder: (
-    memberId: number,
-    companyId: number,
+    memberId: number | null,
+    companyId: number | null,
     tradeType: number,
     quantity: number,
   ) =>
@@ -124,10 +124,13 @@ export const useCompanyInfoData = (stockCompanyId: number) => {
 
 export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
-    queryKey: ['stockInitMinData'],
+    queryKey: ['stockInitMinData', stockId, limit],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
+    refetchInterval: 20000, // 60,000ms = 1분마다 자동 refetch
+    refetchIntervalInBackground: true, // 탭이 백그라운드에 있어도 refetch 수행
   });
 };
+
 // 분봉(추가데이터 요청)
 export const useStockMinuteDataCursor = (companyId: number, cursor: string, limit: number) => {
   return useQuery({
@@ -154,7 +157,7 @@ export const useStockDailyData = (companyId: number, periodType: number, limit: 
 
 //orderAPI
 // 유저 자산 가져오기
-export const useUserAssetData = (memberId: number) => {
+export const useUserAssetData = (memberId: number | null) => {
   return useQuery({
     queryKey: ['userAssetData'],
     queryFn: () => StockApi.getUserAsset(memberId).then((res) => res.result),
@@ -162,7 +165,7 @@ export const useUserAssetData = (memberId: number) => {
 };
 
 // 종목별 주식 개수 가져오기
-export const useUserStockAccountData = (memberId: number, companyId: number) => {
+export const useUserStockAccountData = (memberId: number | null, companyId: number | null) => {
   return useQuery({
     queryKey: ['stockAccount'],
     queryFn: () => StockApi.getUserStockAccount(memberId, companyId).then((res) => res.result),
@@ -170,7 +173,7 @@ export const useUserStockAccountData = (memberId: number, companyId: number) => 
 };
 
 // 주문 대기 목록
-export const useUserSimulatedData = (memberId: number) => {
+export const useUserSimulatedData = (memberId: number | null) => {
   return useQuery({
     queryKey: ['userSimulated'],
     queryFn: () => StockApi.getUserSimulated(memberId).then((res) => res.result),
