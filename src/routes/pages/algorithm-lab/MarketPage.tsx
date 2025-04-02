@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { TermTooltip } from '@/components/ui/TermTooltip';
@@ -83,12 +84,16 @@ export const MarketPage = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-8">
       <h2 className="text-3xl font-bold">시장 반응 설정</h2>
-      <HelpBadge
-        title="시장 변화에 대응하기"
-        description="주식 가격 변화에 어떻게 반응할까요?
+      <div className="flex w-full flex-col gap-2">
+        <HelpBadge
+          title="시장 변화에 대응하기"
+          description="주식 가격 변화에 어떻게 반응할까요?
         여러분의 선택에 따라 다양한 방법으로 반응이 가능합니다."
-      />
-      <p className="w-full text-left text-lg font-bold">옵션 중 하나를 선택해주세요.</p>
+        />
+        <Badge variant="default" className="w-full text-left font-medium">
+          💡 해당 옵션은 필수값이 아니므로, 건너뛰어도 괜찮습니다.
+        </Badge>
+      </div>
       <div className="flex w-full gap-4">
         <Button
           variant="blue"
