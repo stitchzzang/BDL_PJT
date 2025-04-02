@@ -36,11 +36,11 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild className={`cursor-help ${className}`}>
+        <TooltipTrigger asChild className={`cursor-help whitespace-nowrap ${className}`}>
           <span className="border-b border-dotted border-gray-400">{children || term}</span>
         </TooltipTrigger>
         <TooltipContent side={side} sideOffset={sideOffset}>
-          <p>{termDefinition.definition}</p>
+          <p className="whitespace-pre-line">{termDefinition.definition}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
