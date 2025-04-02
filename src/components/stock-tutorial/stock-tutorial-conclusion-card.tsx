@@ -1,5 +1,13 @@
-import { TradeRecord } from '@/api/types/tutorial';
 import { addCommasToThousand } from '@/utils/numberFormatter';
+
+// TradeRecord 인터페이스 정의
+interface TradeRecord {
+  action: 'buy' | 'sell' | 'wait';
+  price: number;
+  quantity: number;
+  timestamp: Date;
+  stockCandleId: number;
+}
 
 export interface StockTutorialConclusionCardProps {
   trades: TradeRecord[];
