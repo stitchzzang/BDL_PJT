@@ -11,6 +11,7 @@ export interface TutorialOrderStatusProps {
   isSessionActive: boolean;
   companyId: number;
   latestPrice: number;
+  ownedStockCount?: number; // 보유 주식 수량 (옵션)
 }
 
 export const TutorialOrderStatus = ({
@@ -18,6 +19,7 @@ export const TutorialOrderStatus = ({
   isSessionActive,
   companyId,
   latestPrice,
+  ownedStockCount = 0, // 기본값 0
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';
@@ -62,6 +64,7 @@ export const TutorialOrderStatus = ({
               companyId={companyId}
               latestPrice={latestPrice}
               isActive={isSessionActive}
+              ownedStockCount={ownedStockCount}
             />
           )}
           {isActiveCategory === '관망' && (

@@ -9,6 +9,7 @@ export interface TutorialOrderStatusSellProps {
   companyId: number;
   latestPrice: number;
   isActive: boolean;
+  ownedStockCount?: number; // 보유 주식 수량 (옵션)
 }
 
 export const TutorialOrderStatusSell = ({
@@ -16,6 +17,7 @@ export const TutorialOrderStatusSell = ({
   companyId,
   latestPrice,
   isActive: isSessionActive,
+  ownedStockCount = 0, // 기본값 0
 }: TutorialOrderStatusSellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
@@ -57,6 +59,13 @@ export const TutorialOrderStatusSell = ({
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
 
+  // 수량이 보유 주식 수량을 초과하지 않도록 제한
+  useEffect(() => {
+    if (stockCount > ownedStockCount) {
+      setStockCount(ownedStockCount);
+    }
+  }, [stockCount, ownedStockCount]);
+
   // 총 주문 금액
   const totalPrice = () => {
     return sellPrice * stockCount;
@@ -69,6 +78,15 @@ export const TutorialOrderStatusSell = ({
   // 판매 처리
   const handleSellStock = () => {
     if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) return;
+
+    // 보유 주식보다 많이 판매하려는 경우
+    if (stockCount > ownedStockCount) {
+      alert(
+        `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${stockCount}주)을 판매할 수 없습니다.`,
+      );
+      return;
+    }
+
     onSell(sellPrice, stockCount);
     setStockCount(0); // 판매 후 수량 초기화
   };
@@ -133,6 +151,15 @@ export const TutorialOrderStatusSell = ({
               </div>
             </div>
           </div>
+          {/* 보유 주식 수량 표시 */}
+          <div className="flex items-center justify-between">
+            <div className="min-w-[74px]">
+              <h3 className="text-[14px] text-border-color">보유 수량</h3>
+            </div>
+            <div className="flex w-full max-w-[80%] flex-col">
+              <p className="text-right text-[14px] text-border-color">{ownedStockCount}주</p>
+            </div>
+          </div>
         </div>
         <hr className="border border-border-color border-opacity-20" />
         <div className="mt-[20px] flex flex-col gap-4">
@@ -147,7 +174,7 @@ export const TutorialOrderStatusSell = ({
             className="w-full"
             size="lg"
             onClick={handleSellStock}
-            disabled={!isSessionActive || stockCount <= 0}
+            disabled={!isSessionActive || stockCount <= 0 || stockCount > ownedStockCount}
           >
             <p className=" text-[18px] font-medium text-white">판매하기</p>
           </Button>

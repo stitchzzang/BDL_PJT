@@ -186,6 +186,9 @@ export const SimulatePage = () => {
     null,
   );
 
+  // 보유 주식 수량 추적 상태 추가
+  const [ownedStockCount, setOwnedStockCount] = useState(0);
+
   // 오늘부터 1년 전까지의 날짜 범위 계산
   const today = new Date();
   const oneYearAgo = new Date();
@@ -548,6 +551,20 @@ export const SimulatePage = () => {
       return;
     }
 
+    // 판매 시 보유 주식 수량 확인
+    if (action === 'sell' && quantity > ownedStockCount) {
+      console.error('판매 오류: 보유한 주식 수량이 부족합니다.', {
+        requested: quantity,
+        available: ownedStockCount,
+      });
+
+      // 오류 메시지 표시 (alert 대신 더 나은 UI 사용 가능)
+      alert(
+        `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${quantity}주)을 판매할 수 없습니다.`,
+      );
+      return;
+    }
+
     // 백엔드가 기대하는 정확한 액션 문자열 매핑
     // "buy", "sell", "wait"는 소문자로 그대로 사용 (백엔드 요구사항에 맞게 조정)
     const actionValue = action.toLowerCase();
@@ -598,6 +615,13 @@ export const SimulatePage = () => {
         },
       ]);
 
+      // 보유 주식 수량 업데이트
+      if (action === 'buy') {
+        setOwnedStockCount((prev) => prev + quantity);
+      } else if (action === 'sell') {
+        setOwnedStockCount((prev) => Math.max(0, prev - quantity));
+      }
+
       // 자산 정보 업데이트
       if (assetResults && assetResults.length > 0) {
         const lastAsset = assetResults[assetResults.length - 1];
@@ -623,26 +647,37 @@ export const SimulatePage = () => {
             // @ts-expect-error - ky 오류 객체에서 응답 텍스트 직접 추출
             const errorText = await error.response.text();
             console.error('오류 응답 내용:', errorText);
+
+            // JSON 응답이면 파싱하여 사용자에게 표시
+            try {
+              const errorJson = JSON.parse(errorText);
+              if (errorJson.message) {
+                alert(`거래 오류: ${errorJson.message}`);
+              }
+            } catch (e) {
+              // JSON 파싱 오류 무시
+            }
           }
         } catch (e) {
           console.error('오류 응답 추출 실패:', e);
         }
 
         // 오류 발생해도 UI에서는 진행되도록 거래 기록 추가
-        setTrades((prev) => [
-          ...prev,
-          {
-            action,
-            price: action === 'wait' ? 0 : price,
-            quantity: action === 'wait' ? 0 : quantity,
-            timestamp: new Date(),
-            stockCandleId: endPointId,
-          },
-        ]);
+        // 실패한 거래는 기록하지 않음
+        // setTrades((prev) => [
+        //   ...prev,
+        //   {
+        //     action,
+        //     price: action === 'wait' ? 0 : price,
+        //     quantity: action === 'wait' ? 0 : quantity,
+        //     timestamp: new Date(),
+        //     stockCandleId: endPointId,
+        //   },
+        // ]);
       }
 
-      // 오류 발생해도 턴 완료 처리
-      setIsCurrentTurnCompleted(true);
+      // API 오류 발생 시에는 턴 완료 처리하지 않음
+      // setIsCurrentTurnCompleted(true);
     }
   };
 
@@ -921,6 +956,7 @@ export const SimulatePage = () => {
             isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn <= 4}
             companyId={companyId}
             latestPrice={latestPrice}
+            ownedStockCount={ownedStockCount}
           />
         </div>
       </div>
