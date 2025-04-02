@@ -366,8 +366,26 @@ export const SimulatePage = () => {
         setHasChartError(false);
         setIsCurrentTurnCompleted(false);
 
-        // 섹션 데이터 사용 (API 직접 호출 대신)
-        if (sectionStockData?.result) {
+        // 섹션 데이터 사용 (turnChartData에 이미 있는지 확인)
+        if (turnChartData[currentTurn]) {
+          // 이미 로드된 데이터가 있으면 그대로 사용
+          setStockData(turnChartData[currentTurn]);
+
+          // 최신 가격 업데이트
+          const currentData = turnChartData[currentTurn];
+          if (currentData && currentData.data) {
+            const dayCandles = currentData.data.filter(
+              (candle: StockCandle) => candle.periodType === 1,
+            );
+            if (dayCandles.length > 0) {
+              const lastCandle = dayCandles[dayCandles.length - 1];
+              setLatestPrice(lastCandle.closePrice);
+            }
+          }
+
+          setIsChartLoading(false);
+        } else if (sectionStockData?.result && !isSectionDataLoading) {
+          // API에서 새로 가져온 섹션 데이터가 있으면 사용
           const result = sectionStockData.result;
 
           if (result.data && result.data.length > 0) {
@@ -430,8 +448,8 @@ export const SimulatePage = () => {
             setHasChartError(true);
             setIsChartLoading(false);
           }
-        } else if (!isSectionDataLoading) {
-          // 기존 세션 데이터 로드 로직은 그대로 유지 (만약 섹션 데이터가 없을 경우)
+        } else {
+          // 섹션 데이터가 없을 경우 fetchSessionData로 로드
           const sessionResponse = await fetchSessionData();
 
           if (sessionResponse.data?.result) {
@@ -495,7 +513,15 @@ export const SimulatePage = () => {
                 const lastCandle = dayCandles[dayCandles.length - 1];
                 setLatestPrice(lastCandle.closePrice);
               }
+
+              setIsChartLoading(false);
+            } else {
+              setHasChartError(true);
+              setIsChartLoading(false);
             }
+          } else {
+            setHasChartError(true);
+            setIsChartLoading(false);
           }
         }
 
@@ -504,28 +530,36 @@ export const SimulatePage = () => {
           const startStockCandleId = pointStockCandleIds[currentTurn - 2] || 0;
           const endStockCandleId = pointStockCandleIds[currentTurn - 1] || 0;
 
-          getPastNews.mutate(
-            { companyId, startStockCandleId, endStockCandleId },
-            {
-              onSuccess: (result) => {
-                if (result.result && result.result.NewsResponse) {
-                  setPastNewsList(result.result.NewsResponse);
-                }
+          if (startStockCandleId > 0 && endStockCandleId > 0) {
+            getPastNews.mutate(
+              { companyId, startStockCandleId, endStockCandleId },
+              {
+                onSuccess: (result) => {
+                  if (result.result && result.result.NewsResponse) {
+                    setPastNewsList(result.result.NewsResponse);
+                  }
+                },
               },
-            },
-          );
+            );
 
-          // 뉴스 코멘트 가져오기
-          getNewsComment.mutate(
-            { companyId, startStockCandleId, endStockCandleId },
-            {
-              onSuccess: (result) => {
-                if (result.result) {
-                  setNewsComment(result.result);
-                }
+            // 뉴스 코멘트 가져오기
+            getNewsComment.mutate(
+              { companyId, startStockCandleId, endStockCandleId },
+              {
+                onSuccess: (result) => {
+                  if (result.result) {
+                    setNewsComment(result.result);
+                  } else {
+                    setNewsComment('');
+                  }
+                },
               },
-            },
-          );
+            );
+          }
+        } else {
+          // 첫 번째 턴에서는 과거 뉴스와 코멘트를 초기화
+          setPastNewsList([]);
+          setNewsComment('');
         }
 
         // 현재 뉴스 가져오기
@@ -538,13 +572,15 @@ export const SimulatePage = () => {
                 onSuccess: (result) => {
                   if (result.result) {
                     setCurrentNews(result.result);
+                  } else {
+                    setCurrentNews(null);
                   }
                 },
               },
             );
           }
         }
-      } catch {
+      } catch (error) {
         setHasChartError(true);
         setIsChartLoading(false);
       }
@@ -640,7 +676,7 @@ export const SimulatePage = () => {
       });
       setIsModalOpen(true);
       setFinalChangeRate(assetInfo.totalReturnRate);
-    } catch {
+    } catch (error) {
       // 에러 처리
     }
   }, [
@@ -767,11 +803,25 @@ export const SimulatePage = () => {
 
           if (pointsResponse.data?.result?.PointResponseList) {
             setIsTutorialStarted(true);
+            setCurrentTurn(0); // 초기화 후 useEffect에서 1로 설정됨
             setProgress(10);
+            // 이전 거래 내역 초기화
+            setTrades([]);
+            // 자산 정보 초기화
+            setAssetInfo({
+              tradingDate: '',
+              availableOrderAsset: 10000000,
+              currentTotalAsset: 10000000,
+              totalReturnRate: 0,
+            });
           } else {
             setHasChartError(true);
             setIsChartLoading(false);
           }
+        },
+        onError: () => {
+          setHasChartError(true);
+          setIsChartLoading(false);
         },
       },
     );
@@ -876,7 +926,7 @@ export const SimulatePage = () => {
             </div>
           ) : (
             <ChartComponent
-              periodData={accumulatedChartData || stockData || fullChartData || undefined}
+              periodData={currentTurn === 1 ? stockData : accumulatedChartData || stockData}
               height={600}
             />
           )}

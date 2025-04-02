@@ -1,7 +1,7 @@
 // 회사 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
 import { useQuery } from '@tanstack/react-query';
 
-import { _ky } from '@/api/instance';
+import { _kyAuth } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
   CompanyBasicInfo,
@@ -12,16 +12,16 @@ import {
 
 export const companyAPI = {
   getCompanyProfile: (companyId: string) =>
-    _ky.get(`company/${companyId}`).json<ApiResponse<CompanyProfile>>(),
+    _kyAuth.get(`company/${companyId}`).json<ApiResponse<CompanyProfile>>(),
 
   getCompanyBasicInfo: (companyId: string) =>
-    _ky.get(`company/${companyId}/basic`).json<ApiResponse<CompanyBasicInfo>>(),
+    _kyAuth.get(`company/${companyId}/basic`).json<ApiResponse<CompanyBasicInfo>>(),
 
   getCompanyFinancialRatio: (companyId: string) =>
-    _ky.get(`company/${companyId}/fin`).json<ApiResponse<CompanyFinancialRatio>>(),
+    _kyAuth.get(`company/${companyId}/fin`).json<ApiResponse<CompanyFinancialRatio>>(),
 
   getCompanyProfitabilityRatio: (companyId: string) =>
-    _ky.get(`company/${companyId}/profit`).json<ApiResponse<CompanyProfitabilityRatio>>(),
+    _kyAuth.get(`company/${companyId}/profit`).json<ApiResponse<CompanyProfitabilityRatio>>(),
 };
 
 export const useGetCompanyProfile = (companyId: string) => {
