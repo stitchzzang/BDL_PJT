@@ -120,7 +120,7 @@ export const subscribeToNotifications = () => {
       };
 
       // @ts-expect-error Custom event type
-      newEventSource.addEventListener('AUTO_TRADING_SIGNAL', (event: MessageEvent) => {
+      newEventSource.addEventListener('AUTO_TRADESIGNAL', (event: MessageEvent) => {
         try {
           const rawData = JSON.parse(event.data);
           if (isTradeSignal(rawData)) {
@@ -133,7 +133,7 @@ export const subscribeToNotifications = () => {
       });
 
       // @ts-expect-error Custom event type
-      newEventSource.addEventListener('TRADING_SIGNAL', (event: MessageEvent) => {
+      newEventSource.addEventListener('TRADESIGNAL', (event: MessageEvent) => {
         try {
           const rawData = JSON.parse(event.data);
           if (isTradeSignal(rawData)) {
