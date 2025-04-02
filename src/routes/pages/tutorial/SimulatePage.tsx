@@ -280,26 +280,35 @@ export const SimulatePage = () => {
       point1DateQuery.data?.result || point2DateQuery.data?.result || point3DateQuery.data?.result;
 
     if (pointsDataChanged) {
-      const dates: string[] = [];
+      // 새로운 날짜 배열 생성
+      const newDates: string[] = [];
 
       if (point1DateQuery.data?.result) {
-        dates[0] = point1DateQuery.data.result;
+        newDates[0] = point1DateQuery.data.result;
       }
 
       if (point2DateQuery.data?.result) {
-        dates[1] = point2DateQuery.data.result;
+        newDates[1] = point2DateQuery.data.result;
       }
 
       if (point3DateQuery.data?.result) {
-        dates[2] = point3DateQuery.data.result;
+        newDates[2] = point3DateQuery.data.result;
       }
 
-      if (dates.length > 0 && JSON.stringify(dates) !== JSON.stringify(pointDates)) {
-        console.log('변곡점 날짜 업데이트:', dates);
-        setPointDates(dates);
+      // 새 데이터가 있고, 현재 pointDates와 다른 경우에만 상태 업데이트
+      if (newDates.length > 0) {
+        // 배열이 다른지 직접 비교 (길이 또는 요소 값 비교)
+        const isDifferent =
+          newDates.length !== pointDates.length ||
+          newDates.some((date, index) => date !== pointDates[index]);
+
+        if (isDifferent) {
+          console.log('변곡점 날짜 업데이트:', newDates);
+          setPointDates(newDates);
+        }
       }
     }
-  }, [point1DateQuery.data, point2DateQuery.data, point3DateQuery.data, pointDates]);
+  }, [point1DateQuery.data, point2DateQuery.data, point3DateQuery.data]); // pointDates 의존성 제거
 
   // 튜토리얼 시작 시 초기 데이터 설정 및 턴 관리
   useEffect(() => {
@@ -354,36 +363,54 @@ export const SimulatePage = () => {
 
     if (turnToSessionMap[currentTurn]) {
       const newSession = turnToSessionMap[currentTurn];
-      // 세션이 변경되었을 때만 상태를 업데이트
-      if (JSON.stringify(newSession) !== JSON.stringify(currentSession)) {
+
+      // 세션이 변경되었을 때만 상태를 업데이트 (객체 필드 직접 비교)
+      const isSessionChanged =
+        newSession.startDate !== currentSession.startDate ||
+        newSession.endDate !== currentSession.endDate ||
+        newSession.currentPointIndex !== currentSession.currentPointIndex;
+
+      if (isSessionChanged) {
         console.log(`턴 ${currentTurn} 세션 설정:`, newSession);
         setCurrentSession(newSession);
       }
-      setProgress(turnToProgressMap[currentTurn]);
+
+      // 진행률도 변경되었을 때만 업데이트
+      if (progress !== turnToProgressMap[currentTurn]) {
+        setProgress(turnToProgressMap[currentTurn]);
+      }
     }
   }, [
     isTutorialStarted,
-    pointDates,
+    pointDates, // 배열의 참조가 변경됐을 때만 실행
     currentTurn,
-    currentSession,
+    currentSession.startDate, // 개별 필드 비교
+    currentSession.endDate,
+    currentSession.currentPointIndex,
     defaultStartDate,
     defaultEndDate,
+    progress,
   ]);
 
   // 세션 변경 시 데이터 로드
   useEffect(() => {
-    const loadSessionData = async () => {
-      if (
-        !isTutorialStarted ||
-        !currentSession.startDate ||
-        !currentSession.endDate ||
-        currentTurn === 0
-      ) {
-        return;
-      }
+    // 이미 로드 중이거나 필요한 데이터가 없는 경우 실행하지 않음
+    if (
+      !isTutorialStarted ||
+      !currentSession.startDate ||
+      !currentSession.endDate ||
+      currentTurn === 0 ||
+      isChartLoading
+    ) {
+      return;
+    }
 
+    // isLoading 플래그 설정
+    setIsChartLoading(true);
+
+    // 세션 데이터 로드 함수 정의
+    const loadSessionData = async () => {
       try {
-        setIsChartLoading(true);
         setHasChartError(false);
         console.log(`턴 ${currentTurn} 세션 데이터 로드 시작:`, currentSession);
 
@@ -481,6 +508,7 @@ export const SimulatePage = () => {
         console.error('세션 데이터 로드 오류:', error);
         setHasChartError(true);
       } finally {
+        // 처리 완료 후 로딩 상태 해제
         setIsChartLoading(false);
       }
     };
@@ -488,12 +516,17 @@ export const SimulatePage = () => {
     // 세션 데이터 로드 호출
     loadSessionData();
   }, [
-    currentSession,
+    // 의존성 배열 - JSON.stringify 제거하고 필수 의존성만 포함
+    currentSession.startDate,
+    currentSession.endDate,
+    currentSession.currentPointIndex,
     currentTurn,
     isTutorialStarted,
-    fetchSessionData,
+    isChartLoading,
     companyId,
-    pointStockCandleIds,
+    // 배열 객체는 깊은 의존성 확인보다 필요한 경우만 배열 길이/값 변경 확인
+    pointStockCandleIds.length,
+    fetchSessionData,
     getPastNews,
     getNewsComment,
     getCurrentNews,
@@ -530,18 +563,18 @@ export const SimulatePage = () => {
         const startDate = formatTradingDateToYYMMDD(firstCandle.tradingDate);
         const endDate = formatTradingDateToYYMMDD(lastCandle.tradingDate);
 
-        // 실제로 값이 변경된 경우에만 상태 업데이트
-        if (tutorialDateRange.startDate !== startDate || tutorialDateRange.endDate !== endDate) {
-          setTutorialDateRange({
-            startDate,
-            endDate,
-          });
+        // 실제로 값이 변경된 경우에만 상태 업데이트 (직접 비교)
+        const isDateRangeChanged =
+          startDate !== tutorialDateRange.startDate || endDate !== tutorialDateRange.endDate;
+
+        if (isDateRangeChanged) {
+          setTutorialDateRange({ startDate, endDate });
         }
       }
     };
 
     updateDateRange();
-  }, [stockData, fullChartData, tutorialDateRange]);
+  }, [stockData, fullChartData, tutorialDateRange.startDate, tutorialDateRange.endDate]); // JSON.stringify 제거하고 개별 필드 의존성 추가
 
   // 튜토리얼 세션 종료 시 세션 삭제 - 이벤트 핸들러
   useEffect(() => {
@@ -759,7 +792,6 @@ export const SimulatePage = () => {
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
-          currentTurn={currentTurn}
         />
         <div className="my-[25px]">
           <StockProgress progress={progress} />
@@ -824,7 +856,6 @@ export const SimulatePage = () => {
             isSessionActive={isTutorialStarted && progress < 100}
             companyId={companyId}
             latestPrice={latestPrice}
-            currentTurn={currentTurn}
           />
         </div>
       </div>

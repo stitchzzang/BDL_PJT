@@ -9,7 +9,7 @@ import { Point } from '@/api/types/tutorial';
 import TestImage from '@/assets/test/stock-test.png';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
-import { useAuthStore } from '@/store/useAuthStore';
+// import { useAuthStore } from '@/store/useAuthStore';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
@@ -43,7 +43,6 @@ export interface StockInfoProps {
   companyId: number;
   isTutorialStarted?: boolean;
   onTutorialStart?: () => void;
-  currentTurn?: number;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -76,13 +75,12 @@ export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
   onTutorialStart,
-  currentTurn = 0,
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const [inflectionPoints, setInflectionPoints] = useState<InflectionPoint[]>([]);
   const [selectedSegment, setSelectedSegment] = useState<number>(0);
-  const _authData = useAuthStore();
+  // const _authData = useAuthStore();
   const initSessionMutation = useInitSession();
 
   // 오늘부터 1년 전까지의 날짜 범위 계산
@@ -139,9 +137,34 @@ export const StockTutorialInfo = ({
         });
       }
 
-      setInflectionPoints(convertedPoints);
+      // 변경된 경우에만 상태 업데이트 (길이 비교 및 각 항목 비교)
+      let hasChanged = convertedPoints.length !== inflectionPoints.length;
+
+      // 길이가 같으면 각 항목 비교
+      if (!hasChanged && convertedPoints.length > 0) {
+        for (let i = 0; i < convertedPoints.length; i++) {
+          if (
+            convertedPoints[i].stockCandleId !== inflectionPoints[i]?.stockCandleId ||
+            convertedPoints[i].date !== inflectionPoints[i]?.date
+          ) {
+            hasChanged = true;
+            break;
+          }
+        }
+      }
+
+      // 변경된 경우만 상태 업데이트
+      if (hasChanged) {
+        setInflectionPoints(convertedPoints);
+      }
     }
-  }, [top3PointsData, point1DateQuery.data, point2DateQuery.data, point3DateQuery.data]);
+  }, [
+    top3PointsData,
+    point1DateQuery.data,
+    point2DateQuery.data,
+    point3DateQuery.data,
+    inflectionPoints,
+  ]);
 
   // 현재 가격 정보를 가져오기 위한 API 호출
   useEffect(() => {
@@ -215,8 +238,25 @@ export const StockTutorialInfo = ({
 
     // 중복 제거
     const uniqueCategories = Array.from(new Set(categories));
-    setNormalizedCategories(uniqueCategories);
-  }, [companyInfo]); // companyInfo가 변경될 때만 실행
+
+    // 현재 상태와 비교하여 변경된 경우에만 업데이트 (길이 및 항목 직접 비교)
+    let hasChanged = uniqueCategories.length !== normalizedCategories.length;
+
+    // 길이가 같다면 각 항목 비교
+    if (!hasChanged) {
+      for (let i = 0; i < uniqueCategories.length; i++) {
+        if (uniqueCategories[i] !== normalizedCategories[i]) {
+          hasChanged = true;
+          break;
+        }
+      }
+    }
+
+    // 변경된 경우에만 상태 업데이트
+    if (hasChanged) {
+      setNormalizedCategories(uniqueCategories);
+    }
+  }, [companyInfo, normalizedCategories]); // companyInfo가 변경될 때만 실행
 
   // 카테고리 아이콘 렌더링 함수
   const renderCategoryIcon = (categoryName: CategoryName) => {

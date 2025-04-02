@@ -67,26 +67,29 @@ export const useGetTop3Points = (companyId: number) => {
           throw new Error('API 응답에 result가 없습니다');
         }
 
-        // 응답 구조 확인
+        // 서버에서 다른 형태로 응답하는 경우를 처리 (result가 직접 배열인 경우)
+        if (Array.isArray(responseData.result)) {
+          console.log('[API] result가 직접 배열로 응답됨, 변환 처리:', responseData.result.length);
+          // 결과를 예상 형식으로 변환하여 바로 반환
+          return {
+            ...responseData,
+            result: {
+              PointResponseList: responseData.result as unknown as Point[],
+            },
+          };
+        }
+
+        // result가 객체인 경우 - PointResponseList 확인
         if (!responseData.result.PointResponseList) {
           console.error('[API] useGetTop3Points PointResponseList가 없음:', responseData.result);
 
-          // 서버에서 다른 형태로 응답하는 경우를 처리 (result가 직접 배열인 경우)
-          if (Array.isArray(responseData.result)) {
-            console.log(
-              '[API] result가 직접 배열로 응답됨, 변환 처리:',
-              responseData.result.length,
-            );
-            // 결과를 예상 형식으로 변환
-            return {
-              ...responseData,
-              result: {
-                PointResponseList: responseData.result as unknown as Point[],
-              },
-            };
-          }
-
-          throw new Error('API 응답에 PointResponseList가 없습니다');
+          // 객체이지만 PointResponseList가 없으면, 빈 배열 생성하여 반환
+          return {
+            ...responseData,
+            result: {
+              PointResponseList: [],
+            },
+          };
         }
 
         // 배열 확인
@@ -95,9 +98,17 @@ export const useGetTop3Points = (companyId: number) => {
             '[API] PointResponseList가 배열이 아님:',
             typeof responseData.result.PointResponseList,
           );
-          throw new Error('PointResponseList가 배열이 아닙니다');
+
+          // 배열이 아니면 빈 배열로 변환하여 반환
+          return {
+            ...responseData,
+            result: {
+              PointResponseList: [],
+            },
+          };
         }
 
+        // 정상 응답 반환
         return responseData;
       } catch (error) {
         console.error('[API] useGetTop3Points 예외 발생:', error);
