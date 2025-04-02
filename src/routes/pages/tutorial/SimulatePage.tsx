@@ -302,9 +302,10 @@ export const SimulatePage = () => {
       const apiUrl = `stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`;
       console.log(`튜토리얼 차트 데이터 요청: ${apiUrl}`);
 
-      const stockDataResponse = (await _ky
-        .get(apiUrl)
-        .json()) as ApiResponse<TutorialStockResponse>;
+      const response = await _ky.get(apiUrl).json();
+      console.log('차트 데이터 원본 응답:', response);
+
+      const stockDataResponse = response as ApiResponse<TutorialStockResponse>;
 
       if (!stockDataResponse?.result?.data || stockDataResponse.result.data.length === 0) {
         console.log('차트 데이터가 비어있습니다:', stockDataResponse);
@@ -313,10 +314,30 @@ export const SimulatePage = () => {
       }
 
       const result = stockDataResponse.result;
-      console.log(`차트 데이터 로드 성공: ${result.data.length}개 데이터 포인트`);
+      console.log(`차트 데이터 로드 성공: ${result.data.length}개 데이터 포인트`, result);
 
       // 현재 턴의 데이터 저장
       setStockData(result);
+
+      // 튜토리얼 날짜 범위 업데이트
+      if (result.data && result.data.length > 0) {
+        const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
+        if (dayCandles.length > 0) {
+          const sortedCandles = [...dayCandles].sort(
+            (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+          );
+
+          const firstDate = formatDateToYYMMDD(new Date(sortedCandles[0].tradingDate));
+          const lastDate = formatDateToYYMMDD(
+            new Date(sortedCandles[sortedCandles.length - 1].tradingDate),
+          );
+
+          setTutorialDateRange({
+            startDate: firstDate,
+            endDate: lastDate,
+          });
+        }
+      }
 
       // 턴 차트 데이터 업데이트 (함수형 업데이트 사용)
       setTurnChartData((prev) => ({
@@ -552,37 +573,74 @@ export const SimulatePage = () => {
   // 변곡점 데이터 로드
   const loadPointsData = async () => {
     try {
-      // 변곡점 직접 가져오기 (/api/ 제거)
-      const pointsResponse = (await _ky
-        .get(`tutorial/points/top3?companyId=${companyId}`)
-        .json()) as ApiResponse<{ PointResponseList: Point[] }>;
+      // 변곡점 직접 가져오기
+      const pointsUrl = `tutorial/points/top3?companyId=${companyId}`;
+      console.log(`변곡점 데이터 요청: ${pointsUrl}`);
 
-      if (pointsResponse?.result?.PointResponseList) {
-        const points = pointsResponse.result.PointResponseList;
-        console.log('변곡점 로드 성공:', points);
+      const response = await _ky.get(pointsUrl).json();
+      console.log('변곡점 원본 응답 전체:', response);
 
-        // 변곡점 ID 저장
-        const pointIds = points.map((point) => point.stockCandleId);
-        setPointStockCandleIds(pointIds);
+      const pointsResponse = response as ApiResponse<Point[]>;
 
-        // 각 변곡점에 대한 날짜 가져오기
-        const dates = [];
-        for (const point of points) {
-          if (point.stockCandleId) {
-            const dateResponse = (await _ky
-              .get(`tutorial/points/date?stockCandleId=${point.stockCandleId}`)
-              .json()) as ApiResponse<string>;
+      // 변곡점 응답 구조 확인
+      console.log('파싱된 변곡점 응답:', pointsResponse);
+
+      if (!pointsResponse?.result || pointsResponse.result.length === 0) {
+        console.error('변곡점 데이터가 비어있습니다.');
+        return [];
+      }
+
+      // API 응답에서 변곡점 배열을 직접 사용 (PointResponseList가 아님)
+      const points = pointsResponse.result;
+      console.log('변곡점 로드 성공 (원본 형태):', points);
+
+      // 변곡점 ID 저장
+      const pointIds = points.map((point) => point.stockCandleId);
+      console.log('추출된 변곡점 ID 목록:', pointIds);
+      setPointStockCandleIds(pointIds);
+
+      // 각 변곡점에 대한 날짜 가져오기
+      const dates = [];
+      for (const point of points) {
+        if (point.stockCandleId) {
+          try {
+            const dateUrl = `tutorial/points/date?stockCandleId=${point.stockCandleId}`;
+            console.log(`변곡점 날짜 요청: ${dateUrl}`);
+
+            const dateResponseRaw = await _ky.get(dateUrl).json();
+            console.log(
+              `변곡점 날짜 원본 응답 (stockCandleId=${point.stockCandleId}):`,
+              dateResponseRaw,
+            );
+
+            const dateResponse = dateResponseRaw as ApiResponse<string>;
+
             if (dateResponse?.result) {
+              console.log(
+                `변곡점 날짜 값 (stockCandleId=${point.stockCandleId}):`,
+                dateResponse.result,
+              );
               dates.push(dateResponse.result);
+            } else {
+              console.error(
+                `변곡점 날짜 결과 없음 (stockCandleId=${point.stockCandleId}):`,
+                dateResponse,
+              );
             }
+          } catch (err) {
+            console.error(`변곡점 날짜 요청 실패 (stockCandleId=${point.stockCandleId}):`, err);
           }
         }
+      }
 
-        if (dates.length > 0) {
-          console.log('변곡점 날짜 로드 성공:', dates);
-          setPointDates(dates);
-          return dates;
-        }
+      console.log('수집된 모든 변곡점 날짜:', dates);
+
+      if (dates.length > 0) {
+        console.log('변곡점 날짜 로드 성공:', dates);
+        setPointDates(dates);
+        return dates;
+      } else {
+        console.error('변곡점 날짜를 가져오지 못했습니다.');
       }
     } catch (error) {
       console.error('변곡점 로드 오류:', error);
@@ -608,34 +666,48 @@ export const SimulatePage = () => {
 
     try {
       // 초기화 API 호출
-      await initSession.mutateAsync({ memberId, companyId });
+      console.log(`튜토리얼 세션 초기화 요청: memberId=${memberId}, companyId=${companyId}`);
+      const initResponse = await initSession.mutateAsync({ memberId, companyId });
+      console.log('튜토리얼 세션 초기화 응답:', initResponse);
 
       // 튜토리얼 시작 상태로 설정
       setIsTutorialStarted(true);
 
       // 변곡점 데이터 로드 (필요한 경우)
+      console.log('현재 변곡점 날짜 상태:', pointDates);
       let pointDatesLoaded = pointDates;
-      if (pointDates.length < 3) {
-        pointDatesLoaded = await loadPointsData();
+
+      // 항상 새로 로드
+      console.log('변곡점 데이터 로드 시작');
+      pointDatesLoaded = await loadPointsData();
+      console.log('로드된 변곡점 날짜:', pointDatesLoaded);
+
+      if (pointDatesLoaded.length < 3) {
+        console.error('변곡점 날짜가 부족합니다. 하드코딩된 날짜 사용');
+        // 변곡점 날짜가 없으면 하드코딩된 날짜 사용
+        pointDatesLoaded = ['240701', '240801', '240901'];
+        setPointDates(pointDatesLoaded);
       }
 
       // 첫 번째 턴 설정
       setCurrentTurn(1);
 
       // 첫 번째 턴에 맞는 세션 설정
-      if (pointDatesLoaded.length >= 3) {
-        const firstSession = {
-          startDate: defaultStartDate,
-          endDate: pointDatesLoaded[0],
-          currentPointIndex: 0,
-        };
+      console.log('세션 설정에 사용할 날짜:', pointDatesLoaded);
 
-        setCurrentSession(firstSession);
-        setProgress(25);
+      const firstSession = {
+        startDate: defaultStartDate,
+        endDate: pointDatesLoaded[0],
+        currentPointIndex: 0,
+      };
 
-        // 첫 턴 차트 데이터 로드
-        await loadChartData(firstSession.startDate, firstSession.endDate, 1);
-      }
+      console.log('첫 번째 세션 설정:', firstSession);
+      setCurrentSession(firstSession);
+      setProgress(25);
+
+      // 첫 턴 차트 데이터 로드
+      console.log('첫 턴 차트 데이터 로드 시작');
+      await loadChartData(firstSession.startDate, firstSession.endDate, 1);
     } catch (error) {
       console.error('튜토리얼 초기화 오류:', error);
       setHasChartError(true);
@@ -748,7 +820,19 @@ export const SimulatePage = () => {
                 <p className="text-sm text-gray-400">
                   일봉 데이터를 불러오는 중이거나, 데이터가 존재하지 않습니다.
                 </p>
-                <p className="mt-2 text-sm text-gray-400">잠시 후 다시 시도해 주세요.</p>
+                <button
+                  onClick={() =>
+                    loadPointsData().then(() => {
+                      const session = calculateSession(currentTurn);
+                      if (session) {
+                        loadChartData(session.startDate, session.endDate, currentTurn);
+                      }
+                    })
+                  }
+                  className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-white"
+                >
+                  다시 시도하기
+                </button>
               </div>
             </div>
           ) : (
