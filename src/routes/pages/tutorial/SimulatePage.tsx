@@ -1,5 +1,5 @@
 import Lottie from 'lottie-react';
-import { memo, useCallback, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { _ky } from '@/api/instance/index';
@@ -180,7 +180,15 @@ export const SimulatePage = () => {
   // 과거 뉴스 목록 상태
   const [pastNewsList, setPastNewsList] = useState<NewsResponse[]>([]);
 
-  // 뉴스 코멘트 상태
+  // 뉴스 코멘트 상태 (턴별로 관리)
+  const [turnComments, setTurnComments] = useState<Record<number, string>>({
+    1: '',
+    2: '',
+    3: '',
+    4: '',
+  });
+
+  // 현재 표시할 코멘트
   const [newsComment, setNewsComment] = useState('');
 
   // 전체 차트 데이터 상태 (1년 전 시점부터 현재까지)
@@ -245,6 +253,21 @@ export const SimulatePage = () => {
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
+
+  // 디버깅용 코멘트 상태 변경 추적
+  useEffect(() => {
+    console.log('SimulatePage - 현재 뉴스 코멘트:', newsComment);
+    console.log('SimulatePage - 턴별 코멘트 상태:', turnComments);
+  }, [newsComment, turnComments]);
+
+  // 현재 턴이 변경될 때마다 해당 턴의 코멘트로 업데이트
+  useEffect(() => {
+    if (currentTurn > 0 && currentTurn <= 4) {
+      const turnComment = turnComments[currentTurn];
+      console.log(`턴 ${currentTurn}의 코멘트로 업데이트:`, turnComment);
+      setNewsComment(turnComment || '');
+    }
+  }, [currentTurn, turnComments]);
 
   // 날짜 범위에 따른 세션 설정
   const calculateSession = (turn: number) => {
@@ -437,53 +460,101 @@ export const SimulatePage = () => {
 
   // 뉴스 데이터 로드
   const loadNewsData = async (turn: number) => {
-    // 과거 뉴스 목록 가져오기 (2턴 이상부터)
-    if (turn > 1 && pointStockCandleIds.length >= turn) {
-      const startStockCandleId = pointStockCandleIds[turn - 2] || 0;
-      const endStockCandleId = pointStockCandleIds[turn - 1] || 0;
+    console.log(`턴 ${turn}의 뉴스 데이터 로드 시작`);
 
-      if (startStockCandleId && endStockCandleId) {
+    // 각 턴별 시작/종료 ID 계산
+    let startStockCandleId = 0;
+    let endStockCandleId = 0;
+
+    // 턴별 stockCandleId 설정
+    if (turn === 1) {
+      // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지
+      startStockCandleId = 0; // 시작점 (또는 최소값)
+      endStockCandleId = pointStockCandleIds[0] || 0;
+    } else if (turn > 1 && turn <= 4) {
+      // 2~4턴: 이전 변곡점부터 현재 변곡점까지
+      startStockCandleId = pointStockCandleIds[turn - 2] || 0;
+
+      if (turn < 4) {
+        // 2~3턴은 다음 변곡점까지
+        endStockCandleId = pointStockCandleIds[turn - 1] || 0;
+      } else {
+        // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지
+        endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 0; // 임의로 큰 값 설정
+      }
+    }
+
+    console.log(`턴 ${turn} 뉴스/코멘트 ID 범위:`, {
+      startStockCandleId,
+      endStockCandleId,
+      isLastTurn: turn === 4,
+    });
+
+    // 유효한 ID가 있는 경우에만 API 호출
+    if (turn === 1 || (turn > 1 && startStockCandleId > 0)) {
+      try {
+        console.log(`턴 ${turn} 뉴스/코멘트 API 호출 파라미터:`, {
+          companyId,
+          startStockCandleId,
+          endStockCandleId: endStockCandleId || 0,
+        });
+
+        // 뉴스 코멘트 API 호출 - 매 턴마다 호출
         try {
-          // 과거 뉴스 목록 - 훅 사용하도록 수정
-          const pastNewsResponse = await getPastNews.mutateAsync({
+          const commentResponse = await getNewsComment.mutateAsync({
             companyId,
-            startStockCandleId,
-            endStockCandleId,
+            startStockCandleId: startStockCandleId || 0,
+            endStockCandleId: endStockCandleId || 0,
           });
 
-          console.log('과거 뉴스 응답:', pastNewsResponse);
+          console.log(`턴 ${turn} 뉴스 코멘트 응답:`, commentResponse);
 
-          if (pastNewsResponse?.result?.NewsResponse) {
-            // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
-            const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
-              (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
-            );
-            setPastNewsList(sortedNews);
-          } else {
-            console.error('과거 뉴스 데이터 형식 오류:', pastNewsResponse);
-            setPastNewsList([]);
-          }
+          if (commentResponse?.result) {
+            // 턴별 코멘트 상태 업데이트
+            setTurnComments((prev) => ({
+              ...prev,
+              [turn]: commentResponse.result,
+            }));
 
-          // 뉴스 코멘트 - useGetNewsComment 훅 사용
-          try {
-            const commentResponse = await getNewsComment.mutateAsync({
-              companyId,
-              startStockCandleId,
-              endStockCandleId,
-            });
-
-            console.log('뉴스 코멘트 응답:', commentResponse);
-
-            if (commentResponse?.result) {
+            // 현재 표시할 코멘트도 업데이트
+            if (turn === currentTurn) {
+              console.log(`현재 턴 ${turn}의 코멘트로 설정:`, commentResponse.result);
               setNewsComment(commentResponse.result);
             }
-          } catch (commentError) {
-            console.error('뉴스 코멘트 로드 오류:', commentError);
+          } else {
+            console.error(`턴 ${turn} 뉴스 코멘트 결과가 없습니다:`, commentResponse);
           }
-        } catch (error) {
-          console.error('뉴스 데이터 로드 오류:', error);
-          setPastNewsList([]); // 오류 발생 시 빈 배열로 설정
+        } catch (commentError) {
+          console.error(`턴 ${turn} 뉴스 코멘트 로드 오류:`, commentError);
         }
+
+        // 2턴 이상에서만 과거 뉴스 목록 가져오기
+        if (turn > 1) {
+          try {
+            const pastNewsResponse = await getPastNews.mutateAsync({
+              companyId,
+              startStockCandleId,
+              endStockCandleId: endStockCandleId || 0,
+            });
+
+            console.log(`턴 ${turn} 과거 뉴스 응답:`, pastNewsResponse);
+
+            if (pastNewsResponse?.result?.NewsResponse && turn === currentTurn) {
+              // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
+              const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
+                (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+              );
+              setPastNewsList(sortedNews);
+            }
+          } catch (newsError) {
+            console.error(`턴 ${turn} 과거 뉴스 로드 오류:`, newsError);
+            if (turn === currentTurn) {
+              setPastNewsList([]);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`턴 ${turn} 뉴스 데이터 로드 오류:`, error);
       }
     }
 
@@ -497,11 +568,13 @@ export const SimulatePage = () => {
             stockCandleId: pointStockCandleId,
           });
 
-          if (currentNewsResponse?.result) {
+          console.log(`턴 ${turn} 현재 뉴스 응답:`, currentNewsResponse);
+
+          if (currentNewsResponse?.result && turn === currentTurn) {
             setCurrentNews(currentNewsResponse.result);
           }
         } catch (error) {
-          console.error('현재 뉴스 로드 오류:', error);
+          console.error(`턴 ${turn} 현재 뉴스 로드 오류:`, error);
         }
       }
     }
@@ -832,6 +905,15 @@ export const SimulatePage = () => {
     setHasChartError(false);
 
     try {
+      // 코멘트 상태 초기화
+      setNewsComment('');
+      setTurnComments({
+        1: '',
+        2: '',
+        3: '',
+        4: '',
+      });
+
       // 초기화 API 호출
       console.log(`튜토리얼 세션 초기화 요청: memberId=${memberId}, companyId=${companyId}`);
       const initResponse = await initSession.mutateAsync({ memberId, companyId });
