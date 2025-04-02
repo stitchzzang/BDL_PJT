@@ -1,5 +1,5 @@
 import { NewsResponseWithThumbnail } from '@/api/types/tutorial';
-import { StockTutorialNewsDetail } from './stock-tutorial-news-detail';
+import { StockTutorialNewsDetail } from '@/components/stock-tutorial/stock-tutorial-news-detail';
 
 export interface StockTutorialNewsProps {
   currentNews: NewsResponseWithThumbnail | null;

@@ -1,5 +1,5 @@
 import { NewsResponse } from '@/api/types/tutorial';
-import { DayHistoryCard } from './day-history-card';
+import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
 
 export interface DayHistoryProps {
   news: NewsResponse[];
