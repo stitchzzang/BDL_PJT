@@ -235,12 +235,12 @@ export const OrderStatusBuy = ({
           <div className="flex items-center justify-between">
             {isActive === '지정가' ? (
               <>
-                <h3 className={h3Style}>충 주문 금액</h3>
+                <h3 className={h3Style}>총 주문 금액</h3>
                 <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
               </>
             ) : (
               <>
-                <h3 className={h3Style}>예상 충 주문 금액</h3>
+                <h3 className={h3Style}>예상 총 주문 금액</h3>
                 {realTime ? (
                   <h3 className={h3Style}>
                     {formatKoreanMoney(estimatedTotalPrice(realTime) ?? 0)} 원
