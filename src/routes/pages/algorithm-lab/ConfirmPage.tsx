@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const ConfirmPage = () => {
   const isValidAccess = useAlgorithmLabGuard('confirm');
@@ -35,6 +36,7 @@ export const ConfirmPage = () => {
     exitFixedPercentage,
     isFee,
   } = useAlgorithmLabStore();
+  const { userData } = useAuthStore();
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -87,7 +89,7 @@ export const ConfirmPage = () => {
 
   const handleComplete = () => {
     createAlgorithm.mutate({
-      memberId: '1',
+      memberId: userData.memberId?.toString() || '',
       algorithm: {
         algorithmName,
         entryMethod: entryMethod ?? 'ONCE',

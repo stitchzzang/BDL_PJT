@@ -1,6 +1,7 @@
 export interface MemberInfo {
-  profileImage: string; // 프로필 이미지
-  nickname: string; // 닉네임
+  profileUrl?: string; // 프로필 이미지
+  nickname?: string; // 닉네임
+  deleteProfile?: boolean; // 프로필 삭제 여부
 }
 
 export interface MemberPassword {
@@ -18,6 +19,7 @@ export interface MemberInvestedStock {
 
 export interface AccountResponse {
   companyId: number; // 종목 ID
+  companyImage: string; // 종목 이미지
   companyName: string; // 종목명
   profitRate: number; // 해당 종목의 수익률 (%)
   profit: number; // 해당 종목의 수익금 (원)

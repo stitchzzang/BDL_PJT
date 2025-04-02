@@ -1,3 +1,5 @@
+import { CategoryName } from '@/utils/categoryMapper';
+
 export interface StockMinuteData {
   stockCandleMinuteId: number; // 주식 봉의 고유 ID
   companyId: string; // 종목 ID
@@ -14,6 +16,33 @@ export interface StockMinuteData {
   tradingTime: string; // 주식 거래 날짜
   fiveAverage: number; // 5 이평선
   twentyAverage: number; // 20 이평선
+}
+// 일,주,월
+// 타입 정의
+export interface StockPeriodData {
+  stockCandleId: number;
+  companyId: string;
+  openPrice: number;
+  openPricePercent: number;
+  highPrice: number;
+  highPricePercent: number;
+  lowPrice: number;
+  lowPricePercent: number;
+  closePrice: number;
+  closePricePercent: number;
+  accumulatedVolume: number;
+  accumulatedTradeAmount: number;
+  tradingDate: string;
+  periodType: number; // 1: 일봉, 2: 주봉, 3: 월봉
+  fiveAverage: number;
+  twentyAverage: number;
+}
+
+export interface StockPeriodDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockPeriodData[];
 }
 
 // 일봉
@@ -86,8 +115,8 @@ export interface TickData {
 // 매수,매도
 // 지정가
 export interface LimitOrderData {
-  memberId: number; // 회원 ID
-  companyId: number; // 종목 ID
+  memberId: number | null; // 회원 ID
+  companyId: number | null; // 종목 ID
   tradeType: number; // 0: 매수(구매), 1:매도(판매)
   quantity: number; // 주 개수
   price: number; // 지정가 - 가격
@@ -95,8 +124,8 @@ export interface LimitOrderData {
 
 // 시장가
 export interface MarketOrderData {
-  memberId: number; // 회원 ID
-  companyId: number; // 종목 ID
+  memberId: number | null; // 회원 ID
+  companyId: number | null; // 종목 ID
   tradeType: number; // 0: 매수(구매), 1:매도(판매)
   quantity: number; // 시장가 - 가격(현재 가격을 가져와야 함)
 }
@@ -134,4 +163,12 @@ export interface OrderbookData {
 export interface OrderbookDatas {
   askLevels: OrderbookData[];
   bidLevels: OrderbookData[];
+}
+
+// 회사 정보
+export interface CompanyInfo {
+  companyImage: string;
+  companyCode: string;
+  companyName: string;
+  categories: CategoryName[];
 }

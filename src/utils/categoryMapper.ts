@@ -22,6 +22,7 @@ export type CategoryName =
   | '자동차' // 자동차 산업
   | '화장품' // 화장품 산업
   | '방위' // 방위 산업
+  | '방산' // 방위 산업
   | '반도체' // 반도체 산업
   | '바이오' // 바이오/제약 산업
   | 'IT' // IT/기술 산업
@@ -39,6 +40,7 @@ const categoryIconMap: Record<CategoryName, ComponentType> = {
   자동차: TruckIcon,
   화장품: EyeDropperIcon,
   방위: RocketLaunchIcon,
+  방산: RocketLaunchIcon,
   반도체: CpuChipIcon,
   바이오: BeakerIcon,
   IT: TvIcon,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
-import { AccountResponse } from '@/api/types/member';
+import { AccountSummaryResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import {
@@ -26,6 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAccountConnection } from '@/services/SocketAccountService';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   addCommasToThousand,
   addStockValueColorClass,
@@ -34,69 +35,47 @@ import {
 } from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
-  const { data: accountSummary, isLoading, isError } = useGetAccountSummary('1');
+  const { userData } = useAuthStore();
+  const {
+    data: accountSummary,
+    isLoading,
+    isError,
+  } = useGetAccountSummary(userData.memberId?.toString() ?? '');
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
-  const [accountData, setAccountData] = useState<AccountResponse[]>([]);
-  const [realTimeData, setRealTimeData] = useState(accountSummary);
-  const [prevData, setPrevData] = useState(accountSummary);
+  const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
+  const [realTimeData, setRealTimeData] = useState<AccountSummaryResponse | null>(null);
+  const [prevData, setPrevData] = useState<AccountSummaryResponse | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
 
-  const { mutate: resetAccount } = useResetAccount('1');
+  const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
 
   useEffect(() => {
-    if (accountData) {
-      connectAccount('1', setAccountData);
+    if (accountSummary) {
+      // 초기값 설정
+      setRealTimeData(accountSummary);
+      setPrevData(accountSummary);
+
+      // 웹소켓 연결
+      connectAccount(userData.memberId?.toString() ?? '', setAccountData);
       return () => {
         disconnectAccount();
       };
     }
-  }, [accountData, connectAccount, disconnectAccount]);
+  }, [accountSummary, connectAccount, disconnectAccount, userData.memberId]);
 
   useEffect(() => {
-    if (accountData && accountSummary) {
-      // 웹소켓으로 받은 데이터로 accountSummary 업데이트
-      const updatedAccounts = accountSummary.accounts.map((account) => {
-        const realTimeAccount = accountData.find((rt) => rt.companyId === account.companyId);
-        if (realTimeAccount) {
-          return {
-            ...account,
-            currentPrice: realTimeAccount.currentPrice,
-            evaluation: realTimeAccount.evaluation,
-            profit: realTimeAccount.profit,
-            profitRate: realTimeAccount.profitRate,
-            dailyProfit: realTimeAccount.dailyProfit,
-            dailyProfitRate: realTimeAccount.dailyProfitRate,
-          };
-        }
-        return account;
-      });
+    if (accountData) {
+      // 웹소켓으로 받은 데이터로 상태 업데이트
+      setPrevData(realTimeData || accountSummary || null);
+      setRealTimeData(accountData);
 
-      // 총 자산, 평가금액, 현금 업데이트
-      const totalEvaluation = updatedAccounts.reduce((sum, account) => sum + account.evaluation, 0);
-      const totalProfit = updatedAccounts.reduce((sum, account) => sum + account.profit, 0);
-      const totalDailyProfit = updatedAccounts.reduce(
-        (sum, account) => sum + account.dailyProfit,
-        0,
-      );
-
-      const newData = {
-        ...accountSummary,
-        accounts: updatedAccounts,
-        totalEvaluation,
-        totalProfit,
-        dailyProfit: totalDailyProfit,
-        totalAsset: accountSummary.totalCash + totalEvaluation,
-      };
-
+      // 깜빡임 효과 적용
       setIsFlashing(true);
       setTimeout(() => {
         setIsFlashing(false);
       }, 300);
-
-      setPrevData(realTimeData || accountSummary);
-      setRealTimeData(newData);
     }
-  }, [accountData, accountSummary]);
+  }, [accountData, accountSummary, realTimeData]);
 
   if (isLoading) {
     return <LoadingAnimation />;
@@ -107,6 +86,7 @@ export const InvestmentResultPage = () => {
   }
 
   const displayData = realTimeData || accountSummary;
+  if (!displayData) return <LoadingAnimation />;
 
   return (
     <div className="flex w-full flex-col gap-4 px-6">
@@ -149,7 +129,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.totalProfitRate !== prevData?.totalProfitRate
-                ? (displayData?.totalProfitRate ?? 0) > (prevData?.totalProfitRate ?? 0)
+                ? (displayData?.totalProfitRate ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.totalProfitRate ?? 0) === 0
@@ -173,7 +153,7 @@ export const InvestmentResultPage = () => {
           <Badge
             variant={
               isFlashing && displayData?.totalProfit !== prevData?.totalProfit
-                ? (displayData?.totalProfit ?? 0) > (prevData?.totalProfit ?? 0)
+                ? (displayData?.totalProfit ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
                 : (displayData?.totalProfit ?? 0) === 0
@@ -189,54 +169,6 @@ export const InvestmentResultPage = () => {
               {displayData?.totalProfit
                 ? `${plusMinusSign(displayData.totalProfit)}${addCommasToThousand(
                     displayData.totalProfit,
-                  )}`
-                : '0'}
-            </span>
-            <p className="text-border-color">원</p>
-          </Badge>
-          <Badge
-            variant={
-              isFlashing && displayData?.dailyProfitRate !== prevData?.dailyProfitRate
-                ? (displayData?.dailyProfitRate ?? 0) > (prevData?.dailyProfitRate ?? 0)
-                  ? 'increase-flash'
-                  : 'decrease-flash'
-                : (displayData?.dailyProfitRate ?? 0) === 0
-                  ? 'zero'
-                  : (displayData?.dailyProfitRate ?? 0) > 0
-                    ? 'increase'
-                    : 'decrease'
-            }
-            className="transition-all duration-300"
-          >
-            <span className="mr-1 text-sm text-border-color">일간 수익률:</span>
-            <span className={addStockValueColorClass(displayData?.dailyProfitRate ?? 0)}>
-              {displayData?.dailyProfitRate
-                ? `${plusMinusSign(displayData.dailyProfitRate)}${roundToTwoDecimalPlaces(
-                    displayData.dailyProfitRate,
-                  )}`
-                : '0'}
-              %
-            </span>
-          </Badge>
-          <Badge
-            variant={
-              isFlashing && displayData?.dailyProfit !== prevData?.dailyProfit
-                ? (displayData?.dailyProfit ?? 0) > (prevData?.dailyProfit ?? 0)
-                  ? 'increase-flash'
-                  : 'decrease-flash'
-                : (displayData?.dailyProfit ?? 0) === 0
-                  ? 'zero'
-                  : (displayData?.dailyProfit ?? 0) > 0
-                    ? 'increase'
-                    : 'decrease'
-            }
-            className="transition-all duration-300"
-          >
-            <span className="mr-1 text-sm text-border-color">일간 수익:</span>
-            <span className={addStockValueColorClass(displayData?.dailyProfit ?? 0)}>
-              {displayData?.dailyProfit
-                ? `${plusMinusSign(displayData.dailyProfit)}${addCommasToThousand(
-                    displayData.dailyProfit,
                   )}`
                 : '0'}
             </span>
@@ -291,9 +223,7 @@ export const InvestmentResultPage = () => {
             <TableHead>현재가(원)</TableHead>
             <TableHead>보유수량</TableHead>
             <TableHead>평가금(원)</TableHead>
-            <TableHead>원금(원)</TableHead>
-            <TableHead>일간 수익률</TableHead>
-            <TableHead>일간 수익금(원)</TableHead>
+            <TableHead>구매 금액(원)</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -301,17 +231,27 @@ export const InvestmentResultPage = () => {
           {displayData?.accounts.length && displayData?.accounts.length > 0 ? (
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
-                <TableCell>{account.companyName}</TableCell>
+                <TableCell>
+                  <div className="flex flex-row items-center gap-2">
+                    <img
+                      src={account.companyImage}
+                      alt="companyIcon"
+                      className="h-10 w-10 rounded-full"
+                    />
+                    {account.companyName}
+                  </div>
+                </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
                     isFlashing &&
+                    prevData?.accounts &&
                     account.profitRate !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.profitRate
-                      ? account.profitRate >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.profitRate || 0)
+                      ? account.profitRate > 0
                         ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
+                        : account.profitRate < 0
+                          ? 'bg-btn-blue-color/50'
+                          : ''
                       : account.profitRate > 0
                         ? 'bg-btn-red-color/10'
                         : account.profitRate < 0
@@ -324,13 +264,14 @@ export const InvestmentResultPage = () => {
                 <TableCell
                   className={`${addStockValueColorClass(account.profit)} transition-all duration-300 ${
                     isFlashing &&
+                    prevData?.accounts &&
                     account.profit !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.profit
-                      ? account.profit >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.profit || 0)
+                      ? account.profit > 0
                         ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
+                        : account.profit < 0
+                          ? 'bg-btn-blue-color/50'
+                          : ''
                       : account.profit > 0
                         ? 'bg-btn-red-color/10'
                         : account.profit < 0
@@ -344,6 +285,7 @@ export const InvestmentResultPage = () => {
                 <TableCell
                   className={`transition-all duration-300 ${
                     isFlashing &&
+                    prevData?.accounts &&
                     account.currentPrice !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)
                         ?.currentPrice
@@ -361,13 +303,14 @@ export const InvestmentResultPage = () => {
                 <TableCell
                   className={`${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
                     isFlashing &&
+                    prevData?.accounts &&
                     account.evaluation !==
                       prevData?.accounts.find((a) => a.companyId === account.companyId)?.evaluation
-                      ? account.evaluation >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.evaluation || 0)
+                      ? account.evaluation > 0
                         ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
+                        : account.evaluation < 0
+                          ? 'bg-btn-blue-color/50'
+                          : ''
                       : account.evaluation > 0
                         ? 'bg-btn-red-color/10'
                         : account.evaluation < 0
@@ -377,64 +320,7 @@ export const InvestmentResultPage = () => {
                 >
                   {`${plusMinusSign(account.evaluation)}${addCommasToThousand(account.evaluation)}`}
                 </TableCell>
-                <TableCell
-                  className={`${addStockValueColorClass(account.investment)} transition-all duration-300 ${
-                    isFlashing &&
-                    account.investment !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)?.investment
-                      ? account.investment >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.investment || 0)
-                        ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
-                      : account.investment > 0
-                        ? 'bg-btn-red-color/10'
-                        : account.investment < 0
-                          ? 'bg-btn-blue-color/10'
-                          : ''
-                  }`}
-                >
-                  {`${plusMinusSign(account.investment)}${addCommasToThousand(account.investment)}`}
-                </TableCell>
-                <TableCell
-                  className={`${addStockValueColorClass(account.dailyProfitRate)} transition-all duration-300 ${
-                    isFlashing &&
-                    account.dailyProfitRate !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)
-                        ?.dailyProfitRate
-                      ? account.dailyProfitRate >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.dailyProfitRate || 0)
-                        ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
-                      : account.dailyProfitRate > 0
-                        ? 'bg-btn-red-color/10'
-                        : account.dailyProfitRate < 0
-                          ? 'bg-btn-blue-color/10'
-                          : ''
-                  }`}
-                >
-                  {`${plusMinusSign(account.dailyProfitRate)}${roundToTwoDecimalPlaces(account.dailyProfitRate)}%`}
-                </TableCell>
-                <TableCell
-                  className={`${addStockValueColorClass(account.dailyProfit)} transition-all duration-300 ${
-                    isFlashing &&
-                    account.dailyProfit !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)?.dailyProfit
-                      ? account.dailyProfit >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.dailyProfit || 0)
-                        ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
-                      : account.dailyProfit > 0
-                        ? 'bg-btn-red-color/10'
-                        : account.dailyProfit < 0
-                          ? 'bg-btn-blue-color/10'
-                          : ''
-                  }`}
-                >
-                  {`${plusMinusSign(account.dailyProfit)}${addCommasToThousand(account.dailyProfit)}`}
-                </TableCell>
+                <TableCell>{addCommasToThousand(account.investment)}</TableCell>
               </TableRow>
             ))
           ) : (

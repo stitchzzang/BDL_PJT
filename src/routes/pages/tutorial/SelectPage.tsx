@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
 import { Company } from '@/api/types/category';
@@ -15,12 +16,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const SelectPage = () => {
   const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState<string>('0');
+  const [urlParams] = useSearchParams();
+  const categoryQuery = urlParams.get('category') || '0';
+  const [selectedCategory, setSelectedCategory] = useState<string>(categoryQuery);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+
+  useEffect(() => {
+    setSelectedCategory(categoryQuery);
+  }, [categoryQuery]);
 
   // 현재 날짜와 1년 전 날짜 계산
   const currentDate = new Date();
@@ -54,6 +62,13 @@ export const SelectPage = () => {
     }
     setIsDialogOpen(false);
   };
+
+  const { isLogin } = useAuthStore();
+
+  if (!isLogin) {
+    toast.error('로그인 후 이용해주세요.');
+    return <Navigate to="/login" />;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center gap-3">

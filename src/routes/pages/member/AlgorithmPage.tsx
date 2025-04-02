@@ -1,12 +1,21 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useGetAlgorithm } from '@/api/algorithm.api';
 import { Algorithm } from '@/api/types/algorithm';
 import { ErrorScreen } from '@/components/common/error-screen';
+import { RocketAnimation } from '@/components/common/rocket-animation';
 import { MyAlgorithmItem } from '@/components/member-info/my-algorithm-item';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useAuthStore } from '@/store/useAuthStore';
 export const AlgorithmPage = () => {
-  const { data: algorithms, isLoading, isError } = useGetAlgorithm('1'); // 임시 1번 유저
-
+  const { userData } = useAuthStore();
+  const {
+    data: algorithms,
+    isLoading,
+    isError,
+  } = useGetAlgorithm(userData.memberId?.toString() ?? '');
+  const navigate = useNavigate();
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
       <div className="w-full">
@@ -29,8 +38,27 @@ export const AlgorithmPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
-                <p className="text-center text-lg text-[#718096]">알고리즘이 없습니다.</p>
+              <div className="flex h-full w-full flex-col items-center justify-center p-5">
+                <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="cursor-pointer text-center text-lg text-[#718096] underline"
+                          onClick={() => navigate('/algorithm-lab')}
+                        >
+                          알고리즘이 없습니다.
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-row items-center gap-1">
+                          <RocketAnimation />
+                          <p>알고리즘을 만들러 가볼까요?</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
             )}
           </>

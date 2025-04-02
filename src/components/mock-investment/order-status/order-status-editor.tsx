@@ -4,6 +4,7 @@ import { useChangeUserSimulated } from '@/api/stock.api';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { queryClient } from '@/lib/queryClient';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 export interface OrderStatusShellProps {
   closePrice: number; // 종가
@@ -53,7 +54,9 @@ export const OrderStatusEditor = ({
       },
       {
         onSuccess: () => {
+          setEditor(!editor);
           alert('주문이 성공적으로 수정되었습니다.');
+          queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
         },
         onError: () => {
           alert('주문 수정에 실패했습니다.');
@@ -62,7 +65,7 @@ export const OrderStatusEditor = ({
     );
   };
 
-  const h3Style = 'text-[16px] font-bold text-white';
+  const h3Style = 'text-[14px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
   // isActive 핸들러
   const isActiveHandler = (active: string) => {
@@ -138,7 +141,7 @@ export const OrderStatusEditor = ({
     }
   };
   return (
-    <div className="my-3">
+    <div className="my-3 animate-fadeIn">
       <div
         className={`rounded-xl  bg-opacity-20 p-2 ${tradeType === 1 ? 'bg-btn-blue-color' : 'bg-btn-red-color'}`}
       >
@@ -160,7 +163,7 @@ export const OrderStatusEditor = ({
                     className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                     onClick={() => isActiveHandler('지정가')}
                   >
-                    <p>지정가</p>
+                    <p className="text-[14px]">지정가</p>
                   </div>
                 </div>
               </div>
@@ -170,7 +173,7 @@ export const OrderStatusEditor = ({
               <div className="min-w-[74px]" />
               <div className="relative flex w-full max-w-[80%] flex-col gap-2">
                 <NumberPriceInput
-                  value={0}
+                  value={shellCost}
                   setValue={setShellCost}
                   placeholder={`${shellCost.toLocaleString()}원`}
                   tickSize={tickSize}

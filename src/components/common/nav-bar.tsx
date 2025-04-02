@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export const NavBar = () => {
-  const { isLogin } = useAuthStore();
+  const { isLogin, userData } = useAuthStore();
   const { mutate: logout } = useLogout();
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -65,16 +65,6 @@ export const NavBar = () => {
             알고리즘 LAB
           </NavLink>
           <NavLink
-            to="/investment"
-            className={({ isActive }) =>
-              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
-                isActive ? 'text-text-main-color' : ''
-              }`
-            }
-          >
-            모의투자
-          </NavLink>
-          <NavLink
             to="/tutorial"
             className={({ isActive }) =>
               `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
@@ -83,6 +73,16 @@ export const NavBar = () => {
             }
           >
             주식 튜토리얼
+          </NavLink>
+          <NavLink
+            to="/search"
+            className={({ isActive }) =>
+              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
+                isActive ? 'text-text-main-color' : ''
+              }`
+            }
+          >
+            모의 투자
           </NavLink>
         </div>
         <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
@@ -133,17 +133,6 @@ export const NavBar = () => {
               알고리즘 LAB
             </NavLink>
             <NavLink
-              to="/investment"
-              className={({ isActive }) =>
-                `text-left text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
-                  isActive ? 'text-text-main-color' : ''
-                }`
-              }
-              onClick={() => setIsOpen(false)}
-            >
-              모의투자
-            </NavLink>
-            <NavLink
               to="/tutorial"
               className={({ isActive }) =>
                 `text-left text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
@@ -153,6 +142,17 @@ export const NavBar = () => {
               onClick={() => setIsOpen(false)}
             >
               주식 튜토리얼
+            </NavLink>
+            <NavLink
+              to="/search"
+              className={({ isActive }) =>
+                `text-left text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
+                  isActive ? 'text-text-main-color' : ''
+                }`
+              }
+              onClick={() => setIsOpen(false)}
+            >
+              모의 투자
             </NavLink>
             <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3">
               <button
@@ -203,20 +203,22 @@ export const NavBar = () => {
           </>
         )}
 
-        <NavLink
-          to="/member"
-          className={({ isActive }) =>
-            isActive
-              ? 'rounded-full border-2 border-primary-color transition-all duration-300 hover:border-primary-color'
-              : 'rounded-full border border-text-main-color transition-all duration-300 hover:border-text-main-color'
-          }
-        >
-          <img
-            src="/none-img/none_profile_img.png"
-            alt="profile"
-            className="h-[32px] w-[32px] rounded-full border-2 border-transparent transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
-          />
-        </NavLink>
+        {isLogin && (
+          <NavLink
+            to="/member"
+            className={({ isActive }) =>
+              isActive
+                ? 'rounded-full border-2 border-primary-color transition-all duration-300 hover:border-primary-color'
+                : 'rounded-full border border-text-main-color transition-all duration-300 hover:border-text-main-color'
+            }
+          >
+            <img
+              src={userData.profile || '/none-img/none_profile_img.png'}
+              alt="profile"
+              className="h-[32px] w-[32px] rounded-full border-2 border-transparent object-cover transition-all duration-300 hover:scale-110 webapp:h-[40px] webapp:w-[40px]"
+            />
+          </NavLink>
+        )}
         {/* 모바일 메뉴 토글 버튼 */}
         <button className="ml-2 webapp:hidden" onClick={toggleMenu}>
           {isOpen ? (

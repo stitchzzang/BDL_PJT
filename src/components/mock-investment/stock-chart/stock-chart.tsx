@@ -21,14 +21,18 @@ export const TickInfo = ({ tickData }: TickInfoProps) => {
           </div>
         )}
         {tickData === null ? (
-          <div className="rounded-2xl border-2 border-border-color bg-opacity-40 p-3 px-6">
-            <p>데이터를 기다리는 중...</p>
+          <div className="rounded-2xl border-2 border-border-color p-3 px-6 opacity-40">
+            <p className="text-border-color">장시간 : 09:00 - 15:30</p>
           </div>
         ) : (
           <ul></ul>
         )}
       </div>
-      <p className="opacity-60">현재 거래</p>
+      {tickData === null ? (
+        <p className="opacity-20">현재 거래</p>
+      ) : (
+        <p className="opacity-60">현재 거래</p>
+      )}
     </div>
   );
 };
