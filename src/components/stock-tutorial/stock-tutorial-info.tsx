@@ -3,21 +3,13 @@ import { useEffect, useState } from 'react';
 
 import { useGetCompanyProfile } from '@/api/company.api';
 import { _ky } from '@/api/instance';
-import { useGetPointDate, useGetTop3Points, useInitSession } from '@/api/tutorial.api';
+import { useInitSession } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
-import { Point } from '@/api/types/tutorial';
 import TestImage from '@/assets/test/stock-test.png';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
-// import { useAuthStore } from '@/store/useAuthStore';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
-
-// 변곡점 데이터 타입 정의
-interface InflectionPoint {
-  stockCandleId: number;
-  date: string;
-}
 
 // 주가 데이터 타입 정의
 interface StockCandleData {
@@ -80,9 +72,6 @@ export const StockTutorialInfo = ({
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
-  const [inflectionPoints, setInflectionPoints] = useState<InflectionPoint[]>([]);
-  const [selectedSegment, _setSelectedSegment] = useState<number>(0);
-  // const _authData = useAuthStore();
   const initSessionMutation = useInitSession();
 
   // 오늘부터 1년 전까지의 날짜 범위 계산
@@ -93,122 +82,23 @@ export const StockTutorialInfo = ({
   const startDate = formatDateToYYMMDD(oneYearAgo);
   const endDate = formatDateToYYMMDD(today);
 
-  // 변곡점 TOP3 가져오기
-  const { data: top3PointsData } = useGetTop3Points(companyId);
-
-  // 변곡점 날짜 가져오기
-  const pointStockCandleIds =
-    top3PointsData?.result?.PointResponseList?.map((point: Point) => point.stockCandleId) || [];
-
-  // 각 변곡점에 대한 날짜 정보 가져오기
-  const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
-  const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
-  const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
-
   // 변경: useGetCompanyProfile 훅 사용
   const { data: companyInfo } = useGetCompanyProfile(String(companyId));
-
-  // API에서 가져온 TOP3 변곡점 데이터를 InflectionPoint로 변환
-  useEffect(() => {
-    if (
-      top3PointsData?.result?.PointResponseList &&
-      Array.isArray(top3PointsData.result.PointResponseList)
-    ) {
-      const points = top3PointsData.result.PointResponseList;
-      const convertedPoints: InflectionPoint[] = [];
-
-      // 각 변곡점에 대해 날짜 정보 추가
-      if (points.length > 0 && point1DateQuery.data?.result) {
-        convertedPoints.push({
-          stockCandleId: points[0].stockCandleId,
-          date: point1DateQuery.data.result,
-        });
-      }
-
-      if (points.length > 1 && point2DateQuery.data?.result) {
-        convertedPoints.push({
-          stockCandleId: points[1].stockCandleId,
-          date: point2DateQuery.data.result,
-        });
-      }
-
-      if (points.length > 2 && point3DateQuery.data?.result) {
-        convertedPoints.push({
-          stockCandleId: points[2].stockCandleId,
-          date: point3DateQuery.data.result,
-        });
-      }
-
-      // 변경된 경우에만 상태 업데이트 (길이 비교 및 각 항목 비교)
-      let hasChanged = convertedPoints.length !== inflectionPoints.length;
-
-      // 길이가 같으면 각 항목 비교
-      if (!hasChanged && convertedPoints.length > 0) {
-        for (let i = 0; i < convertedPoints.length; i++) {
-          if (
-            convertedPoints[i].stockCandleId !== inflectionPoints[i]?.stockCandleId ||
-            convertedPoints[i].date !== inflectionPoints[i]?.date
-          ) {
-            hasChanged = true;
-            break;
-          }
-        }
-      }
-
-      // 변경된 경우만 상태 업데이트
-      if (hasChanged) {
-        setInflectionPoints(convertedPoints);
-      }
-    }
-  }, [
-    top3PointsData,
-    point1DateQuery.data,
-    point2DateQuery.data,
-    point3DateQuery.data,
-    inflectionPoints,
-  ]);
 
   // 현재 가격 정보를 가져오기 위한 API 호출
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        // 현재 선택된 세그먼트에 따라 날짜 범위 결정
-        let segStartDate = startDate;
-        let segEndDate = endDate;
-
-        // 변곡점이 로드되었을 경우 구간별 날짜 설정
-        if (inflectionPoints.length > 0) {
-          switch (selectedSegment) {
-            case 0: // 첫 번째 구간: 시작 지점 ~ 변곡점 1
-              segStartDate = startDate;
-              segEndDate = inflectionPoints[0]?.date || endDate;
-              break;
-            case 1: // 두 번째 구간: 변곡점 1 ~ 변곡점 2
-              segStartDate = inflectionPoints[0]?.date || startDate;
-              segEndDate = inflectionPoints[1]?.date || endDate;
-              break;
-            case 2: // 세 번째 구간: 변곡점 2 ~ 변곡점 3
-              segStartDate = inflectionPoints[1]?.date || startDate;
-              segEndDate = inflectionPoints[2]?.date || endDate;
-              break;
-            case 3: // 네 번째 구간: 변곡점 3 ~ 최근 지점
-              segStartDate = inflectionPoints[2]?.date || startDate;
-              segEndDate = endDate;
-              break;
-            default:
-              segStartDate = startDate;
-              segEndDate = endDate;
-          }
-        }
-
-        // 선택된 구간에 따라 가격 데이터 조회
+        // 전체 기간에 대한 가격 데이터 조회
         const response = await _ky
-          .get(`stocks/${companyId}/tutorial?startDate=${segStartDate}&endDate=${segEndDate}`)
+          .get(`stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`)
           .json<ApiResponse<{ data: StockCandleData[] }>>();
 
         // 데이터 배열에서 가장 최신 값(마지막 값)의 closePrice 가져오기
-        const latestData = response.result.data[response.result.data.length - 1];
-        setCurrentPrice(latestData.closePrice);
+        if (response.result.data && response.result.data.length > 0) {
+          const latestData = response.result.data[response.result.data.length - 1];
+          setCurrentPrice(latestData.closePrice);
+        }
       } catch {
         // 오류 발생 시 기본 가격 설정 (예: 50000원)
         setCurrentPrice(50000);
@@ -218,7 +108,7 @@ export const StockTutorialInfo = ({
     if (companyId) {
       fetchPrice();
     }
-  }, [companyId, inflectionPoints, selectedSegment, startDate, endDate]);
+  }, [companyId, startDate, endDate]);
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
