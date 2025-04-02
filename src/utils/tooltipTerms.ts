@@ -14,7 +14,8 @@ export const financialTerms: Record<string, TermDefinition> = {
   },
   코스피: {
     term: '코스피',
-    definition: '한국의 대표 대기업들이 주로 상장된 주식시장',
+    definition:
+      '한국의 대표 대기업들이 주로 상장된 주식시장.\n\n코스피 지수는 한국 주식시장의 전반적인 추세를 보여주는 지표입니다.',
     category: '홈페이지',
   },
   등락률: {
@@ -56,7 +57,7 @@ export const financialTerms: Record<string, TermDefinition> = {
   },
   '수수료 포함': {
     term: '수수료 포함',
-    definition: '거래 시 발생하는 비용까지 고려한 금액',
+    definition: '(0.00004%)거래 시 발생하는 비용까지 고려한 금액',
     category: '알고리즘 LAB',
   },
   분봉: {
@@ -67,6 +68,35 @@ export const financialTerms: Record<string, TermDefinition> = {
   일봉: {
     term: '일봉',
     definition: '하루 동안의 주식 가격 변동을 기록한 차트',
+    category: '알고리즘 LAB',
+  },
+  이동평균선: {
+    term: '이동평균선',
+    definition:
+      '일정 기간 동안의 주가를 평균 내어 부드러운 선으로 보여주어, 주가의 전체적인 흐름을 쉽게 파악할 수 있도록 도와주는 도구',
+    category: '알고리즘 LAB',
+  },
+  단기선: {
+    term: '단기선',
+    definition:
+      '최근 며칠 간의 주가 평균을 계산해, 빠른 변동을 반영하는 단기적인 주가 흐름을 쉽게 확인할 수 있게 해주는 도구',
+    category: '알고리즘 LAB',
+  },
+  장기선: {
+    term: '장기선',
+    definition:
+      '장기간의 주가 평균을 계산해, 전체적인 주가 추세와 안정성을 파악할 수 있도록 도와주는 도구',
+    category: '알고리즘 LAB',
+  },
+  '반응 강도': {
+    term: '반응 강도',
+    definition: '주식 가격이 특정 시간 내에 설정한 퍼센트(%) 이상 변동 할 때',
+    category: '알고리즘 LAB',
+  },
+  '이동평균선 사용': {
+    term: '이동평균선 사용',
+    definition:
+      '여러 날의 주가를 평균 내어 그린 선이에요. \n 그래서 주가가 매일 조금씩 오르락내리락해도,\n이 선을 보면 주가가 대체로 오르고 있는지, 내리고 있는지를 한눈에 알 수 있어요.',
     category: '알고리즘 LAB',
   },
 
