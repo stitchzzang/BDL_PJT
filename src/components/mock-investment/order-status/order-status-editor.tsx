@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { useChangeUserSimulated } from '@/api/stock.api';
 import { Button } from '@/components/ui/button';
@@ -55,7 +56,7 @@ export const OrderStatusEditor = ({
       {
         onSuccess: () => {
           setEditor(!editor);
-          alert('주문이 성공적으로 수정되었습니다.');
+          toast.success('주문이 성공적으로 수정되었습니다.');
           queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
         },
         onError: () => {
@@ -242,7 +243,10 @@ export const OrderStatusEditor = ({
           <div className="mt-[25px] flex flex-col items-center gap-2">
             <div className="flex w-full gap-2">
               <Button
-                onClick={() => setEditor(!editor)}
+                onClick={() => {
+                  setEditor(!editor);
+                  toast.success('주문이 취소되었습니다.');
+                }}
                 variant="black"
                 className="w-full"
                 size="default"

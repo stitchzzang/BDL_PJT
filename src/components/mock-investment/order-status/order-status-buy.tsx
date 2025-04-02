@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { usePostStockLimitOrder, usePostStockMarketOrder } from '@/api/stock.api';
 import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
@@ -95,7 +96,7 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: () => {
-          alert(`주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다.`);
+          toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
       },
     );
