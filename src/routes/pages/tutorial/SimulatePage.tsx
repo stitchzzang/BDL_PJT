@@ -59,6 +59,7 @@ interface TutorialEndModalProps {
   isOpen: boolean;
   onClose: () => void;
   changeRate: number;
+  feedback: string;
   onConfirmResultClick: () => void;
   onEndTutorialClick: () => void;
 }
@@ -68,6 +69,7 @@ const TutorialEndModal = memo(
     isOpen,
     onClose,
     changeRate,
+    feedback,
     onConfirmResultClick,
     onEndTutorialClick,
   }: TutorialEndModalProps) => {
@@ -79,11 +81,8 @@ const TutorialEndModal = memo(
 
     return (
       <AlertDialog open={isOpen} onOpenChange={onClose}>
-        <AlertDialogContent className="w-[450px] rounded-lg border-none bg-[#121729] p-6 text-white">
-          <div className="mb-4 rounded-md bg-[#101017] p-4 text-center">
-            <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
-          </div>
-          <AlertDialogHeader className="text-center">
+        <AlertDialogContent className="w-[450px] rounded-lg border-none bg-[#121729] p-7 text-white">
+          <AlertDialogHeader className="mb-2 text-center">
             <AlertDialogTitle className="text-xl font-semibold">
               주식 튜토리얼이 종료되었습니다.
             </AlertDialogTitle>
@@ -91,6 +90,18 @@ const TutorialEndModal = memo(
               주식 튜토리얼 결과는 마이페이지에서 전체 확인이 가능합니다.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="mb-1 rounded-md bg-[#101017] p-4 text-center">
+            <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
+          </div>
+
+          {feedback && (
+            <div className="my-2 rounded-md bg-[#1A1D2D] p-4">
+              <h3 className="mb-2 text-[16px] font-semibold">튜토리얼 피드백</h3>
+              <p className="text-[14px] text-gray-300">{feedback}</p>
+            </div>
+          )}
+
           <AlertDialogFooter className="mt-4 flex justify-between sm:justify-between">
             <AlertDialogCancel
               onClick={onConfirmResultClick}
@@ -528,7 +539,7 @@ export const SimulatePage = () => {
   };
 
   // 거래 처리 핸들러
-  const handleTrade = async (action: 'buy' | 'sell' | 'wait', price: number, quantity: number) => {
+  const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
     if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
       return;
     }
@@ -566,9 +577,9 @@ export const SimulatePage = () => {
       return;
     }
 
-    // 관망인 경우 API 호출 없이 바로 턴 완료 처리
+    // 관망인 경우 API 호출 없이 바로 턴 완료 처리 및 다음 턴으로 이동
     if (action === 'wait') {
-      console.log('관망 선택: 다음 턴으로 넘어갑니다.');
+      console.log('관망 선택: 바로 다음 턴으로 넘어갑니다.');
 
       // 거래 기록 추가
       setTrades((prev) => [
@@ -585,6 +596,19 @@ export const SimulatePage = () => {
 
       // 턴 완료 처리하여 다음 턴으로 진행 가능하게 함
       setIsCurrentTurnCompleted(true);
+
+      // 즉시 다음 턴으로 이동 - 현재가 마지막 턴(4)이 아닌 경우에만
+      if (currentTurn < 4) {
+        // setTimeout으로 상태 업데이트 후 다음 턴으로 이동하도록 함
+        setTimeout(() => {
+          moveToNextTurn();
+        }, 300);
+      } else {
+        // 마지막 턴이면 튜토리얼 완료 처리
+        setTimeout(() => {
+          completeTutorial();
+        }, 300);
+      }
       return;
     }
 
@@ -619,22 +643,27 @@ export const SimulatePage = () => {
       const assetResults = response.result?.AssetResponse;
 
       // 거래 기록 추가
+      // 타입 가드 함수 정의
+      const isWaitAction = (act: TradeAction): act is 'wait' => act === 'wait';
+      const isBuyAction = (act: TradeAction): act is 'buy' => act === 'buy';
+      const isSellAction = (act: TradeAction): act is 'sell' => act === 'sell';
+
       setTrades((prev) => [
         ...prev,
         {
           action,
-          price: action === 'wait' ? 0 : price,
-          quantity: action === 'wait' ? 0 : quantity,
+          price: isWaitAction(action) ? 0 : price,
+          quantity: isWaitAction(action) ? 0 : quantity,
           timestamp: new Date(),
           stockCandleId: endPointId,
           turnNumber: currentTurn,
         },
       ]);
 
-      // 보유 주식 수량 업데이트
-      if (action === 'buy') {
+      // 보유 주식 수량 업데이트 - 타입 가드 사용
+      if (isBuyAction(action)) {
         setOwnedStockCount((prev) => prev + quantity);
-      } else if (action === 'sell') {
+      } else if (isSellAction(action)) {
         setOwnedStockCount((prev) => Math.max(0, prev - quantity));
       }
 
@@ -976,6 +1005,8 @@ export const SimulatePage = () => {
             companyId={companyId}
             latestPrice={latestPrice}
             ownedStockCount={ownedStockCount}
+            currentTurn={currentTurn}
+            isCurrentTurnCompleted={isCurrentTurnCompleted}
           />
         </div>
       </div>
@@ -999,17 +1030,14 @@ export const SimulatePage = () => {
           <StockTutorialNews currentNews={currentNews} companyId={companyId} />
         </div>
         <div className="col-span-2">
-          <StockTutorialConclusion
-            trades={trades}
-            feedback={tutorialFeedback || ''}
-            isCompleted={progress === 100}
-          />
+          <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
         </div>
       </div>
       <TutorialEndModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         changeRate={finalChangeRate}
+        feedback={tutorialFeedback || ''}
         onConfirmResultClick={handleNavigateToResult}
         onEndTutorialClick={handleNavigateToSelect}
       />

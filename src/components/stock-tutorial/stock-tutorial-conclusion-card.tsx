@@ -12,7 +12,7 @@ interface TradeRecord {
 
 export interface StockTutorialConclusionCardProps {
   trades: TradeRecord[];
-  feedback: string;
+  feedback?: string;
   isCompleted: boolean;
 }
 
@@ -45,13 +45,13 @@ export const StockTutorialConclusionCard = ({
                           : 'bg-[#222738]' // 관망 - 기본 어두운 배경
                     }`}
                   >
-                    <div className="flex justify-between items-center">
+                    <div className="flex items-center justify-between">
                       {/* 금액과 수량 정보 */}
                       <div>
                         {trade.action === 'wait' ? (
                           <span className="text-white">관망</span>
                         ) : (
-                          <span className="text-white text-[18px] font-medium">
+                          <span className="text-[18px] font-medium text-white">
                             {addCommasToThousand(trade.price)}원 | {trade.quantity}주
                           </span>
                         )}
@@ -80,13 +80,6 @@ export const StockTutorialConclusionCard = ({
                 ))}
             </div>
           ))}
-        </div>
-      )}
-
-      {isCompleted && feedback && (
-        <div className="mt-4">
-          <h3 className="mb-2 text-[16px] font-bold">튜토리얼 피드백</h3>
-          <p className="text-border-color">{feedback}</p>
         </div>
       )}
     </div>
