@@ -6,6 +6,7 @@ import { _ky } from '@/api/instance/index';
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
+  useGetNewsComment,
   useGetPastNews,
   useGetTutorialFeedback,
   useInitSession,
@@ -243,6 +244,7 @@ export const SimulatePage = () => {
   const initSession = useInitSession();
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
+  const getNewsComment = useGetNewsComment();
 
   // 날짜 범위에 따른 세션 설정
   const calculateSession = (turn: number) => {
@@ -462,15 +464,21 @@ export const SimulatePage = () => {
             setPastNewsList([]);
           }
 
-          // 뉴스 코멘트 - 기존 코드 유지
-          const commentResponse = (await _ky
-            .post('tutorial/news/comment', {
-              json: { companyId, startStockCandleId, endStockCandleId },
-            })
-            .json()) as ApiResponse<string>;
+          // 뉴스 코멘트 - useGetNewsComment 훅 사용
+          try {
+            const commentResponse = await getNewsComment.mutateAsync({
+              companyId,
+              startStockCandleId,
+              endStockCandleId,
+            });
 
-          if (commentResponse?.result) {
-            setNewsComment(commentResponse.result);
+            console.log('뉴스 코멘트 응답:', commentResponse);
+
+            if (commentResponse?.result) {
+              setNewsComment(commentResponse.result);
+            }
+          } catch (commentError) {
+            console.error('뉴스 코멘트 로드 오류:', commentError);
           }
         } catch (error) {
           console.error('뉴스 데이터 로드 오류:', error);

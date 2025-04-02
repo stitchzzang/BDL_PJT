@@ -17,8 +17,8 @@ export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) 
   return (
     <div className="rounded-xl bg-modal-background-color p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-[23px] font-bold ">{news.newsTitle}</h2>
-        <p className="text-[18px] text-border-color">
+        <h2 className="text-[20px] font-bold ">{news.newsTitle}</h2>
+        <p className="text-[16px] text-border-color">
           {new Date(news.newsDate).toLocaleDateString('ko-KR')}
         </p>
       </div>
@@ -47,7 +47,7 @@ export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) 
         )}
 
         <div className="mt-4 w-full md:mt-0 md:w-3/5">
-          <p className="text-[18px] leading-relaxed text-white">{news.newsContent}</p>
+          <p className="text-[17px] leading-relaxed text-white">{news.newsContent}</p>
         </div>
       </div>
     </div>
