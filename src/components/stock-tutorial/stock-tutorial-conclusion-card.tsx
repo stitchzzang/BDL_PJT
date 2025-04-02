@@ -26,35 +26,61 @@ export const StockTutorialConclusionCard = ({
       {trades.length === 0 ? (
         <p className="text-border-color">아직 거래 내역이 없습니다.</p>
       ) : (
-        trades.map((trade, index) => (
-          <div
-            key={index}
-            className="mb-2 rounded-xl bg-btn-blue-color bg-opacity-20 px-[20px] py-[10px]"
-          >
-            <div className="flex flex-col gap-1">
-              {/* 단계 표시 */}
-              <p className="text-[14px] font-medium text-border-color">{trade.turnNumber}단계</p>
-              <div className="flex justify-between">
-                <h3>
-                  {trade.action === 'wait'
-                    ? '관망'
-                    : `${addCommasToThousand(trade.price)}원 | ${trade.quantity}주`}
-                </h3>
-                <p
-                  className={
-                    trade.action === 'buy'
-                      ? 'text-btn-red-color'
-                      : trade.action === 'sell'
-                        ? 'text-btn-blue-color'
-                        : 'text-border-color'
-                  }
-                >
-                  {trade.action === 'buy' ? '구매' : trade.action === 'sell' ? '판매' : '관망'}
-                </p>
-              </div>
+        <div>
+          {/* 단계별로 그룹화하여 표시 */}
+          {[...new Set(trades.map((trade) => trade.turnNumber))].map((turnNumber) => (
+            <div key={turnNumber} className="mb-5">
+              <div className="mb-2 text-[16px] text-white opacity-80">{turnNumber}단계</div>
+
+              {trades
+                .filter((trade) => trade.turnNumber === turnNumber)
+                .map((trade, index) => (
+                  <div
+                    key={index}
+                    className={`mb-2 rounded-xl px-[20px] py-[10px] ${
+                      trade.action === 'buy'
+                        ? 'bg-[#3A1D24]' // 구매 - 어두운 빨간색 배경
+                        : trade.action === 'sell'
+                          ? 'bg-[#1D2B3A]' // 판매 - 어두운 파란색 배경
+                          : 'bg-[#222738]' // 관망 - 기본 어두운 배경
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      {/* 금액과 수량 정보 */}
+                      <div>
+                        {trade.action === 'wait' ? (
+                          <span className="text-white">관망</span>
+                        ) : (
+                          <span className="text-white text-[18px] font-medium">
+                            {addCommasToThousand(trade.price)}원 | {trade.quantity}주
+                          </span>
+                        )}
+                      </div>
+
+                      {/* 매수/매도 표시 */}
+                      <div>
+                        <span
+                          className={`font-medium ${
+                            trade.action === 'buy'
+                              ? 'text-btn-red-color'
+                              : trade.action === 'sell'
+                                ? 'text-btn-blue-color'
+                                : 'text-border-color'
+                          }`}
+                        >
+                          {trade.action === 'buy'
+                            ? '구매'
+                            : trade.action === 'sell'
+                              ? '판매'
+                              : '관망'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
 
       {isCompleted && feedback && (
