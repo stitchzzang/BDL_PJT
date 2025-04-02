@@ -46,9 +46,11 @@ import {
 import ChartComponent from '@/components/ui/chart-tutorial';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
-// 거래 기록을 위한 타입 정의
+// 거래 기록을 위한 타입 정의 (외부 컴포넌트와 호환되는 타입)
+type TradeAction = 'buy' | 'sell' | 'wait';
+
 interface TradeRecord {
-  action: 'buy' | 'sell';
+  action: TradeAction;
   price: number;
   quantity: number;
   timestamp: Date;
@@ -130,6 +132,8 @@ export const SimulatePage = () => {
   const isFirstRender = useRef(true);
   // 현재 진행 중인 턴 번호 (1~4)
   const [currentTurn, setCurrentTurn] = useState<number>(0);
+  // 현재 턴이 완료되었는지 여부를 추적하는 상태 추가
+  const [isCurrentTurnCompleted, setIsCurrentTurnCompleted] = useState(false);
   // 차트 데이터 로딩 상태 추가
   const [isChartLoading, setIsChartLoading] = useState(false);
   // 차트 데이터 로딩 오류 여부 추가
@@ -221,7 +225,7 @@ export const SimulatePage = () => {
   );
 
   // 변곡점 날짜 한 번에 조회 (useGetPointDates 사용)
-  const { pointDates: pointDatesFromAPI, isLoading: isPointDatesLoading } = useGetPointDates(
+  const { pointDates: pointDatesFromAPI } = useGetPointDates(
     top3PointsResponse?.result?.PointResponseList || [],
   );
 
@@ -281,6 +285,7 @@ export const SimulatePage = () => {
   useEffect(() => {
     if (isTutorialStarted && pointDates.length >= 3 && currentTurn === 0) {
       setCurrentTurn(1);
+      setIsCurrentTurnCompleted(false);
     }
   }, [isTutorialStarted, pointDates.length, currentTurn]);
 
@@ -359,6 +364,7 @@ export const SimulatePage = () => {
       try {
         setIsChartLoading(true);
         setHasChartError(false);
+        setIsCurrentTurnCompleted(false);
 
         // 섹션 데이터 사용 (API 직접 호출 대신)
         if (sectionStockData?.result) {
@@ -383,10 +389,10 @@ export const SimulatePage = () => {
                 data: [] as StockCandle[],
               };
 
-              // 이전 턴들의 데이터 모두 누적
+              // 이전 턴들의 데이터를 누적
               for (let i = 1; i <= currentTurn; i++) {
                 const turnData = turnChartData[i];
-                if (turnData && turnData.data.length > 0) {
+                if (turnData && turnData.data && turnData.data.length > 0) {
                   accumulatedData.data = [...accumulatedData.data, ...turnData.data];
                 }
               }
@@ -645,9 +651,19 @@ export const SimulatePage = () => {
     saveTutorialResult,
   ]);
 
+  // 다음 턴으로 이동하는 함수
+  const moveToNextTurn = useCallback(() => {
+    if (currentTurn < 4) {
+      setCurrentTurn((prevTurn) => prevTurn + 1);
+      setIsCurrentTurnCompleted(false);
+    } else {
+      completeTutorial();
+    }
+  }, [currentTurn, completeTutorial]);
+
   // 거래 처리 핸들러 - 상태 업데이트를 useCallback으로 메모이제이션
   const handleTrade = useCallback(
-    (action: 'buy' | 'sell', price: number, quantity: number) => {
+    (action: 'buy' | 'sell' | 'wait', price: number, quantity: number) => {
       if (!isTutorialStarted || !top3Points || !memberId || currentTurn === 0) {
         return;
       }
@@ -680,7 +696,7 @@ export const SimulatePage = () => {
             const assetResults = response.result?.AssetResponse;
 
             // 거래 기록 추가
-            if (price > 0 && quantity > 0) {
+            if ((price > 0 && quantity > 0) || action === 'wait') {
               setTrades((prev) => [
                 ...prev,
                 {
@@ -708,12 +724,8 @@ export const SimulatePage = () => {
               }));
             }
 
-            // 다음 턴으로 이동
-            if (currentTurn < 4) {
-              setCurrentTurn((prevTurn) => prevTurn + 1);
-            } else {
-              completeTutorial();
-            }
+            // 현재 턴 완료 처리
+            setIsCurrentTurnCompleted(true);
           },
         },
       );
@@ -726,13 +738,18 @@ export const SimulatePage = () => {
       pointStockCandleIds,
       companyId,
       processUserAction,
-      completeTutorial,
       stockData,
     ],
   );
 
   // 튜토리얼 시작 핸들러 - 메모이제이션
   const handleTutorialStart = useCallback(() => {
+    // 이미 튜토리얼이 시작된 상태에서 다음 턴으로 이동
+    if (isTutorialStarted && isCurrentTurnCompleted) {
+      moveToNextTurn();
+      return;
+    }
+
     if (!memberId) {
       alert('사용자 정보를 가져올 수 없습니다.');
       return;
@@ -758,7 +775,15 @@ export const SimulatePage = () => {
         },
       },
     );
-  }, [companyId, initSession, memberId, refetchTop3Points]);
+  }, [
+    companyId,
+    initSession,
+    memberId,
+    refetchTop3Points,
+    isTutorialStarted,
+    isCurrentTurnCompleted,
+    moveToNextTurn,
+  ]);
 
   // 결과 확인 페이지로 이동 - 메모이제이션
   const handleNavigateToResult = useCallback(() => {
@@ -772,6 +797,19 @@ export const SimulatePage = () => {
     setIsModalOpen(false);
   }, [navigate]);
 
+  // 튜토리얼 버튼 텍스트 생성
+  const getTutorialButtonText = useCallback(() => {
+    if (!isTutorialStarted) {
+      return '튜토리얼 시작하기';
+    }
+
+    if (isCurrentTurnCompleted) {
+      return currentTurn < 4 ? '다음 턴으로' : '결과 확인하기';
+    }
+
+    return '현재 턴 진행 중...';
+  }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn]);
+
   return (
     <div className="flex h-full w-full flex-col px-6">
       <div>
@@ -780,6 +818,8 @@ export const SimulatePage = () => {
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
           currentTurn={currentTurn}
+          isCurrentTurnCompleted={isCurrentTurnCompleted}
+          buttonText={getTutorialButtonText()}
         />
         <div className="my-[25px]">
           <StockProgress progress={progress} />
@@ -844,7 +884,7 @@ export const SimulatePage = () => {
         <div className="col-span-2">
           <TutorialOrderStatus
             onTrade={handleTrade}
-            isSessionActive={isTutorialStarted && progress < 100}
+            isSessionActive={isTutorialStarted && progress < 100 && !isCurrentTurnCompleted}
             companyId={companyId}
             latestPrice={latestPrice}
           />

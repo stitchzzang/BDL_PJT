@@ -2,7 +2,7 @@ import { StockTutorialConclusionCard } from '@/components/stock-tutorial/stock-t
 
 // TradeRecord 인터페이스 정의
 interface TradeRecord {
-  action: 'buy' | 'sell';
+  action: 'buy' | 'sell' | 'wait';
   price: number;
   quantity: number;
   timestamp: Date;

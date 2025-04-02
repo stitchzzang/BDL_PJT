@@ -36,6 +36,8 @@ export interface StockInfoProps {
   isTutorialStarted?: boolean;
   onTutorialStart?: () => void;
   currentTurn?: number;
+  isCurrentTurnCompleted?: boolean;
+  buttonText?: string;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -69,6 +71,8 @@ export const StockTutorialInfo = ({
   isTutorialStarted = false,
   onTutorialStart,
   currentTurn = 0,
+  isCurrentTurnCompleted = false,
+  buttonText,
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -220,17 +224,22 @@ export const StockTutorialInfo = ({
                 variant={'green'}
                 size={'lg'}
                 onClick={handleTutorialStart}
-                disabled={isTutorialStarted || initSessionMutation.isPending || !companyInfo}
+                disabled={
+                  (isTutorialStarted && !isCurrentTurnCompleted) ||
+                  initSessionMutation.isPending ||
+                  !companyInfo
+                }
               >
-                {isTutorialStarted
-                  ? currentTurn === 4
-                    ? '튜토리얼 완료'
-                    : currentTurn > 0
-                      ? '다음 턴으로'
-                      : '튜토리얼 진행중'
-                  : initSessionMutation.isPending
-                    ? '초기화 중...'
-                    : '튜토리얼 시작하기'}
+                {buttonText ||
+                  (isTutorialStarted
+                    ? currentTurn === 4
+                      ? '튜토리얼 완료'
+                      : currentTurn > 0
+                        ? '다음 턴으로'
+                        : '튜토리얼 진행중'
+                    : initSessionMutation.isPending
+                      ? '초기화 중...'
+                      : '튜토리얼 시작하기')}
               </Button>
             </div>
           </div>

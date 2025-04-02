@@ -6,7 +6,7 @@ import { TutorialOrderStatusShell } from '@/components/stock-tutorial/stock-tuto
 import { TutorialOrderStatusWait } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-wait';
 
 export interface TutorialOrderStatusProps {
-  onTrade: (action: 'buy' | 'sell', price: number, quantity: number) => void;
+  onTrade: (action: 'buy' | 'sell' | 'wait', price: number, quantity: number) => void;
   isSessionActive: boolean;
   companyId: number;
   latestPrice: number;
@@ -32,8 +32,8 @@ export const TutorialOrderStatus = ({
   // 관망 처리 함수
   const handleWait = () => {
     if (!isSessionActive) return;
-    // 관망은 0원에 0주 구매로 처리 (서버에서는 관망으로 인식)
-    onTrade('buy', 0, 0);
+    // 관망은 'wait' 액션으로 처리
+    onTrade('wait', 0, 0);
   };
 
   return (

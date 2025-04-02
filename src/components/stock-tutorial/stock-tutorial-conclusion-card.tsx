@@ -2,7 +2,7 @@ import { addCommasToThousand } from '@/utils/numberFormatter';
 
 // TradeRecord 인터페이스 정의
 interface TradeRecord {
-  action: 'buy' | 'sell';
+  action: 'buy' | 'sell' | 'wait';
   price: number;
   quantity: number;
   timestamp: Date;
@@ -32,10 +32,20 @@ export const StockTutorialConclusionCard = ({
           >
             <div className="flex justify-between">
               <h3>
-                {addCommasToThousand(trade.price)}원 | {trade.quantity}주
+                {trade.action === 'wait'
+                  ? '관망'
+                  : `${addCommasToThousand(trade.price)}원 | ${trade.quantity}주`}
               </h3>
-              <p className={trade.action === 'buy' ? 'text-btn-red-color' : 'text-btn-blue-color'}>
-                {trade.action === 'buy' ? '구매' : '판매'}
+              <p
+                className={
+                  trade.action === 'buy'
+                    ? 'text-btn-red-color'
+                    : trade.action === 'sell'
+                      ? 'text-btn-blue-color'
+                      : 'text-border-color'
+                }
+              >
+                {trade.action === 'buy' ? '구매' : trade.action === 'sell' ? '판매' : '관망'}
               </p>
             </div>
           </div>
