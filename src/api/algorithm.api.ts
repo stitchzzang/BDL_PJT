@@ -10,7 +10,7 @@ export const algorithmAPI = {
     _kyAuth.post(`algorithm/${memberId}`, { json: algorithm }).json<ApiResponse<Algorithm>>(),
   getAlgorithm: (memberId: string) =>
     _kyAuth.get(`algorithm/${memberId}`).json<ApiResponse<AlgorithmResponse>>(),
-  deleteAlgorithm: (memberId: string, algorithmId: string) =>
+  deleteAlgorithm: (memberId: string | undefined, algorithmId: string) =>
     _kyAuth.delete(`algorithm/${memberId}/${algorithmId}`).json<ApiResponse<void>>(),
 };
 
@@ -35,7 +35,12 @@ export const useGetAlgorithm = (memberId: string) => {
 
 export const useDeleteAlgorithm = () => {
   return useMutation({
-    mutationFn: ({ memberId, algorithmId }: { memberId: string; algorithmId: string }) =>
-      algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
+    mutationFn: ({
+      memberId,
+      algorithmId,
+    }: {
+      memberId: string | undefined;
+      algorithmId: string;
+    }) => algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
   });
 };
