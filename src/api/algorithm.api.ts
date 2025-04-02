@@ -15,6 +15,7 @@ export const algorithmAPI = {
 };
 
 export const useCreateAlgorithm = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       memberId,
@@ -23,6 +24,9 @@ export const useCreateAlgorithm = () => {
       memberId: string;
       algorithm: CreateAlgorithmRequest;
     }) => algorithmAPI.createAlgorithm(memberId, algorithm).then((res) => res.result),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['algorithms'] });
+    },
   });
 };
 
