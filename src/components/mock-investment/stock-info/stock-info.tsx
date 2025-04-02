@@ -1,4 +1,4 @@
-import { useGetAlgorithm } from '@/api/algorithm.api';
+import { useGetAlgorithm, useStartAlgorithm } from '@/api/algorithm.api';
 import { CompanyInfo, TickData } from '@/api/types/stock';
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ interface StockInfoProps {
   tickData: TickData | null;
   closePrice: number;
   comparePrice?: number;
+  companyId: number;
 }
 
 export const StockInfo = ({
@@ -29,9 +30,28 @@ export const StockInfo = ({
   tickData,
   closePrice,
   comparePrice,
+  companyId,
 }: StockInfoProps) => {
   // 알고리즘 리스트
   const { userData } = useAuthStore();
+  // 알고리즘 시작
+  const StartAlgorithm = useStartAlgorithm();
+  const handleStartAlgorithm = (algorithmId: number) => {
+    StartAlgorithm.mutate(
+      {
+        algorithmId,
+        companyId,
+      },
+      {
+        onSuccess: (message) => {
+          alert('알고리즘 시작 성공:');
+        },
+        onError: (error) => {
+          console.error('알고리즘 시작 실패:', error);
+        },
+      },
+    );
+  };
   const {
     data: algorithms,
     isLoading,
@@ -110,8 +130,13 @@ export const StockInfo = ({
                           {algorithms?.length !== 0 && algorithms ? (
                             <div>
                               {algorithms.map((algorithm) => (
-                                <div className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 transition-all duration-300 hover:bg-modal-background-color">
+                                <div
+                                  onClick={() => handleStartAlgorithm(algorithm.algorithmId)}
+                                  className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
+                                >
                                   <p>{algorithm.algorithmName}</p>
+                                  <p>{algorithm.algorithmId}</p>
+                                  <p>{companyId}</p>
                                 </div>
                               ))}
                             </div>

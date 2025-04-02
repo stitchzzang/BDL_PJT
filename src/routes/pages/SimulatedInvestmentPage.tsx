@@ -94,6 +94,7 @@ export const SimulatedInvestmentPage = () => {
           tickData={tickData}
           closePrice={closePrice}
           comparePrice={comparePrice}
+          companyId={stockCompanyId}
         />
       </div>
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
