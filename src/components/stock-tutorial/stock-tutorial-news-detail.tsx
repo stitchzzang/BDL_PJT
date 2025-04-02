@@ -17,7 +17,7 @@ export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) 
   return (
     <div className="rounded-xl bg-modal-background-color p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-[23px] font-bold">{news.newsTitle}</h2>
+        <h2 className="text-[23px] font-bold ">{news.newsTitle}</h2>
         <p className="text-[18px] text-border-color">
           {new Date(news.newsDate).toLocaleDateString('ko-KR')}
         </p>
