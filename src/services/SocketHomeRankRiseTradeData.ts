@@ -5,15 +5,15 @@ import SockJS from 'sockjs-client';
 import { HomeCompanyRankTradeData } from '@/api/types/home';
 
 // 커스텀 훅
-export const useRankTradeDataConnection = () => {
+export const useRankRiseTradeDataConnection = (category: string) => {
   const stompClientRef = useRef<Client | null>(null);
   const [IsConnected, setIsConnected] = useState<boolean>(false);
 
   // 연결함수
-  const connectionRankTradeData = useCallback(
+  const connectionRankRiseTradeData = useCallback(
     (setRank: (data: HomeCompanyRankTradeData) => void) => {
       //기존 연결일 경우 해제
-      disconnectRankTradeData();
+      disconnectRankRiseTradeData();
 
       //인스턴스 생성
       //https://j12d202.p.ssafy.io/ws
@@ -39,7 +39,7 @@ export const useRankTradeDataConnection = () => {
         console.log('소켓 연결', frame);
 
         // 주제 구독
-        client.subscribe(`/topic/ranking/tradeData`, (message) => {
+        client.subscribe(`/topic/ranking/${category}/tradeData`, (message) => {
           try {
             // 메시지 처리 - 호가 데이터가 들어옴
             const receivedData = JSON.parse(message.body);
@@ -69,7 +69,7 @@ export const useRankTradeDataConnection = () => {
   );
 
   // 연결 해제 함수
-  const disconnectRankTradeData = useCallback(() => {
+  const disconnectRankRiseTradeData = useCallback(() => {
     console.log('소켓 연결 해제(disconnect)');
     if (stompClientRef.current) {
       try {
@@ -85,13 +85,13 @@ export const useRankTradeDataConnection = () => {
   // 컴포넌트 언마운트 시 자동 연결 해제
   useEffect(() => {
     return () => {
-      disconnectRankTradeData();
+      disconnectRankRiseTradeData();
     };
-  }, [disconnectRankTradeData]);
+  }, [disconnectRankRiseTradeData]);
 
   return {
     IsConnected,
-    connectionRankTradeData,
-    disconnectRankTradeData,
+    connectionRankRiseTradeData,
+    disconnectRankRiseTradeData,
   };
 };

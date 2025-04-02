@@ -38,7 +38,7 @@ export const useRankVolumeConnection = () => {
       console.log('소켓 연결', frame);
 
       // 주제 구독
-      client.subscribe(`/topic/ranking/update`, (message) => {
+      client.subscribe(`/app/topic/ranking/update`, (message) => {
         try {
           // 메시지 처리 - 호가 데이터가 들어옴
           const receivedData = JSON.parse(message.body);
