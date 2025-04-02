@@ -110,6 +110,7 @@ export const useGetTutorialStockData = (companyId: number, startDate: string, en
  * @param inflectionPoints 변곡점 배열 (상위 3개 변곡점)
  * @param startDate 전체 기간 시작 날짜 (YYMMDD)
  * @param endDate 전체 기간 종료 날짜 (YYMMDD)
+ * @param pointDates 변곡점 날짜 배열 (YYMMDD 형식, 최대 3개)
  */
 export const useGetSectionTutorialStockData = (
   companyId: number,
@@ -117,6 +118,7 @@ export const useGetSectionTutorialStockData = (
   inflectionPoints: Point[],
   startDate: string,
   endDate: string,
+  pointDates: string[] = [],
 ) => {
   // 구간의 시작과 끝 날짜 계산
   const getStartAndEndDate = () => {
@@ -130,47 +132,28 @@ export const useGetSectionTutorialStockData = (
       return { startDate, endDate };
     }
 
-    // 변곡점 날짜 가져오기 필요 (API 호출 필요)
-    // 실제 구현에서는 inflectionPoints의 stockCandleId를 이용해
-    // useGetPointDate API를 호출하여 각 변곡점의 날짜를 가져와야 함
-
-    // 여기서는 임시로 날짜를 계산 (실제 구현 필요)
-    const getDateForPoint = (index: number) => {
-      if (index < 0 || index >= inflectionPoints.length) {
-        return index < 0 ? startDate : endDate;
-      }
-
-      // 실제로는 API를 통해 날짜를 가져와야 함
-      // 현재는 임시 구현: 전체 기간을 4등분하여 날짜 배치
-      const startTime = new Date(
-        `20${startDate.slice(0, 2)}-${startDate.slice(2, 4)}-${startDate.slice(4, 6)}`,
-      ).getTime();
-      const endTime = new Date(
-        `20${endDate.slice(0, 2)}-${endDate.slice(2, 4)}-${endDate.slice(4, 6)}`,
-      ).getTime();
-      const interval = (endTime - startTime) / 4;
-
-      const pointTime = startTime + interval * (index + 1);
-      const pointDate = new Date(pointTime);
-
-      // YYMMDD 형식으로 변환
-      const yy = pointDate.getFullYear().toString().slice(2);
-      const mm = (pointDate.getMonth() + 1).toString().padStart(2, '0');
-      const dd = pointDate.getDate().toString().padStart(2, '0');
-
-      return `${yy}${mm}${dd}`;
-    };
-
     // 구간에 따른 시작점과 끝점 계산
     switch (sectionNumber) {
       case 0: // 시작점 ~ 변곡점1
-        return { startDate, endDate: getDateForPoint(0) };
+        return {
+          startDate,
+          endDate: pointDates[0] || endDate,
+        };
       case 1: // 변곡점1 ~ 변곡점2
-        return { startDate: getDateForPoint(0), endDate: getDateForPoint(1) };
+        return {
+          startDate: pointDates[0] || startDate,
+          endDate: pointDates[1] || endDate,
+        };
       case 2: // 변곡점2 ~ 변곡점3
-        return { startDate: getDateForPoint(1), endDate: getDateForPoint(2) };
+        return {
+          startDate: pointDates[1] || pointDates[0] || startDate,
+          endDate: pointDates[2] || endDate,
+        };
       case 3: // 변곡점3 ~ 최근점
-        return { startDate: getDateForPoint(2), endDate };
+        return {
+          startDate: pointDates[2] || pointDates[1] || pointDates[0] || startDate,
+          endDate,
+        };
       default:
         return { startDate, endDate };
     }
@@ -179,7 +162,16 @@ export const useGetSectionTutorialStockData = (
   const range = getStartAndEndDate();
 
   return useQuery({
-    queryKey: ['tutorial', 'stocks', 'section', companyId, sectionNumber, startDate, endDate],
+    queryKey: [
+      'tutorial',
+      'stocks',
+      'section',
+      companyId,
+      sectionNumber,
+      startDate,
+      endDate,
+      ...pointDates,
+    ],
     queryFn: async () => {
       if (!range) {
         throw new Error('날짜 범위를 계산할 수 없습니다.');
@@ -191,6 +183,43 @@ export const useGetSectionTutorialStockData = (
     },
     enabled: !!companyId && !!range && !!startDate && !!endDate,
   });
+};
+
+/**
+ * 변곡점 날짜 배열을 가져오는 API
+ * 최대 3개의 변곡점에 대한 날짜 정보를 배열로 반환
+ *
+ * @param inflectionPoints 변곡점 배열 (Point 타입)
+ */
+export const useGetPointDates = (inflectionPoints: Point[]) => {
+  // 첫 번째 변곡점 날짜 쿼리
+  const point1Id = inflectionPoints[0]?.stockCandleId || 0;
+  const point1Query = useGetPointDate(point1Id);
+
+  // 두 번째 변곡점 날짜 쿼리
+  const point2Id = inflectionPoints[1]?.stockCandleId || 0;
+  const point2Query = useGetPointDate(point2Id);
+
+  // 세 번째 변곡점 날짜 쿼리
+  const point3Id = inflectionPoints[2]?.stockCandleId || 0;
+  const point3Query = useGetPointDate(point3Id);
+
+  // 데이터 로딩 상태 및 결과 배열 생성
+  const isLoading = point1Query.isLoading || point2Query.isLoading || point3Query.isLoading;
+  const isError = point1Query.isError || point2Query.isError || point3Query.isError;
+
+  // 결과 배열 생성
+  const pointDates: string[] = [];
+  if (point1Query.data?.result) pointDates[0] = point1Query.data.result;
+  if (point2Query.data?.result) pointDates[1] = point2Query.data.result;
+  if (point3Query.data?.result) pointDates[2] = point3Query.data.result;
+
+  return {
+    pointDates,
+    isLoading,
+    isError,
+    queries: [point1Query, point2Query, point3Query],
+  };
 };
 
 /**

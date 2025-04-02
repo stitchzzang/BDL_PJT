@@ -7,7 +7,8 @@ import {
   useGetCurrentNews,
   useGetNewsComment,
   useGetPastNews,
-  useGetPointDate,
+  useGetPointDates,
+  useGetSectionTutorialStockData,
   useGetTop3Points,
   useGetTutorialFeedback,
   useGetTutorialStockData,
@@ -219,9 +220,10 @@ export const SimulatePage = () => {
     [top3PointsResponse],
   );
 
-  const point1DateQuery = useGetPointDate(pointStockCandleIds[0] || 0);
-  const point2DateQuery = useGetPointDate(pointStockCandleIds[1] || 0);
-  const point3DateQuery = useGetPointDate(pointStockCandleIds[2] || 0);
+  // 변곡점 날짜 한 번에 조회 (useGetPointDates 사용)
+  const { pointDates: pointDatesFromAPI, isLoading: isPointDatesLoading } = useGetPointDates(
+    top3PointsResponse?.result?.PointResponseList || [],
+  );
 
   // 세션별 주식 데이터 가져오기를 위한 커스텀 훅
   const { refetch: fetchSessionData } = useGetTutorialStockData(
@@ -229,6 +231,17 @@ export const SimulatePage = () => {
     currentSession.startDate,
     currentSession.endDate,
   );
+
+  // 현재 턴에 맞는 섹션 주식 데이터 가져오기
+  const { data: sectionStockData, isLoading: isSectionDataLoading } =
+    useGetSectionTutorialStockData(
+      companyId,
+      currentTurn > 0 ? currentTurn - 1 : 0, // 턴 번호를 섹션 번호로 변환 (1턴 -> 0섹션)
+      top3PointsResponse?.result?.PointResponseList || [],
+      defaultStartDate,
+      defaultEndDate,
+      pointDatesFromAPI,
+    );
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
@@ -255,30 +268,14 @@ export const SimulatePage = () => {
       return;
     }
 
-    // 변곡점 날짜 추출 (point date query가 변경되었을 때만)
-    const pointsDataChanged =
-      point1DateQuery.data?.result || point2DateQuery.data?.result || point3DateQuery.data?.result;
-
-    if (pointsDataChanged) {
-      const dates: string[] = [];
-
-      if (point1DateQuery.data?.result) {
-        dates[0] = point1DateQuery.data.result;
-      }
-
-      if (point2DateQuery.data?.result) {
-        dates[1] = point2DateQuery.data.result;
-      }
-
-      if (point3DateQuery.data?.result) {
-        dates[2] = point3DateQuery.data.result;
-      }
-
-      if (dates.length > 0 && JSON.stringify(dates) !== JSON.stringify(pointDates)) {
-        setPointDates(dates);
-      }
+    // API에서 가져온 변곡점 날짜 사용
+    if (
+      pointDatesFromAPI.length > 0 &&
+      JSON.stringify(pointDatesFromAPI) !== JSON.stringify(pointDates)
+    ) {
+      setPointDates(pointDatesFromAPI);
     }
-  }, [point1DateQuery.data, point2DateQuery.data, point3DateQuery.data, pointDates]);
+  }, [pointDatesFromAPI, pointDates]);
 
   // 튜토리얼 시작 시 초기 데이터 설정 및 턴 관리
   useEffect(() => {
@@ -362,11 +359,10 @@ export const SimulatePage = () => {
       try {
         setIsChartLoading(true);
         setHasChartError(false);
-        // 현재 세션의 주식 데이터 로드
-        const sessionResponse = await fetchSessionData();
 
-        if (sessionResponse.data?.result) {
-          const result = sessionResponse.data.result;
+        // 섹션 데이터 사용 (API 직접 호출 대신)
+        if (sectionStockData?.result) {
+          const result = sectionStockData.result;
 
           if (result.data && result.data.length > 0) {
             // 현재 턴의 데이터를 저장
@@ -422,11 +418,79 @@ export const SimulatePage = () => {
               const lastCandle = dayCandles[dayCandles.length - 1];
               setLatestPrice(lastCandle.closePrice);
             }
+
+            setIsChartLoading(false);
           } else {
             setHasChartError(true);
+            setIsChartLoading(false);
           }
-        } else {
-          setHasChartError(true);
+        } else if (!isSectionDataLoading) {
+          // 기존 세션 데이터 로드 로직은 그대로 유지 (만약 섹션 데이터가 없을 경우)
+          const sessionResponse = await fetchSessionData();
+
+          if (sessionResponse.data?.result) {
+            const result = sessionResponse.data.result;
+
+            if (result.data && result.data.length > 0) {
+              // 현재 턴의 데이터를 저장
+              setStockData(result);
+              setTurnChartData((prev) => ({
+                ...prev,
+                [currentTurn]: result,
+              }));
+
+              // 현재 세션이 첫 번째 턴인 경우 fullChartData도 설정
+              if (currentTurn === 1) {
+                setFullChartData(result);
+                setAccumulatedChartData(result);
+              } else {
+                // 현재 턴까지의 모든 데이터를 누적
+                const accumulatedData = {
+                  ...result,
+                  data: [] as StockCandle[],
+                };
+
+                // 이전 턴들의 데이터 모두 누적
+                for (let i = 1; i <= currentTurn; i++) {
+                  const turnData = turnChartData[i];
+                  if (turnData && turnData.data.length > 0) {
+                    accumulatedData.data = [...accumulatedData.data, ...turnData.data];
+                  }
+                }
+
+                // 중복 데이터 제거 (stockCandleId 기준)
+                const uniqueData = accumulatedData.data.reduce(
+                  (acc: StockCandle[], curr: StockCandle) => {
+                    const isDuplicate = acc.some(
+                      (item) => item.stockCandleId === curr.stockCandleId,
+                    );
+                    if (!isDuplicate) {
+                      acc.push(curr);
+                    }
+                    return acc;
+                  },
+                  [] as StockCandle[],
+                );
+
+                // 날짜순 정렬
+                const sortedData = [...uniqueData].sort((a, b) => {
+                  return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
+                });
+
+                accumulatedData.data = sortedData;
+                setAccumulatedChartData(accumulatedData);
+              }
+
+              // 최신 가격 설정
+              const dayCandles = result.data.filter(
+                (candle: StockCandle) => candle.periodType === 1,
+              );
+              if (dayCandles.length > 0) {
+                const lastCandle = dayCandles[dayCandles.length - 1];
+                setLatestPrice(lastCandle.closePrice);
+              }
+            }
+          }
         }
 
         // 과거 뉴스 목록 가져오기 (2턴 이상부터)
@@ -476,7 +540,6 @@ export const SimulatePage = () => {
         }
       } catch {
         setHasChartError(true);
-      } finally {
         setIsChartLoading(false);
       }
     };
@@ -494,6 +557,8 @@ export const SimulatePage = () => {
     getNewsComment,
     getCurrentNews,
     turnChartData,
+    sectionStockData,
+    isSectionDataLoading,
   ]);
 
   // 차트 데이터에서 실제 날짜 범위 업데이트
