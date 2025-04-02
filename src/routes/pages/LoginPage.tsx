@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { useLogin } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';

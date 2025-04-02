@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { toast } from 'react-hot-toast';
 import { Navigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import NoneLogo from '/none-img/none-logo.png';
 import { BuildingAnimation } from '@/components/common/building-animation';

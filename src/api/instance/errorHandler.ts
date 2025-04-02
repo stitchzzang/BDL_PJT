@@ -1,6 +1,6 @@
 // 상수 정의
 import { HTTPError } from 'ky';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 
 const ERROR_CODES = {
   // 1000번대: 회원 관련 오류
