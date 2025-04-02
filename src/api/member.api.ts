@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
 import { toast } from 'react-toastify';
 
-import { _ky } from '@/api/instance';
+import { _ky, _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
 import { AccountSummaryResponse, MemberInfo, MemberPassword } from '@/api/types/member';
@@ -38,13 +38,13 @@ export const memberApi = {
   },
 
   updateMemberPassword: (memberId: string, data: MemberPassword) =>
-    _ky.post<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
+    _kyAuth.post<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
 
   getAccountSummary: (memberId: string) =>
-    _ky.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
+    _kyAuth.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
 
   resetAccount: (memberId: string) =>
-    _ky.delete<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
+    _kyAuth.delete<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
 };
 
 export const useMemberInfo = (memberId: string) => {

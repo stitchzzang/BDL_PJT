@@ -1,7 +1,7 @@
 // 튜토리얼 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { _ky } from '@/api/instance';
+import { _ky, _kyAuth } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
   AssetResponse,
@@ -67,7 +67,7 @@ export const tutorialAPI = {
 
   // 멤버별 튜토리얼 결과 리스트
   getTutorialResults: (memberId: number) =>
-    _ky
+    _kyAuth
       .get(`tutorial/result/${memberId}`)
       .json<ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>>(),
 };
@@ -165,7 +165,7 @@ export const useGetTutorialResults = (memberId: number) => {
 };
 export const tutorialApi = {
   getTutorialResults: ({ memberId }: { memberId: string }) =>
-    _ky.get<ApiResponse<TutorialResultResponse[]>>(`tutorial/result/${memberId}`).json(),
+    _kyAuth.get<ApiResponse<TutorialResultResponse[]>>(`tutorial/result/${memberId}`).json(),
 };
 
 export const useTutorialResults = ({ memberId }: { memberId: string }) => {
