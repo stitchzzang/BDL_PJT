@@ -20,8 +20,6 @@ interface SearchedCompanyListItemProps {
 export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProps) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const isPositive = company.closePricePercent > 0;
-  const isNegative = company.closePricePercent < 0;
 
   const handleMockInvestment = () => {
     setIsDialogOpen(true);
@@ -51,23 +49,8 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
         </div>
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-end">
-            <span className="text-text-sub-color text-xs">현재가</span>
+            <span className="text-text-sub-color text-xs">종가</span>
             <p className="text-base font-medium">{company.closePrice.toLocaleString()}원</p>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className="text-text-sub-color text-xs">등락률</span>
-            <p
-              className={`text-sm font-medium ${
-                isPositive
-                  ? 'text-btn-green-color'
-                  : isNegative
-                    ? 'text-btn-red-color'
-                    : 'text-text-main-color'
-              }`}
-            >
-              {isPositive ? '+' : ''}
-              {company.closePricePercent.toFixed(2)}%
-            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="blue" size="sm" onClick={handleMockInvestment} className="text-xs">
@@ -102,11 +85,9 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
             </div>
 
             <div className="my-10 flex w-full items-center justify-center gap-5 rounded-lg bg-[#041021] p-4">
-              <span className="text-[22px] font-bold text-[#4CAF50]">
+              <span className="text-xl font-bold">종가</span>
+              <span className="text-lg font-bold text-[#4CAF50]">
                 {company.closePrice.toLocaleString()}원
-              </span>
-              <span className="text-[22px] text-white">
-                ({company.closePricePercent.toFixed(2)}%)
               </span>
             </div>
 
