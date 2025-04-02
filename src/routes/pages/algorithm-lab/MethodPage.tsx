@@ -5,12 +5,11 @@ import graphMove from '@/assets/lottie/graph-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
+import { TermTooltip } from '@/components/ui/TermTooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 import { addCommasToThousand } from '@/utils/numberFormatter';
-
 export const MethodPage = () => {
   const isValidAccess = useAlgorithmLabGuard('method');
   const navigate = useNavigate();
@@ -53,13 +52,21 @@ export const MethodPage = () => {
       />
       <HelpBadge
         title="투자는 어떤 방식으로 설정할까요?"
-        description="진입/청산 방식을 설정해주세요.
-        선택하신 방법에 따라 알고리즘이 투자를 진행합니다."
+        description={
+          <>
+            <TermTooltip term="진입">진입</TermTooltip> <TermTooltip term="청산">청산</TermTooltip>{' '}
+            방식을 설정해주세요.
+            <br />
+            선택하신 방법에 따라 알고리즘이 투자를 진행합니다.
+          </>
+        }
       />
 
       {/* 진입 방식 설정 */}
       <div className="w-full space-y-4">
-        <p className="text-lg font-bold">진입 방식 설정</p>
+        <p className="text-lg font-bold">
+          <TermTooltip term="진입">진입</TermTooltip> 방식 설정
+        </p>
         <div className="flex gap-4">
           <Button
             variant="blue"
@@ -174,7 +181,9 @@ export const MethodPage = () => {
 
       {/* 청산 방식 설정 */}
       <div className="w-full space-y-4">
-        <p className="text-lg font-bold">청산 방식 설정</p>
+        <p className="text-lg font-bold">
+          <TermTooltip term="청산">청산</TermTooltip> 방식 설정
+        </p>
         <div className="flex gap-4">
           <Button
             variant="blue"
@@ -286,10 +295,10 @@ export const MethodPage = () => {
       </div>
 
       {/* 수수료 포함 여부 */}
-      <div className="flex w-full items-center justify-between">
+      {/* <div className="flex w-full items-center justify-between">
         <p className="text-lg font-bold">수수료 포함</p>
         <Switch checked={isFee} onCheckedChange={setIsFee} />
-      </div>
+      </div> */}
 
       <div className="flex w-full gap-2">
         <Button variant="blue" onClick={() => navigate('/algorithm-lab/style')} className="flex-1">

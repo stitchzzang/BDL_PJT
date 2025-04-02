@@ -129,7 +129,7 @@ export const NamePage = () => {
             <Button
               variant="blue"
               onClick={() => navigate('/algorithm-lab/style')}
-              disabled={!algorithmName.trim()}
+              disabled={!algorithmName.trim() || !!errorMessage}
               className="flex-1 disabled:cursor-not-allowed"
             >
               다음
