@@ -2,13 +2,13 @@ import Lottie from 'lottie-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { _ky } from '@/api/instance';
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
   useGetNewsComment,
   useGetPastNews,
   useGetPointDates,
-  useGetSectionTutorialStockData,
   useGetTop3Points,
   useGetTutorialFeedback,
   useGetTutorialStockData,
@@ -17,6 +17,7 @@ import {
   useSaveTutorialResult,
 } from '@/api/tutorial.api';
 import {
+  ApiResponse,
   AssetResponse,
   NewsResponse,
   NewsResponseWithThumbnail,
@@ -130,6 +131,8 @@ export const SimulatePage = () => {
 
   // 첫 렌더링 여부를 추적하는 ref
   const isFirstRender = useRef(true);
+  // 세션 캐싱을 위한 ref
+  const prevSessionRef = useRef('');
   // 현재 진행 중인 턴 번호 (1~4)
   const [currentTurn, setCurrentTurn] = useState<number>(0);
   // 현재 턴이 완료되었는지 여부를 추적하는 상태 추가
@@ -214,7 +217,7 @@ export const SimulatePage = () => {
   const [pointDates, setPointDates] = useState<string[]>([]);
 
   // API 훅 설정 - 컴포넌트 최상단에 배치
-  const { data: top3PointsResponse, refetch: refetchTop3Points } = useGetTop3Points(companyId);
+  const { data: top3PointsResponse } = useGetTop3Points(companyId);
 
   // 변곡점 날짜 조회를 위한 설정
   const pointStockCandleIds = useMemo(
@@ -223,6 +226,9 @@ export const SimulatePage = () => {
       [],
     [top3PointsResponse],
   );
+
+  // 데이터 추출
+  const top3Points = top3PointsResponse?.result?.PointResponseList;
 
   // 변곡점 날짜 한 번에 조회 (useGetPointDates 사용)
   const { pointDates: pointDatesFromAPI } = useGetPointDates(
@@ -236,62 +242,44 @@ export const SimulatePage = () => {
     currentSession.endDate,
   );
 
-  // 현재 턴에 맞는 섹션 주식 데이터 가져오기
-  const { data: sectionStockData, isLoading: isSectionDataLoading } =
-    useGetSectionTutorialStockData(
-      companyId,
-      currentTurn > 0 ? currentTurn - 1 : 0, // 턴 번호를 섹션 번호로 변환 (1턴 -> 0섹션)
-      top3PointsResponse?.result?.PointResponseList || [],
-      defaultStartDate,
-      defaultEndDate,
-      pointDatesFromAPI,
-    );
+  const { data: tutorialFeedbackResponse } = useGetTutorialFeedback(memberId, {
+    enabled: !!memberId && currentTurn === 4,
+  });
+
+  const tutorialFeedback = tutorialFeedbackResponse?.result;
 
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
   const processUserAction = useProcessUserAction();
-
-  const { data: tutorialFeedbackResponse } = useGetTutorialFeedback(memberId, {
-    enabled: !!memberId && currentTurn === 4,
-  });
-
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
   const initSession = useInitSession();
 
-  // 데이터 추출
-  const top3Points = top3PointsResponse?.result?.PointResponseList;
-  const tutorialFeedback = tutorialFeedbackResponse?.result;
-
-  // 전체 상태 관리 - 하나의 통합된 useEffect
+  // API 초기화 및 변곡점 로드 - 무한 루프 방지를 위해 최초 1회만 실행
   useEffect(() => {
-    // 첫 렌더링 시 추가 로직 방지
     if (isFirstRender.current) {
       isFirstRender.current = false;
-      return;
-    }
 
-    // API에서 가져온 변곡점 날짜 사용
-    if (
-      pointDatesFromAPI.length > 0 &&
-      JSON.stringify(pointDatesFromAPI) !== JSON.stringify(pointDates)
-    ) {
-      setPointDates(pointDatesFromAPI);
+      // 변곡점 데이터가 있으면 날짜 설정
+      if (pointDatesFromAPI.length > 0) {
+        setPointDates(pointDatesFromAPI);
+      }
     }
-  }, [pointDatesFromAPI, pointDates]);
+  }, [pointDatesFromAPI]);
 
   // 튜토리얼 시작 시 초기 데이터 설정 및 턴 관리
+  // 중요: 이 effect는 isTutorialStarted나 currentTurn이 변경될 때만 실행됨
   useEffect(() => {
-    if (isTutorialStarted && pointDates.length >= 3 && currentTurn === 0) {
+    if (isTutorialStarted && currentTurn === 0 && pointDates.length >= 3) {
       // 변곡점 데이터가 로드되었고 튜토리얼이 시작되었으나 현재 턴이 0인 경우, 첫 번째 턴으로 설정
       setCurrentTurn(1);
       setIsCurrentTurnCompleted(false);
       setProgress(25); // 첫 번째 턴 진행률 설정
     }
-  }, [isTutorialStarted, pointDates.length, currentTurn]);
+  }, [isTutorialStarted, currentTurn, pointDates.length]);
 
-  // 현재 턴에 따른 세션 설정
+  // 현재 턴에 따른 세션 설정 - 무한 루프 방지를 위해 currentTurn이 변경될 때만 실행
   useEffect(() => {
     if (!isTutorialStarted || pointDates.length < 3 || currentTurn <= 0) {
       return;
@@ -334,247 +322,215 @@ export const SimulatePage = () => {
       4: 100,
     };
 
-    if (turnToSessionMap[currentTurn]) {
-      const newSession = turnToSessionMap[currentTurn];
-      // 세션이 변경되었을 때만 상태를 업데이트
-      if (JSON.stringify(newSession) !== JSON.stringify(currentSession)) {
-        setCurrentSession(newSession);
-      }
-      setProgress(turnToProgressMap[currentTurn]);
+    const newSession = turnToSessionMap[currentTurn];
+    if (newSession && JSON.stringify(newSession) !== JSON.stringify(currentSession)) {
+      setCurrentSession(newSession);
+      setProgress(turnToProgressMap[currentTurn] || 0);
     }
   }, [
+    currentTurn,
+    defaultEndDate,
+    defaultStartDate,
     isTutorialStarted,
     pointDates,
-    currentTurn,
     currentSession,
-    defaultStartDate,
-    defaultEndDate,
   ]);
 
-  // 세션 변경 시 데이터 로드
+  // 튜토리얼 세션 종료 시 세션 삭제 - 이벤트 핸들러
   useEffect(() => {
-    const loadSessionData = async () => {
-      if (
-        !isTutorialStarted ||
-        !currentSession.startDate ||
-        !currentSession.endDate ||
-        currentTurn === 0
-      ) {
+    return () => {
+      if (isTutorialStarted && memberId) {
+        deleteTutorialSession.mutate(memberId);
+      }
+    };
+  }, [deleteTutorialSession, isTutorialStarted, memberId]);
+
+  // 누적 차트 데이터 업데이트
+  const updateAccumulatedChartData = useCallback(
+    (newData: TutorialStockResponse) => {
+      // 모든 턴의 데이터 수집
+      const allData: StockCandle[] = [];
+
+      // 이전 턴들의 데이터 누적
+      for (let i = 1; i <= currentTurn; i++) {
+        const turnData = turnChartData[i];
+        if (turnData?.data && turnData.data.length > 0) {
+          allData.push(...turnData.data);
+        }
+      }
+
+      // 현재 턴 데이터 추가
+      if (newData.data && newData.data.length > 0) {
+        allData.push(...newData.data);
+      }
+
+      // 중복 제거 및 정렬
+      const uniqueDataMap = new Map<number, StockCandle>();
+      allData.forEach((candle: StockCandle) => {
+        if (!uniqueDataMap.has(candle.stockCandleId)) {
+          uniqueDataMap.set(candle.stockCandleId, candle);
+        }
+      });
+
+      // Map을 배열로 변환하고 날짜순 정렬
+      const sortedData = Array.from(uniqueDataMap.values()).sort(
+        (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+      );
+
+      // 누적 차트 데이터 설정
+      setAccumulatedChartData({
+        ...newData,
+        data: sortedData,
+      });
+    },
+    [currentTurn, turnChartData],
+  );
+
+  // 최신 가격 업데이트
+  const updateLatestPrice = useCallback((data: TutorialStockResponse) => {
+    const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
+    if (dayCandles.length > 0) {
+      const lastCandle = dayCandles[dayCandles.length - 1];
+      setLatestPrice(lastCandle.closePrice);
+    }
+  }, []);
+
+  // 뉴스 데이터 로드
+  const loadNewsData = useCallback(async () => {
+    // 과거 뉴스 목록 가져오기 (2턴 이상부터)
+    if (currentTurn > 1 && pointStockCandleIds.length >= currentTurn) {
+      const startStockCandleId = pointStockCandleIds[currentTurn - 2] || 0;
+      const endStockCandleId = pointStockCandleIds[currentTurn - 1] || 0;
+
+      if (startStockCandleId && endStockCandleId) {
+        getPastNews.mutate(
+          { companyId, startStockCandleId, endStockCandleId },
+          {
+            onSuccess: (result) => {
+              if (result.result && result.result.NewsResponse) {
+                setPastNewsList(result.result.NewsResponse);
+              }
+            },
+          },
+        );
+
+        // 뉴스 코멘트 가져오기
+        getNewsComment.mutate(
+          { companyId, startStockCandleId, endStockCandleId },
+          {
+            onSuccess: (result) => {
+              if (result.result) {
+                setNewsComment(result.result);
+              }
+            },
+          },
+        );
+      }
+    }
+
+    // 현재 뉴스 가져오기
+    if (currentTurn > 0 && currentTurn <= pointStockCandleIds.length) {
+      const pointStockCandleId = pointStockCandleIds[currentTurn - 1];
+      if (pointStockCandleId) {
+        getCurrentNews.mutate(
+          { companyId, stockCandleId: pointStockCandleId },
+          {
+            onSuccess: (result) => {
+              if (result.result) {
+                setCurrentNews(result.result);
+              }
+            },
+          },
+        );
+      }
+    }
+  }, [companyId, currentTurn, getCurrentNews, getNewsComment, getPastNews, pointStockCandleIds]);
+
+  // 차트 데이터 로드 별도 함수 구현 - 무한 루프 방지
+  const loadChartData = useCallback(async () => {
+    if (
+      !isTutorialStarted ||
+      currentTurn === 0 ||
+      !currentSession.startDate ||
+      !currentSession.endDate
+    ) {
+      return;
+    }
+
+    // 중복 로드 방지
+    const sessionKey = `${currentSession.startDate}-${currentSession.endDate}-${currentTurn}`;
+    if (prevSessionRef.current === sessionKey) {
+      return;
+    }
+    prevSessionRef.current = sessionKey;
+
+    try {
+      setIsChartLoading(true);
+      setHasChartError(false);
+
+      // 1. 차트 데이터 가져오기 - API 경로 수정 (/api/ 제거)
+      const apiUrl = `stocks/${companyId}/tutorial?startDate=${currentSession.startDate}&endDate=${currentSession.endDate}`;
+
+      console.log(`튜토리얼 차트 데이터 요청: ${apiUrl}`);
+
+      const stockDataResponse = (await _ky
+        .get(apiUrl)
+        .json()) as ApiResponse<TutorialStockResponse>;
+
+      if (!stockDataResponse?.result?.data || stockDataResponse.result.data.length === 0) {
+        console.log('차트 데이터가 비어있습니다:', stockDataResponse);
+        setHasChartError(true);
+        setIsChartLoading(false);
         return;
       }
 
-      try {
-        setIsChartLoading(true);
-        setHasChartError(false);
-        setIsCurrentTurnCompleted(false);
+      const result = stockDataResponse.result;
 
-        // 섹션 데이터 로드 (currentTurn - 1을 인덱스로 사용)
-        const sectionIndex = currentTurn - 1;
-        if (sectionIndex >= 0 && sectionStockData?.result) {
-          const result = sectionStockData.result;
+      console.log(`차트 데이터 로드 성공: ${result.data.length}개 데이터 포인트`);
 
-          if (result.data && result.data.length > 0) {
-            // 현재 턴의 데이터를 저장
-            setStockData(result);
-            setTurnChartData((prev) => ({
-              ...prev,
-              [currentTurn]: result,
-            }));
+      // 현재 턴의 데이터 저장
+      setStockData(result);
+      setTurnChartData((prev) => ({
+        ...prev,
+        [currentTurn]: result,
+      }));
 
-            // 현재 세션이 첫 번째 턴인 경우 fullChartData도 설정
-            if (currentTurn === 1) {
-              setFullChartData(result);
-              setAccumulatedChartData(result);
-            } else {
-              // 현재 턴까지의 모든 데이터를 누적
-              const accumulatedData = {
-                ...result,
-                data: [] as StockCandle[],
-              };
-
-              // 이전 턴들의 데이터를 누적
-              for (let i = 1; i <= currentTurn; i++) {
-                const turnData = turnChartData[i];
-                if (turnData && turnData.data && turnData.data.length > 0) {
-                  accumulatedData.data = [...accumulatedData.data, ...turnData.data];
-                }
-              }
-
-              // 중복 데이터 제거 (stockCandleId 기준)
-              const uniqueData = accumulatedData.data.reduce(
-                (acc: StockCandle[], curr: StockCandle) => {
-                  const isDuplicate = acc.some((item) => item.stockCandleId === curr.stockCandleId);
-                  if (!isDuplicate) {
-                    acc.push(curr);
-                  }
-                  return acc;
-                },
-                [] as StockCandle[],
-              );
-
-              // 날짜순 정렬
-              const sortedData = [...uniqueData].sort((a, b) => {
-                return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
-              });
-
-              accumulatedData.data = sortedData;
-              setAccumulatedChartData(accumulatedData);
-            }
-
-            // 최신 가격 설정
-            const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
-            if (dayCandles.length > 0) {
-              const lastCandle = dayCandles[dayCandles.length - 1];
-              setLatestPrice(lastCandle.closePrice);
-            }
-
-            setIsChartLoading(false);
-          } else {
-            setHasChartError(true);
-            setIsChartLoading(false);
-          }
-        } else if (!isSectionDataLoading) {
-          // 기존 세션 데이터 로드 로직은 그대로 유지 (만약 섹션 데이터가 없을 경우)
-          const sessionResponse = await fetchSessionData();
-
-          if (sessionResponse.data?.result) {
-            const result = sessionResponse.data.result;
-
-            if (result.data && result.data.length > 0) {
-              // 현재 턴의 데이터를 저장
-              setStockData(result);
-              setTurnChartData((prev) => ({
-                ...prev,
-                [currentTurn]: result,
-              }));
-
-              // 현재 세션이 첫 번째 턴인 경우 fullChartData도 설정
-              if (currentTurn === 1) {
-                setFullChartData(result);
-                setAccumulatedChartData(result);
-              } else {
-                // 현재 턴까지의 모든 데이터를 누적
-                const accumulatedData = {
-                  ...result,
-                  data: [] as StockCandle[],
-                };
-
-                // 이전 턴들의 데이터 모두 누적
-                for (let i = 1; i <= currentTurn; i++) {
-                  const turnData = turnChartData[i];
-                  if (turnData && turnData.data && turnData.data.length > 0) {
-                    accumulatedData.data = [...accumulatedData.data, ...turnData.data];
-                  }
-                }
-
-                // 중복 데이터 제거 (stockCandleId 기준)
-                const uniqueData = accumulatedData.data.reduce(
-                  (acc: StockCandle[], curr: StockCandle) => {
-                    const isDuplicate = acc.some(
-                      (item) => item.stockCandleId === curr.stockCandleId,
-                    );
-                    if (!isDuplicate) {
-                      acc.push(curr);
-                    }
-                    return acc;
-                  },
-                  [] as StockCandle[],
-                );
-
-                // 날짜순 정렬
-                const sortedData = [...uniqueData].sort((a, b) => {
-                  return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
-                });
-
-                accumulatedData.data = sortedData;
-                setAccumulatedChartData(accumulatedData);
-              }
-
-              // 최신 가격 설정
-              const dayCandles = result.data.filter(
-                (candle: StockCandle) => candle.periodType === 1,
-              );
-              if (dayCandles.length > 0) {
-                const lastCandle = dayCandles[dayCandles.length - 1];
-                setLatestPrice(lastCandle.closePrice);
-              }
-            } else {
-              setHasChartError(true);
-            }
-          } else {
-            setHasChartError(true);
-          }
-        }
-
-        // 과거 뉴스 목록 가져오기 (2턴 이상부터)
-        if (currentTurn > 1) {
-          const startStockCandleId = pointStockCandleIds[currentTurn - 2] || 0;
-          const endStockCandleId = pointStockCandleIds[currentTurn - 1] || 0;
-
-          getPastNews.mutate(
-            { companyId, startStockCandleId, endStockCandleId },
-            {
-              onSuccess: (result) => {
-                if (result.result && result.result.NewsResponse) {
-                  setPastNewsList(result.result.NewsResponse);
-                }
-              },
-            },
-          );
-
-          // 뉴스 코멘트 가져오기
-          getNewsComment.mutate(
-            { companyId, startStockCandleId, endStockCandleId },
-            {
-              onSuccess: (result) => {
-                if (result.result) {
-                  setNewsComment(result.result);
-                }
-              },
-            },
-          );
-        }
-
-        // 현재 뉴스 가져오기
-        if (currentTurn > 0 && currentTurn <= pointStockCandleIds.length) {
-          const pointStockCandleId = pointStockCandleIds[currentTurn - 1];
-          if (pointStockCandleId) {
-            getCurrentNews.mutate(
-              { companyId, stockCandleId: pointStockCandleId },
-              {
-                onSuccess: (result) => {
-                  if (result.result) {
-                    setCurrentNews(result.result);
-                  }
-                },
-              },
-            );
-          }
-        }
-      } catch {
-        setHasChartError(true);
-        setIsChartLoading(false);
-      } finally {
-        setIsChartLoading(false);
+      // 첫 턴인 경우 전체 차트 데이터도 설정
+      if (currentTurn === 1) {
+        setFullChartData(result);
+        setAccumulatedChartData(result);
+      } else {
+        // 누적 데이터 계산
+        updateAccumulatedChartData(result);
       }
-    };
 
-    // 세션 데이터 로드 호출
-    loadSessionData();
+      // 최신 가격 설정
+      updateLatestPrice(result);
+
+      // 2. 뉴스 데이터 가져오기
+      await loadNewsData();
+    } catch (error) {
+      console.error('차트 데이터 로드 오류:', error);
+      setHasChartError(true);
+    } finally {
+      setIsChartLoading(false);
+    }
   }, [
+    companyId,
     currentSession,
     currentTurn,
     isTutorialStarted,
-    fetchSessionData,
-    companyId,
-    pointStockCandleIds,
-    getPastNews,
-    getNewsComment,
-    getCurrentNews,
-    turnChartData,
-    sectionStockData,
-    isSectionDataLoading,
+    updateAccumulatedChartData,
+    updateLatestPrice,
+    loadNewsData,
   ]);
+
+  // 세션 변경 감지 및 데이터 로드 트리거
+  useEffect(() => {
+    if (isTutorialStarted && currentTurn > 0) {
+      loadChartData();
+    }
+  }, [currentSession, loadChartData, isTutorialStarted, currentTurn]);
 
   // 차트 데이터에서 실제 날짜 범위 업데이트
   useEffect(() => {
@@ -619,15 +575,6 @@ export const SimulatePage = () => {
 
     updateDateRange();
   }, [stockData, fullChartData, tutorialDateRange]);
-
-  // 튜토리얼 세션 종료 시 세션 삭제 - 이벤트 핸들러
-  useEffect(() => {
-    return () => {
-      if (isTutorialStarted && memberId) {
-        deleteTutorialSession.mutate(memberId);
-      }
-    };
-  }, [deleteTutorialSession, isTutorialStarted, memberId]);
 
   // 튜토리얼 완료 처리 함수 - 메모이제이션
   const completeTutorial = useCallback(async () => {
@@ -772,17 +719,55 @@ export const SimulatePage = () => {
       { memberId, companyId },
       {
         onSuccess: async () => {
-          // 변곡점 데이터 다시 가져오기
-          const pointsResponse = await refetchTop3Points();
+          // 튜토리얼 시작 상태로 설정
+          setIsTutorialStarted(true);
+          setCurrentTurn(1); // 명시적으로 첫 번째 턴 설정
 
-          if (pointsResponse.data?.result?.PointResponseList) {
-            setIsTutorialStarted(true);
-            setCurrentTurn(1); // 첫 번째 턴으로 명시적 설정
-            setProgress(25); // 첫 번째 턴의 진행률(25%)
-          } else {
-            setHasChartError(true);
-            setIsChartLoading(false);
+          // 변곡점 데이터 로드가 필요한 경우
+          if (pointDates.length < 3) {
+            try {
+              // 변곡점 직접 가져오기 (/api/ 제거)
+              const pointsResponse = (await _ky
+                .get(`tutorial/points/top3?companyId=${companyId}`)
+                .json()) as ApiResponse<{ PointResponseList: Point[] }>;
+
+              if (pointsResponse?.result?.PointResponseList) {
+                const points = pointsResponse.result.PointResponseList;
+                console.log('변곡점 로드 성공:', points);
+
+                // 각 변곡점에 대한 날짜 가져오기
+                const dates = [];
+                for (const point of points) {
+                  if (point.stockCandleId) {
+                    const dateResponse = (await _ky
+                      .get(`tutorial/points/date?stockCandleId=${point.stockCandleId}`)
+                      .json()) as ApiResponse<string>;
+                    if (dateResponse?.result) {
+                      dates.push(dateResponse.result);
+                    }
+                  }
+                }
+
+                if (dates.length > 0) {
+                  console.log('변곡점 날짜 로드 성공:', dates);
+                  setPointDates(dates);
+                }
+              }
+            } catch (error) {
+              console.error('변곡점 로드 오류:', error);
+            }
           }
+
+          setProgress(25);
+          setIsChartLoading(false);
+        },
+        onError: (error) => {
+          console.error('튜토리얼 초기화 오류:', error);
+          setHasChartError(true);
+          setIsChartLoading(false);
+        },
+        onSettled: () => {
+          setIsChartLoading(false);
         },
       },
     );
@@ -790,10 +775,10 @@ export const SimulatePage = () => {
     companyId,
     initSession,
     memberId,
-    refetchTop3Points,
     isTutorialStarted,
     isCurrentTurnCompleted,
     moveToNextTurn,
+    pointDates.length,
   ]);
 
   // 결과 확인 페이지로 이동 - 메모이제이션
@@ -875,10 +860,14 @@ export const SimulatePage = () => {
                 </p>
               </div>
             </div>
-          ) : hasChartError ||
-            (!accumulatedChartData?.data?.length &&
-              !stockData?.data?.length &&
-              !fullChartData?.data?.length) ? (
+          ) : hasChartError ? (
+            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+              <div className="text-center">
+                <p className="mb-3 text-xl">차트 데이터를 불러오는데 문제가 발생했습니다.</p>
+                <p className="text-sm text-gray-400">잠시 후 다시 시도해 주세요.</p>
+              </div>
+            </div>
+          ) : !stockData?.data?.length ? (
             <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터가 없습니다.</p>
@@ -889,12 +878,7 @@ export const SimulatePage = () => {
               </div>
             </div>
           ) : (
-            <ChartComponent
-              periodData={
-                stockData && stockData.data && stockData.data.length > 0 ? stockData : undefined
-              }
-              height={600}
-            />
+            <ChartComponent periodData={stockData || undefined} height={600} />
           )}
         </div>
         <div className="col-span-2">

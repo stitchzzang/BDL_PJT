@@ -102,7 +102,19 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
 
   // 데이터가 변경될 때마다 로그 출력
   useEffect(() => {
-    // 차트 데이터 변경 시 필요한 작업이 있다면 여기에 추가
+    console.log('Chart periodData:', periodData);
+    if (periodData?.data) {
+      console.log(`Chart data length: ${periodData.data.length}`);
+      // 일봉 데이터만 필터링하여 로그
+      const dayCandles = periodData.data.filter(
+        (item) => item && item.periodType === DAY_PERIOD_TYPE,
+      );
+      console.log(`Day candles count: ${dayCandles.length}`);
+      if (dayCandles.length > 0) {
+        console.log('First day candle:', dayCandles[0]);
+        console.log('Last day candle:', dayCandles[dayCandles.length - 1]);
+      }
+    }
   }, [periodData]);
 
   // 데이터 변환 및 필터링
