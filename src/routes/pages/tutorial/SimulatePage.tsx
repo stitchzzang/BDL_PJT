@@ -491,7 +491,16 @@ export const SimulatePage = () => {
     const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
     if (dayCandles.length > 0) {
       const lastCandle = dayCandles[dayCandles.length - 1];
+      console.log('최신 가격 업데이트:', {
+        oldPrice: latestPrice,
+        newPrice: lastCandle.closePrice,
+        turn: currentTurn,
+        date: lastCandle.tradingDate,
+        candle: lastCandle,
+      });
       setLatestPrice(lastCandle.closePrice);
+    } else {
+      console.warn('일별 캔들 데이터가 없어 가격을 업데이트할 수 없습니다.');
     }
   };
 
@@ -1227,6 +1236,7 @@ export const SimulatePage = () => {
           currentTurn={currentTurn}
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}
+          latestPrice={latestPrice}
         />
         <div className="my-[25px]">
           <StockProgress progress={progress} />

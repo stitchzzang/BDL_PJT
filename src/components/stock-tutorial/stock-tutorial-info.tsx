@@ -38,6 +38,7 @@ export interface StockInfoProps {
   currentTurn?: number;
   isCurrentTurnCompleted?: boolean;
   buttonText?: string;
+  latestPrice?: number;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -73,8 +74,9 @@ export const StockTutorialInfo = ({
   currentTurn = 0,
   isCurrentTurnCompleted = false,
   buttonText,
+  latestPrice,
 }: StockInfoProps) => {
-  const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [initialPrice, setInitialPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const initSessionMutation = useInitSession();
 
@@ -89,8 +91,11 @@ export const StockTutorialInfo = ({
   // 변경: useGetCompanyProfile 훅 사용
   const { data: companyInfo } = useGetCompanyProfile(String(companyId));
 
-  // 현재 가격 정보를 가져오기 위한 API 호출
+  // 현재 가격 정보를 가져오기 위한 API 호출 - 튜토리얼 시작 전에만 사용됨
   useEffect(() => {
+    // 튜토리얼이 시작된 경우 API를 호출하지 않음
+    if (isTutorialStarted) return;
+
     const fetchPrice = async () => {
       try {
         // 전체 기간에 대한 가격 데이터 조회
@@ -101,18 +106,23 @@ export const StockTutorialInfo = ({
         // 데이터 배열에서 가장 최신 값(마지막 값)의 closePrice 가져오기
         if (response.result.data && response.result.data.length > 0) {
           const latestData = response.result.data[response.result.data.length - 1];
-          setCurrentPrice(latestData.closePrice);
+          setInitialPrice(latestData.closePrice);
         }
       } catch {
         // 오류 발생 시 기본 가격 설정 (예: 50000원)
-        setCurrentPrice(50000);
+        setInitialPrice(50000);
       }
     };
 
     if (companyId) {
       fetchPrice();
     }
-  }, [companyId, startDate, endDate]);
+  }, [companyId, startDate, endDate, isTutorialStarted]);
+
+  // 렌더링에 사용할 현재 가격 결정
+  // 튜토리얼 시작 전: API에서 가져온 초기 가격
+  // 튜토리얼 시작 후: props로 전달받은 턴별 최신 가격
+  const displayPrice = isTutorialStarted ? latestPrice : initialPrice;
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
@@ -203,8 +213,11 @@ export const StockTutorialInfo = ({
           <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-[18px] sm:flex-row sm:items-center">
               <h3 className="text-[30px] font-medium text-white">
-                {addCommasToThousand(currentPrice || 0)}원
+                {addCommasToThousand(displayPrice || 0)}원
               </h3>
+              {isTutorialStarted && currentTurn > 0 && (
+                <span className="text-sm text-border-color">{currentTurn}단계 현재가</span>
+              )}
               <div className="flex flex-wrap gap-2">
                 {normalizedCategories.map((categoryName, index) => (
                   <div
