@@ -548,19 +548,13 @@ export const SimulatePage = () => {
       return;
     }
 
-    // 백엔드가 이해할 수 있는 형식으로 action 값 변환
-    // 대문자로 변환하여 서버에서 기대하는 형식 맞추기
-    const actionMap: Record<string, string> = {
-      buy: 'BUY',
-      sell: 'SELL',
-      wait: 'WAIT',
-    };
+    // 백엔드가 기대하는 정확한 액션 문자열 매핑
+    // "buy", "sell", "wait"는 소문자로 그대로 사용 (백엔드 요구사항에 맞게 조정)
+    const actionValue = action.toLowerCase();
 
-    const apiAction = actionMap[action] || action.toUpperCase();
+    // 관망일 경우 가격/수량 0으로 설정
     let apiPrice = price;
     let apiQuantity = quantity;
-
-    // 관망일 경우 서버에 맞는 형식으로 데이터 설정
     if (action === 'wait') {
       apiPrice = 0;
       apiQuantity = 0;
@@ -569,7 +563,7 @@ export const SimulatePage = () => {
     // API 요청 데이터 로깅
     console.log('API 요청 데이터:', {
       memberId,
-      action: apiAction,
+      action: actionValue,
       price: apiPrice,
       quantity: apiQuantity,
       companyId,
@@ -578,24 +572,21 @@ export const SimulatePage = () => {
     });
 
     try {
-      // 관망일 경우 API 호출 파라미터 조정
-      const requestData = {
+      const response = await processUserAction.mutateAsync({
         memberId,
-        action: apiAction,
+        action: actionValue,
         price: apiPrice,
         quantity: apiQuantity,
         companyId,
         startStockCandleId: startPointId || endPointId,
         endStockCandleId: endPointId,
-      };
-
-      const response = await processUserAction.mutateAsync(requestData);
+      });
 
       console.log('거래 응답:', response);
 
       const assetResults = response.result?.AssetResponse;
 
-      // 거래 기록 추가 - 모든 액션 기록
+      // 거래 기록 추가
       setTrades((prev) => [
         ...prev,
         {
@@ -618,12 +609,26 @@ export const SimulatePage = () => {
       setIsCurrentTurnCompleted(true);
     } catch (error) {
       console.error('거래 처리 오류:', error);
-      // 오류 상세 정보 표시
+
+      // 오류의 실제 응답 내용 출력
       if (error instanceof Error) {
         console.error('오류 상세:', error.message);
         console.error('오류 스택:', error.stack);
 
-        // 요청 실패해도 UI에서는 다음 턴으로 넘어갈 수 있게 함
+        try {
+          // @ts-expect-error - 오류 객체에서 응답 정보 추출 시도
+          const errorResponse = error.response;
+          if (errorResponse) {
+            console.error('오류 응답:', errorResponse);
+            // @ts-expect-error - ky 오류 객체에서 응답 텍스트 직접 추출
+            const errorText = await error.response.text();
+            console.error('오류 응답 내용:', errorText);
+          }
+        } catch (e) {
+          console.error('오류 응답 추출 실패:', e);
+        }
+
+        // 오류 발생해도 UI에서는 진행되도록 거래 기록 추가
         setTrades((prev) => [
           ...prev,
           {
@@ -636,7 +641,7 @@ export const SimulatePage = () => {
         ]);
       }
 
-      // 오류 발생해도 턴 완료로 처리하여 진행 가능하게 함
+      // 오류 발생해도 턴 완료 처리
       setIsCurrentTurnCompleted(true);
     }
   };
