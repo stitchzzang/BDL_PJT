@@ -38,7 +38,7 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
   const [flashingItems, setFlashingItems] = useState<Record<string, boolean>>({});
   const prevPrices = useRef<Record<string, number>>({});
 
-  // 최대 수량 찾기
+  // 최대 수량 찾기 (0으로 나누는 오류 방지를 위해 최소값을 1로 설정)
   const maxAskQuantity = Math.max(...orderbooks.askLevels.map((item) => item.quantity), 1);
   const maxBidQuantity = Math.max(...orderbooks.bidLevels.map((item) => item.quantity), 1);
 
@@ -102,7 +102,8 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
       <div>
         {[...orderbooks.askLevels].reverse().map((data) => {
           const isFlashing = flashingItems[`ask-${data.price}`];
-          const percentWidth = (data.quantity / maxAskQuantity) * 100;
+          // 수량이 0인 경우 너비도 0으로 처리
+          const percentWidth = maxAskQuantity > 0 ? (data.quantity / maxAskQuantity) * 100 : 0;
 
           return (
             <div
@@ -129,7 +130,8 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
       <div>
         {orderbooks.bidLevels.map((data) => {
           const isFlashing = flashingItems[`bid-${data.price}`];
-          const percentWidth = (data.quantity / maxBidQuantity) * 100;
+          // 수량이 0인 경우 너비도 0으로 처리
+          const percentWidth = maxBidQuantity > 0 ? (data.quantity / maxBidQuantity) * 100 : 0;
 
           return (
             <div
@@ -152,7 +154,7 @@ export const SellingPriceSell = ({ orderbooks }: SellingPriceSellProps) => {
             </div>
           );
         })}
-        <div className="mt-8 flex items-center justify-between rounded-xl border border-border-color border-opacity-20 p-4 px-8 pt-4">
+        <div className="mt-8 flex items-center justify-between rounded-xl border border-border-color border-opacity-20 p-2 px-8 text-[14px]">
           <div className="flex flex-col items-center justify-center gap-1">
             <span className="text-btn-blue-color">매도대기</span>
             <p>{totalAskQuantity.toLocaleString()}</p>

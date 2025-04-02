@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-import { TickInfo } from '@/components/mock-investment/stock-chart/stock-chart';
 import { DailyChart } from '@/components/ui/chart-daily';
 import { MinuteChart } from '@/components/ui/chart-simulate';
 import { WeekChart } from '@/components/ui/chart-week';
@@ -73,7 +72,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
 
   return (
     <div className="h-[100%] overflow-hidden rounded-2xl bg-modal-background-color p-2 pt-5">
-      <div className="flex justify-between">
+      <div className="flex justify-between text-[14px]">
         <div className="mx-2 flex gap-2 rounded-xl border border-border-color p-2">
           <button
             onClick={() => setChartType('minute')}
@@ -106,18 +105,11 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
             주
           </button>
         </div>
-        {tickData ? (
-          <div className="flex items-center justify-center gap-1 rounded-xl border border-border-color border-opacity-20 p-4">
-            <p className="text-[14px]">{todayInfo}</p>
-            <TickInfo tickData={tickData} />
-          </div>
-        ) : (
-          <div className="flex items-center justify-center gap-1 rounded-xl border border-border-color border-opacity-20 p-4">
-            <p className="text-[14px]">{todayInfo}</p>
-          </div>
-        )}
+        <div className="flex items-center justify-center gap-1 rounded-xl border border-border-color border-opacity-20 p-4">
+          <p className="text-[14px]">{todayInfo}</p>
+        </div>
       </div>
-      <div className="mt-[22px] border-b  border-border-color border-opacity-20"></div>
+      <div className="mb-[15px] mt-[15px] border-b  border-border-color border-opacity-20"></div>
       {tickData ? (
         <div className="grid grid-cols-10">
           <div className="col-span-8">
@@ -130,7 +122,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
           <div className="col-span-2 mb-2  mr-2  rounded-2xl border border-border-color border-opacity-20">
             <TickCandleChart
               tickData={tickData}
-              height={400}
+              height={100}
               basePrice={initialData?.data[0]?.openPrice} // 초기 기준가
             />
           </div>

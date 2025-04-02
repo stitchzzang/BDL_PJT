@@ -16,11 +16,11 @@ export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) =
   const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
   const [animationKey, setAnimationKey] = useState<number>(0);
 
-  useEffect(() => {
-    if (tickData === null) {
-      setIsActive('일별');
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (tickData === null) {
+  //     setIsActive('일별');
+  //   }
+  // }, []);
 
   // tickData가 변경될 때마다 리스트에 추가 (실시간 정보)
   useEffect(() => {

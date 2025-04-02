@@ -48,7 +48,7 @@ interface TickChartDataPoint {
 
 const TickChartComponent: React.FC<TickChartProps> = ({
   tickData,
-  height = 600,
+  height = 450,
   width = '100%',
   basePrice,
 }) => {
@@ -296,16 +296,19 @@ const TickChartComponent: React.FC<TickChartProps> = ({
   return (
     <div className="relative h-full" style={{ width }}>
       <div
-        className="flex h-full w-full flex-col justify-center overflow-hidden rounded-2xl p-3"
+        className="flex h-full w-full flex-col justify-between overflow-hidden rounded-2xl py-4"
         style={{ backgroundColor: '#0D192B' }}
       >
-        <div className="items-centergap-4 flex flex-col p-3 text-sm">
+        <div className="items-centergap-4 mx-2 flex flex-col text-sm">
           <h3 className="mb-3 text-[16px] font-bold">실시간 틱 캔들</h3>
           <div
             className={`flex w-full items-center justify-between gap-2 rounded-xl border border-border-color border-opacity-40 p-4 ${tickData?.ccldDvsn === '1' ? 'border-btn-red-color text-btn-red-color' : 'border-btn-blue-color text-btn-blue-color'}`}
           >
             <div className="flex flex-col">
-              <span className="text-[15px] text-border-color">{tickData?.stckPrpr} 원(체결가)</span>
+              <span className="text-[15px] text-border-color">
+                {' '}
+                <span className="font-bold text-white">{tickData?.stckPrpr}</span> 원(체결가)
+              </span>
               <span className="text-[15px] text-border-color">{tickData?.stckOprc} 원(시가)</span>
             </div>
           </div>
@@ -324,7 +327,7 @@ const TickChartComponent: React.FC<TickChartProps> = ({
           }}
         />
         {tickData ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-border-color border-opacity-40 p-4">
+          <div className="mx-2 flex flex-col gap-2 rounded-xl border border-border-color border-opacity-40 p-4">
             <span className="text-[15px] text-border-color">
               현재 거래량 : {formatKoreanMoney(tickData?.cntgVol)}
             </span>
