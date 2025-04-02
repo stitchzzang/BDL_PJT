@@ -20,7 +20,7 @@ export const OrderStatusWaitList = ({
   realTime,
   tickSize,
 }: OrderStatusWaitListProps) => {
-  const h3Style = 'text-[16px] font-medium text-white';
+  const h3Style = 'text-[14px] font-medium text-white';
   // 주문 취소
   const deleteSimulatedMutation = useDeleteUserSimulated();
   const handleDeleteSimulatedMutation = (orderId: number) => {
@@ -59,7 +59,7 @@ export const OrderStatusWaitList = ({
           <div className={`flex justify-between`}>
             <div className="flex items-center gap-3">
               <h3 className={h3Style}>{UserSimulatedData.companyName}</h3>
-              <p className="text-border-color">
+              <p className="text-[14px] text-border-color">
                 {formatKoreanMoney(UserSimulatedData.price)}원 <span>|</span>{' '}
                 {UserSimulatedData.quantity}주
               </p>
@@ -67,9 +67,9 @@ export const OrderStatusWaitList = ({
             <div className="flex gap-2">
               <div>
                 {UserSimulatedData.tradeType === 1 ? (
-                  <p className="text-btn-blue-color">판매</p>
+                  <p className="text-[14px] text-btn-blue-color">판매</p>
                 ) : (
-                  <p className="text-btn-red-color ">구매</p>
+                  <p className="text-[14px] text-btn-red-color">구매</p>
                 )}
               </div>
             </div>

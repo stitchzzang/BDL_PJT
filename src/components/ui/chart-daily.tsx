@@ -113,7 +113,7 @@ const arePropsEqual = (prevProps: PeriodChartProps, nextProps: PeriodChartProps)
 
 const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   companyId,
-  height = 600,
+  height = 450,
   initialLimit = 100,
   initialData,
   onLoadMoreData,
@@ -240,7 +240,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       }));
 
     // 데이터 반환 - 역순으로 정렬 (날짜순으로)
-    return [...realData.reverse(), ...emptyData];
+    return [...realData, ...emptyData];
   }, [chartData, processChartData]);
 
   // X축 라벨 생성
@@ -288,15 +288,8 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     const expandedStartIdx = Math.max(0, startIdx - extraRange);
     const expandedEndIdx = Math.min(dataLength - 1, endIdx + extraRange);
 
-    console.log('범위 확장:', {
-      원래범위: `${startIdx}-${endIdx} (${endIdx - startIdx + 1}개)`,
-      확장범위: `${expandedStartIdx}-${expandedEndIdx} (${expandedEndIdx - expandedStartIdx + 1}개)`,
-      추가확장: extraRange,
-    });
-
     // 확장된 범위의 데이터 추출
     const visibleData = processedChartData.slice(expandedStartIdx, expandedEndIdx + 1);
-    console.log('현재 보여지는 데이터', visibleData);
 
     // 빈 데이터나 무효한 가격 제외
     const prices = visibleData
@@ -505,7 +498,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
               // 두 데이터 세트 병합
               return {
                 ...newData,
-                data: [...prevData.data, ...newData.data], // 새 데이터를 앞에 추가
+                data: [...newData.data, ...prevData.data], // 새 데이터를 뒤에 추가
                 cursor: newData.cursor, // 새 cursor 값으로 업데이트
               };
             });

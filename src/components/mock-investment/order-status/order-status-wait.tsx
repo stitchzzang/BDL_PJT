@@ -10,12 +10,20 @@ interface OrderStatusWaitProps {
   closePrice: number; // 종가
   realTime?: number; // 실시간 값
   tickSize: number; // 호가 단위
+  memberId: number | null;
+  companyId: number | null;
 }
 
-export const OrderStatusWait = ({ closePrice, realTime, tickSize }: OrderStatusWaitProps) => {
-  const h3Style = 'text-[16px] font-bold text-white';
+export const OrderStatusWait = ({
+  closePrice,
+  realTime,
+  tickSize,
+  memberId,
+  companyId,
+}: OrderStatusWaitProps) => {
+  const h3Style = 'text-[14px] font-bold text-white';
   // 유저 판매 리스트 가져오기
-  const { data: userSimulated, isLoading, isError } = useUserSimulatedData(2);
+  const { data: userSimulated, isLoading, isError } = useUserSimulatedData(memberId);
   // 총 판매 금액 표시
   const [shellCost, setShellCost] = useState<number>(0);
 
@@ -42,7 +50,7 @@ export const OrderStatusWait = ({ closePrice, realTime, tickSize }: OrderStatusW
     );
   }
   return (
-    <div>
+    <div className="max-h-[450px] animate-fadeIn overflow-y-auto">
       <div className="mb-1">
         <h3 className={h3Style}>대기 주문</h3>
       </div>

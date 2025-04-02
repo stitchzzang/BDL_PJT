@@ -143,7 +143,7 @@ export const KosdaqChart = ({ kosdaqData }: KosdaqChartProps) => {
   };
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full flex-col rounded-2xl overflow-hidden">
       <div>
         {kosdaqData && kosdaqData.length > 0 && (
           <div>

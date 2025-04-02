@@ -15,14 +15,22 @@ interface OrderStatusShellProps {
   closePrice: number; // 종가
   realTime?: number; // 실시간 값
   tickSize: number; // 호가 단위
+  memberId: number | null;
+  companyId: number | null;
 }
 
-export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatusShellProps) => {
-  const h3Style = 'text-[16px] font-bold text-white';
+export const OrderStatusShell = ({
+  closePrice,
+  realTime,
+  tickSize,
+  memberId,
+  companyId,
+}: OrderStatusShellProps) => {
+  const h3Style = 'text-[14px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 사용자 주식 개수
-  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(2, 1);
+  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(memberId, companyId);
 
   // 구매가격
   const [shellCost, setShellCost] = useState<number>(0);
@@ -148,7 +156,7 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
     </>;
   }
   return (
-    <div>
+    <div className="animate-fadeIn">
       <h3 className={h3Style}>판매하기</h3>
       <div>
         <div className="mb-[25px] flex w-full flex-col gap-4">
@@ -163,13 +171,13 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
                   className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
-                  <p>지정가</p>
+                  <p className="text-[14px]">지정가</p>
                 </div>
                 <div
                   className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('시장가')}
                 >
-                  <p>시장가</p>
+                  <p className="text-[14px]">시장가</p>
                 </div>
               </div>
             </div>
@@ -264,15 +272,15 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
               size="lg"
               onClick={() =>
                 handleLimitOrder({
-                  memberId: 2,
-                  companyId: 1,
+                  memberId: memberId,
+                  companyId: companyId,
                   tradeType: 1,
                   quantity: stockCount,
                   price: shellCost,
                 })
               }
             >
-              <p className=" text-[18px] font-medium text-white">판매하기</p>
+              <p className=" text-[16px] font-medium text-white">판매하기</p>
             </Button>
           ) : (
             <Button
@@ -281,14 +289,14 @@ export const OrderStatusShell = ({ closePrice, realTime, tickSize }: OrderStatus
               size="lg"
               onClick={() =>
                 handleMarketOrder({
-                  memberId: 2,
-                  companyId: 1,
+                  memberId: memberId,
+                  companyId: companyId,
                   tradeType: 1,
                   quantity: stockCount,
                 })
               }
             >
-              <p className=" text-[18px] font-medium text-white">판매하기</p>
+              <p className=" text-[16px] font-medium text-white">판매하기</p>
             </Button>
           )}
           <p className="text-[14px] font-light text-[#718096]">
