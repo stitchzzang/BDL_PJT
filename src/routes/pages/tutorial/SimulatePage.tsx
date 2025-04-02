@@ -6,6 +6,7 @@ import { _ky } from '@/api/instance';
 import {
   useDeleteTutorialSession,
   useGetCurrentNews,
+  useGetPastNews,
   useGetTutorialFeedback,
   useInitSession,
   useProcessUserAction,
@@ -226,6 +227,7 @@ export const SimulatePage = () => {
   const deleteTutorialSession = useDeleteTutorialSession();
   const initSession = useInitSession();
   const getCurrentNews = useGetCurrentNews();
+  const getPastNews = useGetPastNews();
 
   // 날짜 범위에 따른 세션 설정
   const calculateSession = (turn: number) => {
@@ -425,18 +427,27 @@ export const SimulatePage = () => {
 
       if (startStockCandleId && endStockCandleId) {
         try {
-          // 과거 뉴스 목록
-          const pastNewsResponse = (await _ky
-            .post('tutorial/news/past', {
-              json: { companyId, startStockCandleId, endStockCandleId },
-            })
-            .json()) as ApiResponse<{ NewsResponse: NewsResponse[] }>;
+          // 과거 뉴스 목록 - 훅 사용하도록 수정
+          const pastNewsResponse = await getPastNews.mutateAsync({
+            companyId,
+            startStockCandleId,
+            endStockCandleId,
+          });
+
+          console.log('과거 뉴스 응답:', pastNewsResponse);
 
           if (pastNewsResponse?.result?.NewsResponse) {
-            setPastNewsList(pastNewsResponse.result.NewsResponse);
+            // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
+            const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
+              (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+            );
+            setPastNewsList(sortedNews);
+          } else {
+            console.error('과거 뉴스 데이터 형식 오류:', pastNewsResponse);
+            setPastNewsList([]);
           }
 
-          // 뉴스 코멘트
+          // 뉴스 코멘트 - 기존 코드 유지
           const commentResponse = (await _ky
             .post('tutorial/news/comment', {
               json: { companyId, startStockCandleId, endStockCandleId },
@@ -448,6 +459,7 @@ export const SimulatePage = () => {
           }
         } catch (error) {
           console.error('뉴스 데이터 로드 오류:', error);
+          setPastNewsList([]); // 오류 발생 시 빈 배열로 설정
         }
       }
     }
@@ -854,6 +866,12 @@ export const SimulatePage = () => {
       <div>
         <div className="my-[30px]">
           <h3 className={`${h3Style} mb-[15px]`}>일간 히스토리</h3>
+          {/* 디버깅을 위한 정보 추가 */}
+          {pastNewsList.length === 0 && currentTurn > 1 && (
+            <p className="mb-2 text-sm text-gray-400">
+              불러온 뉴스 데이터가 없습니다. {currentTurn}턴 진행 중
+            </p>
+          )}
           <DayHistory news={pastNewsList} />
         </div>
       </div>
