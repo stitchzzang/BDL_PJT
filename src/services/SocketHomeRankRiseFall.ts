@@ -5,14 +5,14 @@ import SockJS from 'sockjs-client';
 import { HomeCompanyRankData } from '@/api/types/home';
 
 // 커스텀 훅
-export const useRankVolumeConnection = (category: string) => {
+export const useRankRiseFallConnection = (category: string) => {
   const stompClientRef = useRef<Client | null>(null);
   const [IsConnected, setIsConnected] = useState<boolean>(false);
 
   // 연결함수
-  const connectRankVolume = useCallback((setRank: (data: HomeCompanyRankData[]) => void) => {
+  const connectRankRiseFall = useCallback((setRank: (data: HomeCompanyRankData[]) => void) => {
     //기존 연결일 경우 해제
-    disconnectRankVolume();
+    disconnectRankRiseFall();
 
     //인스턴스 생성
     //https://j12d202.p.ssafy.io/ws
@@ -66,7 +66,7 @@ export const useRankVolumeConnection = (category: string) => {
   }, []);
 
   // 연결 해제 함수
-  const disconnectRankVolume = useCallback(() => {
+  const disconnectRankRiseFall = useCallback(() => {
     console.log('소켓 연결 해제(disconnect)');
     if (stompClientRef.current) {
       try {
@@ -82,13 +82,13 @@ export const useRankVolumeConnection = (category: string) => {
   // 컴포넌트 언마운트 시 자동 연결 해제
   useEffect(() => {
     return () => {
-      disconnectRankVolume();
+      disconnectRankRiseFall();
     };
-  }, [disconnectRankVolume]);
+  }, [disconnectRankRiseFall]);
 
   return {
     IsConnected,
-    connectRankVolume,
-    disconnectRankVolume,
+    connectRankRiseFall,
+    disconnectRankRiseFall,
   };
 };
