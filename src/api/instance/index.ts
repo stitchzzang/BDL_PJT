@@ -1,4 +1,5 @@
 import ky, { KyRequest } from 'ky';
+import { toast } from 'react-toastify';
 
 import { ERROR_CODES } from '@/api/instance/errorHandler';
 import { navigate } from '@/lib/navigation';
@@ -67,6 +68,7 @@ const _kyAuth = _ky.extend({
         // 모든 토큰 만료 및 유효하지 않은 토큰
         if (customCode === ERROR_CODES.REFRESH_AUTHORIZATION_FAIL) {
           useAuthStore.getState().logoutAuth();
+          toast.error('인증이 만료되었습니다. 다시 로그인해주세요.');
           navigate('/login');
           throw new Error('Authentication failed');
         }
