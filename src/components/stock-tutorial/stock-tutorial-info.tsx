@@ -43,6 +43,7 @@ export interface StockInfoProps {
   companyId: number;
   isTutorialStarted?: boolean;
   onTutorialStart?: () => void;
+  currentTurn?: number;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -75,6 +76,7 @@ export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
   onTutorialStart,
+  currentTurn: _currentTurn,
 }: StockInfoProps) => {
   const [currentPrice, setCurrentPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -326,55 +328,21 @@ export const StockTutorialInfo = ({
                 ))}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              {inflectionPoints.length > 0 && (
-                <div className="flex gap-2">
-                  <Button
-                    variant={selectedSegment === 0 ? 'default' : 'outline'}
-                    onClick={() => handleSegmentChange(0)}
-                    size="sm"
-                  >
-                    구간 1
-                  </Button>
-                  <Button
-                    variant={selectedSegment === 1 ? 'default' : 'outline'}
-                    onClick={() => handleSegmentChange(1)}
-                    size="sm"
-                  >
-                    구간 2
-                  </Button>
-                  <Button
-                    variant={selectedSegment === 2 ? 'default' : 'outline'}
-                    onClick={() => handleSegmentChange(2)}
-                    size="sm"
-                  >
-                    구간 3
-                  </Button>
-                  <Button
-                    variant={selectedSegment === 3 ? 'default' : 'outline'}
-                    onClick={() => handleSegmentChange(3)}
-                    size="sm"
-                  >
-                    구간 4
-                  </Button>
-                </div>
-              )}
-              <div className="flex items-center gap-4">
-                <StockTutorialHelp />
-                <Button
-                  className="max-h-[45px] w-[225px]"
-                  variant={'green'}
-                  size={'lg'}
-                  onClick={handleTutorialStart}
-                  disabled={isTutorialStarted || initSessionMutation.isPending || !companyInfo}
-                >
-                  {isTutorialStarted
-                    ? '튜토리얼 진행중'
-                    : initSessionMutation.isPending
-                      ? '초기화 중...'
-                      : '튜토리얼 시작하기'}
-                </Button>
-              </div>
+            <div className="flex items-center gap-4">
+              <StockTutorialHelp />
+              <Button
+                className="max-h-[45px] w-[225px]"
+                variant={'green'}
+                size={'lg'}
+                onClick={handleTutorialStart}
+                disabled={isTutorialStarted || initSessionMutation.isPending || !companyInfo}
+              >
+                {isTutorialStarted
+                  ? '튜토리얼 진행중'
+                  : initSessionMutation.isPending
+                    ? '초기화 중...'
+                    : '튜토리얼 시작하기'}
+              </Button>
             </div>
           </div>
         </div>
