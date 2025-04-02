@@ -1,13 +1,13 @@
-import { TickData } from '@/api/types/stock';
-import { DTData } from '@/components/mock-investment/stock-cost-history/stock-cost-history';
+import { StockDayCandle, TickData } from '@/api/types/stock';
+import { getDataFormatted } from '@/utils/getDataFormatted';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface StockCostHistoryDayProps {
-  dayDataList: DTData[];
+  DayData: StockDayCandle[] | undefined;
   tickData: TickData | null;
 }
-export const StockCostHistoryDay = ({ dayDataList, tickData }: StockCostHistoryDayProps) => {
+export const StockCostHistoryDay = ({ DayData, tickData }: StockCostHistoryDayProps) => {
   return (
     <div>
       <div className="w-full">
@@ -61,31 +61,56 @@ export const StockCostHistoryDay = ({ dayDataList, tickData }: StockCostHistoryD
               </div>
             </div>
             {/* 테이블 로우들 - 배열의 각 항목을 매핑 */}
-            {dayDataList.map((item, index) => (
-              <div
-                key={index}
-                className="flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
-              >
-                <div className="w-[20%] text-[14px] font-light text-border-color">{item.date}</div>
-                <div className="w-[20%] text-right text-border-color">{item.closePrice}</div>
-                <div className="w-[20%] text-right text-btn-red-color">{item.changeRate}%</div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.accumulateVolume}
+            <div
+              className="max-h-[450px] animate-fadeIn overflow-y-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#718096 #1a202c',
+              }}
+            >
+              {DayData?.map((daylist, index) => (
+                <div
+                  key={index}
+                  className="my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
+                >
+                  <div className="w-[20%] text-[14px] font-light text-border-color">
+                    {getDataFormatted(daylist.tradingDate)}
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.closePrice)}원
+                  </div>
+                  {daylist.closePricePercent < 0 ? (
+                    <div className="w-[20%] text-right text-btn-blue-color">
+                      {Math.round(daylist.closePricePercent * 100) / 100}%
+                    </div>
+                  ) : daylist.closePricePercent === 0 ? (
+                    <div className="w-[20%] text-right text-border-color">
+                      {Math.round(daylist.closePricePercent * 100) / 100}%
+                    </div>
+                  ) : (
+                    <div className="w-[20%] text-right text-btn-red-color">
+                      {Math.round(daylist.closePricePercent * 100) / 100}%
+                    </div>
+                  )}
+
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.accumulatedVolume)}
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.accumulatedTradeAmount)}원
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.openPrice)}원
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.highPrice)}원
+                  </div>
+                  <div className="w-[20%] text-right font-light text-border-color">
+                    {formatKoreanMoney(daylist.lowPrice)}원
+                  </div>
                 </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {formatKoreanMoney(item.accumulatedTradeAmount)}원
-                </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {formatKoreanMoney(item.openPrice)}원
-                </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.highPrice} %
-                </div>
-                <div className="w-[20%] text-right font-light text-border-color">
-                  {item.lowPrice}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -15,9 +15,7 @@ const _ky = ky.create({
   prefixUrl: __API_URL__,
   timeout: 5000,
   credentials: 'include',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: {},
 });
 
 // 인증이 필요한 요청을 위한 ky 인스턴스
@@ -42,16 +40,18 @@ const _kyAuth = _ky.extend({
           if (!request._retry) {
             request._retry = true;
             try {
-              const tokenResponse = await _ky.post('auth/token');
+              const tokenResponse = await _ky.post('auth/reissue');
               const BEARER_PREFIX = 'Bearer ';
               const newAccessToken = tokenResponse.headers
                 .get('Authorization')
                 ?.substring(BEARER_PREFIX.length);
 
               if (newAccessToken) {
-                useAuthStore
-                  .getState()
-                  .loginAuth(newAccessToken, { nickname: null, profile: null });
+                useAuthStore.getState().loginAuth(newAccessToken, {
+                  memberId: null,
+                  nickname: null,
+                  profile: null,
+                });
                 request.headers.set('Authorization', `Bearer ${newAccessToken}`);
               }
 
@@ -65,12 +65,7 @@ const _kyAuth = _ky.extend({
         }
 
         // 모든 토큰 만료 및 유효하지 않은 토큰
-        if (
-          customCode === ERROR_CODES.EXPIRED_ACCESS_TOKEN ||
-          customCode === ERROR_CODES.EXPIRED_REFRESH_TOKEN ||
-          customCode === ERROR_CODES.INVALID_REFRESH_TOKEN ||
-          customCode === ERROR_CODES.NOT_FOUND_REFRESH_TOKEN
-        ) {
+        if (customCode === ERROR_CODES.REFRESH_AUTHORIZATION_FAIL) {
           useAuthStore.getState().logoutAuth();
           navigate('/login');
           throw new Error('Authentication failed');

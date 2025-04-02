@@ -3,21 +3,46 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
+  CompanyInfo,
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
   StockMinuteDefaultData,
+  StockPeriodDefaultData,
   UserSimulatedData,
 } from '@/api/types/stock';
 
 export const StockApi = {
+  // 회사 기본 정보 가져오기
+  getCompanyInfoData: (stockCompanyId: number) =>
+    _ky.get(`company/${stockCompanyId}`).json<ApiResponse<CompanyInfo>>(),
+
   // 분봉 데이터 가져오기 (limit 값은 직접 입력)
   getStockInitMinuteData: (stockId: number, limit: number) =>
     _ky
       .get(`stocks/${stockId}/minute/initial?limit=${limit}`)
       .json<ApiResponse<StockMinuteDefaultData>>(),
 
-  //Order API
+  // 분봉 데이터 추가 가져오기
+  getStockInitMinunteDataCurser: (companyId: number, cursor: string, limit: number) =>
+    _ky
+      .get(`stocks/${companyId}/minute`, {
+        searchParams: {
+          cursor,
+          limit,
+        },
+      })
+      .json<ApiResponse<StockMinuteDefaultData>>(),
+  // 일,주,월 데이터 가져오기
+  getStockInitDailyData: (companyId: number, periodType: number, limit: number) =>
+    _ky
+      .get(`stocks/${companyId}/daily/initial`, {
+        searchParams: {
+          periodType,
+          limit,
+        },
+      })
+      .json<ApiResponse<StockPeriodDefaultData>>(),
 
   // 유저 현재 보유 자산
   getUserAsset: (memberId: number) =>
@@ -89,12 +114,43 @@ export const StockApi = {
       .json<ApiResponse<string>>(),
 };
 
+// 회사 정보(초기) 가져오기
+export const useCompanyInfoData = (stockCompanyId: number) => {
+  return useQuery({
+    queryKey: ['stockCompanyInfo'],
+    queryFn: () => StockApi.getCompanyInfoData(stockCompanyId).then((res) => res.result),
+  });
+};
+
 export const useStockMinuteData = (stockId: number, limit: number) => {
   return useQuery({
     queryKey: ['stockInitMinData'],
     queryFn: () => StockApi.getStockInitMinuteData(stockId, limit).then((res) => res.result),
   });
 };
+// 분봉(추가데이터 요청)
+export const useStockMinuteDataCursor = (companyId: number, cursor: string, limit: number) => {
+  return useQuery({
+    queryKey: ['stockInitMinDataCursor', companyId, cursor, limit],
+    queryFn: () => StockApi.getStockInitMinunteDataCurser(companyId, cursor, limit),
+  });
+};
+
+// 일,주,월(초기 데이터)
+export const useStockDailyData = (companyId: number, periodType: number, limit: number) => {
+  return useQuery({
+    queryKey: ['stockDailyData', companyId, periodType, limit],
+    queryFn: () => StockApi.getStockInitDailyData(companyId, periodType, limit),
+  });
+};
+
+// export const useStockDayData = (stockId: number, limit: number, periodType: number) => {
+//   return useQuery({
+//     queryKey: ['DayData'],
+//     queryFn: () =>
+//       StockApi.getStockInitDayData(stockId, limit, periodType).then((res) => res.result),
+//   });
+// };
 
 //orderAPI
 // 유저 자산 가져오기

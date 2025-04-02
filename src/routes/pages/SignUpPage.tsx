@@ -1,33 +1,55 @@
 import { CalendarIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
 import { useSignup } from '@/api/auth.api';
 import { SignupRequest } from '@/api/types/auth';
 import { QuestionsCombobox } from '@/components/member-info/questions-combo-box';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
-interface SignUpFormValues {
-  email: string;
-  password: string;
-  passwordConfirm: string;
-  nickname: string;
-  birthDate: Date;
-  phoneNumber: string;
-  question: string;
-  answer: string;
-}
+// 회원가입 폼 유효성 검사를 위한 스키마 정의
+const signUpSchema = z
+  .object({
+    email: z.string().email('올바른 이메일 형식이 아닙니다.'),
+    password: z.string().min(8, '비밀번호는 최소 8자 이상이어야 합니다.'),
+    passwordConfirm: z.string(),
+    nickname: z
+      .string()
+      .min(2, '닉네임은 최소 2자 이상이어야 합니다.')
+      .max(5, '닉네임은 최대 5자까지 가능합니다.')
+      .refine((value) => /^[가-힣a-zA-Z0-9]+$/.test(value), {
+        message: '특수문자 및 자음/모음은 사용할 수 없습니다.',
+      }),
+    birthDate: z.date(),
+    phoneNumber: z.string().optional(),
+    question: z.number().min(1, '질문을 선택해주세요.'),
+    answer: z.string().min(1, '답변을 입력해주세요.').max(10, '답변은 최대 10자까지 가능합니다.'),
+  })
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: '비밀번호가 일치하지 않습니다.',
+    path: ['passwordConfirm'],
+  });
+
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export const SignUpPage = () => {
   const navigate = useNavigate();
   const { mutate: signup } = useSignup();
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
       email: '',
       password: '',
@@ -35,17 +57,35 @@ export const SignUpPage = () => {
       nickname: '',
       birthDate: new Date(),
       phoneNumber: '',
-      question: '',
+      question: 0,
       answer: '',
     },
+    mode: 'onChange', // 입력값이 변경될 때마다 유효성 검사 수행
   });
 
-  const onSubmit = (data: SignUpFormValues) => {
-    if (data.password !== data.passwordConfirm) {
-      alert('비밀번호가 일치하지 않습니다.');
-      return;
-    }
+  // 폼 필드의 유효성 검사 결과
+  const {
+    formState: { isValid, errors, dirtyFields },
+  } = form;
 
+  // 모든 필드가 수정되었고 유효성 검사가 통과되었는지 확인
+  const allFieldsFilled =
+    dirtyFields.email &&
+    dirtyFields.password &&
+    dirtyFields.passwordConfirm &&
+    dirtyFields.nickname &&
+    dirtyFields.question &&
+    dirtyFields.answer;
+
+  const formIsValidAndFilled = isValid && allFieldsFilled;
+
+  // 처음 로드 시 모든 필드 검증 실행
+  useEffect(() => {
+    // 모든 필드에 대해 검증 트리거
+    form.trigger();
+  }, [form]);
+
+  const onSubmit = (data: SignUpFormValues) => {
     const signupRequest: SignupRequest = {
       email: data.email,
       password: data.password,
@@ -58,11 +98,15 @@ export const SignUpPage = () => {
       onSuccess: () => {
         navigate('/signup/success');
       },
+      onError: (error) => {
+        toast.error('회원가입에 실패했습니다.');
+      },
     });
   };
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
+      <h1 className="mb-5 text-3xl font-bold">회원가입</h1>
       <div className="w-full max-w-96 rounded-lg bg-modal-background-color p-6 shadow-lg">
         <Form {...form}>
           <form
@@ -72,58 +116,141 @@ export const SignUpPage = () => {
             <FormField
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <Input placeholder="이메일" className="h-12" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const isValid = !errors.email && dirtyFields.email;
+                const hasError = !!errors.email && dirtyFields.email;
+                return (
+                  <FormItem className="w-full">
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="이메일" className="h-12 pr-10" {...field} />
+                      </FormControl>
+                      {isValid && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                      )}
+                      {hasError && (
+                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                      )}
+                    </div>
+                    <p className="text-sm text-text-main-color">
+                      이메일은 example@domain.com 형식이어야 합니다.
+                    </p>
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <Input type="password" placeholder="비밀번호" className="h-12" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const isValid = !errors.password && dirtyFields.password;
+                const hasError = !!errors.password && dirtyFields.password;
+                return (
+                  <FormItem className="w-full">
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="비밀번호"
+                          className="h-12 pr-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      {isValid && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                      )}
+                      {hasError && (
+                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                      )}
+                    </div>
+                    <p className="text-sm text-text-main-color">
+                      비밀번호는 최소 8자 이상이어야 합니다.
+                    </p>
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="passwordConfirm"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="비밀번호 확인"
-                      className="h-12"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const isValid = !errors.passwordConfirm && dirtyFields.passwordConfirm;
+                const hasError = !!errors.passwordConfirm && dirtyFields.passwordConfirm;
+                return (
+                  <FormItem className="w-full">
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="비밀번호 확인"
+                          className="h-12 pr-10"
+                          {...field}
+                        />
+                      </FormControl>
+                      {isValid && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                      )}
+                      {hasError && (
+                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                      )}
+                    </div>
+                    {dirtyFields.passwordConfirm && (
+                      <FormMessage
+                        className={cn(
+                          'text-sm',
+                          hasError
+                            ? 'text-btn-red-color'
+                            : isValid
+                              ? 'text-btn-green-color'
+                              : 'text-text-main-color',
+                        )}
+                      >
+                        {hasError
+                          ? '비밀번호가 일치하지 않습니다.'
+                          : isValid
+                            ? '비밀번호가 일치합니다.'
+                            : '비밀번호와 정확히 일치해야 합니다.'}
+                      </FormMessage>
+                    )}
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="nickname"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <Input placeholder="닉네임 작성" className="h-12" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const isValid = !errors.nickname && dirtyFields.nickname;
+                const hasError = !!errors.nickname && dirtyFields.nickname;
+                return (
+                  <FormItem className="w-full">
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="닉네임 작성" className="h-12 pr-10" {...field} />
+                      </FormControl>
+                      {isValid && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                      )}
+                      {hasError && (
+                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                      )}
+                    </div>
+                    <p className="text-sm text-text-main-color">
+                      닉네임은 2자 이상 5자 이하여야 하며,
+                    </p>
+                    <span className="text-sm text-text-main-color">
+                      특수문자 및 자음/모음은 사용할 수 없습니다.
+                    </span>
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="birthDate"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <Popover>
+                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <div className="relative">
@@ -142,46 +269,91 @@ export const SignUpPage = () => {
                         </div>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
+                    <PopoverContent className="w-fit p-0" align="end">
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          // 날짜 선택 후 팝오버 닫기
+                          setCalendarOpen(false);
+                        }}
                         disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                         className="w-auto"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
+                        initialFocus
+                        defaultMonth={field.value}
                       />
                     </PopoverContent>
                   </Popover>
+                  <p className="text-sm text-text-main-color">1900년 이후만 가능합니다.</p>
                 </FormItem>
               )}
             />
             <FormField
               control={form.control}
               name="question"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <QuestionsCombobox onSelect={(question) => field.onChange(question)} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                return (
+                  <FormItem className="w-full">
+                    <div className="relative">
+                      <FormControl>
+                        <QuestionsCombobox
+                          onSelect={(question) => field.onChange(Number(question))}
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="answer"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <Input placeholder="비밀번호 찾기 답변" className="h-12" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const isValid = !errors.answer && dirtyFields.answer;
+                const hasError = !!errors.answer && dirtyFields.answer;
+                return (
+                  <FormItem className="w-full">
+                    <div className="relative">
+                      <FormControl>
+                        <Input placeholder="비밀번호 찾기 답변" className="h-12 pr-10" {...field} />
+                      </FormControl>
+                      {isValid && (
+                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                      )}
+                      {hasError && (
+                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                      )}
+                    </div>
+                    <p className="text-sm text-text-main-color">
+                      답변은 1자 이상 10자 이하여야 합니다.
+                    </p>
+                  </FormItem>
+                );
+              }}
             />
-            <Button type="submit" variant="blue" className="mt-5 w-full">
+            <Button
+              type="submit"
+              variant="blue"
+              className="mt-5 w-full"
+              disabled={!formIsValidAndFilled}
+            >
               회원가입
             </Button>
           </form>
         </Form>
+        <p className="mt-5 flex w-full flex-row items-baseline justify-end gap-2 text-center text-sm text-border-color">
+          이미 회원이신가요?
+          <button
+            type="button"
+            className="text-base font-semibold text-primary-color hover:text-primary-color/80"
+            onClick={() => navigate('/login')}
+          >
+            로그인
+          </button>
+        </p>
       </div>
     </div>
   );

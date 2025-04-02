@@ -15,6 +15,60 @@ export interface StockMinuteData {
   fiveAverage: number; // 5 이평선
   twentyAverage: number; // 20 이평선
 }
+// 일,주,월
+// 타입 정의
+export interface StockPeriodData {
+  stockCandleId: number;
+  companyId: string;
+  openPrice: number;
+  openPricePercent: number;
+  highPrice: number;
+  highPricePercent: number;
+  lowPrice: number;
+  lowPricePercent: number;
+  closePrice: number;
+  closePricePercent: number;
+  accumulatedVolume: number;
+  accumulatedTradeAmount: number;
+  tradingDate: string;
+  periodType: number; // 1: 일봉, 2: 주봉, 3: 월봉
+  fiveAverage: number;
+  twentyAverage: number;
+}
+
+export interface StockPeriodDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockPeriodData[];
+}
+
+// 일봉
+export interface StockDayCandle {
+  stockCandleId: number; // 주식 캔들의 고유 ID
+  companyId: string; // 종목 ID
+  openPrice: number; // 시가
+  openPricePercent: number; // 시간 변동률 (%)
+  highPrice: number; // 고가
+  highPricePercent: number; // 고가 변동률 (%)
+  lowPrice: number; // 저가
+  lowPricePercent: number; // 저가 변동률 (%)
+  closePrice: number; // 종가
+  closePricePercent: number; // 종가 변동률 (%)
+  accumulatedVolume: number; // 누적 거래량
+  accumulatedTradeAmount: number; // 누적 거래대금
+  tradingDate: string; // 주식 거래 날짜 (ISO 형식: "2025-03-27T00:00:00")
+  periodType: number; // 기간 타입 (예: 1=일봉, 2=주봉, 3=월봉 등)
+  fiveAverage: number; // 5일 이동평균선
+  twentyAverage: number; // 20일 이동평균선
+}
+
+export interface StockDayDefaultData {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockDayCandle[];
+}
 
 export interface StockMinuteDefaultData {
   companyId: string;
@@ -107,4 +161,12 @@ export interface OrderbookData {
 export interface OrderbookDatas {
   askLevels: OrderbookData[];
   bidLevels: OrderbookData[];
+}
+
+// 회사 정보
+export interface CompanyInfo {
+  companyImage: string;
+  companyCode: string;
+  companyName: string;
+  categories: string[];
 }

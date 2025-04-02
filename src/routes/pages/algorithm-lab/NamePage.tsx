@@ -1,22 +1,62 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const NamePage = () => {
   const isValidAccess = useAlgorithmLabGuard('name');
+  const { isLogin } = useAuthStore();
   const navigate = useNavigate();
   const { algorithmName, setAlgorithmName } = useAlgorithmLabStore();
   const [nowName, setNowName] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  // 유효성 검사 함수
+  const validateName = (name: string) => {
+    // 비어있는 경우
+    if (name.trim() === '') {
+      setErrorMessage('');
+      return false;
+    }
+
+    if (name.length === 1) {
+      setErrorMessage('알고리즘 이름은 2자 이상이어야 합니다.');
+      return false;
+    }
+
+    // 특수문자 검사 (한글, 영문, 숫자만 허용)
+    if (!/^[가-힣a-zA-Z0-9]+$/.test(name)) {
+      setErrorMessage('특수문자 및 자음/모음은 사용할 수 없습니다.');
+      return false;
+    }
+
+    // 길이 검사
+    if (name.length > 10) {
+      setErrorMessage('알고리즘 이름은 10자 이하여야 합니다.');
+      return false;
+    }
+
+    // 모든 검사 통과
+    setErrorMessage('');
+    return true;
+  };
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
+  }
+
+  if (!isLogin) {
+    toast.error('로그인 후 이용해주세요.');
+    return <Navigate to="/login" />;
   }
 
   return (
@@ -27,6 +67,10 @@ export const NamePage = () => {
         description="여러분이 생성한 알고리즘은 저장하여 나중에 확인이 가능합니다.
         알고리즘 이름을 생성하여 편하게 관리해보세요!"
       />
+      <Badge variant="destructive" className="flex w-full flex-col items-baseline gap-1">
+        <span className="text-base font-bold">⚠️ 주의</span>
+        <span className="text-sm">이름은 수정이 불가능하니 신중히 결정해주세요!</span>
+      </Badge>
       <div className="relative w-full">
         <AnimatePresence>
           {nowName && (
@@ -64,12 +108,19 @@ export const NamePage = () => {
               type="text"
               value={algorithmName}
               onChange={(e) => {
-                setAlgorithmName(e.target.value);
-                setNowName(e.target.value);
+                const newValue = e.target.value;
+                setAlgorithmName(newValue);
+                setNowName(newValue);
+                validateName(newValue);
               }}
               placeholder="알고리즘 이름을 작성하세요."
-              className="h-12 transition-colors duration-200 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className={`h-12 transition-colors duration-200 focus:outline-none focus:ring-2 ${
+                errorMessage
+                  ? 'border-red-500 focus:border-red-500 focus:ring-red-200'
+                  : 'focus:border-blue-500 focus:ring-blue-200'
+              }`}
             />
+            {errorMessage && <p className="mt-1 text-sm text-red-500">{errorMessage}</p>}
           </div>
           <div className="flex w-full gap-2">
             <Button variant="blue" onClick={() => navigate('/algorithm-lab')} className="flex-1">

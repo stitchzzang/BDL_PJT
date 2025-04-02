@@ -4,7 +4,7 @@ import ChartLoading from '@/assets/lottie/chart-animation.json';
 
 export const ChartLoadingAnimation = () => {
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center">
       <Lottie
         animationData={ChartLoading}
         loop={true}
@@ -14,12 +14,6 @@ export const ChartLoadingAnimation = () => {
           preserveAspectRatio: 'xMidYMid slice',
         }}
       />
-      <div className="flex flex-col gap-2">
-        <h1 className="text-[18px] font-medium">최신 데이터가 없습니다.</h1>
-        <p className="text-[14px[ font-light text-border-color">
-          한국 기준 09:00 - 15:10에 데이터가 최신화 됩니다.
-        </p>
-      </div>
     </div>
   );
 };

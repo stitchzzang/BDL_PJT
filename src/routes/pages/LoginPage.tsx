@@ -1,16 +1,29 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import { useLogin } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const LoginPage = () => {
+  const { isLogin } = useAuthStore();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const initialRender = useRef(true);
   const { mutateAsync: login, isPending } = useLogin();
+
+  useEffect(() => {
+    // 이미 로그인된 상태에서 로그인 페이지에 접근할 때만 토스트 메시지 표시
+    if (isLogin && initialRender.current) {
+      toast.success('이미 로그인 상태입니다.');
+      navigate('/');
+    }
+    initialRender.current = false;
+  }, [isLogin, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +33,10 @@ export const LoginPage = () => {
       console.error('로그인 실패:', error);
     }
   };
+
+  if (isLogin) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
@@ -44,13 +61,11 @@ export const LoginPage = () => {
           <Button variant="blue" className="mt-5 w-full" type="submit" disabled={isPending}>
             {isPending ? '로그인 중...' : '로그인'}
           </Button>
-          <div className="flex w-full flex-row items-end justify-end gap-5">
-            <button type="button" className="text-base text-border-color hover:text-primary-color">
-              비밀번호 찾기
-            </button>
+          <div className="mt-3 flex w-full flex-row items-center justify-end gap-2">
+            <p className="text-sm text-border-color">BDL에 처음이신가요?</p>
             <button
               type="button"
-              className="text-base text-border-color hover:text-primary-color"
+              className="text-base font-semibold text-primary-color hover:text-primary-color/80"
               onClick={() => navigate('/signup')}
             >
               회원가입

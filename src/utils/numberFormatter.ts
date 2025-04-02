@@ -50,3 +50,34 @@ export const formatKoreanMoney = (amount: number): string => {
     return amount.toLocaleString();
   }
 };
+
+/**
+ * 소수점 둘째자리까지 반올림하여 반환합니다.
+ * @param value - 변환할 숫자
+ * @returns 소수점 둘째자리까지 반올림된 숫자
+ */
+export const roundToTwoDecimalPlaces = (value: number): number => {
+  return Math.round(value * 100) / 100;
+};
+
+/**
+ * 숫자에 부호를 추가합니다.
+ * @param value - 변환할 숫자
+ * @returns 부호가 포함된 문자열
+ */
+export const plusMinusSign = (value: number): string => {
+  return value > 0 ? '+' : '';
+};
+
+/**
+ * 음수, 양수에 따른 색상 클래스를 반환합니다.
+ * @param value - stock value
+ * @returns 색상 클래스
+ */
+export const addStockValueColorClass = (value: number) => {
+  return value > 0
+    ? 'border-btn-red-color text-btn-red-color'
+    : value < 0
+      ? 'border-btn-blue-color text-btn-blue-color'
+      : 'border-border-color text-border-color';
+};

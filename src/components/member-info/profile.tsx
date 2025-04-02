@@ -11,7 +11,7 @@ export const Profile = () => {
       <img
         src={userData.profile || '/none-img/none_profile_img.png'}
         alt="profile"
-        className="h-10 w-10 rounded-full"
+        className="h-10 w-10 rounded-full object-cover"
       />
       <p className="text-2xl font-medium">{userData.nickname || '현재 닉네임이 없습니다.'}</p>
       <NavLink

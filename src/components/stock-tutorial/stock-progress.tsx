@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 
-export const StockProgress = () => {
+// Props 인터페이스 정의
+interface StockProgressProps {
+  onProgressChange: (progress: number) => void; // 진행률 변경 시 호출될 콜백
+}
+
+export const StockProgress = ({ onProgressChange }: StockProgressProps) => {
   const [progress, setProgress] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -15,6 +20,7 @@ export const StockProgress = () => {
     // 0-100 사이의 퍼센트 계산
     const newProgress = Math.min(100, Math.max(0, Math.round((x / width) * 100)));
     setProgress(newProgress);
+    onProgressChange(newProgress); // 부모 컴포넌트에 진행률 알림
   };
 
   // 클릭 핸들러

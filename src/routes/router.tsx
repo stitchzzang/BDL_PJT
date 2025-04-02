@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
+import { ChartContainer } from '@/components/ui/chart-container';
 import { AlgorithmLabLayout } from '@/layouts/AlgorithmLabLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import { MemberLayout } from '@/layouts/MemberLayout';
@@ -10,7 +11,6 @@ import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
 import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
 import { HomePage } from '@/routes/pages/HomePage';
-import { InvestmentSelectPage } from '@/routes/pages/investment/InvestmentSelectPage';
 import { LoginPage } from '@/routes/pages/LoginPage';
 import { AlgorithmPage } from '@/routes/pages/member/AlgorithmPage';
 import { EditPage } from '@/routes/pages/member/EditPage';
@@ -18,6 +18,7 @@ import { InvestmentResultPage } from '@/routes/pages/member/InvestmentResultPage
 import { PasswordEditPage } from '@/routes/pages/member/PasswordEditPage';
 import { TutorialResultPage } from '@/routes/pages/member/TutorialResultPage';
 import { NotFoundPage } from '@/routes/pages/NotFoundPage';
+import { PermissionDeniedPage } from '@/routes/pages/PermissionDeniedPage';
 import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
@@ -126,32 +127,31 @@ export const router = createBrowserRouter([
             element: <SelectPage />,
           },
           {
-            path: 'simulate',
+            path: 'simulate/:companyId',
             element: <SimulatePage />,
           },
         ],
       },
       {
-        path: '/investment',
-        children: [
-          {
-            index: true,
-            element: <Navigate to="/investment/select" replace />,
-          },
-          {
-            path: 'select',
-            element: <InvestmentSelectPage />,
-          },
-          {
-            path: 'simulate',
-            element: <SimulatedInvestmentPage />,
-          },
-        ],
+        path: '/investment/simulate/:companyId',
+        element: <SimulatedInvestmentPage />,
+      },
+      {
+        path: '/test',
+        element: <ChartContainer />,
       },
     ],
   },
   {
     path: '*',
+    element: <NotFoundPage />,
+  },
+  {
+    path: 'error/permission-denied',
+    element: <PermissionDeniedPage />,
+  },
+  {
+    path: 'error/not-found',
     element: <NotFoundPage />,
   },
 ]);

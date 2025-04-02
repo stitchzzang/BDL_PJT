@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { DayHistory } from '@/components/stock-tutorial/day-history';
 import { StockProgress } from '@/components/stock-tutorial/stock-progress';
 import { StockTutorialComment } from '@/components/stock-tutorial/stock-tutorial-comment';
@@ -6,17 +9,103 @@ import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-in
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
 import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-news';
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart';
 import { dummyMinuteData, dummyPeriodData } from '@/mocks/dummy-data';
 
+interface TutorialEndModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  changeRate: number;
+  onConfirmResultClick: () => void;
+  onEndTutorialClick: () => void;
+}
+
+const TutorialEndModal = ({
+  isOpen,
+  onClose,
+  changeRate,
+  onConfirmResultClick,
+  onEndTutorialClick,
+}: TutorialEndModalProps) => {
+  const isPositive = changeRate >= 0;
+  const rateColor = isPositive ? 'text-[#E5404A]' : 'text-blue-500';
+  const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(1)}%`;
+
+  if (!isOpen) return null;
+
+  return (
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent className="w-[450px] rounded-lg border-none bg-[#121729] p-6 text-white">
+        <div className="mb-4 rounded-md bg-[#101017] p-4 text-center">
+          <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
+        </div>
+        <AlertDialogHeader className="text-center">
+          <AlertDialogTitle className="text-xl font-semibold">
+            주식 튜토리얼이 종료되었습니다.
+          </AlertDialogTitle>
+          <AlertDialogDescription className="mt-2 text-sm text-gray-400">
+            주식 튜토리얼 결과는 마이페이지에서 전체 확인이 가능합니다.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-4 flex justify-between sm:justify-between">
+          <AlertDialogCancel
+            onClick={onConfirmResultClick}
+            className="mr-2 flex-1 border-none bg-[#333342] text-white hover:bg-[#444452]"
+          >
+            결과 확인하기
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onEndTutorialClick}
+            className="ml-2 flex-1 border-none bg-[#4A90E2] text-white hover:bg-[#5AA0F2]"
+          >
+            튜토리얼 종료하기
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
 export const SimulatePage = () => {
+  const navigate = useNavigate();
   const h3Style = 'text-[20px] font-bold';
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [finalChangeRate, setFinalChangeRate] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    if (progress === 100) {
+      setFinalChangeRate(32.2);
+      setIsModalOpen(true);
+    }
+  }, [progress]);
+
+  const handleNavigateToResult = () => {
+    navigate('/member/stock-tutorial-result');
+    setIsModalOpen(false);
+  };
+
+  const handleNavigateToSelect = () => {
+    navigate('/tutorial/select');
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex h-full w-full flex-col">
       <div>
         <StockTutorialInfo category={'반도체'} />
         <div className="my-[25px]">
-          <StockProgress />
+          <StockProgress onProgressChange={setProgress} />
         </div>
         <div className="mb-[25px] flex justify-between">
           <StockTutorialMoneyInfo />
@@ -55,6 +144,13 @@ export const SimulatePage = () => {
           <StockTutorialConclusion />
         </div>
       </div>
+      <TutorialEndModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        changeRate={finalChangeRate}
+        onConfirmResultClick={handleNavigateToResult}
+        onEndTutorialClick={handleNavigateToSelect}
+      />
     </div>
   );
 };
