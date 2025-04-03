@@ -31,7 +31,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
   const displayText = useMemo(() => formatSentences(rawDisplayText), [rawDisplayText]);
 
   return (
-    <div className="flex gap-4">
+    <div className="flex animate-fadeIn gap-4">
       <div>
         <Lottie
           animationData={robotMove}

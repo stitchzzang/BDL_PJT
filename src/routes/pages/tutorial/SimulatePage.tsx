@@ -396,6 +396,28 @@ export const SimulatePage = () => {
 
       setTrades((prev) => [...prev, newTrade]);
 
+      // 관망 시에도 자산 정보 업데이트
+      // 관망은 자산 변동이 없지만, 시간이 흐르므로 주가 변동에 따른 총자산 재계산
+      try {
+        // 현재 보유 주식 가치 계산
+        const stockValue = ownedStockCount * latestPrice;
+        // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
+        const newTotalAsset = assetInfo.availableOrderAsset + stockValue;
+        // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
+        const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+        // 자산 정보 업데이트
+        setAssetInfo({
+          ...assetInfo,
+          currentTotalAsset: newTotalAsset,
+          totalReturnRate: newReturnRate,
+        });
+
+        setFinalChangeRate(newReturnRate);
+      } catch (error) {
+        console.error('자산 정보 업데이트 중 오류 발생:', error);
+      }
+
       // 턴 완료 처리
       setIsCurrentTurnCompleted(true);
 
@@ -496,6 +518,9 @@ export const SimulatePage = () => {
   const completeTutorial = async () => {
     if (!memberId) return;
 
+    // 튜토리얼 완료 전 자산 정보 최종 업데이트
+    updateAssetInfo();
+
     const currentDate = new Date();
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
@@ -528,10 +553,36 @@ export const SimulatePage = () => {
       setCurrentTurn(nextTurn);
       setIsCurrentTurnCompleted(false);
 
+      // 턴 이동 시 자산 정보 재계산
+      updateAssetInfo();
+
       // 세션 업데이트 및 데이터 로드
       await updateSessionAndLoadData(nextTurn);
     } else {
       await completeTutorial();
+    }
+  };
+
+  // 자산 정보 업데이트 함수 추가
+  const updateAssetInfo = () => {
+    try {
+      // 현재 보유 주식 가치 계산
+      const stockValue = ownedStockCount * latestPrice;
+      // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
+      const newTotalAsset = assetInfo.availableOrderAsset + stockValue;
+      // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
+      const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+      // 자산 정보 업데이트
+      setAssetInfo({
+        ...assetInfo,
+        currentTotalAsset: newTotalAsset,
+        totalReturnRate: newReturnRate,
+      });
+
+      setFinalChangeRate(newReturnRate);
+    } catch (error) {
+      console.error('자산 정보 업데이트 중 오류 발생:', error);
     }
   };
 
@@ -625,6 +676,9 @@ export const SimulatePage = () => {
 
         // 최신 가격 설정
         updateLatestPrice(result);
+
+        // 가격 업데이트 후 자산 정보도 업데이트
+        updateAssetInfo();
 
         // 뉴스 데이터 로드
         return loadNewsData(turn);
@@ -1110,8 +1164,17 @@ export const SimulatePage = () => {
   useEffect(() => {
     if (isTutorialStarted && currentTurn > 0) {
       loadInitialData();
+      // 컴포넌트 마운트 시 자산 정보 초기화
+      updateAssetInfo();
     }
   }, [loadInitialData, isTutorialStarted, currentTurn]);
+
+  // 거래 내역 변경 시 자산 정보 업데이트
+  useEffect(() => {
+    if (trades.length > 0 && isTutorialStarted) {
+      updateAssetInfo();
+    }
+  }, [trades, latestPrice]);
 
   return (
     <div className="flex h-full w-full flex-col px-6">

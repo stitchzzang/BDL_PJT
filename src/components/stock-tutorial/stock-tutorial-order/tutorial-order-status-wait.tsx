@@ -15,7 +15,7 @@ export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatu
   };
 
   return (
-    <div>
+    <div className="animate-fadeIn">
       <div className="mb-[30px] flex flex-col items-center justify-center gap-0">
         <p className="text-border-color">아무 행동을 하지 않고</p>
         <p className="text-border-color">

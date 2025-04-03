@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // 허용된 탭 타입을 정의
 type TabType = '구매' | '판매' | '관망';
@@ -25,8 +25,8 @@ export const TutorialOrderStatusCategory: React.FC<OrderStatusCategoryProps> = (
     setIsActiveCategory(isActiveCategory);
   };
   return (
-    <div className=" rounded-xl border border-border-color p-2 ">
-      <div className="flex w-full justify-between gap-1">
+    <div className=" rounded-xl border border-border-color p-2">
+      <div className="flex w-full animate-fadeIn justify-between gap-1">
         <div
           className={`${orderButtonStyle} ${isActive === '구매' ? 'bg-btn-red-color bg-opacity-20' : ''} hover:bg-btn-red-color hover:bg-opacity-20`}
           onClick={() => {

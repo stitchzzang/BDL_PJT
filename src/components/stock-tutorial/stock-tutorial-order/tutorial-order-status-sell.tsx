@@ -135,7 +135,7 @@ export const TutorialOrderStatusSell = ({
   };
 
   return (
-    <div>
+    <div className="animate-fadeIn">
       <h3 className={h3Style}>판매하기</h3>
       <div>
         <div className="mb-[25px] flex w-full flex-col gap-4">
