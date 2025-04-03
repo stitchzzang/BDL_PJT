@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useTutorialResults } from '@/api/tutorial.api';
 import { ErrorScreen } from '@/components/common/error-screen';
@@ -7,16 +8,41 @@ import { StockTutorialResultItem } from '@/components/member-info/stock-tutorial
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/useAuthStore';
+
 export const TutorialResultPage = () => {
   const { userData } = useAuthStore();
   const {
     data: tutorialResults,
     isLoading,
     isError,
+    refetch,
   } = useTutorialResults({
     memberId: userData.memberId?.toString() ?? '',
   });
   const navigate = useNavigate();
+  const location = useLocation();
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+
+  // 페이지 로드 시 튜토리얼에서 전달된 상태가 있는지 확인
+  useEffect(() => {
+    // location.state에서 튜토리얼 데이터 확인
+    const fromTutorial = location.state?.fromTutorial;
+
+    if (fromTutorial) {
+      // 최신 결과를 가져오기 위해 데이터 리프레시
+      refetch().then(() => {
+        // 데이터 로드 후 가장 최근 결과가 있으면 해당 ID를 저장
+        if (tutorialResults && tutorialResults.length > 0) {
+          // 일반적으로 배열의 첫 번째 항목이 가장 최근 결과
+          setHighlightedId(tutorialResults[0].tutorialResultId);
+
+          // 스크롤을 최상단으로 이동
+          window.scrollTo(0, 0);
+        }
+      });
+    }
+  }, [location.state, refetch, tutorialResults]);
+
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center">
       <div className="flex w-full flex-row justify-between">
@@ -35,10 +61,16 @@ export const TutorialResultPage = () => {
       ) : (
         <>
           {tutorialResults?.map((tutorialResult) => (
-            <StockTutorialResultItem
+            <div
               key={tutorialResult.tutorialResultId}
-              result={tutorialResult}
-            />
+              className={`w-full ${
+                tutorialResult.tutorialResultId === highlightedId
+                  ? 'animate-pulse border-2 border-blue-500 bg-blue-900/20 transition-all duration-300'
+                  : ''
+              }`}
+            >
+              <StockTutorialResultItem result={tutorialResult} />
+            </div>
           ))}
         </>
       )}
