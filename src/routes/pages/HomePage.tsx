@@ -1,17 +1,17 @@
 import { useUserRanking } from '@/api/home.api';
+import { HomeBanner } from '@/components/common/home-banner';
 import { KosdaqKospiChartContainer } from '@/components/home-page/kosdaq-kospi-chart/kosdaq-kospi-chart-container';
 import { NewsChart } from '@/components/home-page/news/news-chart';
 import { RankCards } from '@/components/home-page/rank-cards/rank-cards';
 import { RealTimeChart } from '@/components/home-page/real-time-chart/real-time-chart';
-
 export const HomePage = () => {
   const { data: userRanking, isLoading, isError } = useUserRanking();
 
   return (
     <div className="px-6">
-      <div>{/* 코스피,코스단.. 차트 */}</div>
       <div>
-        <div className="max-h-[300px]">
+        <HomeBanner />
+        <div className="mt-[80px] max-h-[300px]">
           <KosdaqKospiChartContainer />
         </div>
         <div className="mt-[60px] w-full">
@@ -19,11 +19,11 @@ export const HomePage = () => {
             <h3 className="text-[28px] font-bold">실시간 차트</h3>
             <p className="text-[20px] font-light text-text-inactive-2-color">어제 08:25 기준</p>
           </div>
-          <div className="grid min-h-0 w-full grid-cols-1 gap-3 lg:min-h-[520px] lg:grid-cols-8">
-            <div className="col-span-1 lg:col-span-5">
+          <div className="grid min-h-[520px] w-full grid-cols-8 gap-3">
+            <div className="col-span-5">
               <RealTimeChart />
             </div>
-            <div className="col-span-1 flex items-center justify-center lg:col-span-3">
+            <div className="col-span-3 mt-10 flex justify-center">
               <NewsChart />
             </div>
           </div>

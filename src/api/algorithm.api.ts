@@ -1,5 +1,5 @@
 // 알고리즘 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { _kyAuth } from '@/api/instance';
 import { Algorithm, AlgorithmResponse, CreateAlgorithmRequest } from '@/api/types/algorithm';
@@ -24,6 +24,7 @@ export const algorithmAPI = {
 };
 
 export const useCreateAlgorithm = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       memberId,
@@ -32,6 +33,9 @@ export const useCreateAlgorithm = () => {
       memberId: string;
       algorithm: CreateAlgorithmRequest;
     }) => algorithmAPI.createAlgorithm(memberId, algorithm).then((res) => res.result),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['algorithms'] });
+    },
   });
 };
 
@@ -43,6 +47,8 @@ export const useGetAlgorithm = (memberId: string) => {
 };
 
 export const useDeleteAlgorithm = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       memberId,
@@ -51,6 +57,10 @@ export const useDeleteAlgorithm = () => {
       memberId: string | undefined;
       algorithmId: string;
     }) => algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
+    onSuccess: () => {
+      // 삭제 후 알고리즘 목록 쿼리 무효화하여 데이터 갱신
+      queryClient.invalidateQueries({ queryKey: ['algorithms'] });
+    },
   });
 };
 

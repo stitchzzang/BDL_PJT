@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 type Tab = {
-  title: string;
+  title: string | React.ReactNode;
   value: string;
   content?: string | React.ReactNode | any;
 };
@@ -47,7 +47,7 @@ export const Tabs = ({
       >
         {propTabs.map((tab, idx) => (
           <button
-            key={tab.title}
+            key={tab.title?.toString()}
             onClick={() => {
               moveSelectedTabToTop(idx);
             }}

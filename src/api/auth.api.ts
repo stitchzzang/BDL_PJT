@@ -23,7 +23,7 @@ export const authApi = {
       })
       .json<ApiResponse<LoginResponse>>(),
 
-  logout: () => _ky.post('auth/logout', {}).json<ApiResponse<void>>(),
+  logout: () => _kyAuth.post('auth/logout', {}).json<ApiResponse<void>>(),
   signup: (data: SignupRequest) =>
     _ky
       .post('auth/signup', {
@@ -85,7 +85,11 @@ export const useLogout = () => {
       navigate('/');
     },
     onError: (error: HTTPError) => {
-      handleKyError(error, '로그아웃에 실패했습니다.');
+      // 사용자가 의도적으로 로그아웃한 경우에는 토큰 오류여도 성공적으로 처리
+      unsubscribeFromNotifications(); // SSE 연결 종료
+      logoutAuth();
+      toast.success('로그아웃되었습니다.');
+      navigate('/');
     },
   });
 };

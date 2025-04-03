@@ -39,7 +39,9 @@ export const SearchPage = () => {
 
   const handleSearch = () => {
     navigate(`/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
-    refetch();
+    setTimeout(() => {
+      refetch();
+    }, 100);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -106,15 +108,17 @@ export const SearchPage = () => {
           <p className="my-3 text-lg text-[#718096]">카테고리 선택으로도 검색이 가능합니다.</p>
           <div className="w-full min-w-[200px] p-5 sm:min-w-[600px]">
             {isLoading && <LoadingAnimation />}
-            {isError && <ErrorScreen />}
-            {searchedCompanies && searchedCompanies.length > 0 && (
+            {isError && (!searchedCompanies || searchedCompanies.length === 0) && (
+              <ErrorScreen onRefresh={refetch} />
+            )}
+            {!isLoading && searchedCompanies && searchedCompanies.length > 0 && (
               <div className="flex flex-col gap-2">
                 {searchedCompanies.map((company) => (
                   <SearchedCompanyListItem key={company.companyId} company={company} />
                 ))}
               </div>
             )}
-            {searchedCompanies && searchedCompanies.length === 0 && (
+            {!isLoading && searchedCompanies && searchedCompanies.length === 0 && !isError && (
               <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
                 <p className="text-center text-lg text-[#718096]">검색 결과가 없습니다.</p>
               </div>

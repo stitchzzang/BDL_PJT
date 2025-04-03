@@ -29,14 +29,16 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
   const { mutate: deleteAlgorithm } = useDeleteAlgorithm();
 
   const handleDelete = () => {
-    deleteAlgorithm(
-      { memberId: memberId?.toString(), algorithmId: algorithm.algorithmId.toString() },
-      {
-        onSuccess: () => {
-          setIsOpen(false);
+    if (userData?.memberId) {
+      deleteAlgorithm(
+        { memberId: userData.memberId.toString(), algorithmId: algorithm.algorithmId.toString() },
+        {
+          onSuccess: () => {
+            setIsOpen(false);
+          },
         },
-      },
-    );
+      );
+    }
   };
 
   return (

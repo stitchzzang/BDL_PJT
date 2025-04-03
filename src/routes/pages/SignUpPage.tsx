@@ -113,6 +113,7 @@ export const SignUpPage = () => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col items-center justify-center gap-3"
           >
+            <h1 className="w-full text-left text-lg font-bold text-primary-color">이메일</h1>
             <FormField
               control={form.control}
               name="email"
@@ -139,201 +140,230 @@ export const SignUpPage = () => {
                 );
               }}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => {
-                const isValid = !errors.password && dirtyFields.password;
-                const hasError = !!errors.password && dirtyFields.password;
-                return (
-                  <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="비밀번호"
-                          className="h-12 pr-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      {isValid && (
-                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
-                      )}
-                      {hasError && (
-                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
-                      )}
-                    </div>
-                    <p className="text-sm text-text-main-color">
-                      비밀번호는 최소 8자 이상이어야 합니다.
-                    </p>
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="passwordConfirm"
-              render={({ field }) => {
-                const isValid = !errors.passwordConfirm && dirtyFields.passwordConfirm;
-                const hasError = !!errors.passwordConfirm && dirtyFields.passwordConfirm;
-                return (
-                  <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <Input
-                          type="password"
-                          placeholder="비밀번호 확인"
-                          className="h-12 pr-10"
-                          {...field}
-                        />
-                      </FormControl>
-                      {isValid && (
-                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
-                      )}
-                      {hasError && (
-                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
-                      )}
-                    </div>
-                    {dirtyFields.passwordConfirm && (
-                      <FormMessage
-                        className={cn(
-                          'text-sm',
-                          hasError
-                            ? 'text-btn-red-color'
-                            : isValid
-                              ? 'text-btn-green-color'
-                              : 'text-text-main-color',
-                        )}
-                      >
-                        {hasError
-                          ? '비밀번호가 일치하지 않습니다.'
-                          : isValid
-                            ? '비밀번호가 일치합니다.'
-                            : '비밀번호와 정확히 일치해야 합니다.'}
-                      </FormMessage>
-                    )}
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="nickname"
-              render={({ field }) => {
-                const isValid = !errors.nickname && dirtyFields.nickname;
-                const hasError = !!errors.nickname && dirtyFields.nickname;
-                return (
-                  <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="닉네임 작성" className="h-12 pr-10" {...field} />
-                      </FormControl>
-                      {isValid && (
-                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
-                      )}
-                      {hasError && (
-                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
-                      )}
-                    </div>
-                    <p className="text-sm text-text-main-color">
-                      닉네임은 2자 이상 5자 이하여야 하며,
-                    </p>
-                    <span className="text-sm text-text-main-color">
-                      특수문자 및 자음/모음은 사용할 수 없습니다.
-                    </span>
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="birthDate"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <div className="relative">
+            <hr className="w-full border-none" />
+            <div className="flex w-full flex-col gap-2">
+              <h1 className="w-full text-left text-lg font-bold text-primary-color">비밀번호</h1>
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => {
+                  const isValid = !errors.password && dirtyFields.password;
+                  const hasError = !!errors.password && dirtyFields.password;
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
                           <Input
-                            placeholder="생년월일"
+                            type="password"
+                            placeholder="비밀번호"
                             className="h-12 pr-10"
-                            value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                            onChange={(e) => {
-                              const date = new Date(e.target.value);
-                              if (!isNaN(date.getTime())) {
-                                field.onChange(date);
-                              }
-                            }}
+                            {...field}
                           />
-                          <CalendarIcon className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-border-color" />
-                        </div>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-fit p-0" align="end">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          // 날짜 선택 후 팝오버 닫기
-                          setCalendarOpen(false);
-                        }}
-                        disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                        className="w-auto"
-                        fromYear={1900}
-                        toYear={new Date().getFullYear()}
-                        initialFocus
-                        defaultMonth={field.value}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <p className="text-sm text-text-main-color">1900년 이후만 가능합니다.</p>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="question"
-              render={({ field }) => {
-                return (
+                        </FormControl>
+                        {isValid && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                        )}
+                        {hasError && (
+                          <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                        )}
+                      </div>
+                      <p className="text-sm text-text-main-color">
+                        비밀번호는 최소 8자 이상이어야 합니다.
+                      </p>
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="passwordConfirm"
+                render={({ field }) => {
+                  const isValid = !errors.passwordConfirm && dirtyFields.passwordConfirm;
+                  const hasError = !!errors.passwordConfirm && dirtyFields.passwordConfirm;
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="비밀번호 확인"
+                            className="h-12 pr-10"
+                            {...field}
+                          />
+                        </FormControl>
+                        {isValid && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                        )}
+                        {hasError && (
+                          <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                        )}
+                      </div>
+                      {dirtyFields.passwordConfirm && (
+                        <FormMessage
+                          className={cn(
+                            'text-sm',
+                            hasError
+                              ? 'text-btn-red-color'
+                              : isValid
+                                ? 'text-btn-green-color'
+                                : 'text-text-main-color',
+                          )}
+                        >
+                          {hasError
+                            ? '비밀번호가 일치하지 않습니다.'
+                            : isValid
+                              ? '비밀번호가 일치합니다.'
+                              : '비밀번호와 정확히 일치해야 합니다.'}
+                        </FormMessage>
+                      )}
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
+            <hr className="w-full border-none" />
+            <div className="flex w-full flex-col gap-1">
+              <h1 className="w-full text-left text-lg font-bold text-primary-color">닉네임</h1>
+              <FormField
+                control={form.control}
+                name="nickname"
+                render={({ field }) => {
+                  const isValid = !errors.nickname && dirtyFields.nickname;
+                  const hasError = !!errors.nickname && dirtyFields.nickname;
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
+                          <Input placeholder="닉네임 작성" className="h-12 pr-10" {...field} />
+                        </FormControl>
+                        {isValid && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                        )}
+                        {hasError && (
+                          <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                        )}
+                      </div>
+                      <p className="text-sm text-text-main-color">
+                        닉네임은 2자 이상 5자 이하여야 하며,
+                      </p>
+                      <span className="text-sm text-text-main-color">
+                        특수문자 및 자음/모음은 사용할 수 없습니다.
+                      </span>
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
+            <hr className="w-full border-none" />
+            <div className="flex w-full flex-col gap-1">
+              <h1 className="w-full text-left text-lg font-bold text-primary-color">생년월일</h1>
+              <FormField
+                control={form.control}
+                name="birthDate"
+                render={({ field }) => (
                   <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <QuestionsCombobox
-                          onSelect={(question) => field.onChange(Number(question))}
+                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              placeholder="생년월일 (YYYY-MM-DD)"
+                              className="h-12 cursor-pointer pr-10"
+                              value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                              readOnly
+                              onClick={() => setCalendarOpen(true)}
+                            />
+                            <CalendarIcon
+                              className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 cursor-pointer text-border-color"
+                              onClick={() => setCalendarOpen(true)}
+                            />
+                          </div>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-fit p-0" align="end">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            // 날짜 선택 후 팝오버 닫기
+                            setCalendarOpen(false);
+                          }}
+                          disabled={(date) =>
+                            date > new Date() ||
+                            date < new Date('1900-01-01') ||
+                            date > new Date('2004-01-01')
+                          }
+                          className="w-auto"
+                          fromYear={1900}
+                          toYear={new Date().getFullYear()}
+                          initialFocus
+                          defaultMonth={field.value}
                         />
-                      </FormControl>
+                      </PopoverContent>
+                    </Popover>
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm text-text-main-color">
+                        달력 아이콘을 클릭하여 생년월일을 선택해주세요.
+                      </p>
                     </div>
                   </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="answer"
-              render={({ field }) => {
-                const isValid = !errors.answer && dirtyFields.answer;
-                const hasError = !!errors.answer && dirtyFields.answer;
-                return (
-                  <FormItem className="w-full">
-                    <div className="relative">
-                      <FormControl>
-                        <Input placeholder="비밀번호 찾기 답변" className="h-12 pr-10" {...field} />
-                      </FormControl>
-                      {isValid && (
-                        <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
-                      )}
-                      {hasError && (
-                        <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
-                      )}
-                    </div>
-                    <p className="text-sm text-text-main-color">
-                      답변은 1자 이상 10자 이하여야 합니다.
-                    </p>
-                  </FormItem>
-                );
-              }}
-            />
+                )}
+              />
+            </div>
+            <hr className="w-full border-none" />
+            <div className="flex w-full flex-col gap-2">
+              <h1 className="w-full text-left text-lg font-bold text-primary-color">
+                질문 및 답변
+              </h1>
+              <FormField
+                control={form.control}
+                name="question"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
+                          <QuestionsCombobox
+                            onSelect={(question) => field.onChange(Number(question))}
+                          />
+                        </FormControl>
+                      </div>
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="answer"
+                render={({ field }) => {
+                  const isValid = !errors.answer && dirtyFields.answer;
+                  const hasError = !!errors.answer && dirtyFields.answer;
+                  return (
+                    <FormItem className="w-full">
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            placeholder="비밀번호 찾기 답변"
+                            className="h-12 pr-10"
+                            {...field}
+                          />
+                        </FormControl>
+                        {isValid && (
+                          <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
+                        )}
+                        {hasError && (
+                          <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
+                        )}
+                      </div>
+                      <p className="text-sm text-text-main-color">
+                        답변은 1자 이상 10자 이하여야 합니다.
+                      </p>
+                    </FormItem>
+                  );
+                }}
+              />
+            </div>
             <Button
               type="submit"
               variant="blue"

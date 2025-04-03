@@ -7,7 +7,7 @@ import { NewsChartSub } from '@/components/home-page/news/news-chart-sub';
 export const NewsChart = () => {
   const { data: latestNews, isLoading, isError } = useLatestNews();
   return (
-    <div className="flex items-center justify-center">
+    <>
       {isLoading ? (
         <div>
           <LoadingAnimation />
@@ -17,15 +17,10 @@ export const NewsChart = () => {
           <ErrorScreen />
         </div>
       ) : (
-        <div>
+        <div className="mt-10 w-full">
           <div className="flex flex-col gap-3">
             {latestNews && latestNews.length > 0 ? (
               <>
-                <div className="mb-[12px] inline-block rounded-xl bg-modal-background-color px-[12px] py-[8px]">
-                  <div className="rounded-xl bg-btn-blue-color bg-opacity-40 p-[12px]">
-                    <h3 className="text-[16px]">현재뉴스</h3>
-                  </div>
-                </div>
                 <NewsChartMain newsMainInfo={latestNews[0]} />
                 <NewsChartSub newsSubInfo={latestNews[1]} />
               </>
@@ -37,6 +32,6 @@ export const NewsChart = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };

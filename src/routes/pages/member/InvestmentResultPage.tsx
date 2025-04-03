@@ -25,6 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { TermTooltip } from '@/components/ui/TermTooltip';
 import { useAccountConnection } from '@/services/SocketAccountService';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
@@ -102,9 +103,19 @@ export const InvestmentResultPage = () => {
         </div>
         <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
           <div className="flex flex-col items-start">
-            <p className="text-sm text-border-color">내 평가금</p>
+            <p className="text-sm text-border-color">
+              내 <TermTooltip term="평가금">평가금</TermTooltip>
+            </p>
             <div className="flex flex-row items-end gap-1">
-              <p className="text-3xl font-bold text-btn-red-color">
+              <p
+                className={`text-3xl font-bold ${
+                  displayData?.totalProfit && displayData.totalProfit > 0
+                    ? 'text-btn-red-color'
+                    : displayData?.totalProfit && displayData.totalProfit === 0
+                      ? 'text-btn-blue-color'
+                      : 'text-text-main-color'
+                }`}
+              >
                 {displayData?.totalEvaluation
                   ? addCommasToThousand(displayData.totalEvaluation)
                   : '0'}
@@ -219,11 +230,22 @@ export const InvestmentResultPage = () => {
             <TableHead>종목명</TableHead>
             <TableHead>총 수익률</TableHead>
             <TableHead>총 수익금(원)</TableHead>
-            <TableHead>1주 평균 금액(원)</TableHead>
+            <TableHead>
+              <TermTooltip term="1주 평균 금액">1주 평균 금액</TermTooltip>
+              <span className="text-sm text-border-color">(원)</span>
+            </TableHead>
             <TableHead>현재가(원)</TableHead>
-            <TableHead>보유수량</TableHead>
-            <TableHead>평가금(원)</TableHead>
-            <TableHead>구매 금액(원)</TableHead>
+            <TableHead>
+              <TermTooltip term="보유수량">보유수량</TermTooltip>
+            </TableHead>
+            <TableHead>
+              <TermTooltip term="평가금">평가금</TermTooltip>
+              <span className="text-sm text-border-color">(원)</span>
+            </TableHead>
+            <TableHead>
+              <TermTooltip term="구매금액">구매금액</TermTooltip>
+              <span className="text-sm text-border-color">(원)</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
