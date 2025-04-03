@@ -64,7 +64,7 @@ export const TutorialOrderStatusSell = ({
     console.log('보유 주식 수량 변경:', ownedStockCount, '현재 설정된 판매 수량:', stockCount);
     if (stockCount > ownedStockCount) {
       console.log('판매 수량이 보유 수량보다 많아 보유 수량으로 조정:', ownedStockCount);
-      setStockCount(ownedStockCount);
+      setStockCount(Math.min(ownedStockCount, stockCount)); // 보유 수량을 초과하지 않도록 제한
     }
   }, [ownedStockCount, stockCount]);
 
@@ -96,13 +96,40 @@ export const TutorialOrderStatusSell = ({
       return;
     }
 
-    // 보유 주식보다 많이 판매하려는 경우 재확인
+    // 적극적인 보유량 체크
     if (stockCount > ownedStockCount) {
-      console.log(`판매 오류: 요청=${stockCount}주, 보유=${ownedStockCount}주`);
+      console.error(
+        `판매 오류: 보유량(${ownedStockCount}주)보다 많은 수량(${stockCount}주) 판매 시도`,
+      );
       alert(
         `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${stockCount}주)을 판매할 수 없습니다.`,
       );
-      setStockCount(ownedStockCount); // 수량 자동 조정
+
+      // 안전하게 판매 수량 조정 (보유량 이하로)
+      setStockCount(Math.max(0, Math.min(ownedStockCount, stockCount)));
+      return;
+    }
+
+    // 서버와 클라이언트 간 보유량 불일치 가능성을 고려, 50% 안전 마진 추가
+    // 이렇게 하면 실제 서버에 있는 값보다 많이 팔려는 상황 방지
+    const safeMaxSellCount = Math.floor(ownedStockCount * 0.5);
+
+    if (stockCount > safeMaxSellCount && ownedStockCount > 1) {
+      const confirmSell = window.confirm(
+        `안전한 거래를 위해 보유량(${ownedStockCount}주)의 절반인 ${safeMaxSellCount}주까지만 판매하는 것이 좋습니다. 이 수량으로 판매하시겠습니까?`,
+      );
+
+      if (confirmSell) {
+        // 사용자가 동의하면 안전 수량으로 조정
+        console.log(`판매 수량 자동 조정: ${stockCount} → ${safeMaxSellCount}`);
+        setStockCount(safeMaxSellCount);
+
+        // 안전 수량으로 판매 진행
+        console.log(
+          `판매 요청: 가격=${sellPrice}, 수량=${safeMaxSellCount}, 보유=${ownedStockCount}`,
+        );
+        onSell(sellPrice, safeMaxSellCount);
+      }
       return;
     }
 

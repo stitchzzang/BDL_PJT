@@ -18,7 +18,6 @@ import {
   AssetResponse,
   NewsResponse,
   NewsResponseWithThumbnail,
-  Point,
   StockCandle,
   TutorialStockResponse,
 } from '@/api/types/tutorial';
@@ -542,12 +541,8 @@ export const SimulatePage = () => {
       range: `${startStockCandleId}-${endStockCandleId}`,
     });
 
-    // ID 범위가 유효한지 확인
-    if (
-      startStockCandleId <= 0 ||
-      endStockCandleId <= 0 ||
-      startStockCandleId >= endStockCandleId
-    ) {
+    // ID 범위가 유효한지 확인 - ID 역전은 오류로 처리하지 않음
+    if (startStockCandleId <= 0 || endStockCandleId <= 0) {
       console.error(`턴 ${turn}의 ID 범위가 유효하지 않습니다:`, {
         startStockCandleId,
         endStockCandleId,
@@ -881,165 +876,119 @@ export const SimulatePage = () => {
       return;
     }
 
-    // 보유 주식 정보 출력
-    console.log('현재 보유 주식 수량:', ownedStockCount);
-
-    // 타입 가드 함수 정의
-    const isWaitAction = (act: TradeAction): act is 'wait' => act === 'wait';
-    const isBuyAction = (act: TradeAction): act is 'buy' => act === 'buy';
-    const isSellAction = (act: TradeAction): act is 'sell' => act === 'sell';
-
-    // 즉시 UI 상태 업데이트 (서버 응답을 기다리지 않고)
-    if (isBuyAction(action)) {
-      setOwnedStockCount((prev) => {
-        const newCount = prev + quantity;
-        console.log(`구매 예상치 보유 주식 수량 업데이트: ${prev} + ${quantity} = ${newCount}`);
-        return newCount;
-      });
-    } else if (isSellAction(action)) {
-      // 판매 시에는 현재 보유량 확인
-      if (quantity > ownedStockCount) {
-        console.log(`판매 불가: 요청=${quantity}주, 보유=${ownedStockCount}주`);
-        alert(
-          `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${quantity}주)을 판매할 수 없습니다.`,
-        );
-        return; // 판매 처리 중단
-      }
-      setOwnedStockCount((prev) => {
-        const newCount = Math.max(0, prev - quantity);
-        console.log(`판매 예상치 보유 주식 수량 업데이트: ${prev} - ${quantity} = ${newCount}`);
-        return newCount;
-      });
+    // 판매 수량 확인
+    if (action === 'sell' && quantity > ownedStockCount) {
+      alert(`보유량(${ownedStockCount}주)보다 많은 수량을 판매할 수 없습니다.`);
+      return;
     }
 
-    try {
-      // API 요청용 액션 값으로 변환 (소문자로 변환)
-      const actionValue = action.toLowerCase();
+    // 관망 선택 시 API 호출 없이 턴 완료 처리 후 자동으로 다음 턴으로 이동
+    if (action === 'wait') {
+      console.log('관망 선택 - 자동으로 다음 턴으로 이동');
 
-      // 요청 데이터 객체 준비
-      const requestData = {
-        action: actionValue,
-        price,
-        quantity,
-        companyId,
-        startStockCandleId: startPointId || endPointId,
-        endStockCandleId: endPointId,
-      };
-
-      // 거래 처리 로그 - 상세 정보 추가
-      console.log('거래 요청 전송 (상세):', {
-        요청URL: `tutorial/${memberId}/action`,
-        요청방식: 'POST',
-        요청본문: JSON.stringify(requestData),
-        memberId,
-        action: actionValue,
-        price,
-        quantity,
-        companyId,
-        startStockCandleId: startPointId || endPointId,
-        endStockCandleId: endPointId,
-      });
-
-      const response = await processUserAction.mutateAsync({
-        memberId,
-        ...requestData,
-      });
-
-      console.log('거래 응답:', response);
-
-      const assetResults = response.result?.AssetResponse;
-
-      // 거래 기록 추가
-      // 새로운 거래 기록 생성
-      const newTradeRecord: TradeRecord = {
-        action,
-        price: isWaitAction(action) ? 0 : price,
-        quantity: isWaitAction(action) ? 0 : quantity,
+      // 관망 기록 추가
+      const newTrade: TradeRecord = {
+        action: 'wait',
+        price: 0,
+        quantity: 0,
         timestamp: new Date(),
         stockCandleId: endPointId,
         turnNumber: currentTurn,
       };
 
-      // 거래 내역 업데이트
-      setTrades((prev) => [...prev, newTradeRecord]);
+      setTrades((prev) => [...prev, newTrade]);
 
-      // 보유 주식 수량 직접 업데이트 (거래 내역 기반 계산이 아닌 직접 업데이트)
-      if (isBuyAction(action)) {
-        setOwnedStockCount((prev) => {
-          const newCount = prev + quantity;
-          console.log(`구매 최종 보유 주식 수량: ${newCount}`);
-          return newCount;
-        });
-      } else if (isSellAction(action)) {
-        setOwnedStockCount((prev) => {
-          const newCount = Math.max(0, prev - quantity);
-          console.log(`판매 최종 보유 주식 수량: ${newCount}`);
-          return newCount;
-        });
-      }
+      // 턴 완료 처리
+      setIsCurrentTurnCompleted(true);
+
+      // 잠시 후 자동으로 다음 턴으로 이동
+      setTimeout(() => {
+        moveToNextTurn();
+      }, 500);
+
+      return;
+    }
+
+    try {
+      // API 요청은 buy 또는 sell 액션에 대해서만 처리
+      console.log(`${action} 요청 전송 - 가격: ${price}, 수량: ${quantity}`);
+
+      const response = await processUserAction.mutateAsync({
+        memberId,
+        action: action.toLowerCase(),
+        price,
+        quantity,
+        companyId,
+        startStockCandleId: startPointId,
+        endStockCandleId: endPointId,
+      });
+
+      console.log('거래 응답:', response);
+
+      // 거래 완료 처리
+      const newTrade: TradeRecord = {
+        action,
+        price,
+        quantity,
+        timestamp: new Date(),
+        stockCandleId: endPointId,
+        turnNumber: currentTurn,
+      };
+
+      setTrades((prev) => [...prev, newTrade]);
 
       // 자산 정보 업데이트
-      if (assetResults && assetResults.length > 0) {
-        const lastAsset = assetResults[assetResults.length - 1];
+      if (response.result?.AssetResponse && response.result.AssetResponse.length > 0) {
+        const lastAsset = response.result.AssetResponse[response.result.AssetResponse.length - 1];
         setAssetInfo(lastAsset);
         setFinalChangeRate(lastAsset.totalReturnRate);
       }
 
-      // 모든 액션(구매/판매/관망)에 대해 턴 완료 처리
+      // 보유 주식 수량 업데이트 (클라이언트 측)
+      if (action === 'buy') {
+        setOwnedStockCount((prev) => prev + quantity);
+      } else if (action === 'sell') {
+        setOwnedStockCount((prev) => Math.max(0, prev - quantity));
+      }
+
       setIsCurrentTurnCompleted(true);
     } catch (error) {
       console.error('거래 처리 오류:', error);
 
-      // 오류의 실제 응답 내용 출력
+      // 오류 상세 정보 출력
       if (error instanceof Error) {
-        console.error('오류 상세:', error.message);
-        console.error('오류 스택:', error.stack);
+        console.error('오류 메시지:', error.message);
 
         try {
           // @ts-expect-error - 오류 객체에서 응답 정보 추출 시도
-          const errorResponse = error.response;
-          if (errorResponse) {
-            console.error('오류 응답:', errorResponse);
-            // @ts-expect-error - ky 오류 객체에서 응답 텍스트 직접 추출
-            const errorText = await error.response.text();
+          const errorText = await error.response?.text();
+          if (errorText) {
             console.error('오류 응답 내용:', errorText);
-
-            // JSON 응답이면 파싱하여 사용자에게 표시
             try {
               const errorJson = JSON.parse(errorText);
               if (errorJson.message) {
                 alert(`거래 오류: ${errorJson.message}`);
+
+                // 보유량 부족 오류인 경우 거래 내역 기반으로 보유량 재계산
+                if (
+                  errorJson.code === 7105 ||
+                  errorJson.message.includes('보유한 주식 수량이 부족')
+                ) {
+                  await initOwnedStockCount(); // 거래 내역에서 재계산
+                }
+                return;
               }
             } catch (e) {
-              // JSON 파싱 오류 무시
+              console.log('JSON 파싱 오류:', e);
             }
           }
         } catch (e) {
-          console.error('오류 응답 추출 실패:', e);
+          console.log('응답 추출 오류:', e);
         }
       }
 
-      // 오류 발생해도 "관망"으로 처리하고 턴 완료 처리
-      console.log('오류 발생으로 관망 처리되어 다음 턴으로 넘어갑니다.');
-
-      // 거래 실패해도 관망으로 기록하고 턴 완료 처리
-      setTrades((prev) => [
-        ...prev,
-        {
-          action: 'wait',
-          price: 0,
-          quantity: 0,
-          timestamp: new Date(),
-          stockCandleId: endPointId,
-          turnNumber: currentTurn,
-        },
-      ]);
-
-      // 오류 발생해도 무조건 턴 완료 처리하여 다음 단계로 진행될 수 있게 함
-      setIsCurrentTurnCompleted(true);
-
-      // 오류 발생 시 보유 주식 수량 롤백 (추가)
-      await initOwnedStockCount(); // 거래 내역을 기반으로 보유 주식 수량 재계산
+      alert('거래 처리 중 오류가 발생했습니다.');
+      await initOwnedStockCount(); // 주식 수량 재계산
     }
   };
 
@@ -1053,7 +1002,7 @@ export const SimulatePage = () => {
       const response = await _ky.get(pointsUrl).json();
       console.log('변곡점 원본 응답 전체:', response);
 
-      const pointsResponse = response as ApiResponse<Point[]>;
+      const pointsResponse = response as ApiResponse<any>;
 
       // 변곡점 응답 구조 확인
       console.log('파싱된 변곡점 응답:', pointsResponse);
@@ -1068,7 +1017,7 @@ export const SimulatePage = () => {
       console.log('변곡점 로드 성공 (원본 형태):', points);
 
       // 변곡점 ID 저장
-      const pointIds = points.map((point) => point.stockCandleId);
+      const pointIds = points.map((point: any) => point.stockCandleId);
       console.log('추출된 변곡점 ID 목록:', pointIds);
       setPointStockCandleIds(pointIds);
 
@@ -1243,7 +1192,7 @@ export const SimulatePage = () => {
     }, 0);
   }
 
-  // 초기 데이터 로드 함수 추가
+  // 초기 데이터 로드 함수
   const loadInitialData = useCallback(async () => {
     if (!isTutorialStarted || currentTurn <= 0) return;
 
@@ -1268,6 +1217,9 @@ export const SimulatePage = () => {
     }
 
     console.log('현재 세션 계산:', session);
+
+    // 보유 주식 수량 초기화 (서버 API 호출 없이 거래 내역 기반으로 계산)
+    await initOwnedStockCount();
 
     // 차트 데이터 로드
     try {

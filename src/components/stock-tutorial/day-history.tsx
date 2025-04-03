@@ -13,8 +13,8 @@ export const DayHistory = ({ news }: DayHistoryProps) => {
   return (
     <div className="w-full">
       <div className="flex w-full gap-4 overflow-x-auto pb-4">
-        {news.map((newsItem) => (
-          <div key={newsItem.newsId} className="flex-shrink-0">
+        {news.map((newsItem, index) => (
+          <div key={`${newsItem.newsId}-${index}`} className="flex-shrink-0">
             <DayHistoryCard newsItem={newsItem} />
           </div>
         ))}
