@@ -63,11 +63,6 @@ export const InvestmentResultPage = () => {
 
   const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
 
-  const tabs = [
-    { value: 'holdings', label: '보유 종목' },
-    { value: 'orders', label: '주문 내역' },
-  ];
-
   // 주문 취소 뮤테이션
   const deleteSimulatedMutation = useDeleteUserSimulated();
 
@@ -82,10 +77,6 @@ export const InvestmentResultPage = () => {
       onError: (error) => {
         console.error('주문 취소 실패:', error);
         toast.error('주문 취소에 실패했습니다.');
-        refetchUserSimulated();
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
         refetchUserSimulated();
       },
     });
@@ -146,25 +137,6 @@ export const InvestmentResultPage = () => {
       }, 300);
     }
   }, [accountData, accountSummary, realTimeData]);
-
-  // 탭 변경 시 데이터 리프레시
-  useEffect(() => {
-    const refreshData = () => {
-      if (activeTab === 'holdings') {
-        refetchAccountSummary();
-      } else if (activeTab === 'orders') {
-        refetchUserSimulated();
-      }
-    };
-
-    // 탭 전환 시 즉시 데이터 리프레시
-    refreshData();
-
-    // 주기적 리프레시 설정 (3초마다)
-    const timer = setInterval(refreshData, 3000);
-
-    return () => clearInterval(timer);
-  }, [activeTab, refetchAccountSummary, refetchUserSimulated]);
 
   if (isAccountLoading) {
     return <LoadingAnimation />;
