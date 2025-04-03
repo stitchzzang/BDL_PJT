@@ -871,6 +871,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       },
       tooltip: {
         trigger: 'axis',
+        confine: false,
         axisPointer: {
           type: 'cross',
           crossStyle: {
