@@ -340,7 +340,7 @@ export const InvestmentResultPage = () => {
                           : ''
                   }`}
                 >
-                  {`${plusMinusSign(account.evaluation)}${addCommasToThousand(account.evaluation)}`}
+                  {`${addCommasToThousand(account.evaluation)}`}
                 </TableCell>
                 <TableCell>{addCommasToThousand(account.investment)}</TableCell>
               </TableRow>
