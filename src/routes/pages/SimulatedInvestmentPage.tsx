@@ -111,49 +111,71 @@ export const SimulatedInvestmentPage = () => {
         />
       </div>
       <div className="grid grid-cols-1 gap-1 lg:grid-cols-16">
-        <div className="col-span-1 lg:col-span-12">
-          {tickData ? (
-            <>
-              {minuteData ? (
-                <ChartContainer
-                  initialData={minuteData}
-                  companyId={stockCompanyId}
-                  tickData={tickData}
-                />
-              ) : (
-                <LoadingAnimation />
-              )}
-            </>
-          ) : (
-            <>
-              {minuteData ? (
-                <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
-              ) : (
-                <LoadingAnimation />
-              )}
-            </>
-          )}
+        <div className="col-span-1 flex flex-col gap-1 lg:col-span-12">
+          <div>
+            {tickData ? (
+              <>
+                {minuteData ? (
+                  <ChartContainer
+                    initialData={minuteData}
+                    companyId={stockCompanyId}
+                    tickData={tickData}
+                  />
+                ) : (
+                  <LoadingAnimation />
+                )}
+              </>
+            ) : (
+              <>
+                {minuteData ? (
+                  <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
+                ) : (
+                  <LoadingAnimation />
+                )}
+              </>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-1">
+            {tickData ? (
+              <>
+                <div className="col-span-1">
+                  <TickChart
+                    tickData={tickData}
+                    height={150}
+                    basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
+                  />
+                </div>
+                <div className="col-span-1">
+                  <SellingPrice stockCompanyInfo={stockCompanyInfo} />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="col-span-2">
+                  <SellingPrice stockCompanyInfo={stockCompanyInfo} />
+                </div>
+              </>
+            )}
+          </div>
+          <div>
+            <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
+          </div>
         </div>
-        <div className="col-span-1 lg:col-span-4">
-          <OrderStatus
-            closePrice={closePrice}
-            realTime={tickData?.stckPrpr}
-            companyId={stockCompanyId}
-          />
+        <div className="sticky top-2 col-span-1 flex flex-col gap-1 lg:col-span-4">
+          <div>
+            <OrderStatus
+              closePrice={closePrice}
+              realTime={tickData?.stckPrpr}
+              companyId={stockCompanyId}
+            />
+          </div>
+          <div>
+            <StockInfoDetail />
+          </div>
         </div>
       </div>
-      {tickData ? (
-        <div className="my-1">
-          <TickChart
-            tickData={tickData}
-            height={150}
-            basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
-          />
-        </div>
-      ) : (
-        <div className="my-1"></div>
-      )}
-      <div className="grid grid-cols-10 gap-2">
+
+      {/* <div className="grid grid-cols-10 gap-2">
         <div className="col-span-6">
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>
@@ -163,7 +185,7 @@ export const SimulatedInvestmentPage = () => {
         <div className="col-span-2">
           <SellingPrice stockCompanyInfo={stockCompanyInfo} />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
