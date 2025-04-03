@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-
 import { NewsResponse } from '@/api/types/tutorial';
 
 export interface DayHistoryCardProps {
@@ -7,35 +5,29 @@ export interface DayHistoryCardProps {
 }
 
 export const DayHistoryCard = ({ newsItem }: DayHistoryCardProps) => {
-  // 디버깅용 로그
-  useEffect(() => {
-    console.log('DayHistoryCard - 렌더링:', {
-      newsId: newsItem.newsId,
-      newsTitle: newsItem.newsTitle,
-      stockCandleId: newsItem.stockCandleId,
-    });
-  }, [newsItem]);
-
   // 변동률에 따른 스타일 결정
   const changeStyle = newsItem.changeRate >= 0 ? 'text-btn-red-color' : 'text-btn-blue-color';
   const changeSymbol = newsItem.changeRate >= 0 ? '+' : '';
 
+  // 날짜 포맷팅 - MM/DD HH:MM 형식
+  const date = new Date(newsItem.newsDate);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const formattedDate = `${month}/${day} ${hours}:${minutes}`;
+
   return (
-    <div className="w-[280px] flex-shrink-0 rounded-xl border border-border-color border-opacity-20 bg-modal-background-color p-4">
-      <div className="mb-[15px] flex flex-col flex-wrap gap-2">
-        <p className="line-clamp-2 text-[16px] font-bold text-white">{newsItem.newsTitle}</p>
-        <p className="text-[14px] text-border-color">
-          {new Date(newsItem.newsDate).toLocaleDateString('ko-KR')}
-        </p>
-      </div>
-      <div className="flex gap-2">
-        <span className="font-semibold text-border-color">변동률:</span>
+    <div className="flex h-[50px] min-w-[400px] items-center rounded-xl border border-btn-red-color bg-transparent px-6 py-7 text-btn-red-color shadow-sm transition-colors">
+      <p className="mr-3 line-clamp-1 font-bold text-white">{newsItem.newsTitle}</p>
+      <div className="flex items-center whitespace-nowrap">
         <span className={`font-semibold ${changeStyle}`}>
           {changeSymbol}
           {newsItem.changeRate.toFixed(2)}%
         </span>
+        <span className="mx-3 text-white">|</span>
+        <span className="text-white">{formattedDate}</span>
       </div>
-      <div className="mt-2 text-xs text-border-color">StockCandleId: {newsItem.stockCandleId}</div>
     </div>
   );
 };
