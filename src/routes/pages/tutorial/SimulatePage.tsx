@@ -126,7 +126,11 @@ export interface StockInfoProps {
   companyId: number;
   isTutorialStarted?: boolean;
   onTutorialStart?: () => void;
+  onMoveToNextTurn?: () => void;
   currentTurn?: number;
+  isCurrentTurnCompleted?: boolean;
+  buttonText?: string;
+  latestPrice?: number;
 }
 
 export const SimulatePage = () => {
@@ -1108,6 +1112,7 @@ export const SimulatePage = () => {
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
+          onMoveToNextTurn={moveToNextTurn}
           currentTurn={currentTurn}
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}

@@ -35,6 +35,7 @@ export interface StockInfoProps {
   companyId: number;
   isTutorialStarted?: boolean;
   onTutorialStart?: () => void;
+  onMoveToNextTurn?: () => void;
   currentTurn?: number;
   isCurrentTurnCompleted?: boolean;
   buttonText?: string;
@@ -71,9 +72,10 @@ export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
   onTutorialStart,
+  onMoveToNextTurn,
   currentTurn = 0,
   isCurrentTurnCompleted = false,
-  buttonText,
+  buttonText = '튜토리얼 시작하기',
   latestPrice,
 }: StockInfoProps) => {
   const [initialPrice, setInitialPrice] = useState<number>(0);
@@ -190,6 +192,30 @@ export const StockTutorialInfo = ({
     }
   };
 
+  // 버튼 클릭 처리 함수 수정
+  const handleButtonClick = () => {
+    if (!isTutorialStarted) {
+      // 튜토리얼이 시작되지 않은 경우 시작
+      handleTutorialStart();
+    } else if (isCurrentTurnCompleted) {
+      // 현재 턴이 완료된 경우 다음 턴으로 이동
+      onMoveToNextTurn?.();
+    }
+  };
+
+  // 버튼 텍스트 결정 로직 (원래 코드 유지)
+  const buttonTextContent =
+    buttonText ||
+    (isTutorialStarted
+      ? currentTurn === 4
+        ? '튜토리얼 완료'
+        : currentTurn > 0
+          ? '다음 턴으로'
+          : '튜토리얼 진행중'
+      : initSessionMutation.isPending
+        ? '초기화 중...'
+        : '튜토리얼 시작하기');
+
   return (
     <div className="flex items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
@@ -235,23 +261,14 @@ export const StockTutorialInfo = ({
                 className="max-h-[45px] w-[225px]"
                 variant={'green'}
                 size={'lg'}
-                onClick={handleTutorialStart}
+                onClick={handleButtonClick}
                 disabled={
                   (isTutorialStarted && !isCurrentTurnCompleted) ||
                   initSessionMutation.isPending ||
                   !companyInfo
                 }
               >
-                {buttonText ||
-                  (isTutorialStarted
-                    ? currentTurn === 4
-                      ? '튜토리얼 완료'
-                      : currentTurn > 0
-                        ? '다음 턴으로'
-                        : '튜토리얼 진행중'
-                    : initSessionMutation.isPending
-                      ? '초기화 중...'
-                      : '튜토리얼 시작하기')}
+                {buttonTextContent}
               </Button>
             </div>
           </div>
