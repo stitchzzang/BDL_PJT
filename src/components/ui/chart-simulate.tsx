@@ -1078,19 +1078,34 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           },
           // onZoom: handleDataZoomChange,
         },
-        {
-          show: true,
-          xAxisIndex: [0, 1],
-          type: 'slider',
-          bottom: '10%',
-          start: dataZoomRange.start,
-          end: dataZoomRange.end,
-          textStyle: {
-            fontFamily:
-              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
-          },
-          // onZoom: handleDataZoomChange,
-        },
+        // {
+        //   show: true,
+        //   xAxisIndex: [0, 1],
+        //   type: 'slider',
+        //   bottom: '7%',
+        //   start: dataZoomRange.start,
+        //   end: dataZoomRange.end,
+        //   height: 10,
+        //   backgroundColor: 'rgba(40, 44, 52, 0.8)',
+        //   fillerColor: 'rgba(13, 25, 43, 0.5)',
+        //   borderColor: 'rgba(204, 204, 204, 0.2)',
+        //   handleSize: '10%',
+        //   handleStyle: {
+        //     color: '#4169E1',
+        //     borderColor: '#fff',
+        //     borderWidth: 1,
+        //     shadowBlur: 3,
+        //     shadowColor: 'rgba(0, 0, 0, 0.6)',
+        //     shadowOffsetX: 2,
+        //     shadowOffsetY: 2,
+        //   },
+        //   textStyle: {
+        //     color: 'rgba(255, 255, 255, 0.7)',
+        //     fontFamily:
+        //       'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+        //   },
+        //   // onZoom: handleDataZoomChange,
+        // },
       ],
       series: [
         {
@@ -1209,7 +1224,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   return (
     <div className="relative">
       <div className="bg-modal-background-color">
-        <div className="flex items-center gap-4 p-4 text-sm text-white">
+        <div className="">
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}
         </div>
