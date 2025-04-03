@@ -26,7 +26,7 @@ export type CategoryName =
   | '바이오' // 바이오/제약 산업
   | 'IT' // IT/기술 산업
   | '금속' // 금속/재료 산업
-  | '엔터' // 엔터테인먼트 산업
+  | '엔터테인먼트' // 엔터테인먼트 산업
   | '금융' // 금융 산업
   | '음식'; // 식품/음식 산업
 
@@ -43,7 +43,7 @@ const categoryIconMap: Record<CategoryName, ComponentType> = {
   바이오: BeakerIcon,
   IT: TvIcon,
   금속: QueueListIcon,
-  엔터: PaintBrushIcon,
+  엔터테인먼트: PaintBrushIcon,
   금융: CurrencyDollarIcon,
   음식: CakeIcon,
 };
