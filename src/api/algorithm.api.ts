@@ -34,7 +34,7 @@ export const algorithmAPI = {
   // 알고리즘 중단
   stopAlgorithm: (algorithmId: number, companyId: number) =>
     _kyAuth
-      .post(`simulated/autotrading/stop`, {
+      .post(`algorithm/auto-trading/stop`, {
         json: {
           algorithmId,
           companyId,
@@ -88,7 +88,7 @@ export const useCheckAlgorithm = (algorithmId: number, companyId: number) => {
   });
 };
 
-export const useStockAlgorithm = (algorithmId: number, companyId: number) => {
+export const useStopAlgorithm = () => {
   return useMutation({
     mutationFn: ({ algorithmId, companyId }: { algorithmId: number; companyId: number }) =>
       algorithmAPI.stopAlgorithm(algorithmId, companyId).then((res) => res),

@@ -6,6 +6,7 @@ import { _ky } from '@/api/instance';
 import { ApiResponse } from '@/api/types/common';
 import {
   HomeChartKosdaqKospiData,
+  HomeCompanyRankTradeData,
   LatestNews,
   SearchedCompany,
   SearchedCompanyResponse,
@@ -28,6 +29,11 @@ export const homeApi = {
   // 홈 코스피, 코스닥 데이터 가져오기
   getKosdaqKospiData: () =>
     _ky.get(`stock/index-candles`).json<ApiResponse<HomeChartKosdaqKospiData>>(),
+  // 랭킹 기본정보(거래대금)
+  getRankingVolume: () => _ky.get(`ranking/tradeData/volume`).json<HomeCompanyRankTradeData[]>(),
+  // 랭킹 기본정보(높낮이이)
+  getRankingChangeRate: (category: string) =>
+    _ky.get(`ranking/tradeData/changeRate/${category}`).json<HomeCompanyRankTradeData[]>(),
 };
 
 export const useLatestNews = () => {
@@ -56,5 +62,21 @@ export const useKosdaqKospiData = () => {
   return useQuery({
     queryKey: ['KosdaqKospiData'],
     queryFn: () => homeApi.getKosdaqKospiData().then((res) => res.result),
+  });
+};
+
+// 랭킹 (거래대금)
+export const useRankingVolume = () => {
+  return useQuery({
+    queryKey: ['VolumeFirstData'],
+    queryFn: () => homeApi.getRankingVolume().then((res) => res),
+  });
+};
+
+// 랭킹 (높낮이)
+export const useRankingChangeRate = (category: string) => {
+  return useQuery({
+    queryKey: ['ChangeRateFirstData'],
+    queryFn: () => homeApi.getRankingChangeRate(category).then((res) => res),
   });
 };
