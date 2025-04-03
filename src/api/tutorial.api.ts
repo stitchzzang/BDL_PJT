@@ -240,28 +240,14 @@ export const useGetPastNews = () => {
 export const useGetNewsComment = () => {
   return useMutation({
     mutationFn: async (data: NewsRangeRequest) => {
-      try {
-        console.log('뉴스 코멘트 API 요청 시작:', {
-          url: 'tutorial/news/comment',
-          data,
-          authenticated: true,
-        });
+      // 인증된 요청 사용 (_kyAuth)
+      const response = await _kyAuth.post('tutorial/news/comment', {
+        json: data,
+        timeout: 15000, // 타임아웃 15초로 설정
+      });
 
-        // 인증된 요청 사용 (_kyAuth)
-        const response = await _kyAuth.post('tutorial/news/comment', {
-          json: data,
-          timeout: 15000, // 타임아웃 15초로 설정
-        });
-
-        const responseData = (await response.json()) as ApiResponse<string>;
-        console.log('뉴스 코멘트 API 응답 성공:', responseData);
-
-        return responseData;
-      } catch (error) {
-        console.error('뉴스 코멘트 API 오류:', error);
-        // 오류 발생시 재시도 없이 바로 오류 전파
-        throw error;
-      }
+      const responseData = (await response.json()) as ApiResponse<string>;
+      return responseData;
     },
     retry: 1, // 1번만 재시도
   });

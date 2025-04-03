@@ -1,5 +1,5 @@
 import Lottie from 'lottie-react';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import robotMove from '@/assets/lottie/robot-animation.json';
 import { DecryptedText } from '@/components/ui/decrypted-text';
@@ -9,15 +9,6 @@ interface StockTutorialCommentProps {
 }
 
 export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => {
-  // API에서 받아온 코멘트 디버깅
-  useEffect(() => {
-    console.log('StockTutorialComment 컴포넌트 - 전달받은 코멘트:', {
-      received: comment,
-      isEmpty: !comment || comment.trim() === '',
-      length: comment?.length || 0,
-    });
-  }, [comment]);
-
   // 표시할 코멘트 결정 (API 코멘트가 있으면 사용, 없으면 기본 코멘트)
   const hasValidComment = comment && comment.trim() !== '';
   const rawDisplayText = hasValidComment
@@ -38,15 +29,6 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
 
   // 줄바꿈 처리된 텍스트
   const displayText = useMemo(() => formatSentences(rawDisplayText), [rawDisplayText]);
-
-  // DecryptedText에 전달되는 텍스트 추적
-  useEffect(() => {
-    console.log('StockTutorialComment - 표시될 텍스트:', {
-      text: displayText,
-      isDefault: !hasValidComment,
-      hasLineBreaks: displayText.includes('\n'),
-    });
-  }, [displayText, hasValidComment]);
 
   return (
     <div className="flex gap-4">
