@@ -38,6 +38,13 @@ export const TutorialOrderStatus = ({
     setIsActiveCategory('구매');
   }, [currentTurn]);
 
+  // 턴이 완료되면 구매 카테고리로 초기화
+  useEffect(() => {
+    if (isCurrentTurnCompleted) {
+      setIsActiveCategory('구매');
+    }
+  }, [isCurrentTurnCompleted]);
+
   // 현재 턴에서 관망이 이미 선택되었는지 확인
   const isWaitDisabled = waitSelectedTurns.includes(currentTurn) || isCurrentTurnCompleted;
 

@@ -59,12 +59,14 @@ export const TutorialOrderStatusSell = ({
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
 
-  // 수량이 보유 주식 수량을 초과하지 않도록 제한
+  // ownedStockCount가 변경될 때마다 stockCount가 유효한지 확인
   useEffect(() => {
+    console.log('보유 주식 수량 변경:', ownedStockCount, '현재 설정된 판매 수량:', stockCount);
     if (stockCount > ownedStockCount) {
+      console.log('판매 수량이 보유 수량보다 많아 보유 수량으로 조정:', ownedStockCount);
       setStockCount(ownedStockCount);
     }
-  }, [stockCount, ownedStockCount]);
+  }, [ownedStockCount, stockCount]);
 
   // 총 주문 금액
   const totalPrice = () => {
@@ -75,18 +77,36 @@ export const TutorialOrderStatusSell = ({
     setIsActive(active);
   };
 
+  // 수량 변경 핸들러 - 보유 주식 수량 내로 제한
+  const handleStockCountChange = (newCount: number) => {
+    if (newCount > ownedStockCount) {
+      console.log(`수량 제한: ${newCount} → ${ownedStockCount} (보유 주식 한도)`);
+      setStockCount(ownedStockCount);
+    } else if (newCount < 0) {
+      setStockCount(0);
+    } else {
+      setStockCount(newCount);
+    }
+  };
+
   // 판매 처리
   const handleSellStock = () => {
-    if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) return;
-
-    // 보유 주식보다 많이 판매하려는 경우
-    if (stockCount > ownedStockCount) {
-      alert(
-        `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${stockCount}주)을 판매할 수 없습니다.`,
-      );
+    if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) {
+      console.log('판매 무효:', { isSessionActive, stockCount, sellPrice });
       return;
     }
 
+    // 보유 주식보다 많이 판매하려는 경우 재확인
+    if (stockCount > ownedStockCount) {
+      console.log(`판매 오류: 요청=${stockCount}주, 보유=${ownedStockCount}주`);
+      alert(
+        `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${stockCount}주)을 판매할 수 없습니다.`,
+      );
+      setStockCount(ownedStockCount); // 수량 자동 조정
+      return;
+    }
+
+    console.log(`판매 요청: 가격=${sellPrice}, 수량=${stockCount}, 보유=${ownedStockCount}`);
     onSell(sellPrice, stockCount);
     setStockCount(0); // 판매 후 수량 초기화
   };
@@ -128,7 +148,7 @@ export const TutorialOrderStatusSell = ({
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <NumberInput
                 value={stockCount}
-                setValue={setStockCount}
+                setValue={handleStockCountChange}
                 placeholder="수량을 입력하세요."
               />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
@@ -143,7 +163,16 @@ export const TutorialOrderStatusSell = ({
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
                     className="text-[22px]"
-                    onClick={() => priceButtonHandler('+', stockCount, setStockCount, 1)}
+                    onClick={() => {
+                      const newCount = stockCount + 1;
+                      if (newCount <= ownedStockCount) {
+                        priceButtonHandler('+', stockCount, setStockCount, 1);
+                      } else {
+                        console.log(
+                          `수량 증가 제한: 보유=${ownedStockCount}주, 현재=${stockCount}주`,
+                        );
+                      }
+                    }}
                   >
                     +
                   </button>
@@ -174,7 +203,9 @@ export const TutorialOrderStatusSell = ({
             className="w-full"
             size="lg"
             onClick={handleSellStock}
-            disabled={!isSessionActive || stockCount <= 0 || stockCount > ownedStockCount}
+            disabled={
+              !isSessionActive || stockCount <= 0 || stockCount > ownedStockCount || sellPrice <= 0
+            }
           >
             <p className=" text-[18px] font-medium text-white">판매하기</p>
           </Button>

@@ -33,7 +33,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
     const formattedText = text.replace(sentenceEndPattern, '$1\n');
 
     // "요약:" 이라는 텍스트 앞에도 줄바꿈 추가 (API 응답이 "요약:" 으로 시작하는 경우 처리)
-    return formattedText.replace(/요약:/, '\n요약:');
+    return formattedText.replace(/요약:/, '요약:');
   };
 
   // 줄바꿈 처리된 텍스트

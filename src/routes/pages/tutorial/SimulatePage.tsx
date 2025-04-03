@@ -813,7 +813,50 @@ export const SimulatePage = () => {
     }
   };
 
-  // 거래 처리 핸들러
+  // 보유 주식 수량 초기화
+  const initOwnedStockCount = async () => {
+    try {
+      // ownedStocks로부터 보유 주식 수량 계산
+      if (trades && trades.length > 0) {
+        let totalStock = 0;
+        trades.forEach((trade) => {
+          if (trade.action === 'buy') {
+            totalStock += trade.quantity;
+          } else if (trade.action === 'sell') {
+            totalStock -= trade.quantity;
+          }
+        });
+        // 음수가 되지 않도록 보정
+        totalStock = Math.max(0, totalStock);
+        console.log('거래 내역 기반 보유 주식 수량 계산:', totalStock);
+        setOwnedStockCount(totalStock);
+      } else {
+        console.log('거래 내역 없음, 보유 주식 수량을 0으로 초기화');
+        setOwnedStockCount(0);
+      }
+    } catch (error) {
+      console.error('보유 주식 수량 초기화 실패:', error);
+      // 오류 발생시 안전하게 0으로 설정
+      setOwnedStockCount(0);
+    }
+  };
+
+  // 턴이 변경될 때마다 보유 주식 수량 동기화
+  useEffect(() => {
+    if (currentTurn > 0 && isTutorialStarted) {
+      console.log(`턴 ${currentTurn} 시작 - 보유 주식 수량 동기화 시작`);
+      initOwnedStockCount();
+    }
+  }, [currentTurn, isTutorialStarted]);
+
+  // 거래 내역이 변경될 때마다 보유 주식 수량 재계산
+  useEffect(() => {
+    if (trades.length > 0) {
+      initOwnedStockCount();
+    }
+  }, [trades]);
+
+  // 거래 처리 함수
   const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
     if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
       return;
@@ -838,72 +881,56 @@ export const SimulatePage = () => {
       return;
     }
 
-    // 판매 시 보유 주식 수량 확인
-    if (action === 'sell' && quantity > ownedStockCount) {
-      console.error('판매 오류: 보유한 주식 수량이 부족합니다.', {
-        requested: quantity,
-        available: ownedStockCount,
+    // 보유 주식 정보 출력
+    console.log('현재 보유 주식 수량:', ownedStockCount);
+
+    // 타입 가드 함수 정의
+    const isWaitAction = (act: TradeAction): act is 'wait' => act === 'wait';
+    const isBuyAction = (act: TradeAction): act is 'buy' => act === 'buy';
+    const isSellAction = (act: TradeAction): act is 'sell' => act === 'sell';
+
+    // 즉시 UI 상태 업데이트 (서버 응답을 기다리지 않고)
+    if (isBuyAction(action)) {
+      setOwnedStockCount((prev) => {
+        const newCount = prev + quantity;
+        console.log(`구매 예상치 보유 주식 수량 업데이트: ${prev} + ${quantity} = ${newCount}`);
+        return newCount;
       });
-
-      // 오류 메시지 표시 (alert 대신 더 나은 UI 사용 가능)
-      alert(
-        `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${quantity}주)을 판매할 수 없습니다.`,
-      );
-      return;
-    }
-
-    // 관망인 경우 API 호출 없이 바로 턴 완료 처리 및 다음 턴으로 이동
-    if (action === 'wait') {
-      console.log('관망 선택: 바로 다음 턴으로 넘어갑니다.');
-
-      // 거래 기록 추가
-      setTrades((prev) => [
-        ...prev,
-        {
-          action: 'wait',
-          price: 0,
-          quantity: 0,
-          timestamp: new Date(),
-          stockCandleId: endPointId,
-          turnNumber: currentTurn,
-        },
-      ]);
-
-      // 턴 완료 처리하여 다음 턴으로 진행 가능하게 함
-      setIsCurrentTurnCompleted(true);
-
-      // 즉시 다음 턴으로 이동 - 현재가 마지막 턴(4)이 아닌 경우에만
-      if (currentTurn < 4) {
-        // setTimeout으로 상태 업데이트 후 다음 턴으로 이동하도록 함
-        setTimeout(() => {
-          moveToNextTurn();
-        }, 300);
-      } else {
-        // 마지막 턴이면 튜토리얼 완료 처리
-        setTimeout(() => {
-          completeTutorial();
-        }, 300);
+    } else if (isSellAction(action)) {
+      // 판매 시에는 현재 보유량 확인
+      if (quantity > ownedStockCount) {
+        console.log(`판매 불가: 요청=${quantity}주, 보유=${ownedStockCount}주`);
+        alert(
+          `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${quantity}주)을 판매할 수 없습니다.`,
+        );
+        return; // 판매 처리 중단
       }
-      return;
+      setOwnedStockCount((prev) => {
+        const newCount = Math.max(0, prev - quantity);
+        console.log(`판매 예상치 보유 주식 수량 업데이트: ${prev} - ${quantity} = ${newCount}`);
+        return newCount;
+      });
     }
-
-    // 백엔드가 기대하는 정확한 액션 문자열 매핑
-    // "buy", "sell" 등 백엔드가 이해하는 형식으로 변환
-    const actionValue = action.toLowerCase();
-
-    // API 요청 데이터 로깅
-    console.log('API 요청 데이터:', {
-      memberId,
-      action: actionValue,
-      price,
-      quantity,
-      companyId,
-      startStockCandleId: startPointId || endPointId,
-      endStockCandleId: endPointId,
-    });
 
     try {
-      const response = await processUserAction.mutateAsync({
+      // API 요청용 액션 값으로 변환 (소문자로 변환)
+      const actionValue = action.toLowerCase();
+
+      // 요청 데이터 객체 준비
+      const requestData = {
+        action: actionValue,
+        price,
+        quantity,
+        companyId,
+        startStockCandleId: startPointId || endPointId,
+        endStockCandleId: endPointId,
+      };
+
+      // 거래 처리 로그 - 상세 정보 추가
+      console.log('거래 요청 전송 (상세):', {
+        요청URL: `tutorial/${memberId}/action`,
+        요청방식: 'POST',
+        요청본문: JSON.stringify(requestData),
         memberId,
         action: actionValue,
         price,
@@ -913,33 +940,42 @@ export const SimulatePage = () => {
         endStockCandleId: endPointId,
       });
 
+      const response = await processUserAction.mutateAsync({
+        memberId,
+        ...requestData,
+      });
+
       console.log('거래 응답:', response);
 
       const assetResults = response.result?.AssetResponse;
 
       // 거래 기록 추가
-      // 타입 가드 함수 정의
-      const isWaitAction = (act: TradeAction): act is 'wait' => act === 'wait';
-      const isBuyAction = (act: TradeAction): act is 'buy' => act === 'buy';
-      const isSellAction = (act: TradeAction): act is 'sell' => act === 'sell';
+      // 새로운 거래 기록 생성
+      const newTradeRecord: TradeRecord = {
+        action,
+        price: isWaitAction(action) ? 0 : price,
+        quantity: isWaitAction(action) ? 0 : quantity,
+        timestamp: new Date(),
+        stockCandleId: endPointId,
+        turnNumber: currentTurn,
+      };
 
-      setTrades((prev) => [
-        ...prev,
-        {
-          action,
-          price: isWaitAction(action) ? 0 : price,
-          quantity: isWaitAction(action) ? 0 : quantity,
-          timestamp: new Date(),
-          stockCandleId: endPointId,
-          turnNumber: currentTurn,
-        },
-      ]);
+      // 거래 내역 업데이트
+      setTrades((prev) => [...prev, newTradeRecord]);
 
-      // 보유 주식 수량 업데이트 - 타입 가드 사용
+      // 보유 주식 수량 직접 업데이트 (거래 내역 기반 계산이 아닌 직접 업데이트)
       if (isBuyAction(action)) {
-        setOwnedStockCount((prev) => prev + quantity);
+        setOwnedStockCount((prev) => {
+          const newCount = prev + quantity;
+          console.log(`구매 최종 보유 주식 수량: ${newCount}`);
+          return newCount;
+        });
       } else if (isSellAction(action)) {
-        setOwnedStockCount((prev) => Math.max(0, prev - quantity));
+        setOwnedStockCount((prev) => {
+          const newCount = Math.max(0, prev - quantity);
+          console.log(`판매 최종 보유 주식 수량: ${newCount}`);
+          return newCount;
+        });
       }
 
       // 자산 정보 업데이트
@@ -983,7 +1019,7 @@ export const SimulatePage = () => {
         }
       }
 
-      // 오류 발생해도 "관망"으로 처리하고 턴 완료
+      // 오류 발생해도 "관망"으로 처리하고 턴 완료 처리
       console.log('오류 발생으로 관망 처리되어 다음 턴으로 넘어갑니다.');
 
       // 거래 실패해도 관망으로 기록하고 턴 완료 처리
@@ -1001,6 +1037,9 @@ export const SimulatePage = () => {
 
       // 오류 발생해도 무조건 턴 완료 처리하여 다음 단계로 진행될 수 있게 함
       setIsCurrentTurnCompleted(true);
+
+      // 오류 발생 시 보유 주식 수량 롤백 (추가)
+      await initOwnedStockCount(); // 거래 내역을 기반으로 보유 주식 수량 재계산
     }
   };
 
@@ -1157,7 +1196,7 @@ export const SimulatePage = () => {
       setCurrentSession(firstSession);
       setProgress(25);
 
-      // 첫 턴 차트 데이터 로드
+      // 첫 번째 턴 차트 데이터 로드
       console.log('첫 턴 차트 데이터 로드 시작');
       await loadChartData(firstSession.startDate, firstSession.endDate, 1);
     } catch (error) {
@@ -1287,7 +1326,7 @@ export const SimulatePage = () => {
         </div>
       </div>
       <div className="grid grid-cols-10 gap-3">
-        <div className="col-span-8">
+        <div className="col-span-7">
           {!isTutorialStarted ? (
             <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="max-w-[400px]">
@@ -1342,7 +1381,7 @@ export const SimulatePage = () => {
             <ChartComponent periodData={stockData || undefined} height={600} />
           )}
         </div>
-        <div className="col-span-2">
+        <div className="col-span-3">
           <TutorialOrderStatus
             onTrade={handleTrade}
             isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn <= 4}
