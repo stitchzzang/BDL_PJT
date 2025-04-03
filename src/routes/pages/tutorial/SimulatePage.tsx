@@ -382,6 +382,10 @@ export const SimulatePage = () => {
       return;
     }
 
+    // 이전 자산 상태 저장 (초기화 방지용)
+    const prevAvailableAsset = assetInfo.availableOrderAsset;
+    const prevOwnedStockCount = ownedStockCount;
+
     // 관망 선택 시 API 호출 없이 턴 완료 처리 후 자동으로 다음 턴으로 이동
     if (action === 'wait') {
       // 관망 기록 추가
@@ -397,23 +401,30 @@ export const SimulatePage = () => {
       setTrades((prev) => [...prev, newTrade]);
 
       // 관망 시에도 자산 정보 업데이트
-      // 관망은 자산 변동이 없지만, 시간이 흐르므로 주가 변동에 따른 총자산 재계산
       try {
+        // 관망은 보유 주식 수량 변동 없음, 주문 가능 자산도 변동 없음
         // 현재 보유 주식 가치 계산
-        const stockValue = ownedStockCount * latestPrice;
+        const stockValue = prevOwnedStockCount * latestPrice;
+
         // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
-        const newTotalAsset = assetInfo.availableOrderAsset + stockValue;
+        const newTotalAsset = prevAvailableAsset + stockValue;
+
         // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
         const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
 
-        // 자산 정보 업데이트
-        setAssetInfo({
-          ...assetInfo,
+        // 자산 정보 직접 업데이트 (state 참조 없이)
+        const updatedAssetInfo = {
+          tradingDate: new Date().toISOString(),
+          availableOrderAsset: prevAvailableAsset,
           currentTotalAsset: newTotalAsset,
           totalReturnRate: newReturnRate,
-        });
+        };
 
+        // 자산 정보 업데이트
+        setAssetInfo(updatedAssetInfo);
         setFinalChangeRate(newReturnRate);
+
+        console.log('관망 선택 - 자산 정보 업데이트:', updatedAssetInfo);
       } catch (error) {
         console.error('자산 정보 업데이트 중 오류 발생:', error);
       }
@@ -453,20 +464,62 @@ export const SimulatePage = () => {
 
         setTrades((prev) => [...prev, newTrade]);
 
-        // 자산 정보 업데이트
+        // 매수/매도에 따른 자산 계산 (API 응답 없을 경우 대비)
+        let newAvailableAsset = prevAvailableAsset;
+        let newOwnedStockCount = prevOwnedStockCount;
+
+        if (action === 'buy') {
+          // 매수: 주문 가능 금액에서 (지정가 * 수량) 차감
+          newAvailableAsset -= price * quantity;
+          // 보유 주식 수 증가
+          newOwnedStockCount += quantity;
+        } else if (action === 'sell') {
+          // 매도: 주문 가능 금액 증가 (지정가 * 수량)
+          newAvailableAsset += price * quantity;
+          // 보유 주식에서 해당 수량 차감
+          newOwnedStockCount = Math.max(0, newOwnedStockCount - quantity);
+        }
+
+        // 현재 보유 주식 가치 계산
+        const stockValue = newOwnedStockCount * latestPrice;
+
+        // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
+        const newTotalAsset = newAvailableAsset + stockValue;
+
+        // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
+        const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+        // 자산 정보 업데이트 (서버 응답과 로컬 계산 중 선택)
         if (response.result?.AssetResponse && response.result.AssetResponse.length > 0) {
           const lastAsset = response.result.AssetResponse[response.result.AssetResponse.length - 1];
+
+          // 서버 응답 자산 정보로 업데이트 (가능한 경우)
           setAssetInfo(lastAsset);
           setFinalChangeRate(lastAsset.totalReturnRate);
+
+          // 서버 응답 데이터 로깅
+          console.log('서버 응답으로 자산 정보 업데이트:', lastAsset);
+        } else {
+          // 서버 응답이 없는 경우 로컬에서 계산된 값 사용
+          const localCalculatedAsset = {
+            tradingDate: new Date().toISOString(),
+            availableOrderAsset: newAvailableAsset,
+            currentTotalAsset: newTotalAsset,
+            totalReturnRate: newReturnRate,
+          };
+
+          // 로컬 계산 자산 정보로 업데이트
+          setAssetInfo(localCalculatedAsset);
+          setFinalChangeRate(newReturnRate);
+
+          // 로컬 계산 데이터 로깅
+          console.log('로컬 계산으로 자산 정보 업데이트:', localCalculatedAsset);
         }
 
-        // 보유 주식 수량 업데이트 (클라이언트 측)
-        if (action === 'buy') {
-          setOwnedStockCount((prev) => prev + quantity);
-        } else if (action === 'sell') {
-          setOwnedStockCount((prev) => Math.max(0, prev - quantity));
-        }
+        // 보유 주식 수량 업데이트 (직접 계산값 사용)
+        setOwnedStockCount(newOwnedStockCount);
 
+        // 턴 완료 처리
         setIsCurrentTurnCompleted(true);
       })
       .catch(async (error) => {
@@ -549,15 +602,88 @@ export const SimulatePage = () => {
   // 다음 턴으로 이동하는 함수
   const moveToNextTurn = async () => {
     if (currentTurn < 4) {
-      const nextTurn = currentTurn + 1;
-      setCurrentTurn(nextTurn);
-      setIsCurrentTurnCompleted(false);
+      try {
+        // 현재 턴의 마지막 가격과 상태 저장 (비동기 작업 전에 값을 보존)
+        const prevTurnLastPrice = latestPrice;
+        const prevAvailableOrderAsset = assetInfo.availableOrderAsset;
+        const prevOwnedStock = ownedStockCount;
 
-      // 턴 이동 시 자산 정보 재계산
-      updateAssetInfo();
+        // 현재 턴 데이터에서 실제 마지막 일봉 가격 확인 (더 정확한 값)
+        let actualPrevTurnLastPrice = prevTurnLastPrice;
+        const currentTurnData = turnChartData[currentTurn];
+        if (currentTurnData?.data && currentTurnData.data.length > 0) {
+          const dayCandles = currentTurnData.data.filter(
+            (candle: StockCandle) => candle.periodType === 1,
+          );
+          if (dayCandles.length > 0) {
+            const sortedCandles = [...dayCandles].sort(
+              (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+            );
+            actualPrevTurnLastPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            console.log(`현재 턴(${currentTurn})의 실제 마지막 가격: ${actualPrevTurnLastPrice}`);
+          }
+        }
 
-      // 세션 업데이트 및 데이터 로드
-      await updateSessionAndLoadData(nextTurn);
+        // 다음 턴 번호 설정 및 UI 상태 업데이트
+        const nextTurn = currentTurn + 1;
+        setCurrentTurn(nextTurn);
+        setIsCurrentTurnCompleted(false);
+
+        // 세션 업데이트 및 데이터 로드 (차트 데이터 비동기 로드)
+        await updateSessionAndLoadData(nextTurn);
+
+        // 자산 정보가 리셋되지 않도록 1초 지연 후 처리
+        // (차트 데이터가 완전히 로드된 후에 자산 정보를 업데이트)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // 다음 턴의 첫 가격 확인 (차트 데이터 로드 완료 후)
+        const nextTurnData = turnChartData[nextTurn];
+        if (!nextTurnData?.data || nextTurnData.data.length === 0) {
+          console.error(`다음 턴(${nextTurn})의 차트 데이터가 없습니다.`);
+          return;
+        }
+
+        // 다음 턴의 첫 일봉 가격 가져오기
+        const dayCandles = nextTurnData.data.filter(
+          (candle: StockCandle) => candle.periodType === 1,
+        );
+
+        if (dayCandles.length === 0) {
+          console.error(`다음 턴(${nextTurn})의 일봉 데이터가 없습니다.`);
+          return;
+        }
+
+        // 날짜순 정렬
+        const sortedCandles = [...dayCandles].sort(
+          (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+        );
+
+        // 다음 턴의 첫 일봉 종가
+        const nextTurnFirstPrice = sortedCandles[0].closePrice;
+
+        // 자산 정보 직접 업데이트 (상태 리셋 방지를 위해 복원)
+        console.log(`턴 전환 가격 정보: ${actualPrevTurnLastPrice} -> ${nextTurnFirstPrice}`);
+        console.log(`보유 주식: ${prevOwnedStock}주, 주문가능: ${prevAvailableOrderAsset}원`);
+
+        // 턴 변경에 따른 자산 정보 업데이트 (가격 변화 반영)
+        const updatedAssets = {
+          tradingDate: new Date().toISOString(),
+          availableOrderAsset: prevAvailableOrderAsset,
+          currentTotalAsset: prevAvailableOrderAsset + prevOwnedStock * nextTurnFirstPrice,
+          totalReturnRate:
+            ((prevAvailableOrderAsset + prevOwnedStock * nextTurnFirstPrice - 10000000) /
+              10000000) *
+            100,
+        };
+
+        // 자산 정보 동기적으로 직접 업데이트
+        setAssetInfo(updatedAssets);
+        setFinalChangeRate(updatedAssets.totalReturnRate);
+
+        console.log('턴 전환 자산 정보 직접 업데이트 완료:', updatedAssets);
+      } catch (error) {
+        console.error('턴 전환 중 오류 발생:', error);
+      }
     } else {
       await completeTutorial();
     }
@@ -566,21 +692,35 @@ export const SimulatePage = () => {
   // 자산 정보 업데이트 함수 추가
   const updateAssetInfo = () => {
     try {
+      // 이전 상태 값 저장 (초기화 방지용)
+      const prevAvailableAsset = assetInfo.availableOrderAsset;
+
       // 현재 보유 주식 가치 계산
       const stockValue = ownedStockCount * latestPrice;
+
       // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
-      const newTotalAsset = assetInfo.availableOrderAsset + stockValue;
+      const newTotalAsset = prevAvailableAsset + stockValue;
+
       // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
       const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
 
-      // 자산 정보 업데이트
-      setAssetInfo({
-        ...assetInfo,
+      // 자산 정보 직접 업데이트 (상태 참조 없이)
+      const updatedAssetInfo = {
+        tradingDate: new Date().toISOString(),
+        availableOrderAsset: prevAvailableAsset,
         currentTotalAsset: newTotalAsset,
         totalReturnRate: newReturnRate,
-      });
+      };
 
+      // 자산 정보 업데이트
+      setAssetInfo(updatedAssetInfo);
       setFinalChangeRate(newReturnRate);
+
+      console.log('일반 자산 정보 업데이트 완료:', {
+        보유주식: ownedStockCount,
+        현재가격: latestPrice,
+        자산정보: updatedAssetInfo,
+      });
     } catch (error) {
       console.error('자산 정보 업데이트 중 오류 발생:', error);
     }
@@ -674,7 +814,7 @@ export const SimulatePage = () => {
           updateAccumulatedChartData(result, turn);
         }
 
-        // 최신 가격 설정
+        // 최신 가격 업데이트
         updateLatestPrice(result);
 
         // 가격 업데이트 후 자산 정보도 업데이트
@@ -734,7 +874,68 @@ export const SimulatePage = () => {
     const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
     if (dayCandles.length > 0) {
       const lastCandle = dayCandles[dayCandles.length - 1];
-      setLatestPrice(lastCandle.closePrice);
+      const newLatestPrice = lastCandle.closePrice;
+
+      // 가격이 변경된 경우에만 업데이트
+      if (newLatestPrice !== latestPrice) {
+        // 이전 값 저장 (변화율 계산 및 상태 복원용)
+        const prevPrice = latestPrice;
+        const prevAvailableAsset = assetInfo.availableOrderAsset;
+        const prevTotalAsset = assetInfo.currentTotalAsset;
+        const prevReturnRate = assetInfo.totalReturnRate;
+
+        // 최신 가격 업데이트
+        setLatestPrice(newLatestPrice);
+
+        // 가격이 변경되었을 때 자산 정보도 업데이트 (첫 로드 이후)
+        if (isTutorialStarted && currentTurn > 0 && prevPrice > 0) {
+          // 비동기 타이밍 문제 해결을 위해 약간 지연
+          setTimeout(() => {
+            try {
+              // 현재 보유 주식 가치 (새 가격 기준)
+              const newStockValue = ownedStockCount * newLatestPrice;
+
+              // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
+              const newTotalAsset = prevAvailableAsset + newStockValue;
+
+              // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
+              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+              // 자산 정보 직접 업데이트 (중간 상태 유지)
+              const updatedAssetInfo = {
+                tradingDate: new Date().toISOString(),
+                availableOrderAsset: prevAvailableAsset, // 주문 가능 자산은 변동 없음
+                currentTotalAsset: newTotalAsset,
+                totalReturnRate: newReturnRate,
+              };
+
+              // 자산 정보 및 수익률 업데이트
+              setAssetInfo(updatedAssetInfo);
+              setFinalChangeRate(newReturnRate);
+
+              // 디버깅용 로그
+              console.log('가격 변동 직접 반영 - 자산 업데이트:', {
+                이전가격: prevPrice,
+                새가격: newLatestPrice,
+                보유주식: ownedStockCount,
+                자산정보: updatedAssetInfo,
+              });
+            } catch (error) {
+              console.error('가격 변동에 따른 자산 정보 업데이트 중 오류 발생:', error);
+
+              // 오류 발생 시 이전 상태 복원 (초기화 방지)
+              if (prevTotalAsset) {
+                setAssetInfo({
+                  tradingDate: new Date().toISOString(),
+                  availableOrderAsset: prevAvailableAsset,
+                  currentTotalAsset: prevTotalAsset,
+                  totalReturnRate: prevReturnRate,
+                });
+              }
+            }
+          }, 100);
+        }
+      }
     }
   };
 
