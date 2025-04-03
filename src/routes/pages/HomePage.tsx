@@ -23,7 +23,7 @@ export const HomePage = () => {
             <div className="col-span-5">
               <RealTimeChart />
             </div>
-            <div className="col-span-3 mt-2 flex items-center justify-center">
+            <div className="col-span-3 mt-10 flex justify-center">
               <NewsChart />
             </div>
           </div>
