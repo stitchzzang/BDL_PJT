@@ -44,6 +44,26 @@ export const calculateTradingAssets = (
   };
 };
 
+// 턴이 변경될 때 자산 정보 업데이트 함수
+export const updateAssetsByTurn = (
+  initialAsset: number,
+  availableOrderAsset: number,
+  ownedStockCount: number,
+  currentStockPrice: number,
+) => {
+  // 현재 자산 업데이트 (주문 가능 금액 + 보유 주식 * 현재가)
+  const currentTotalAsset = availableOrderAsset + ownedStockCount * currentStockPrice;
+
+  // 수익률 업데이트 ((현재 자산 - 초기 자산) / 초기 자산) * 100
+  const totalReturnRate = ((currentTotalAsset - initialAsset) / initialAsset) * 100;
+
+  return {
+    availableOrderAsset,
+    currentTotalAsset,
+    totalReturnRate,
+  };
+};
+
 // 턴이 변경될 때 이전 턴과 현재 턴의 주가 차이를 반영하여 자산 정보를 업데이트하는 함수
 export const updateAssetsByTurnChange = (
   initialAsset: number,

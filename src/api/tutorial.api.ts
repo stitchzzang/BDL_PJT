@@ -355,9 +355,8 @@ export const useTutorialResults = ({ memberId }: { memberId: string }) => {
 
         // 빈 배열 반환
         return [];
-      } catch (error) {
-        console.error('Failed to fetch tutorial results:', error);
-        return [];
+      } catch {
+        //
       }
     },
     enabled: !!memberId,
