@@ -24,6 +24,15 @@ export const SelectPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryQuery);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const { isLogin } = useAuthStore();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  useEffect(() => {
+    if (!isLogin) {
+      toast.error('로그인 후 이용해주세요.');
+      setShouldRedirect(true);
+    }
+  }, [isLogin]);
 
   useEffect(() => {
     setSelectedCategory(categoryQuery);
@@ -62,10 +71,7 @@ export const SelectPage = () => {
     setIsDialogOpen(false);
   };
 
-  const { isLogin } = useAuthStore();
-
-  if (!isLogin) {
-    toast.error('로그인 후 이용해주세요.');
+  if (shouldRedirect) {
     return <Navigate to="/login" />;
   }
 
