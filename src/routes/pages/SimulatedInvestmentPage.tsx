@@ -100,7 +100,7 @@ export const SimulatedInvestmentPage = () => {
     );
   }
   return (
-    <div className="flex h-full w-full flex-col px-6">
+    <div className="flex h-full w-full flex-col px-4">
       <div className="mb-3">
         <StockInfo
           stockCompanyInfo={stockCompanyInfo}
@@ -110,8 +110,8 @@ export const SimulatedInvestmentPage = () => {
           companyId={stockCompanyId}
         />
       </div>
-      <div className="grid grid-cols-1 gap-1 lg:grid-cols-12">
-        <div className="col-span-1 lg:col-span-9">
+      <div className="grid grid-cols-1 gap-1 lg:grid-cols-16">
+        <div className="col-span-1 lg:col-span-12">
           {tickData ? (
             <>
               {minuteData ? (
@@ -134,7 +134,7 @@ export const SimulatedInvestmentPage = () => {
             </>
           )}
         </div>
-        <div className="col-span-1 lg:col-span-3">
+        <div className="col-span-1 lg:col-span-4">
           <OrderStatus
             closePrice={closePrice}
             realTime={tickData?.stckPrpr}
