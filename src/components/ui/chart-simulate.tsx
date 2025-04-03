@@ -495,8 +495,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             // 새 데이터가 추가되었으므로 표시 범위 조정
             console.log('시작값 변경');
             setDataZoomRange({
-              start: start + 10,
-              end: end + 10,
+              start: start + 6,
+              end: end + 6,
             });
           })
           .catch((error) => {
@@ -1073,6 +1073,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           end: dataZoomRange.end,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
+          maxSpan: 50,
           textStyle: {
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
