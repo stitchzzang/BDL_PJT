@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
+import { useRankingChangeRate } from '@/api/home.api';
 import { HomeCompanyRankData, HomeCompanyRankTradeData } from '@/api/types/home';
 import { ChartLoadingAnimation } from '@/components/common/chart-loading-animation';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { useRankRiseFallConnection } from '@/services/SocketHomeRankRiseFall';
 import { useRankRiseTradeDataConnection } from '@/services/SocketHomeRankRiseTradeData';
 
@@ -23,6 +25,8 @@ const addCommasToThousand = (num: number | undefined): string => {
 };
 
 export const RealTimeChartRise = () => {
+  // 초기 데이터
+  const { data: ChangeRateFirstData, isLoading, isError } = useRankingChangeRate('high');
   // 랜더링 정보
   const [rankVolume, setRankVolume] = useState<HomeCompanyRankDataList | null>(null);
   const [tickData, setTickData] = useState<HomeCompanyRankTradeData | null>(null);
@@ -48,6 +52,12 @@ export const RealTimeChartRise = () => {
       }));
     }
   }, [tickData]);
+
+  if (isLoading) {
+    <>
+      <LoadingAnimation />
+    </>;
+  }
 
   useEffect(() => {
     // 소켓 연결
@@ -92,7 +102,7 @@ export const RealTimeChartRise = () => {
                       ? 'text-btn-red-color'
                       : stockTick?.changeRate < 0
                         ? 'text-btn-blue-color'
-                        : 'text-white';
+                        : 'text-btn-red-color';
 
                   return (
                     <div
@@ -113,12 +123,20 @@ export const RealTimeChartRise = () => {
 
                       {/* 현재가 */}
                       <div className={`w-[20%] text-right ${priceColor}`}>
-                        {stockTick ? `${addCommasToThousand(stockTick.stckPrpr)} 원` : '-'}
+                        {stockTick
+                          ? `${addCommasToThousand(stockTick.stckPrpr)} 원`
+                          : ChangeRateFirstData && ChangeRateFirstData[index]
+                            ? `${addCommasToThousand(ChangeRateFirstData[index].stckPrpr)} 원`
+                            : '0 원'}
                       </div>
 
                       {/* 등락률 */}
                       <div className={`w-[20%] text-right ${priceColor}`}>
-                        {stockTick ? `${stockTick.changeRate.toFixed(2)}%` : '-'}
+                        {stockTick
+                          ? `${stockTick.changeRate.toFixed(2)}%`
+                          : ChangeRateFirstData && ChangeRateFirstData[index]
+                            ? `${ChangeRateFirstData[index].changeRate.toFixed(2)}%`
+                            : '0%'}
                       </div>
                     </div>
                   );
