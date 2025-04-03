@@ -146,9 +146,12 @@ export const useGetAccountSummary = (memberId: string) => {
 };
 
 export const useResetAccount = (memberId: string, onSuccess?: () => void, onError?: () => void) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: () => memberApi.resetAccount(memberId),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accountSummary'] });
       toast.success('계좌가 성공적으로 초기화되었습니다.');
       onSuccess?.();
     },
