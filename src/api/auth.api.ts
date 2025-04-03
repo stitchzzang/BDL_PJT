@@ -30,7 +30,7 @@ export const authApi = {
         json: data,
       })
       .json<ApiResponse<void>>(),
-  signout: () => _kyAuth.patch('member/register', {}).json<ApiResponse<void>>(),
+  signout: (memberId: string) => _kyAuth.delete(`member/${memberId}`, {}).json<ApiResponse<void>>(),
 };
 
 export const useLogin = () => {
@@ -111,7 +111,7 @@ export const useSignout = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: () => authApi.signout(),
+    mutationFn: (memberId: string) => authApi.signout(memberId),
     onSuccess: () => {
       logoutAuth();
       toast.success('회원탈퇴가 완료되었습니다.');
