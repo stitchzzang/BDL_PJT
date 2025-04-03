@@ -254,7 +254,7 @@ export const SimulatePage = () => {
   });
 
   const { data: tutorialFeedbackResponse } = useGetTutorialFeedback(memberId, {
-    enabled: !!memberId && currentTurn === 4,
+    enabled: !!memberId && currentTurn === 4 && isCurrentTurnCompleted,
   });
 
   const tutorialFeedback = tutorialFeedbackResponse?.result;
@@ -539,12 +539,22 @@ export const SimulatePage = () => {
     // 튜토리얼 완료 전 자산 정보 최종 업데이트
     updateAssetInfo();
 
+    // 4단계에서 isCurrentTurnCompleted를 true로 설정하여 피드백 API가 호출되도록 함
+    if (!isCurrentTurnCompleted) {
+      setIsCurrentTurnCompleted(true);
+
+      // 피드백 데이터가 로드될 시간 확보 (500ms)
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+
+    // 날짜 정보 준비
     const currentDate = new Date();
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
 
-    saveTutorialResult
-      .mutateAsync({
+    try {
+      // 튜토리얼 결과 저장
+      await saveTutorialResult.mutateAsync({
         companyId,
         startMoney: 10000000,
         endMoney: assetInfo.currentTotalAsset,
@@ -552,15 +562,18 @@ export const SimulatePage = () => {
         startDate: oneYearAgo.toISOString(),
         endDate: currentDate.toISOString(),
         memberId: memberId,
-      })
-      .then(() => {
-        setIsModalOpen(true);
-        setFinalChangeRate(assetInfo.totalReturnRate);
-      })
-      .catch(() => {
-        setIsModalOpen(true);
-        setFinalChangeRate(assetInfo.totalReturnRate);
       });
+
+      // 최종 수익률 설정
+      setFinalChangeRate(assetInfo.totalReturnRate);
+
+      // 종료 모달 표시
+      setIsModalOpen(true);
+    } catch (error) {
+      // 오류 발생 시에도 모달은 표시
+      setFinalChangeRate(assetInfo.totalReturnRate);
+      setIsModalOpen(true);
+    }
   };
 
   // 다음 턴으로 이동하는 함수
