@@ -62,9 +62,7 @@ export const TutorialOrderStatusSell = ({
 
   // ownedStockCount가 변경될 때마다 stockCount가 유효한지 확인
   useEffect(() => {
-    console.log('보유 주식 수량 변경:', ownedStockCount, '현재 설정된 판매 수량:', stockCount);
     if (stockCount > ownedStockCount) {
-      console.log('판매 수량이 보유 수량보다 많아 보유 수량으로 조정:', ownedStockCount);
       setStockCount(Math.min(ownedStockCount, stockCount)); // 보유 수량을 초과하지 않도록 제한
     }
   }, [ownedStockCount, stockCount]);
@@ -81,7 +79,6 @@ export const TutorialOrderStatusSell = ({
   // 수량 변경 핸들러 - 보유 주식 수량 내로 제한
   const handleStockCountChange = (newCount: number) => {
     if (newCount > ownedStockCount) {
-      console.log(`수량 제한: ${newCount} → ${ownedStockCount} (보유 주식 한도)`);
       setStockCount(ownedStockCount);
     } else if (newCount < 0) {
       setStockCount(0);
@@ -100,15 +97,11 @@ export const TutorialOrderStatusSell = ({
   // 판매 처리
   const handleSellStock = () => {
     if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) {
-      console.log('판매 무효:', { isSessionActive, stockCount, sellPrice });
       return;
     }
 
     // 적극적인 보유량 체크
     if (stockCount > ownedStockCount) {
-      console.error(
-        `판매 오류: 보유량(${ownedStockCount}주)보다 많은 수량(${stockCount}주) 판매 시도`,
-      );
       alert(
         `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${stockCount}주)을 판매할 수 없습니다.`,
       );
@@ -129,19 +122,14 @@ export const TutorialOrderStatusSell = ({
 
       if (confirmSell) {
         // 사용자가 동의하면 안전 수량으로 조정
-        console.log(`판매 수량 자동 조정: ${stockCount} → ${safeMaxSellCount}`);
         setStockCount(safeMaxSellCount);
 
         // 안전 수량으로 판매 진행
-        console.log(
-          `판매 요청: 가격=${sellPrice}, 수량=${safeMaxSellCount}, 보유=${ownedStockCount}`,
-        );
         onSell(sellPrice, safeMaxSellCount);
       }
       return;
     }
 
-    console.log(`판매 요청: 가격=${sellPrice}, 수량=${stockCount}, 보유=${ownedStockCount}`);
     onSell(sellPrice, stockCount);
     setStockCount(0); // 판매 후 수량 초기화
   };
@@ -207,10 +195,6 @@ export const TutorialOrderStatusSell = ({
                       const newCount = stockCount + 1;
                       if (newCount <= ownedStockCount) {
                         priceButtonHandler('+', stockCount, setStockCount, 1);
-                      } else {
-                        console.log(
-                          `수량 증가 제한: 보유=${ownedStockCount}주, 현재=${stockCount}주`,
-                        );
                       }
                     }}
                   >
