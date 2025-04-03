@@ -71,7 +71,7 @@ export const NavBar = () => {
           <NavLink
             to="/search"
             className={({ isActive }) =>
-              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
+              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color mr-7 ${
                 isActive ? 'text-text-main-color' : ''
               }`
             }
@@ -89,13 +89,14 @@ export const NavBar = () => {
             />
           </button>
           <input
-            className="w-40 bg-transparent text-[#718096] focus:outline-none"
+            className="w-72 bg-transparent text-[#718096] focus:outline-none"
             type="text"
             name="search"
-            placeholder="기업을 검색하세요."
+            placeholder="모의투자를 진행할 기업을 검색해보세요."
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            autoComplete="off"
           />
         </div>
       </div>
