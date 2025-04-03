@@ -6,6 +6,13 @@ import { SparklesCore } from '@/components/ui/sparkles';
 export const HomeBanner = () => {
   const bdlText = '부자될랩(BDL)';
 
+  const scrollToChart = () => {
+    const chartSection = document.getElementById('chart-section');
+    if (chartSection) {
+      chartSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="relative w-full overflow-hidden">
       <div className="absolute inset-0 h-full w-full">
@@ -56,7 +63,7 @@ export const HomeBanner = () => {
           <p className="mb-2 text-sm text-white/80">
             아래로 스크롤해서 차트와 뉴스를 확인해보세요!
           </p>
-          <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
+          <button onClick={scrollToChart}>
             <ChevronDown className="h-6 w-6 text-primary-color" />
           </button>
         </motion.div>

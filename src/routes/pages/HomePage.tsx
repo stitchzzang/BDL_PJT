@@ -11,7 +11,7 @@ export const HomePage = () => {
     <div className="px-6">
       <div>
         <HomeBanner />
-        <div className="mt-[80px] max-h-[300px]">
+        <div id="chart-section" className="mt-[80px] max-h-[300px] py-4">
           <KosdaqKospiChartContainer />
         </div>
         <div className="mt-[60px] w-full">
