@@ -1225,7 +1225,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   ]);
 
   return (
-    <div className="relative">
+    <div className="relative animate-fadeIn">
       <div className="bg-modal-background-color">
         <div className="">
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}

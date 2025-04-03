@@ -939,7 +939,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   ]);
 
   return (
-    <div className="relative">
+    <div className="relative animate-fadeIn">
       <div
         className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
         style={{ backgroundColor: '#0D192B' }}
