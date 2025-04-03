@@ -1,6 +1,7 @@
 import Lottie from 'lottie-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { _ky } from '@/api/instance/index';
 import {
@@ -41,6 +42,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
+import { useAuthStore } from '@/store/useAuthStore';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
 // 거래 기록을 위한 타입 정의 (외부 컴포넌트와 호환되는 타입)
@@ -158,9 +160,37 @@ export const SimulatePage = () => {
   // 뉴스 데이터 로딩 상태 추가
   const [isNewsLoading, setIsNewsLoading] = useState(false);
 
-  // 인증 관련 코드 주석 처리 (개발 테스트용)
-  // const memberId = authData.userData?.id || 1;
-  const memberId = 1; // 테스트용 고정 ID
+  // 로그인 상태 및 유저 정보 가져오기
+  const { userData, isLogin } = useAuthStore();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
+
+  // 로그인 상태 확인 및 리다이렉트
+  useEffect(() => {
+    if (!isLogin) {
+      toast.error('로그인 후 이용해주세요.');
+      setShouldRedirect(true);
+    }
+  }, [isLogin]);
+
+  // 리다이렉트 처리
+  useEffect(() => {
+    if (shouldRedirect) {
+      navigate('/login');
+    }
+  }, [shouldRedirect, navigate]);
+
+  // 인증된 사용자 ID 사용 (API 호출을 위해 null이 아닌 값으로 설정)
+  const memberId = userData?.memberId || 0;
+
+  // 실제 로그인 여부 체크를 위한 함수
+  const isUserLoggedIn = () => {
+    if (!isLogin || !userData?.memberId) {
+      toast.error('로그인 후 이용해주세요.');
+      setShouldRedirect(true);
+      return false;
+    }
+    return true;
+  };
 
   // 자산 정보 상태
   const [assetInfo, setAssetInfo] = useState<AssetResponse>({
@@ -366,6 +396,8 @@ export const SimulatePage = () => {
       return;
     }
 
+    if (!isUserLoggedIn()) return;
+
     // 현재 변곡점의 stockCandleId 가져오기
     const startPointId =
       currentTurn > 1 && pointStockCandleIds.length >= currentTurn - 1
@@ -375,7 +407,7 @@ export const SimulatePage = () => {
     const endPointId =
       pointStockCandleIds.length >= currentTurn - 1 ? pointStockCandleIds[currentTurn - 1] : 0;
 
-    if (endPointId === 0 || !memberId) {
+    if (endPointId === 0) {
       return;
     }
 
@@ -545,7 +577,7 @@ export const SimulatePage = () => {
 
   // 튜토리얼 완료 처리 함수
   const completeTutorial = async () => {
-    if (!memberId) return;
+    if (!isUserLoggedIn()) return;
 
     // 튜토리얼 완료 전 자산 정보 최종 업데이트
     updateAssetInfo();
@@ -1168,10 +1200,7 @@ export const SimulatePage = () => {
 
   // 튜토리얼 시작 함수
   const handleTutorialStart = async () => {
-    if (!memberId) {
-      alert('로그인이 필요합니다.');
-      return;
-    }
+    if (!isUserLoggedIn()) return;
 
     if (isTutorialStarted) {
       return;
@@ -1216,8 +1245,10 @@ export const SimulatePage = () => {
         // 첫 번째 턴 차트 데이터 로드
         return loadChartData(firstSession.startDate, firstSession.endDate, 1);
       })
-      .catch(() => {
+      .catch((error) => {
         setHasChartError(true);
+        console.error('튜토리얼 초기화 오류:', error);
+        toast.error('튜토리얼 초기화 중 오류가 발생했습니다.');
       })
       .finally(() => {
         setIsChartLoading(false);
