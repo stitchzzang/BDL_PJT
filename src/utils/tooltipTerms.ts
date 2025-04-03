@@ -230,6 +230,11 @@ export const financialTerms: Record<string, TermDefinition> = {
     definition: '보유한 주식의 총 수',
     category: '마이페이지',
   },
+  '주문가능 금액': {
+    term: '주문가능 금액',
+    definition: '내 현금 - 주문 대기 금액',
+    category: '마이페이지',
+  },
 };
 
 // 특정 용어 정의 찾기 함수
