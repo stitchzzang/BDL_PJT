@@ -97,6 +97,10 @@ export const OrderStatusShell = ({
   // 시장가 구매 api
   const marketOrderMutation = usePostStockMarketOrder();
   const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
+    if (quantity <= 0) {
+      toast.error('수량을 입력하세요');
+      return;
+    }
     marketOrderMutation.mutate(
       {
         memberId: memberId,
@@ -107,6 +111,9 @@ export const OrderStatusShell = ({
       {
         onSuccess: () => {
           toast.success(`주문이 성공적으로 처리되었습니다.`);
+        },
+        onError: () => {
+          toast.error('판매중 오류가 발생했습니다.');
         },
       },
     );
@@ -122,7 +129,7 @@ export const OrderStatusShell = ({
     price,
   }: LimitOrderData) => {
     if (price <= 0 || quantity <= 0) {
-      alert('가격,수량 입력하세요');
+      toast.error('가격,수량 입력하세요');
       return;
     }
     limitOrderMutation.mutate(
@@ -135,9 +142,10 @@ export const OrderStatusShell = ({
       },
       {
         onSuccess: () => {
-          alert(
-            `주문이 성공적으로 처리되었습니다. 주문 갯수는 ${quantity}입니다. 구매 가격은 ${price}원 입니다`,
-          );
+          toast.success('주문이 성공적으로 처리되었습니다.');
+        },
+        onError: () => {
+          toast.success('판매중 오류가 발생했습니다.');
         },
       },
     );
@@ -181,6 +189,7 @@ export const OrderStatusShell = ({
                   <p className="text-[14px]">시장가</p>
                 </div>
               </div>
+              <p className="text-[11px] opacity-40">지정가는 거래시간에 가능합니다.</p>
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">

@@ -2,16 +2,45 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { _kyAuth } from '@/api/instance';
-import { Algorithm, AlgorithmResponse, CreateAlgorithmRequest } from '@/api/types/algorithm';
-import { ApiResponse } from '@/api/types/common';
+import {
+  Algorithm,
+  AlgorithmResponse,
+  CheckAlgorithm,
+  CreateAlgorithmRequest,
+} from '@/api/types/algorithm';
+import { ApiResponse, ApiSuccess } from '@/api/types/common';
 
 export const algorithmAPI = {
   createAlgorithm: (memberId: string, algorithm: CreateAlgorithmRequest) =>
     _kyAuth.post(`algorithm/${memberId}`, { json: algorithm }).json<ApiResponse<Algorithm>>(),
   getAlgorithm: (memberId: string) =>
     _kyAuth.get(`algorithm/${memberId}`).json<ApiResponse<AlgorithmResponse>>(),
-  deleteAlgorithm: (memberId: string, algorithmId: string) =>
+  deleteAlgorithm: (memberId: string | undefined, algorithmId: string) =>
     _kyAuth.delete(`algorithm/${memberId}/${algorithmId}`).json<ApiResponse<void>>(),
+  startAlgorithm: (algorithmId: number, companyId: number) =>
+    _kyAuth
+      .post(`algorithm/auto-trading/start`, {
+        json: {
+          algorithmId,
+          companyId,
+        },
+      })
+      .json<ApiSuccess<string>>(),
+  // 알고리즘 체크
+  checkAlgorithm: (memberId: number, companyId: number) =>
+    _kyAuth
+      .get(`algorithm/auto-trading/status/${memberId}/${companyId}`)
+      .json<ApiResponse<CheckAlgorithm>>(),
+  // 알고리즘 중단
+  stopAlgorithm: (algorithmId: number, companyId: number) =>
+    _kyAuth
+      .post(`algorithm/auto-trading/stop`, {
+        json: {
+          algorithmId,
+          companyId,
+        },
+      })
+      .json<ApiSuccess<string>>(),
 };
 
 export const useCreateAlgorithm = () => {
@@ -41,11 +70,37 @@ export const useDeleteAlgorithm = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ memberId, algorithmId }: { memberId: string; algorithmId: string }) =>
-      algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
+    mutationFn: ({
+      memberId,
+      algorithmId,
+    }: {
+      memberId: string | undefined;
+      algorithmId: string;
+    }) => algorithmAPI.deleteAlgorithm(memberId, algorithmId).then((res) => res.result),
     onSuccess: () => {
       // 삭제 후 알고리즘 목록 쿼리 무효화하여 데이터 갱신
       queryClient.invalidateQueries({ queryKey: ['algorithms'] });
     },
+  });
+};
+
+export const useStartAlgorithm = () => {
+  return useMutation({
+    mutationFn: ({ algorithmId, companyId }: { algorithmId: number; companyId: number }) =>
+      algorithmAPI.startAlgorithm(algorithmId, companyId).then((res) => res.message),
+  });
+};
+
+export const useCheckAlgorithm = (algorithmId: number, companyId: number) => {
+  return useQuery({
+    queryKey: ['checkingAlgorithm'],
+    queryFn: () => algorithmAPI.checkAlgorithm(algorithmId, companyId).then((res) => res.result),
+  });
+};
+
+export const useStopAlgorithm = () => {
+  return useMutation({
+    mutationFn: ({ algorithmId, companyId }: { algorithmId: number; companyId: number }) =>
+      algorithmAPI.stopAlgorithm(algorithmId, companyId).then((res) => res),
   });
 };

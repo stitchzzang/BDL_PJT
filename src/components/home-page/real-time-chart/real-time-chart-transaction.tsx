@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 
+import { useRankingVolume } from '@/api/home.api';
 import { HomeCompanyRankData, HomeCompanyRankTradeData } from '@/api/types/home';
 import { ChartLoadingAnimation } from '@/components/common/chart-loading-animation';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { useRankTradeDataConnection } from '@/services/SocketHomeRankTradeData';
 import { useRankVolumeConnection } from '@/services/SocketHomeRankVolume';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
@@ -24,6 +26,8 @@ const addCommasToThousand = (num: number | undefined): string => {
 };
 
 export const RealTimeChartTransaction = () => {
+  // 초기 데이터
+  const { data: VolumeFirstData, isLoading, isError } = useRankingVolume();
   // 랜더링 정보
   const [rankVolume, setRankVolume] = useState<HomeCompanyRankDataList | null>(null);
   const [tickData, setTickData] = useState<HomeCompanyRankTradeData | null>(null);
@@ -46,7 +50,7 @@ export const RealTimeChartTransaction = () => {
         },
       }));
     }
-  }, [tickData]);
+  }, [tickData, VolumeFirstData]);
 
   useEffect(() => {
     // 소켓 연결
@@ -58,9 +62,17 @@ export const RealTimeChartTransaction = () => {
     };
   }, [connectRankVolume, disconnectRankVolume, connectionRankTradeData, disconnectRankTradeData]);
 
+  if (isLoading) {
+    return (
+      <>
+        <LoadingAnimation />
+      </>
+    );
+  }
+
   return (
     <div>
-      <div className="w-full">
+      <div className="w-full animate-fadeIn">
         <div className="!mt-0 flex flex-col">
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">
@@ -87,7 +99,7 @@ export const RealTimeChartTransaction = () => {
                       ? 'text-btn-red-color'
                       : stockTick?.changeRate < 0
                         ? 'text-btn-blue-color'
-                        : 'text-white';
+                        : 'text-btn-red-color';
 
                   return (
                     <div
@@ -108,19 +120,28 @@ export const RealTimeChartTransaction = () => {
 
                       {/* 현재가 */}
                       <div className={`w-[20%] text-right ${priceColor}`}>
-                        {stockTick ? `${addCommasToThousand(stockTick.stckPrpr)} 원` : '-'}
+                        {stockTick
+                          ? `${addCommasToThousand(stockTick.stckPrpr)} 원`
+                          : VolumeFirstData && VolumeFirstData[index]
+                            ? `${addCommasToThousand(VolumeFirstData[index].stckPrpr)} 원`
+                            : '0 원'}
                       </div>
-
                       {/* 등락률 */}
                       <div className={`w-[20%] text-right ${priceColor}`}>
-                        {stockTick ? `${stockTick.changeRate.toFixed(2)}%` : '-'}
+                        {stockTick
+                          ? `${formatKoreanMoney(stockTick.stckPrpr)} 원`
+                          : VolumeFirstData && VolumeFirstData[index]
+                            ? `${formatKoreanMoney(VolumeFirstData[index].stckPrpr)} 원`
+                            : '0 원'}
                       </div>
 
                       {/* 거래대금 */}
                       <div className="w-[20%] text-right font-light text-border-color">
-                        {stockTick?.tradingValue
-                          ? `${formatKoreanMoney(stockTick.tradingValue)} 원`
-                          : '-'}
+                        {stockTick
+                          ? `${formatKoreanMoney(stockTick.tradingValue ?? 0)} 원`
+                          : VolumeFirstData && VolumeFirstData[index]
+                            ? `${formatKoreanMoney(VolumeFirstData[index].acmlTrPbm)} 원`
+                            : '0 원'}
                       </div>
                     </div>
                   );

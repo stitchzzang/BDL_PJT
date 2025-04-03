@@ -4,3 +4,9 @@ export interface ApiResponse<T> {
   message: string;
   result: T;
 }
+
+export interface ApiSuccess<T> {
+  isSuccess: boolean;
+  code: number;
+  message: string;
+}

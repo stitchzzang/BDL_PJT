@@ -24,6 +24,7 @@ interface MyAlgorithmItemProps {
 
 export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
   const { userData } = useAuthStore();
+  const memberId = userData.memberId ?? undefined;
   const [isOpen, setIsOpen] = useState(false);
   const { mutate: deleteAlgorithm } = useDeleteAlgorithm();
 
