@@ -25,11 +25,11 @@ export const HomeBanner = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="mb-6 text-center text-4xl font-bold text-white md:text-5xl lg:text-6xl"
+          className="mb-6 text-center text-4xl font-bold text-white md:text-5xl lg:text-6xl "
         >
           <span className="text-primary-color">{bdlText}</span>에서
-          <br />
-          당신의 투자 여정을 시작해보세요
+          <br className="w-full" />
+          <p className="mt-2">당신의 투자 여정을 시작해보세요</p>
         </motion.h1>
 
         <motion.div
@@ -39,7 +39,8 @@ export const HomeBanner = () => {
           className="mt-4 rounded-full border border-primary-color/30 bg-background-color/20 px-8 py-4 backdrop-blur-md"
         >
           <h3 className="text-lg font-semibold text-white md:text-xl">
-            <span className="text-primary-color">모의 투자 시뮬레이션</span>으로 더 가까운 금융 지식
+            <span className="text-primary-color">모의 투자와 주식 튜토리얼</span>을 통해 더 가까운
+            금융 지식
           </h3>
         </motion.div>
 
