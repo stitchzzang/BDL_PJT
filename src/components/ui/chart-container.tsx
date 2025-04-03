@@ -114,7 +114,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
         <div className="grid grid-cols-10">
           <div className="col-span-8">
             {chartType === 'minute' && (
-              <MinuteChart initialData={initialData} companyId={companyId} />
+              <MinuteChart initialData={initialData} companyId={companyId} height={250} />
             )}
             {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
             {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}
@@ -130,7 +130,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
       ) : (
         <>
           {chartType === 'minute' && (
-            <MinuteChart initialData={initialData} companyId={companyId} />
+            <MinuteChart initialData={initialData} companyId={companyId} height={280} />
           )}
           {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
           {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}

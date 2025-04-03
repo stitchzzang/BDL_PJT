@@ -101,7 +101,7 @@ export const SimulatedInvestmentPage = () => {
   }
   return (
     <div className="flex h-full w-full flex-col px-6">
-      <div className="mb-6">
+      <div className="mb-3">
         <StockInfo
           stockCompanyInfo={stockCompanyInfo}
           tickData={tickData}
