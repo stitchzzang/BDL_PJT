@@ -14,7 +14,6 @@ export interface TutorialOrderStatusSellProps {
 
 export const TutorialOrderStatusSell = ({
   onSell,
-  companyId,
   latestPrice,
   isActive: isSessionActive,
   ownedStockCount = 0, // 기본값 0
@@ -23,14 +22,16 @@ export const TutorialOrderStatusSell = ({
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 판매가격
-  const [sellPrice, setSellPrice] = useState<number>(latestPrice || 0);
+  const [sellPrice, setSellPrice] = useState<number>(0);
 
-  // 최신 가격으로 sellPrice 초기화
+  // 세션 활성 상태 및 최신 가격에 따른 sellPrice 업데이트
   useEffect(() => {
-    if (latestPrice && sellPrice === 0) {
+    if (isSessionActive && latestPrice > 0) {
       setSellPrice(latestPrice);
+    } else if (!isSessionActive) {
+      setSellPrice(0); // 턴 시작 전에는 빈칸(0)으로 설정
     }
-  }, [latestPrice, sellPrice]);
+  }, [latestPrice, isSessionActive]);
 
   // +,- 기능 (판매가격)
   const priceButtonHandler = (
@@ -87,6 +88,13 @@ export const TutorialOrderStatusSell = ({
     } else {
       setStockCount(newCount);
     }
+  };
+
+  // NumberInput에 전달할 래퍼 함수
+  const handleSetStockCount = (value: React.SetStateAction<number>) => {
+    // SetStateAction은 숫자 또는 함수일 수 있음
+    const newValue = typeof value === 'function' ? value(stockCount) : value;
+    handleStockCountChange(newValue);
   };
 
   // 판매 처리
@@ -164,7 +172,12 @@ export const TutorialOrderStatusSell = ({
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <div className="pointer-events-none">
-                <NumberInput value={sellPrice} setValue={setSellPrice} placeholder="시장가원." />
+                <NumberInput
+                  value={sellPrice}
+                  setValue={setSellPrice}
+                  placeholder={isSessionActive ? '시장가 원' : '턴 시작 후 자동 설정됩니다'}
+                  formatAsCurrency={true}
+                />
               </div>
             </div>
           </div>
@@ -175,7 +188,7 @@ export const TutorialOrderStatusSell = ({
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <NumberInput
                 value={stockCount}
-                setValue={handleStockCountChange}
+                setValue={handleSetStockCount}
                 placeholder="수량을 입력하세요."
               />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
@@ -221,7 +234,9 @@ export const TutorialOrderStatusSell = ({
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+            <h3 className={h3Style}>
+              {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
+            </h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">

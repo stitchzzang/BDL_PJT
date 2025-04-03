@@ -13,7 +13,6 @@ export interface TutorialOrderStatusBuyProps {
 
 export const TutorialOrderStatusBuy = ({
   onBuy,
-  companyId,
   latestPrice,
   isActive: isSessionActive,
 }: TutorialOrderStatusBuyProps) => {
@@ -22,14 +21,16 @@ export const TutorialOrderStatusBuy = ({
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 구매가격
-  const [buyCost, setBuyCost] = useState<number>(latestPrice || 0);
+  const [buyCost, setBuyCost] = useState<number>(0);
 
-  // 최신 가격으로 buyCost 초기화
+  // 세션 활성 상태 및 최신 가격에 따른 buyCost 업데이트
   useEffect(() => {
-    if (latestPrice && buyCost === 0) {
+    if (isSessionActive && latestPrice > 0) {
       setBuyCost(latestPrice);
+    } else if (!isSessionActive) {
+      setBuyCost(0); // 턴 시작 전에는 빈칸(0)으로 설정
     }
-  }, [latestPrice, buyCost]);
+  }, [latestPrice, isSessionActive]);
 
   // +,- 기능 (구매가격)
   const CostButtonHandler = (
@@ -100,7 +101,12 @@ export const TutorialOrderStatusBuy = ({
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <div className="pointer-events-none">
-                <NumberInput value={buyCost} setValue={setBuyCost} placeholder="시장가 원" />
+                <NumberInput
+                  value={buyCost}
+                  setValue={setBuyCost}
+                  placeholder={isSessionActive ? '시장가 원' : '턴 시작 후 자동 설정됩니다'}
+                  formatAsCurrency={true}
+                />
               </div>
             </div>
           </div>
@@ -139,11 +145,13 @@ export const TutorialOrderStatusBuy = ({
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(buyCost)} 원</h3>
+            <h3 className={h3Style}>{isSessionActive ? formatKoreanMoney(buyCost) : '-'} 원</h3>
           </div>
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>{formatKoreanMoney(totalPrice())} 원</h3>
+            <h3 className={h3Style}>
+              {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
+            </h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">

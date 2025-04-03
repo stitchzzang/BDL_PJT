@@ -1,25 +1,40 @@
 import { Input } from '@/components/ui/input';
+import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface InputProps {
   value: number;
   setValue: React.Dispatch<React.SetStateAction<number>>;
   placeholder: string;
   className?: string;
+  formatAsCurrency?: boolean;
 }
 
-export const NumberInput: React.FC<InputProps> = ({ value, setValue, placeholder, className }) => {
+export const NumberInput: React.FC<InputProps> = ({
+  value,
+  setValue,
+  placeholder,
+  className,
+  formatAsCurrency = false,
+}) => {
+  const displayValue = () => {
+    if (value === 0) return '';
+    return formatAsCurrency ? formatKoreanMoney(value) : value.toString();
+  };
+
   return (
     <Input
       className={`${className} rounded-xl px-[20px] py-[15px]`}
       type="text"
       placeholder={placeholder}
-      value={value === 0 ? '' : value.toString()} // 상태값을 string으로 변환해서 value에 전달
+      value={displayValue()}
       onChange={(e) => {
-        const value = e.target.value;
-        // 숫자만 허용하는 정규식
-        if (/^\d*$/.test(value)) {
-          const numValue = value === '' ? 0 : parseInt(value, 10); // 빈 값은 0으로 처리
-          setValue(numValue); // number 타입으로 상태를 업데이트
+        const inputValue = e.target.value;
+        const numericValue = inputValue.replace(/[^\d]/g, '');
+
+        if (numericValue === '') {
+          setValue(0);
+        } else {
+          setValue(parseInt(numericValue, 10));
         }
       }}
     />

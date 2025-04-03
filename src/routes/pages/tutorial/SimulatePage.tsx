@@ -263,12 +263,6 @@ export const SimulatePage = () => {
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
 
-  // 디버깅용 코멘트 상태 변경 추적
-  useEffect(() => {
-    console.log('SimulatePage - 현재 뉴스 코멘트:', newsComment);
-    console.log('SimulatePage - 턴별 코멘트 상태:', turnComments);
-  }, [newsComment, turnComments]);
-
   // 현재 턴이 변경될 때마다 해당 턴의 코멘트로 업데이트
   useEffect(() => {
     if (currentTurn > 0 && currentTurn <= 4) {

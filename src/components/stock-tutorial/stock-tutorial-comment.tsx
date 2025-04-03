@@ -22,7 +22,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
   const hasValidComment = comment && comment.trim() !== '';
   const rawDisplayText = hasValidComment
     ? comment
-    : '여간 어려운 일이 아닐수가 없군요... 떨어지는 주식을 보면 마음이 아파요';
+    : '🤖 AI가 요약한 뉴스 코멘트를 제공해드립니다 🤖';
 
   // 문장별로 분리하는 함수
   const formatSentences = (text: string): string => {
