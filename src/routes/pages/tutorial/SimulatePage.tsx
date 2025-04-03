@@ -1147,7 +1147,7 @@ export const SimulatePage = () => {
         </div>
       </div>
       <div className="grid grid-cols-10 gap-3">
-        <div className="col-span-7">
+        <div className="col-span-8">
           {!isTutorialStarted ? (
             <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="max-w-[400px]">
@@ -1202,7 +1202,7 @@ export const SimulatePage = () => {
             <ChartComponent periodData={stockData || undefined} height={600} />
           )}
         </div>
-        <div className="col-span-3">
+        <div className="col-span-2">
           <TutorialOrderStatus
             onTrade={handleTrade}
             isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn <= 4}
