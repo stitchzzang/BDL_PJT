@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
@@ -29,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TermTooltip } from '@/components/ui/TermTooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { queryClient } from '@/lib/queryClient';
 import { useAccountConnection } from '@/services/SocketAccountService';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -41,6 +43,7 @@ import {
 } from '@/utils/numberFormatter';
 
 export const InvestmentResultPage = () => {
+  const navigate = useNavigate();
   const { userData } = useAuthStore();
   const {
     data: accountSummary,
@@ -190,14 +193,26 @@ export const InvestmentResultPage = () => {
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
                 <TableCell>
-                  <div className="flex flex-row items-center gap-2">
-                    <img
-                      src={account.companyImage}
-                      alt="companyIcon"
-                      className="h-10 w-10 rounded-full"
-                    />
-                    {account.companyName}
-                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => navigate(`/investment/simulate/${account.companyId}`)}
+                          className="flex flex-row items-center gap-2"
+                        >
+                          <img
+                            src={account.companyImage}
+                            alt="companyIcon"
+                            className="h-10 w-10 rounded-full"
+                          />
+                          <span className="underline">{account.companyName}</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>종목 상세 페이지로 이동</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
@@ -337,14 +352,26 @@ export const InvestmentResultPage = () => {
               userSimulatedData.map((order) => (
                 <TableRow key={order.orderId}>
                   <TableCell>
-                    <div className="flex flex-row items-center gap-2">
-                      <img
-                        src={order.companyImage}
-                        alt="companyIcon"
-                        className="h-10 w-10 rounded-full"
-                      />
-                      {order.companyName}
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => navigate(`/investment/simulate/${order.companyId}`)}
+                            className="flex flex-row items-center gap-2"
+                          >
+                            <img
+                              src={order.companyImage}
+                              alt="companyIcon"
+                              className="h-10 w-10 rounded-full"
+                            />
+                            <span className="underline">{order.companyName}</span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>종목 상세 페이지로 이동</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell>
                     <Badge variant={order.tradeType === 0 ? 'increase' : 'decrease'}>
