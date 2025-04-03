@@ -1319,6 +1319,29 @@ export const SimulatePage = () => {
     return '현재 턴 진행 중...';
   }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn]);
 
+  // 튜토리얼 버튼 클릭 처리 함수
+  const handleTutorialButtonClick = useCallback(() => {
+    if (!isTutorialStarted) {
+      // 튜토리얼이 시작되지 않은 경우 시작
+      handleTutorialStart();
+    } else if (isCurrentTurnCompleted) {
+      if (currentTurn < 4) {
+        // 1-3턴이 완료된 경우 다음 턴으로 이동
+        moveToNextTurn();
+      } else {
+        // 4턴이 완료된 경우 결과 확인 모달 표시
+        completeTutorial();
+      }
+    }
+  }, [
+    isTutorialStarted,
+    isCurrentTurnCompleted,
+    currentTurn,
+    handleTutorialStart,
+    moveToNextTurn,
+    completeTutorial,
+  ]);
+
   // 첫 렌더링 이후 변곡점 데이터 로드
   if (!initialized.current) {
     initialized.current = true;
@@ -1384,7 +1407,7 @@ export const SimulatePage = () => {
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
-          onMoveToNextTurn={moveToNextTurn}
+          onMoveToNextTurn={handleTutorialButtonClick}
           currentTurn={currentTurn}
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}
