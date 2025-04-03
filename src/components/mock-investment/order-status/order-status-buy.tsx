@@ -150,7 +150,7 @@ export const OrderStatusBuy = ({
     <div className="h-full animate-fadeIn">
       <h3 className={h3Style}>구매하기</h3>
       <div className="flex h-full flex-col justify-between">
-        <div className="mb-[25px] flex w-full flex-col gap-4">
+        <div className="mb-[25px] flex w-full flex-col gap-2">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
@@ -229,9 +229,8 @@ export const OrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <hr className="border border-border-color border-opacity-20" />
         </div>
-        <div className="mt-[20px] flex flex-col gap-4">
+        <div className=" flex flex-col gap-4 rounded-xl border border-border-color border-opacity-20 p-3">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
             <h3 className={h3Style}>
@@ -265,7 +264,7 @@ export const OrderStatusBuy = ({
             <Button
               variant="red"
               className="w-full"
-              size="lg"
+              size="sm"
               onClick={() =>
                 handleLimitOrder({
                   memberId: memberId,
@@ -282,7 +281,7 @@ export const OrderStatusBuy = ({
             <Button
               variant="red"
               className="w-full"
-              size="lg"
+              size="sm"
               onClick={() =>
                 handleMarketOrder({
                   memberId: memberId,

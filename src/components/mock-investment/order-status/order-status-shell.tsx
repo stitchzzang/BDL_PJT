@@ -171,7 +171,7 @@ export const OrderStatusShell = ({
     <div className="animate-fadeIn">
       <h3 className={h3Style}>판매하기</h3>
       <div>
-        <div className="mb-[25px] flex w-full flex-col gap-4">
+        <div className="mb-[25px] flex w-full flex-col gap-2">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
@@ -251,8 +251,7 @@ export const OrderStatusShell = ({
             </div>
           </div>
         </div>
-        <hr className="border border-border-color border-opacity-20" />
-        <div className="mt-[20px] flex flex-col gap-4">
+        <div className=" flex flex-col gap-4 rounded-xl border border-border-color border-opacity-20 p-3">
           {isActive === '지정가' ? (
             <div className="flex items-center justify-between">
               <h3 className={h3Style}>총 판매 금액</h3>
@@ -282,7 +281,7 @@ export const OrderStatusShell = ({
             <Button
               variant="blue"
               className="w-full"
-              size="lg"
+              size="sm"
               onClick={() =>
                 handleLimitOrder({
                   memberId: memberId,
@@ -299,7 +298,7 @@ export const OrderStatusShell = ({
             <Button
               variant="blue"
               className="w-full"
-              size="lg"
+              size="sm"
               onClick={() =>
                 handleMarketOrder({
                   memberId: memberId,
