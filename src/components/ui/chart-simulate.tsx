@@ -911,6 +911,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           left: '1%',
           right: '8%',
           top: '65%',
+          bottom: '5%',
           height: '15%',
           containLabel: false,
           clipOverflow: true, // 그리드 오버플로우 클리핑 추가
@@ -926,7 +927,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           splitLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(204, 204, 204, 0.2)',
+              color: 'rgba(84, 84, 84, 0.1)',
               width: 1,
             },
           },
@@ -1073,7 +1074,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           end: dataZoomRange.end,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
-          maxSpan: 50,
+          maxSpan: 70,
           textStyle: {
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
