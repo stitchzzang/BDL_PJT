@@ -135,6 +135,7 @@ export interface UserSimulatedData {
   orderId: number;
   memberId: number;
   companyId: number;
+  companyImage: string;
   companyName: string;
   tradeType: number;
   quantity: number;
