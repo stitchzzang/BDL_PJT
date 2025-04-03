@@ -12,15 +12,15 @@ export const HomeBanner = () => {
         <SparklesCore
           id="sparkles"
           background="transparent"
-          minSize={0.6}
-          maxSize={1.4}
+          minSize={1}
+          maxSize={2}
           particleColor="#ffffff"
           particleDensity={70}
           className="h-full w-full"
         />
       </div>
 
-      <div className="mx-auto flex h-[500px] w-full max-w-6xl flex-col items-center justify-center px-4 py-10">
+      <div className="mx-auto flex h-[550px] w-full max-w-6xl flex-col items-center justify-center px-4 py-10">
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -56,7 +56,9 @@ export const HomeBanner = () => {
           <p className="mb-2 text-sm text-white/80">
             아래로 스크롤해서 차트와 뉴스를 확인해보세요!
           </p>
-          <ChevronDown className="h-6 w-6 text-primary-color" />
+          <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}>
+            <ChevronDown className="h-6 w-6 text-primary-color" />
+          </button>
         </motion.div>
       </div>
     </div>
