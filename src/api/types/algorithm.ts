@@ -61,3 +61,8 @@ export interface CreateAlgorithmRequest {
   exitFixedPercentage: number | null;
   isFee: boolean;
 }
+
+export interface CheckAlgorithm {
+  isRunning: boolean;
+  algorithmId: number;
+}

@@ -107,12 +107,13 @@ export const SimulatedInvestmentPage = () => {
           tickData={tickData}
           closePrice={closePrice}
           comparePrice={comparePrice}
+          companyId={stockCompanyId}
         />
       </div>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-1 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-9">
           {tickData ? (
-            <div className="">
+            <>
               {minuteData ? (
                 <ChartContainer
                   initialData={minuteData}
@@ -122,15 +123,15 @@ export const SimulatedInvestmentPage = () => {
               ) : (
                 <LoadingAnimation />
               )}
-            </div>
+            </>
           ) : (
-            <div className="">
+            <>
               {minuteData ? (
                 <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
               ) : (
                 <LoadingAnimation />
               )}
-            </div>
+            </>
           )}
         </div>
         <div className="col-span-1 lg:col-span-3">
@@ -142,7 +143,7 @@ export const SimulatedInvestmentPage = () => {
         </div>
       </div>
       {tickData ? (
-        <div className="my-3">
+        <div className="my-1">
           <TickChart
             tickData={tickData}
             height={150}
@@ -152,7 +153,7 @@ export const SimulatedInvestmentPage = () => {
       ) : (
         <div className="my-1"></div>
       )}
-      <div className="grid grid-cols-10 gap-3">
+      <div className="grid grid-cols-10 gap-2">
         <div className="col-span-6">
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>

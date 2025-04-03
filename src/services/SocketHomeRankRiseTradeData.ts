@@ -36,10 +36,10 @@ export const useRankRiseTradeDataConnection = (category: string) => {
       // 연결 성공 콜백
       client.onConnect = (frame: Frame) => {
         setIsConnected(true);
-        console.log('소켓 연결', frame);
+        // console.log('소켓 연결', frame);
 
         // 주제 구독
-        client.subscribe(`/topic/ranking/${category}/tradeData`, (message) => {
+        client.subscribe(`/topic/ranking/changeRate/${category}/tradeData`, (message) => {
           try {
             // 메시지 처리 - 호가 데이터가 들어옴
             const receivedData = JSON.parse(message.body);
@@ -70,7 +70,7 @@ export const useRankRiseTradeDataConnection = (category: string) => {
 
   // 연결 해제 함수
   const disconnectRankRiseTradeData = useCallback(() => {
-    console.log('소켓 연결 해제(disconnect)');
+    // console.log('소켓 연결 해제(disconnect)');
     if (stompClientRef.current) {
       try {
         stompClientRef.current.deactivate();
@@ -79,7 +79,7 @@ export const useRankRiseTradeDataConnection = (category: string) => {
         console.error('해제중 에러 발생', error);
       }
     } else {
-      console.log('연결 해제를 위한 스톰프 클라이언트가 없습니다.');
+      // console.log('연결 해제를 위한 스톰프 클라이언트가 없습니다.');
     }
   }, []);
   // 컴포넌트 언마운트 시 자동 연결 해제
