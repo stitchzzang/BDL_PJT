@@ -540,6 +540,9 @@ export const SimulatePage = () => {
       endStockCandleId,
       isLastTurn: turn === 4,
       range: `${startStockCandleId}-${endStockCandleId}`,
+      분기점: turn,
+      시작변곡점: turn > 1 ? `변곡점 ${turn - 1}` : '처음',
+      종료변곡점: turn < 4 ? `변곡점 ${turn}` : '끝',
     });
 
     // ID 범위가 유효한지 확인
@@ -564,6 +567,10 @@ export const SimulatePage = () => {
     console.log(
       `턴 ${turn} 뉴스 코멘트(요약) API 호출 시작 - useGetNewsComment (API: tutorial/news/comment)`,
     );
+    console.log(`분기점 ${turn}: 변곡점 ${turn === 4 ? 3 : turn}의 뉴스 코멘트 요청`, {
+      범위: `${startStockCandleId} - ${endStockCandleId}`,
+      대상컴포넌트: 'StockTutorialComment',
+    });
     const commentResponse = await getNewsComment
       .mutateAsync({
         companyId,
@@ -607,6 +614,13 @@ export const SimulatePage = () => {
     // =================================================================
     console.log(
       `턴 ${turn} 과거 뉴스 리스트(변곡점) API 호출 시작 - useGetPastNews (API: tutorial/news/past)`,
+    );
+    console.log(
+      `분기점 ${turn}: ${turn === 1 ? '시작부터' : '변곡점 ' + (turn - 1) + '부터'} ${turn === 4 ? '끝까지' : '변곡점 ' + turn + '까지'}의 뉴스 리스트 요청`,
+      {
+        범위: `${startStockCandleId} - ${endStockCandleId}`,
+        대상컴포넌트: 'DayHistory, DayHistoryCard',
+      },
     );
     const pastNewsResponse = await getPastNews
       .mutateAsync({
@@ -691,24 +705,31 @@ export const SimulatePage = () => {
     console.log(
       `턴 ${turn} 현재 뉴스 API 호출 시작 - useGetCurrentNews (API: tutorial/news/current)`,
     );
-    if (turn > 0 && turn <= pointStockCandleIds.length) {
-      // 현재 턴에 해당하는 변곡점 ID 가져오기
-      const pointStockCandleId = pointStockCandleIds[turn - 1];
 
-      // 변곡점 ID가 없으면 다른 방법으로 ID 계산
-      const fallbackStockCandleId =
-        turn === 1
-          ? endStockCandleId
-          : turn <= 3
-            ? pointStockCandleIds[turn - 1] || endStockCandleId
-            : endStockCandleId;
+    // 각 턴에 해당하는 변곡점 ID 결정
+    let targetStockCandleId = 0;
 
-      const targetStockCandleId = pointStockCandleId || fallbackStockCandleId;
+    if (turn <= pointStockCandleIds.length) {
+      // 각 턴에 해당하는 변곡점 ID 직접 사용
+      targetStockCandleId = pointStockCandleIds[turn - 1] || 0;
 
-      console.log(`턴 ${turn} 현재 뉴스 요청 ID:`, {
-        pointStockCandleId,
-        fallbackStockCandleId,
-        finalId: targetStockCandleId,
+      // 변곡점 ID가 없는 경우 대체 로직
+      if (targetStockCandleId <= 0) {
+        if (turn === 1) {
+          // 첫 번째 턴이면 endStockCandleId 사용
+          targetStockCandleId = endStockCandleId;
+        } else if (turn <= 3 && pointStockCandleIds.length > 0) {
+          // 이전 변곡점 ID + 100 사용
+          targetStockCandleId = pointStockCandleIds[turn - 2] + 100 || turn * 100;
+        } else {
+          // 기본값 사용
+          targetStockCandleId = turn * 100;
+        }
+      }
+
+      console.log(`턴 ${turn} 교육용 뉴스 요청 ID:`, {
+        변곡점ID: targetStockCandleId,
+        분기점: turn,
         destination: 'StockTutorialNews 컴포넌트',
       });
 
@@ -729,6 +750,7 @@ export const SimulatePage = () => {
               newsId: currentNewsResponse.result.newsId,
               title: currentNewsResponse.result.newsTitle,
               date: currentNewsResponse.result.newsDate,
+              변곡점ID: targetStockCandleId,
             });
             setCurrentNews(currentNewsResponse.result);
           }
@@ -1365,12 +1387,10 @@ export const SimulatePage = () => {
           {pastNewsList.length > 0 && (
             <div className="mb-3">
               <p className="mb-3 text-sm text-gray-400">
-                {currentTurn === 1 && '첫 번째 구간의 뉴스 히스토리입니다.'}
-                {currentTurn === 2 &&
-                  '첫 번째 변곡점부터 두 번째 변곡점까지의 뉴스 히스토리입니다.'}
-                {currentTurn === 3 &&
-                  '두 번째 변곡점부터 세 번째 변곡점까지의 뉴스 히스토리입니다.'}
-                {currentTurn === 4 && '세 번째 변곡점 이후의 뉴스 히스토리입니다.'}
+                {currentTurn === 1 && '현재 턴 기간 동안의 뉴스 리스트들을 확인해보세요.'}
+                {currentTurn === 2 && '현재 턴 기간 동안의 뉴스 리스트들을 확인해보세요.'}
+                {currentTurn === 3 && '현재 턴 기간 동안의 뉴스 리스트들을 확인해보세요.'}
+                {currentTurn === 4 && '현재 턴 기간 동안의 뉴스 리스트들을 확인해보세요.'}
                 <span className="ml-2 text-white opacity-70">
                   ← 가로로 스크롤하여 더 많은 뉴스를 확인하세요
                 </span>
@@ -1380,14 +1400,13 @@ export const SimulatePage = () => {
 
           <DayHistory news={pastNewsList} />
 
-          {/* 개발 디버깅용 정보 */}
-          {process.env.NODE_ENV === 'development' && pastNewsList.length > 0 && (
-            <div className="mt-2 text-xs text-gray-500">
-              <p>뉴스 개수: {pastNewsList.length}</p>
-              <p>첫 뉴스 ID: {pastNewsList[0]?.newsId}</p>
-              <p>턴: {currentTurn}</p>
-            </div>
-          )}
+          {/* 디버깅용 정보 표시 */}
+          <div className="mt-4 rounded bg-modal-background-color p-2 text-xs text-gray-400">
+            <p>뉴스 갯수: {pastNewsList.length}개</p>
+            <p>현재 턴: {currentTurn}</p>
+            <p>첫 번째 뉴스 ID: {pastNewsList[0]?.newsId || '없음'}</p>
+            <p>뉴스 ID 목록: {pastNewsList.map((n) => n.newsId).join(', ') || '없음'}</p>
+          </div>
         </div>
       </div>
       <div>

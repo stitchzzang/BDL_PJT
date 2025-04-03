@@ -109,8 +109,7 @@ export const StockTutorialInfo = ({
           setInitialPrice(latestData.closePrice);
         }
       } catch {
-        // 오류 발생 시 기본 가격 설정 (예: 50000원)
-        setInitialPrice(50000);
+        // 오류 처리
       }
     };
 
