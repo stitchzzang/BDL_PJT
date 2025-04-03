@@ -1,17 +1,17 @@
 import { useUserRanking } from '@/api/home.api';
+import { HomeBanner } from '@/components/common/home-banner';
 import { KosdaqKospiChartContainer } from '@/components/home-page/kosdaq-kospi-chart/kosdaq-kospi-chart-container';
 import { NewsChart } from '@/components/home-page/news/news-chart';
 import { RankCards } from '@/components/home-page/rank-cards/rank-cards';
 import { RealTimeChart } from '@/components/home-page/real-time-chart/real-time-chart';
-
 export const HomePage = () => {
   const { data: userRanking, isLoading, isError } = useUserRanking();
 
   return (
     <div className="px-6">
-      <div>{/* 코스피,코스단.. 차트 */}</div>
       <div>
-        <div className="max-h-[300px]">
+        <HomeBanner />
+        <div className="mt-[80px] max-h-[300px]">
           <KosdaqKospiChartContainer />
         </div>
         <div className="mt-[60px] w-full">
