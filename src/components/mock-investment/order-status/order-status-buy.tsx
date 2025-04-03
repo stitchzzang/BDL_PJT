@@ -6,6 +6,7 @@ import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { queryClient } from '@/lib/queryClient';
 import { getAdjustToTickSize } from '@/utils/getAdjustToTickSize';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
@@ -96,6 +97,7 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: (err) => {
