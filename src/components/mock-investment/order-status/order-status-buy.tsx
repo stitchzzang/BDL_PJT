@@ -97,6 +97,8 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: () => {
+          setBuyCost(0);
+          setStockCount(0);
           queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
@@ -130,8 +132,9 @@ export const OrderStatusBuy = ({
       {
         onSuccess: (res) => {
           setBuyCost(0);
+          setStockCount(0);
           queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
-          toast('주문이 성공적으로 처리되었습니다.');
+          toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: (err) => {
           console.log(err);
@@ -178,7 +181,7 @@ export const OrderStatusBuy = ({
               {isActive === '지정가' ? (
                 <>
                   <NumberPriceInput
-                    value={0}
+                    value={buyCost}
                     setValue={setBuyCost}
                     placeholder={`${closePrice.toLocaleString()}원`}
                     tickSize={tickSize}

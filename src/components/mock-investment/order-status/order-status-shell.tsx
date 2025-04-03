@@ -11,6 +11,7 @@ import { LoadingAnimation } from '@/components/common/loading-animation';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { queryClient } from '@/lib/queryClient';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 interface OrderStatusShellProps {
   closePrice: number; // 종가
@@ -31,7 +32,7 @@ export const OrderStatusShell = ({
   const [isActive, setIsActive] = useState<string>('지정가');
 
   // 사용자 주식 개수
-  const { data: userAssetData, isLoading, isError } = useUserStockAccountData(memberId, companyId);
+  const { data: stockAccount, isLoading, isError } = useUserStockAccountData(memberId, companyId);
 
   // 구매가격
   const [shellCost, setShellCost] = useState<number>(0);
@@ -49,9 +50,9 @@ export const OrderStatusShell = ({
     if (check === '+') {
       const checkValue = value + chagneValue;
       if (checkValue > 0) {
-        if (userAssetData) {
+        if (stockAccount) {
           // alert(checkValue);
-          if (checkValue > userAssetData) {
+          if (checkValue > stockAccount) {
             return;
           } else {
             setValue(value + chagneValue);
@@ -75,9 +76,9 @@ export const OrderStatusShell = ({
   const [stockCount, setStockCount] = useState<number>(0);
 
   useEffect(() => {
-    if (userAssetData) {
-      if (userAssetData < stockCount) {
-        setStockCount(userAssetData);
+    if (stockAccount) {
+      if (stockAccount < stockCount) {
+        setStockCount(stockAccount);
       }
     }
   }, [stockCount]);
@@ -111,6 +112,7 @@ export const OrderStatusShell = ({
       {
         onSuccess: () => {
           toast.success(`주문이 성공적으로 처리되었습니다.`);
+          queryClient.invalidateQueries({ queryKey: ['stockAccount'] });
         },
         onError: () => {
           toast.error('판매중 오류가 발생했습니다.');
@@ -142,6 +144,7 @@ export const OrderStatusShell = ({
       },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['stockAccount'] });
           toast.success('주문이 성공적으로 처리되었습니다.');
         },
         onError: () => {
@@ -271,7 +274,7 @@ export const OrderStatusShell = ({
           )}
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>보유 주식 개수</h3>
-            <h3 className={h3Style}>{userAssetData} 개</h3>
+            <h3 className={h3Style}>{stockAccount} 개</h3>
           </div>
         </div>
         <div className="mt-[25px] flex flex-col items-center gap-2">
