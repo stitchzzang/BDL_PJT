@@ -11,6 +11,7 @@ import {
   StockPeriodDefaultData,
   UserSimulatedData,
 } from '@/api/types/stock';
+import { queryClient } from '@/lib/queryClient';
 
 export const StockApi = {
   // 회사 기본 정보 가져오기
@@ -183,6 +184,9 @@ export const useUserSimulatedData = (memberId: number | null) => {
 export const useDeleteUserSimulated = () => {
   return useMutation({
     mutationFn: (orderId: number) => StockApi.deleteUserSimulated(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+    },
   });
 };
 // 주문 정정
