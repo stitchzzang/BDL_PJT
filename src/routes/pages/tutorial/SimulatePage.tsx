@@ -641,8 +641,36 @@ export const SimulatePage = () => {
       if (turn === currentTurn) {
         console.log(
           `현재 턴 ${turn}의 뉴스 목록으로 설정 -> DayHistory, DayHistoryCard 컴포넌트 (${sortedNews.length}개)`,
+          sortedNews,
         );
         setPastNewsList(sortedNews);
+      }
+    } else if (pastNewsResponse?.result) {
+      // 직접 result 배열을 사용해보기 (API 응답 구조가 변경되었을 수 있음)
+      console.log(`API 응답 구조 변경 감지 - 직접 result 배열 사용:`, pastNewsResponse.result);
+
+      // result가 배열인지 확인
+      if (Array.isArray(pastNewsResponse.result)) {
+        const sortedNews = [...pastNewsResponse.result].sort(
+          (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+        );
+
+        console.log(`배열 형태의 result 데이터 처리:`, {
+          count: sortedNews.length,
+          firstNews: sortedNews.length > 0 ? sortedNews[0] : null,
+        });
+
+        // 턴별 뉴스 목록 상태 업데이트
+        setTurnNewsList((prev) => ({
+          ...prev,
+          [turn]: sortedNews,
+        }));
+
+        // 현재 턴이면 화면에 표시할 뉴스도 업데이트
+        if (turn === currentTurn) {
+          console.log(`현재 턴 ${turn}의 뉴스 목록으로 설정 (배열 형태):`, sortedNews);
+          setPastNewsList(sortedNews);
+        }
       }
     } else {
       console.warn(
@@ -1375,7 +1403,7 @@ export const SimulatePage = () => {
             </div>
           )}
 
-          <DayHistory news={pastNewsList} pointStockCandleIds={pointStockCandleIds} />
+          <DayHistory news={pastNewsList} />
         </div>
       </div>
       <div>
