@@ -874,7 +874,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
         axisPointer: {
           type: 'cross',
           crossStyle: {
-            color: '#999',
+            color: 'rgba(204, 204, 204, 0.2)',
           },
           label: {
             backgroundColor: '#1976d2',
@@ -898,8 +898,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       },
       grid: [
         {
-          left: '5%',
-          right: '10%',
+          left: '1%',
+          right: '8%',
           bottom: '45%',
           top: '5%',
           height: '50%',
@@ -907,8 +907,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           clipOverflow: true, // 그리드 오버플로우 클리핑 추가
         },
         {
-          left: '5%',
-          right: '10%',
+          left: '1%',
+          right: '8%',
           top: '65%',
           height: '15%',
           containLabel: false,
@@ -925,7 +925,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           splitLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(84, 84, 84, 0.1)',
+              color: 'rgba(204, 204, 204, 0.2)',
               width: 1,
             },
           },
@@ -942,7 +942,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             },
           },
           axisLabel: {
-            margin: 8,
+            margin: 6,
             color: 'rgba(255, 255, 255, 0.7)',
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
@@ -995,7 +995,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           axisLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
+              color: 'rgba(204, 204, 204, 0.1))',
             },
           },
           axisPointer: {
@@ -1037,7 +1037,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           axisLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
+              color: 'rgba(204, 204, 204, 0.1)',
             },
           },
           axisTick: { show: false },
