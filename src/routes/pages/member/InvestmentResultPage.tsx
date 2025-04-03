@@ -1,6 +1,9 @@
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
+import { useDeleteUserSimulated, useUserSimulatedData } from '@/api/stock.api';
 import { AccountSummaryResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
@@ -26,11 +29,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { TermTooltip } from '@/components/ui/TermTooltip';
+import { queryClient } from '@/lib/queryClient';
 import { useAccountConnection } from '@/services/SocketAccountService';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   addCommasToThousand,
   addStockValueColorClass,
+  formatKoreanMoney,
   plusMinusSign,
   roundToTwoDecimalPlaces,
 } from '@/utils/numberFormatter';
@@ -39,16 +44,80 @@ export const InvestmentResultPage = () => {
   const { userData } = useAuthStore();
   const {
     data: accountSummary,
-    isLoading,
-    isError,
+    isLoading: isAccountLoading,
+    isError: isAccountError,
+    refetch: refetchAccountSummary,
   } = useGetAccountSummary(userData.memberId?.toString() ?? '');
+  const {
+    data: userSimulatedData,
+    isLoading: isSimulatedLoading,
+    isError: isSimulatedError,
+    refetch: refetchUserSimulated,
+  } = useUserSimulatedData(userData.memberId);
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
   const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
   const [realTimeData, setRealTimeData] = useState<AccountSummaryResponse | null>(null);
   const [prevData, setPrevData] = useState<AccountSummaryResponse | null>(null);
   const [isFlashing, setIsFlashing] = useState(false);
+  const [activeTab, setActiveTab] = useState('holdings');
 
   const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
+
+  const tabs = [
+    { value: 'holdings', label: '보유 종목' },
+    { value: 'orders', label: '주문 내역' },
+  ];
+
+  // 주문 취소 뮤테이션
+  const deleteSimulatedMutation = useDeleteUserSimulated();
+
+  // 주문 취소 처리
+  const handleDeleteOrder = (orderId: number) => {
+    deleteSimulatedMutation.mutate(orderId, {
+      onSuccess: () => {
+        toast.success('주문이 성공적으로 취소되었습니다.');
+        queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+        refetchUserSimulated();
+      },
+      onError: (error) => {
+        console.error('주문 취소 실패:', error);
+        toast.error('주문 취소에 실패했습니다.');
+        refetchUserSimulated();
+      },
+      onSettled: () => {
+        queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+        refetchUserSimulated();
+      },
+    });
+  };
+
+  // 총 매수/매도 주문 금액 계산
+  const buyTotalPrice =
+    userSimulatedData
+      ?.filter((item) => item.tradeType === 0)
+      .reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
+
+  const sellTotalPrice =
+    userSimulatedData
+      ?.filter((item) => item.tradeType === 1)
+      .reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
+
+  // 주문 유형 변환 함수
+  const getTradeTypeText = (tradeType: number) => {
+    return tradeType === 0 ? '구매' : '판매';
+  };
+
+  // 날짜 포맷 변환 함수
+  const formatTradeTime = (tradeTime: string) => {
+    try {
+      // 서버에서 받은 시간은 UTC이므로 한국 시간으로 변환 (UTC+9)
+      const date = new Date(tradeTime);
+      const koreanDate = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+      return format(koreanDate, 'yyyy-MM-dd HH:mm:ss');
+    } catch (error) {
+      return tradeTime;
+    }
+  };
 
   useEffect(() => {
     if (accountSummary) {
@@ -78,150 +147,45 @@ export const InvestmentResultPage = () => {
     }
   }, [accountData, accountSummary, realTimeData]);
 
-  if (isLoading) {
+  // 탭 변경 시 데이터 리프레시
+  useEffect(() => {
+    const refreshData = () => {
+      if (activeTab === 'holdings') {
+        refetchAccountSummary();
+      } else if (activeTab === 'orders') {
+        refetchUserSimulated();
+      }
+    };
+
+    // 탭 전환 시 즉시 데이터 리프레시
+    refreshData();
+
+    // 주기적 리프레시 설정 (3초마다)
+    const timer = setInterval(refreshData, 3000);
+
+    return () => clearInterval(timer);
+  }, [activeTab, refetchAccountSummary, refetchUserSimulated]);
+
+  if (isAccountLoading) {
     return <LoadingAnimation />;
   }
 
-  if (isError) {
+  if (isAccountError) {
     return <ErrorScreen />;
   }
 
   const displayData = realTimeData || accountSummary;
   if (!displayData) return <LoadingAnimation />;
 
-  return (
-    <div className="flex w-full flex-col gap-4 px-6">
-      <div className="flex flex-row gap-3">
-        <div className="flex flex-col items-start">
-          <p className="text-lg text-border-color">총 자산</p>
-          <div className="flex flex-row items-end gap-1">
-            <p className="text-4xl font-bold">
-              {displayData?.totalAsset ? addCommasToThousand(displayData.totalAsset) : '0'}
-            </p>
-            <p className="text-2xl text-border-color">원</p>
-          </div>
-        </div>
-        <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
-          <div className="flex flex-col items-start">
-            <p className="text-sm text-border-color">
-              내 <TermTooltip term="평가금">평가금</TermTooltip>
-            </p>
-            <div className="flex flex-row items-end gap-1">
-              <p
-                className={`text-3xl font-bold ${
-                  displayData?.totalProfit && displayData.totalProfit > 0
-                    ? 'text-btn-red-color'
-                    : displayData?.totalProfit && displayData.totalProfit === 0
-                      ? 'text-btn-blue-color'
-                      : 'text-text-main-color'
-                }`}
-              >
-                {displayData?.totalEvaluation
-                  ? addCommasToThousand(displayData.totalEvaluation)
-                  : '0'}
-              </p>
-              <p className="text-2xl text-border-color">원</p>
-            </div>
-          </div>
-          <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
-          <div className="flex flex-col items-start">
-            <p className="text-sm text-border-color">내 현금</p>
-            <div className="flex flex-row items-end gap-1">
-              <p className="text-3xl font-bold text-btn-green-color">
-                {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
-              </p>
-              <p className="text-2xl text-border-color">원</p>
-            </div>
-          </div>
-        </div>
-      </div>
+  // 보유 종목 탭 콘텐츠
+  const holdingsTabContent = (
+    <>
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3">
-          <Badge
-            variant={
-              isFlashing && displayData?.totalProfitRate !== prevData?.totalProfitRate
-                ? (displayData?.totalProfitRate ?? 0) > 0
-                  ? 'increase-flash'
-                  : 'decrease-flash'
-                : (displayData?.totalProfitRate ?? 0) === 0
-                  ? 'zero'
-                  : (displayData?.totalProfitRate ?? 0) > 0
-                    ? 'increase'
-                    : 'decrease'
-            }
-            className="transition-all duration-300"
-          >
-            <span className="mr-1 text-sm text-border-color">총 수익률:</span>
-            <span className={addStockValueColorClass(displayData?.totalProfitRate ?? 0)}>
-              {displayData?.totalProfitRate
-                ? `${plusMinusSign(displayData.totalProfitRate)}${roundToTwoDecimalPlaces(
-                    displayData.totalProfitRate,
-                  )}`
-                : '0'}
-            </span>
-            <p className="text-border-color">%</p>
-          </Badge>
-          <Badge
-            variant={
-              isFlashing && displayData?.totalProfit !== prevData?.totalProfit
-                ? (displayData?.totalProfit ?? 0) > 0
-                  ? 'increase-flash'
-                  : 'decrease-flash'
-                : (displayData?.totalProfit ?? 0) === 0
-                  ? 'zero'
-                  : (displayData?.totalProfit ?? 0) > 0
-                    ? 'increase'
-                    : 'decrease'
-            }
-            className="transition-all duration-300"
-          >
-            <span className="mr-1 text-sm text-border-color">총 수익:</span>
-            <span className={addStockValueColorClass(displayData?.totalProfit ?? 0)}>
-              {displayData?.totalProfit
-                ? `${plusMinusSign(displayData.totalProfit)}${addCommasToThousand(
-                    displayData.totalProfit,
-                  )}`
-                : '0'}
-            </span>
-            <p className="text-border-color">원</p>
-          </Badge>
-        </div>
-        <div className="flex flex-row gap-3">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="red">자산 초기화 하기</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="border-none bg-modal-background-color">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="mb-10 text-center text-2xl font-bold text-btn-red-color">
-                  자산이 초기화됩니다.
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-text-main-color">
-                  현재 모든 거래 데이터가 초기화됩니다.
-                  <div className="my-2" />
-                  초기화된 데이터는 더 이상 복구가 불가하니 유의 부탁드립니다.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter className="mt-5">
-                <AlertDialogCancel className="border-none bg-btn-primary-active-color hover:bg-btn-primary-inactive-color hover:text-text-inactive-3-color">
-                  취소하기
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  className="border-none bg-btn-red-color hover:bg-btn-red-color/20 hover:text-btn-red-color"
-                  onClick={() => resetAccount()}
-                >
-                  초기화하기
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
-      <hr className="mt-5 w-full border-btn-primary-inactive-color" />
-      <div className="flex flex-row gap-3">
-        <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
-          <p>전체 개수:</p>
-          <span>{displayData?.accountCount ? displayData?.accountCount : '0'}개</span>
+          <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
+            <p>보유 종목 개수:</p>
+            <span>{displayData?.accountCount ? displayData?.accountCount : '0'}개</span>
+          </div>
         </div>
       </div>
       <Table>
@@ -354,6 +318,282 @@ export const InvestmentResultPage = () => {
           )}
         </TableBody>
       </Table>
+    </>
+  );
+
+  // 주문 대기 목록 탭 콘텐츠
+  const ordersTabContent = (
+    <>
+      <div className="flex flex-row items-center justify-between">
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
+            <p>주문 대기 목록:</p>
+            <span>{userSimulatedData ? userSimulatedData.length : '0'}개</span>
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <div className="flex flex-col">
+            <span className="text-border-color">총 구매 대기액</span>
+            <span className="text-right font-bold text-btn-red-color">
+              {formatKoreanMoney(buyTotalPrice)}원
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-border-color">총 판매 대기액</span>
+            <span className="text-right font-bold text-btn-blue-color">
+              {formatKoreanMoney(sellTotalPrice)}원
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-lg bg-modal-background-color">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>종목명</TableHead>
+              <TableHead>거래 유형</TableHead>
+              <TableHead>주문 수량</TableHead>
+              <TableHead>주문 가격(원)</TableHead>
+              <TableHead>총 금액(원)</TableHead>
+              <TableHead>주문 시간</TableHead>
+              <TableHead>주문 취소</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {userSimulatedData && userSimulatedData.length > 0 ? (
+              userSimulatedData.map((order) => (
+                <TableRow key={order.orderId}>
+                  <TableCell>
+                    <div className="flex flex-row items-center gap-2">
+                      <img
+                        src={order.companyImage}
+                        alt="companyIcon"
+                        className="h-10 w-10 rounded-full"
+                      />
+                      {order.companyName}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={order.tradeType === 0 ? 'increase' : 'decrease'}>
+                      {getTradeTypeText(order.tradeType)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{order.quantity}주</TableCell>
+                  <TableCell>{addCommasToThousand(order.price)}</TableCell>
+                  <TableCell>{addCommasToThousand(order.price * order.quantity)}</TableCell>
+                  <TableCell>{formatTradeTime(order.tradingTime)}</TableCell>
+                  <TableCell>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="red" size="sm">
+                          취소
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="border-none bg-modal-background-color">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-xl font-bold text-btn-red-color">
+                            주문을 취소하시겠습니까?
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="text-text-main-color">
+                            {order.companyName}의 {getTradeTypeText(order.tradeType)} 주문(
+                            {order.quantity}주, {addCommasToThousand(order.price)}원)을 취소합니다.
+                            <div className="my-2" />
+                            취소 후에는 복구할 수 없습니다.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="mt-5">
+                          <AlertDialogCancel className="border-none bg-btn-primary-active-color hover:bg-btn-primary-inactive-color hover:text-text-inactive-3-color">
+                            취소
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            className="border-none bg-btn-red-color hover:bg-btn-red-color/20 hover:text-btn-red-color"
+                            onClick={() => handleDeleteOrder(order.orderId)}
+                          >
+                            주문 취소
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={9} className="py-10 text-center">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <p className="text-lg">대기 중인 주문이 없습니다.</p>
+                    <p className="text-sm">주문을 하면 이곳에 표시됩니다.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex w-full flex-col gap-4 px-6">
+      <div className="flex flex-row gap-3">
+        <div className="flex flex-col items-start">
+          <p className="text-lg text-border-color">총 자산</p>
+          <div className="flex flex-row items-end gap-1">
+            <p className="text-4xl font-bold">
+              {displayData?.totalAsset ? addCommasToThousand(displayData.totalAsset) : '0'}
+            </p>
+            <p className="text-2xl text-border-color">원</p>
+          </div>
+        </div>
+        <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
+          <div className="flex flex-col items-start">
+            <p className="text-sm text-border-color">
+              내 <TermTooltip term="평가금">평가금</TermTooltip>
+            </p>
+            <div className="flex flex-row items-end gap-1">
+              <p
+                className={`text-3xl font-bold ${
+                  displayData?.totalProfit && displayData.totalProfit > 0
+                    ? 'text-btn-red-color'
+                    : displayData?.totalProfit && displayData.totalProfit === 0
+                      ? 'text-btn-blue-color'
+                      : 'text-text-main-color'
+                }`}
+              >
+                {displayData?.totalEvaluation
+                  ? addCommasToThousand(displayData.totalEvaluation)
+                  : '0'}
+              </p>
+              <p className="text-2xl text-border-color">원</p>
+            </div>
+          </div>
+          <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+          <div className="flex flex-col items-start">
+            <p className="text-sm text-border-color">내 현금</p>
+            <div className="flex flex-row items-end gap-1">
+              <p className="text-3xl font-bold text-btn-green-color">
+                {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
+              </p>
+              <p className="text-2xl text-border-color">원</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-row justify-between">
+        <div className="flex flex-row gap-3">
+          <Badge
+            variant={
+              isFlashing && displayData?.totalProfitRate !== prevData?.totalProfitRate
+                ? (displayData?.totalProfitRate ?? 0) > 0
+                  ? 'increase-flash'
+                  : 'decrease-flash'
+                : (displayData?.totalProfitRate ?? 0) === 0
+                  ? 'zero'
+                  : (displayData?.totalProfitRate ?? 0) > 0
+                    ? 'increase'
+                    : 'decrease'
+            }
+            className="transition-all duration-300"
+          >
+            <span className="mr-1 text-sm text-border-color">총 수익률:</span>
+            <span className={addStockValueColorClass(displayData?.totalProfitRate ?? 0)}>
+              {displayData?.totalProfitRate
+                ? `${plusMinusSign(displayData.totalProfitRate)}${roundToTwoDecimalPlaces(
+                    displayData.totalProfitRate,
+                  )}`
+                : '0'}
+            </span>
+            <p className="text-border-color">%</p>
+          </Badge>
+          <Badge
+            variant={
+              isFlashing && displayData?.totalProfit !== prevData?.totalProfit
+                ? (displayData?.totalProfit ?? 0) > 0
+                  ? 'increase-flash'
+                  : 'decrease-flash'
+                : (displayData?.totalProfit ?? 0) === 0
+                  ? 'zero'
+                  : (displayData?.totalProfit ?? 0) > 0
+                    ? 'increase'
+                    : 'decrease'
+            }
+            className="transition-all duration-300"
+          >
+            <span className="mr-1 text-sm text-border-color">총 수익:</span>
+            <span className={addStockValueColorClass(displayData?.totalProfit ?? 0)}>
+              {displayData?.totalProfit
+                ? `${plusMinusSign(displayData.totalProfit)}${addCommasToThousand(
+                    displayData.totalProfit,
+                  )}`
+                : '0'}
+            </span>
+            <p className="text-border-color">원</p>
+          </Badge>
+        </div>
+        <div className="flex flex-row gap-3">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="red">자산 초기화 하기</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="border-none bg-modal-background-color">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="mb-10 text-center text-2xl font-bold text-btn-red-color">
+                  자산이 초기화됩니다.
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-text-main-color">
+                  현재 모든 거래 데이터가 초기화됩니다.
+                  <div className="my-2" />
+                  초기화된 데이터는 더 이상 복구가 불가하니 유의 부탁드립니다.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter className="mt-5">
+                <AlertDialogCancel className="border-none bg-btn-primary-active-color hover:bg-btn-primary-inactive-color hover:text-text-inactive-3-color">
+                  취소하기
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  className="border-none bg-btn-red-color hover:bg-btn-red-color/20 hover:text-btn-red-color"
+                  onClick={() => resetAccount()}
+                >
+                  초기화하기
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+      <hr className="mt-5 w-full border-btn-primary-inactive-color" />
+
+      {/* 커스텀 탭 직접 구현 */}
+      <div className="mb-4 rounded-2xl bg-modal-background-color">
+        <div className="flex w-fit gap-2 rounded-xl p-2">
+          <button
+            onClick={() => setActiveTab('holdings')}
+            className={`rounded-lg px-4 py-2 transition-all duration-300 ${
+              activeTab === 'holdings'
+                ? 'bg-btn-blue-color font-medium text-white'
+                : 'text-border-color hover:bg-btn-blue-color/20'
+            }`}
+          >
+            보유 종목
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`rounded-lg px-4 py-2 transition-all duration-300 ${
+              activeTab === 'orders'
+                ? 'bg-btn-blue-color font-medium text-white'
+                : 'text-border-color hover:bg-btn-blue-color/20'
+            }`}
+          >
+            주문 대기 목록
+          </button>
+        </div>
+      </div>
+
+      {/* 탭 내용 */}
+      <div className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
+        {activeTab === 'holdings' ? holdingsTabContent : ordersTabContent}
+      </div>
     </div>
   );
 };
