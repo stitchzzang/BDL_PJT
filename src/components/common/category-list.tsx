@@ -8,7 +8,7 @@ const DB_CATEGORY_NAMES: CategoryName[] = [
   '자동차',
   'IT',
   '금융',
-  '엔터테인먼트',
+  '엔터',
   '방산',
   '화장품',
   '음식',
