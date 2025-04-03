@@ -4,13 +4,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
 import { toast } from 'react-toastify';
 
-import { _ky, _kyAuth } from '@/api/instance';
+import { _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
 import { AccountSummaryResponse, MemberInfo, MemberPassword } from '@/api/types/member';
 export const memberApi = {
   getMemberInfo: (memberId: string) =>
-    _ky.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
+    _kyAuth.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
 
   updateMemberInfo: (
     memberId: string,
@@ -30,7 +30,7 @@ export const memberApi = {
       formData.append('deleteProfile', data.deleteProfile ? '1' : '0');
     }
 
-    return _ky
+    return _kyAuth
       .patch<ApiResponse<MemberInfo>>(`member/${memberId}`, {
         body: formData,
       })
