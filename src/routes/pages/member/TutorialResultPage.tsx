@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useTutorialResults } from '@/api/tutorial.api';
@@ -11,37 +11,51 @@ import { useAuthStore } from '@/store/useAuthStore';
 
 export const TutorialResultPage = () => {
   const { userData } = useAuthStore();
+  const memberId = userData.memberId?.toString() ?? '';
+  const [highlightedId, setHighlightedId] = useState<number | null>(null);
+  const initialLoadDone = useRef(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const fromTutorial = location.state?.fromTutorial;
+
   const {
     data: tutorialResults,
     isLoading,
     isError,
     refetch,
   } = useTutorialResults({
-    memberId: userData.memberId?.toString() ?? '',
+    memberId,
   });
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [highlightedId, setHighlightedId] = useState<number | null>(null);
 
-  // 페이지 로드 시 튜토리얼에서 전달된 상태가 있는지 확인
+  // 튜토리얼에서 넘어왔을 때 결과를 즉시 로드
   useEffect(() => {
-    // location.state에서 튜토리얼 데이터 확인
-    const fromTutorial = location.state?.fromTutorial;
+    if (fromTutorial && !initialLoadDone.current) {
+      initialLoadDone.current = true;
 
-    if (fromTutorial) {
-      // 최신 결과를 가져오기 위해 데이터 리프레시
-      refetch().then(() => {
-        // 데이터 로드 후 가장 최근 결과가 있으면 해당 ID를 저장
-        if (tutorialResults && tutorialResults.length > 0) {
-          // 일반적으로 배열의 첫 번째 항목이 가장 최근 결과
-          setHighlightedId(tutorialResults[0].tutorialResultId);
+      const loadResults = async () => {
+        try {
+          // 데이터 리프레시 (결과가 최신 상태인지 확인)
+          await refetch();
 
-          // 스크롤을 최상단으로 이동
-          window.scrollTo(0, 0);
+          // 데이터가 로드된 후 처리
+          if (tutorialResults && tutorialResults.length > 0) {
+            // 가장 최근 결과 하이라이트 (일반적으로 첫 번째 항목)
+            setHighlightedId(tutorialResults[0].tutorialResultId);
+
+            // 하이라이트 효과는 3초 후에 제거
+            setTimeout(() => {
+              setHighlightedId(null);
+            }, 3000);
+          }
+        } catch (error) {
+          console.error('Failed to load tutorial results:', error);
         }
-      });
+      };
+
+      // 약간의 지연 후 결과 로드 (페이지 전환 후 데이터가 준비되도록)
+      setTimeout(loadResults, 300);
     }
-  }, [location.state, refetch, tutorialResults]);
+  }, [fromTutorial, refetch, tutorialResults]);
 
   return (
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center">
@@ -50,6 +64,7 @@ export const TutorialResultPage = () => {
         <p className="text-text-inactive-2-color">{new Date().toISOString().split('T')[0]}</p>
       </div>
       <hr className="my-3 w-full border-t border-btn-primary-inactive-color" />
+
       {isError ? (
         <ErrorScreen />
       ) : isLoading ? (
@@ -58,23 +73,22 @@ export const TutorialResultPage = () => {
             <Skeleton key={index} className="h-20 w-full p-5" />
           ))}
         </div>
-      ) : (
+      ) : tutorialResults && tutorialResults.length > 0 ? (
         <>
-          {tutorialResults?.map((tutorialResult) => (
+          {tutorialResults.map((tutorialResult) => (
             <div
               key={tutorialResult.tutorialResultId}
-              className={`w-full ${
-                tutorialResult.tutorialResultId === highlightedId
-                  ? 'animate-pulse border-2 border-blue-500 bg-blue-900/20 transition-all duration-300'
-                  : ''
-              }`}
+              id={`tutorial-result-${tutorialResult.tutorialResultId}`}
+              className="mb-3 w-full"
             >
-              <StockTutorialResultItem result={tutorialResult} />
+              <StockTutorialResultItem
+                result={tutorialResult}
+                isHighlighted={tutorialResult.tutorialResultId === highlightedId}
+              />
             </div>
           ))}
         </>
-      )}
-      {tutorialResults?.length === 0 && (
+      ) : (
         <div className="flex w-full flex-col items-center justify-center p-5">
           <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
             <TooltipProvider>

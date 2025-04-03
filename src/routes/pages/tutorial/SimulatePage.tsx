@@ -253,9 +253,16 @@ export const SimulatePage = () => {
     endDate: defaultEndDate,
   });
 
-  const { data: tutorialFeedbackResponse } = useGetTutorialFeedback(memberId, {
-    enabled: !!memberId && currentTurn === 4 && isCurrentTurnCompleted,
-  });
+  // 피드백 요청 상태 추가
+  const [shouldFetchFeedback, setShouldFetchFeedback] = useState(false);
+
+  // 피드백 API는 수동으로 제어
+  const { data: tutorialFeedbackResponse, refetch: refetchFeedback } = useGetTutorialFeedback(
+    memberId,
+    {
+      enabled: false, // 수동으로 제어하기 위해 비활성화
+    },
+  );
 
   const tutorialFeedback = tutorialFeedbackResponse?.result;
   const processUserAction = useProcessUserAction();
@@ -382,7 +389,7 @@ export const SimulatePage = () => {
     const prevAvailableAsset = assetInfo.availableOrderAsset;
     const prevOwnedStockCount = ownedStockCount;
 
-    // 관망 선택 시 API 호출 없이 턴 완료 처리 후 자동으로 다음 턴으로 이동
+    // 관망 선택 시 API 호출 없이 턴 완료 처리
     if (action === 'wait') {
       // 관망 기록 추가
       const newTrade: TradeRecord = {
@@ -415,10 +422,14 @@ export const SimulatePage = () => {
       // 턴 완료 처리
       setIsCurrentTurnCompleted(true);
 
-      // 잠시 후 자동으로 다음 턴으로 이동
-      setTimeout(() => {
-        moveToNextTurn();
-      }, 500);
+      // 4턴이 아닐 경우에만 자동으로 다음 턴으로 이동
+      // 4턴일 경우에는 사용자가 직접 "결과 확인하기" 버튼을 클릭해야 함
+      if (currentTurn < 4) {
+        // 잠시 후 자동으로 다음 턴으로 이동
+        setTimeout(() => {
+          moveToNextTurn();
+        }, 500);
+      }
 
       return;
     }
@@ -547,14 +558,26 @@ export const SimulatePage = () => {
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
+    // 피드백 데이터가 있는지 확인하고 없으면 수동으로 로드
+    if (shouldFetchFeedback || !tutorialFeedback) {
+      try {
+        await refetchFeedback();
+        // 피드백 데이터가 로드될 시간 확보 (300ms)
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      } catch (error) {
+        console.error('피드백 데이터 로드 실패:', error);
+      }
+    }
+
     // 날짜 정보 준비
     const currentDate = new Date();
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
 
+    let saveSuccess = false;
     try {
       // 튜토리얼 결과 저장
-      await saveTutorialResult.mutateAsync({
+      const saveResponse = await saveTutorialResult.mutateAsync({
         companyId,
         startMoney: 10000000,
         endMoney: assetInfo.currentTotalAsset,
@@ -564,16 +587,39 @@ export const SimulatePage = () => {
         memberId: memberId,
       });
 
-      // 최종 수익률 설정
-      setFinalChangeRate(assetInfo.totalReturnRate);
+      saveSuccess = saveResponse.isSuccess;
 
-      // 종료 모달 표시
-      setIsModalOpen(true);
+      if (saveSuccess) {
+        console.log('튜토리얼 결과가 성공적으로 저장되었습니다.');
+      } else {
+        console.error('튜토리얼 결과 저장 실패:', saveResponse.message);
+      }
     } catch (error) {
-      // 오류 발생 시에도 모달은 표시
-      setFinalChangeRate(assetInfo.totalReturnRate);
-      setIsModalOpen(true);
+      console.error('튜토리얼 결과 저장 중 오류 발생:', error);
     }
+
+    // 세션 삭제 시도 (결과 저장 성공 여부와 관계없이)
+    try {
+      await deleteTutorialSession.mutateAsync(memberId);
+      console.log('튜토리얼 세션이 성공적으로 삭제되었습니다.');
+    } catch (error) {
+      console.error('튜토리얼 세션 삭제 중 오류 발생:', error);
+
+      // 세션 삭제 실패 시 다시 시도
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await deleteTutorialSession.mutateAsync(memberId);
+        console.log('튜토리얼 세션 삭제 재시도 성공');
+      } catch (retryError) {
+        console.error('튜토리얼 세션 삭제 재시도 실패:', retryError);
+      }
+    }
+
+    // 최종 수익률 설정
+    setFinalChangeRate(assetInfo.totalReturnRate);
+
+    // 종료 모달 표시
+    setIsModalOpen(true);
   };
 
   // 다음 턴으로 이동하는 함수
@@ -652,8 +698,6 @@ export const SimulatePage = () => {
       } catch (error) {
         // 오류 시 처리할 내용 없음
       }
-    } else {
-      await completeTutorial();
     }
   };
 
@@ -1259,6 +1303,22 @@ export const SimulatePage = () => {
     return '현재 턴 진행 중...';
   }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn]);
 
+  // 튜토리얼 버튼 클릭 핸들러 추가
+  const handleTutorialButtonClick = useCallback(() => {
+    if (!isTutorialStarted) {
+      // 튜토리얼 시작
+      handleTutorialStart();
+    } else if (isCurrentTurnCompleted) {
+      if (currentTurn < 4) {
+        // 다음 턴으로 이동
+        moveToNextTurn();
+      } else {
+        // 4턴이고 완료되었을 때 결과 확인하기 버튼 클릭 시 completeTutorial 호출
+        completeTutorial();
+      }
+    }
+  }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn, handleTutorialStart, moveToNextTurn]);
+
   // 첫 렌더링 이후 변곡점 데이터 로드
   if (!initialized.current) {
     initialized.current = true;
@@ -1324,7 +1384,7 @@ export const SimulatePage = () => {
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
           onTutorialStart={handleTutorialStart}
-          onMoveToNextTurn={moveToNextTurn}
+          onMoveToNextTurn={handleTutorialButtonClick}
           currentTurn={currentTurn}
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}

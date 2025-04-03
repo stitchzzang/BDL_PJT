@@ -328,30 +328,38 @@ export const useDeleteTutorialSession = () => {
 /**
  * 튜토리얼 결과 리스트 조회 API
  */
-export const useGetTutorialResults = (memberId: number) => {
-  return useQuery({
-    queryKey: ['tutorial', 'result', memberId],
-    queryFn: async () => {
-      const response = await _kyAuth.get(`tutorial/result/${memberId}`);
-      return response.json() as Promise<
-        ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>
-      >;
-    },
-    enabled: !!memberId,
-  });
-};
-
-/**
- * 멤버별 튜토리얼 결과 리스트 조회 API
- */
 export const tutorialApi = {
   getTutorialResults: ({ memberId }: { memberId: string }) =>
-    _kyAuth.get<ApiResponse<TutorialResultResponse[]>>(`tutorial/result/${memberId}`).json(),
+    _kyAuth
+      .get<
+        ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>
+      >(`tutorial/result/${memberId}`)
+      .json(),
 };
 
 export const useTutorialResults = ({ memberId }: { memberId: string }) => {
   return useQuery({
     queryKey: ['tutorialResults', memberId],
-    queryFn: () => tutorialApi.getTutorialResults({ memberId }).then((res) => res.result),
+    queryFn: async () => {
+      try {
+        const response = await tutorialApi.getTutorialResults({ memberId });
+        // API 응답 구조 처리: result.TutorialResultResponse 배열 반환
+        if (response.result && response.result.TutorialResultResponse) {
+          return response.result.TutorialResultResponse;
+        }
+
+        // 응답 구조가 다른 경우 (배열이 직접 반환되는 경우도 처리)
+        if (Array.isArray(response.result)) {
+          return response.result;
+        }
+
+        // 빈 배열 반환
+        return [];
+      } catch (error) {
+        console.error('Failed to fetch tutorial results:', error);
+        return [];
+      }
+    },
+    enabled: !!memberId,
   });
 };
