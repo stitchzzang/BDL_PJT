@@ -110,7 +110,7 @@ export const SimulatedInvestmentPage = () => {
           companyId={stockCompanyId}
         />
       </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-1 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-9">
           {tickData ? (
             <>

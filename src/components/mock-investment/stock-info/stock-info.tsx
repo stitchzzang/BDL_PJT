@@ -1,8 +1,16 @@
-import { useGetAlgorithm, useStartAlgorithm } from '@/api/algorithm.api';
+import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+
+import {
+  useCheckAlgorithm,
+  useGetAlgorithm,
+  useStartAlgorithm,
+  useStopAlgorithm,
+} from '@/api/algorithm.api';
 import { CompanyInfo, TickData } from '@/api/types/stock';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -32,8 +40,15 @@ export const StockInfo = ({
   comparePrice,
   companyId,
 }: StockInfoProps) => {
-  // 알고리즘 리스트
   const { userData } = useAuthStore();
+  // 알고리즘 실해 여부
+  const { data: checkingAlgorithm, isLoading } = useCheckAlgorithm(
+    userData.memberId ?? 0,
+    companyId,
+  );
+  console.log(checkingAlgorithm);
+  // 알고리즘 리스트
+
   // 알고리즘 시작
   const StartAlgorithm = useStartAlgorithm();
   const handleStartAlgorithm = (algorithmId: number) => {
@@ -43,8 +58,10 @@ export const StockInfo = ({
         companyId,
       },
       {
-        onSuccess: (message) => {
-          alert('알고리즘 시작 성공:');
+        onSuccess: () => {
+          setNowAlgorithmId(algorithmId);
+          setAlgorithmActive(true);
+          toast.success('알고리즘 시작');
         },
         onError: (error) => {
           console.error('알고리즘 시작 실패:', error);
@@ -52,18 +69,58 @@ export const StockInfo = ({
       },
     );
   };
-  const {
-    data: algorithms,
-    isLoading,
-    isError,
-  } = useGetAlgorithm(userData.memberId?.toString() ?? '');
+  // 알고리즘 정지
+  const StopAlgorithm = useStopAlgorithm();
+  const handleStopAlgorithm = (algorithmId: number) => {
+    StopAlgorithm.mutate(
+      {
+        algorithmId,
+        companyId,
+      },
+      {
+        onSuccess: () => {
+          toast.success('정지 완료');
+          setAlgorithmActive(false);
+        },
+        onError: (error) => {
+          alert('알고리즘 정지 실패:');
+        },
+      },
+    );
+  };
+  const { data: algorithms, isError } = useGetAlgorithm(userData.memberId?.toString() ?? '');
   // const CategoryIcon = getCategoryIcon(stockCompanyInfo?.categories?.[0] ?? 'IT');
   const priceToCompare = tickData ? tickData.stckPrpr : closePrice;
   const AutoIcon = getCategoryIcon(stockCompanyInfo?.categories[0] ?? '전체');
   // 외부 함수 호출
   const priceChange = calculatePriceChange(priceToCompare, comparePrice ?? 0);
+
+  // 알고리즘 버튼 활성화
+  const [algorithmActive, setAlgorithmActive] = useState<boolean>(false);
+  useEffect(() => {
+    if (checkingAlgorithm?.isRunning === false) {
+      setAlgorithmActive(false);
+    } else {
+      setAlgorithmActive(true);
+    }
+  }, [checkingAlgorithm]);
+  // 알고리즘 아이디 관리
+  const [nowAlgorithmId, setNowAlgorithmId] = useState<number>(0);
+  useEffect(() => {
+    if (checkingAlgorithm) {
+      setNowAlgorithmId(checkingAlgorithm?.algorithmId);
+    }
+  }, [checkingAlgorithm]);
+
+  if (isLoading) {
+    return (
+      <>
+        <LoadingAnimation />
+      </>
+    );
+  }
   return (
-    <div className="flex items-center">
+    <div className="flex animate-fadeIn items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
         <div className="flex w-full gap-3">
           <div className="max-h-[60px] max-w-[60px] overflow-hidden rounded-xl">
@@ -107,7 +164,13 @@ export const StockInfo = ({
                         key={index}
                       >
                         <div className="h-5 w-5">
-                          <IconComponent />
+                          {IconComponent ? (
+                            <div className="h-5 w-5">
+                              <IconComponent />
+                            </div>
+                          ) : (
+                            <div className="h-5 w-5">{/* 기본 아이콘 또는 빈 요소 */}</div>
+                          )}
                         </div>
                         <p className="text-border-color">{name}</p>
                       </div>
@@ -116,44 +179,62 @@ export const StockInfo = ({
                 </div>
               </div>
               <div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
-                      알고리즘 선택
+                {algorithmActive === false ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
+                        알고리즘 선택
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>알고리즘을 선택하세요.</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          <>
+                            {algorithms?.length !== 0 && algorithms ? (
+                              <div>
+                                {algorithms.map((algorithm) => (
+                                  <div
+                                    onClick={() => handleStartAlgorithm(algorithm.algorithmId)}
+                                    className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-6 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
+                                  >
+                                    <p className="font-bold= text-[14px]">
+                                      {algorithm.algorithmName}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div>
+                                <p>현재 생성된 알고리즘이 없습니다.</p>
+                              </div>
+                            )}
+                          </>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>취소</AlertDialogCancel>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <>
+                    <Button
+                      className="max-h-[45px] max-w-[225px]"
+                      variant={'red'}
+                      size={'lg'}
+                      onClick={() => handleStopAlgorithm(nowAlgorithmId)}
+                    >
+                      알고리즘 실행중
+                      <p className="text-[12px] opacity-30"></p>
+                      {StopAlgorithm.isPending ? (
+                        <p className="text-[14px]">정지중 ...</p>
+                      ) : (
+                        <p className="text-[12px] opacity-30">정지하기</p>
+                      )}
                     </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>알고리즘을 선택하세요.</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        <>
-                          {algorithms?.length !== 0 && algorithms ? (
-                            <div>
-                              {algorithms.map((algorithm) => (
-                                <div
-                                  onClick={() => handleStartAlgorithm(algorithm.algorithmId)}
-                                  className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
-                                >
-                                  <p>{algorithm.algorithmName}</p>
-                                  <p>{algorithm.algorithmId}</p>
-                                  <p>{companyId}</p>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div>
-                              <p>현재 생성된 알고리즘이 없습니다.</p>
-                            </div>
-                          )}
-                        </>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>취소</AlertDialogCancel>
-                      <AlertDialogAction>확인</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                  </>
+                )}
               </div>
             </div>
           </div>
