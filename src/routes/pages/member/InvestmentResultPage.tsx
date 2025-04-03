@@ -471,8 +471,22 @@ export const InvestmentResultPage = () => {
           <div className="flex flex-col items-start">
             <p className="text-sm text-border-color">내 현금</p>
             <div className="flex flex-row items-end gap-1">
-              <p className="text-3xl font-bold text-btn-green-color">
+              <p className="text-3xl font-bold">
                 {displayData?.totalCash ? addCommasToThousand(displayData.totalCash) : '0'}
+              </p>
+              <p className="text-2xl text-border-color">원</p>
+            </div>
+          </div>
+          <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+          <div className="flex flex-col items-start">
+            <p className="text-sm text-border-color">
+              내 <TermTooltip term="주문가능 금액">주문가능 금액</TermTooltip>
+            </p>
+            <div className="flex flex-row items-end gap-1">
+              <p className="text-3xl font-bold text-btn-green-color">
+                {displayData?.orderableAmount
+                  ? addCommasToThousand(displayData.orderableAmount)
+                  : '0'}
               </p>
               <p className="text-2xl text-border-color">원</p>
             </div>
