@@ -29,7 +29,7 @@ export const StartPage = () => {
           />
         </div>
         <HelpBadge
-          title="주식에 익숙하지 않는 당신"
+          title="주식에 익숙하지 않은 당신"
           description="주식, 알고리즘 모든게 익숙하지 않으신가요? 걱정하지 마세요.
             여러분을 위해 쉬운 방법으로 도와드릴게요."
         />
