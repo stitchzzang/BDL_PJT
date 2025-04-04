@@ -9,6 +9,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AppRouter />
       <ToastContainer
+        autoClose={3000}
         position="bottom-center"
         hideProgressBar={true}
         transition={Slide}
