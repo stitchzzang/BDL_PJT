@@ -72,16 +72,16 @@ export const TutorialOrderStatus = ({
   };
 
   return (
-    <div className="relative h-full">
-      <div className="h-[100%] rounded-2xl bg-modal-background-color p-5">
-        <div className="mb-3">
+    <div className="h-full">
+      <div className="relative flex h-full flex-col rounded-2xl bg-modal-background-color p-4">
+        <div className="mb-2">
           <TutorialOrderStatusCategory
             isActiveCategory={isActiveCategory}
             setIsActiveCategory={setIsActiveCategory}
           />
         </div>
-        <hr className="mb-3 border border-border-color border-opacity-20" />
-        <div>
+        <hr className="mb-2 border border-border-color border-opacity-20" />
+        <div className="flex-1 overflow-y-auto">
           {isActiveCategory === '구매' && (
             <TutorialOrderStatusBuy
               onBuy={(price, quantity) => handleTrade('buy', price, quantity)}
@@ -108,43 +108,43 @@ export const TutorialOrderStatus = ({
             />
           )}
         </div>
+
+        {/* 튜토리얼 시작 전 오버레이 */}
+        {!isTutorialStarted && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+            <p className="mb-3 text-2xl font-bold text-white">튜토리얼을 시작해주세요!</p>
+            <p className="mb-4 text-center text-sm text-gray-400">
+              상단의 '튜토리얼 시작하기' 버튼을 클릭하여
+              <br />
+              주식 매매 튜토리얼을 시작해보세요.
+            </p>
+            <div className="mb-2 h-32 w-32">
+              <Lottie animationData={NextAnimation} loop={true} />
+            </div>
+          </div>
+        )}
+
+        {/* 턴 완료 후 오버레이 표시 */}
+        {isCurrentTurnCompleted && currentTurn < 4 && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+            <p className="mb-3 text-2xl font-bold text-white">거래 체결 성공!</p>
+            <p className="mb-1 text-lg font-bold text-white">한 턴당 한 번만 거래할 수 있어요.</p>
+            <div className="mb-2 h-32 w-32">
+              <Lottie animationData={NextAnimation} loop={true} />
+            </div>
+          </div>
+        )}
+
+        {/* 4단계(마지막 턴)에서는 결과 확인하기 안내 */}
+        {isCurrentTurnCompleted && currentTurn === 4 && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+            <p className="mb-4 text-xl font-bold text-white">튜토리얼 결과를 확인해보세요!</p>
+            <div className="mb-2 h-32 w-32">
+              <Lottie animationData={NextAnimation} loop={true} />
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* 튜토리얼 시작 전 오버레이 */}
-      {!isTutorialStarted && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
-          <p className="mb-3 text-2xl font-bold text-white">튜토리얼을 시작해주세요!</p>
-          <p className="mb-4 text-center text-sm text-gray-400">
-            상단의 '튜토리얼 시작하기' 버튼을 클릭하여
-            <br />
-            주식 매매 튜토리얼을 시작해보세요.
-          </p>
-          <div className="mb-2 h-32 w-32">
-            <Lottie animationData={NextAnimation} loop={true} />
-          </div>
-        </div>
-      )}
-
-      {/* 턴 완료 후 오버레이 표시 */}
-      {isCurrentTurnCompleted && currentTurn < 4 && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
-          <p className="mb-3 text-2xl font-bold text-white">거래 체결 성공!</p>
-          <p className="mb-1 text-lg font-bold text-white">한 턴당 한 번만 거래할 수 있어요.</p>
-          <div className="mb-2 h-32 w-32">
-            <Lottie animationData={NextAnimation} loop={true} />
-          </div>
-        </div>
-      )}
-
-      {/* 4단계(마지막 턴)에서는 결과 확인하기 안내 */}
-      {isCurrentTurnCompleted && currentTurn === 4 && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
-          <p className="mb-4 text-xl font-bold text-white">튜토리얼 결과를 확인해보세요!</p>
-          <div className="mb-2 h-32 w-32">
-            <Lottie animationData={NextAnimation} loop={true} />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

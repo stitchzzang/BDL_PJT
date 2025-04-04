@@ -116,11 +116,11 @@ export const TutorialOrderStatusSell = ({
   };
 
   return (
-    <div className="animate-fadeIn">
+    <div className="flex flex-col h-full animate-fadeIn">
       <h3 className={h3Style}>판매하기</h3>
-      <div>
-        <div className="mb-[25px] flex w-full flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
+      <div className="flex h-full flex-col justify-between">
+        <div className="mb-3 flex w-full flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
             </div>
@@ -128,7 +128,9 @@ export const TutorialOrderStatusSell = ({
               {/* 지정가 */}
               <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-1 py-1">
                 <div
-                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
+                  className={`${
+                    isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''
+                  } w-full cursor-pointer rounded-md py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
                   <p>지정가</p>
@@ -136,8 +138,9 @@ export const TutorialOrderStatusSell = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            {/* 값 입력 구역 */}
+
+          {/* 판매가격 입력 */}
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
               <div className="pointer-events-none">
@@ -150,7 +153,9 @@ export const TutorialOrderStatusSell = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
+
+          {/* 수량 입력 */}
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>수량</h3>
             </div>
@@ -185,7 +190,8 @@ export const TutorialOrderStatusSell = ({
               </div>
             </div>
           </div>
-          {/* 보유 주식 수량 표시 */}
+
+          {/* 보유 수량 표시 */}
           <div className="flex items-center justify-between">
             <div className="min-w-[74px]">
               <h3 className="text-[14px] text-border-color">보유 수량</h3>
@@ -194,28 +200,35 @@ export const TutorialOrderStatusSell = ({
               <p className="text-right text-[14px] text-border-color">{ownedStockCount}주</p>
             </div>
           </div>
+
+          <hr className="border border-border-color border-opacity-20" />
         </div>
-        <hr className="border border-border-color border-opacity-20" />
-        <div className="mt-[20px] flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>
-              {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
-            </h3>
+
+        <div className="mt-auto">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>총 판매 금액</h3>
+              <h3 className={h3Style}>
+                {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
+              </h3>
+            </div>
           </div>
-        </div>
-        <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button
-            variant="blue"
-            className="w-full"
-            size="lg"
-            onClick={handleSellStock}
-            disabled={
-              !isSessionActive || stockCount <= 0 || stockCount > ownedStockCount || sellPrice <= 0
-            }
-          >
-            <p className=" text-[18px] font-medium text-white">판매하기</p>
-          </Button>
+          <div className="mt-3">
+            <Button
+              variant="blue"
+              className="w-full"
+              size="lg"
+              onClick={handleSellStock}
+              disabled={
+                !isSessionActive ||
+                stockCount <= 0 ||
+                stockCount > ownedStockCount ||
+                sellPrice <= 0
+              }
+            >
+              <p className="text-[16px] font-medium text-white">판매하기</p>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

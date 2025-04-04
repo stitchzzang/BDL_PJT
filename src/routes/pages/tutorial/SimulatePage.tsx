@@ -1514,10 +1514,10 @@ export const SimulatePage = () => {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-12">
-        <div className="col-span-1 mb-6 lg:col-span-9">
+      <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
+        <div className="col-span-1 h-full lg:col-span-9">
           {!isTutorialStarted ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="max-w-[400px]">
                 <Lottie animationData={ChartAnimation} loop={true} />
               </div>
@@ -1529,7 +1529,7 @@ export const SimulatePage = () => {
               </p>
             </div>
           ) : isChartLoading ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터를 불러오는 중입니다...</p>
                 <p className="text-sm text-gray-400">
@@ -1538,14 +1538,14 @@ export const SimulatePage = () => {
               </div>
             </div>
           ) : hasChartError ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터를 불러오는데 문제가 발생했습니다.</p>
                 <p className="text-sm text-gray-400">잠시 후 다시 시도해 주세요.</p>
               </div>
             </div>
           ) : !stockData?.data?.length ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터가 없습니다.</p>
                 <p className="text-sm text-gray-400">
@@ -1567,21 +1567,25 @@ export const SimulatePage = () => {
               </div>
             </div>
           ) : (
-            <ChartComponent periodData={stockData || undefined} height={600} />
+            <div className="relative h-full">
+              <ChartComponent periodData={stockData || undefined} />
+            </div>
           )}
         </div>
-        <div className="col-span-1 lg:col-span-3">
-          <TutorialOrderStatus
-            onTrade={handleTrade}
-            isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn < 4} // 4단계에서는 비활성화
-            companyId={companyId}
-            latestPrice={latestPrice}
-            ownedStockCount={ownedStockCount}
-            currentTurn={currentTurn}
-            isCurrentTurnCompleted={isCurrentTurnCompleted}
-            availableOrderAsset={assetInfo.availableOrderAsset}
-            isTutorialStarted={isTutorialStarted}
-          />
+        <div className="col-span-1 h-full lg:col-span-3">
+          <div className="h-full">
+            <TutorialOrderStatus
+              onTrade={handleTrade}
+              isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn < 4} // 4단계에서는 비활성화
+              companyId={companyId}
+              latestPrice={latestPrice}
+              ownedStockCount={ownedStockCount}
+              currentTurn={currentTurn}
+              isCurrentTurnCompleted={isCurrentTurnCompleted}
+              availableOrderAsset={assetInfo.availableOrderAsset}
+              isTutorialStarted={isTutorialStarted}
+            />
+          </div>
         </div>
       </div>
 

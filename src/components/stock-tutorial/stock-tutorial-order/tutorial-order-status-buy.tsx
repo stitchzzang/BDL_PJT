@@ -93,11 +93,11 @@ export const TutorialOrderStatusBuy = ({
   };
 
   return (
-    <div className="h-full animate-fadeIn">
+    <div className="flex flex-col h-full animate-fadeIn">
       <h3 className={h3Style}>구매하기</h3>
       <div className="flex h-full flex-col justify-between">
-        <div className="mb-[25px] flex w-full flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
+        <div className="mb-3 flex w-full flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
             </div>
@@ -113,7 +113,7 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3">
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
@@ -127,7 +127,7 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>수량</h3>
             </div>
@@ -177,30 +177,32 @@ export const TutorialOrderStatusBuy = ({
           </div>
           <hr className="border border-border-color border-opacity-20" />
         </div>
-        <div className="mt-[0px] flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className={h3Style}>구매가능 금액</h3>
-            <h3 className={h3Style}>
-              {isSessionActive ? formatKoreanMoney(availableOrderAsset) : '-'} 원
-            </h3>
+        <div className="mt-auto">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>구매가능 금액</h3>
+              <h3 className={h3Style}>
+                {isSessionActive ? formatKoreanMoney(availableOrderAsset) : '-'} 원
+              </h3>
+            </div>
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>총 주문 금액</h3>
+              <h3 className={h3Style}>
+                {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
+              </h3>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>
-              {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
-            </h3>
+          <div className="mt-3">
+            <Button
+              variant="red"
+              className="w-full"
+              size="lg"
+              onClick={handleBuyStock}
+              disabled={!isSessionActive || stockCount <= 0 || totalPrice() > availableOrderAsset}
+            >
+              <p className="text-[16px] font-medium text-white">구매하기</p>
+            </Button>
           </div>
-        </div>
-        <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button
-            variant="red"
-            className="w-full"
-            size="lg"
-            onClick={handleBuyStock}
-            disabled={!isSessionActive || stockCount <= 0 || totalPrice() > availableOrderAsset}
-          >
-            <p className=" text-[18px] font-medium text-white">구매하기</p>
-          </Button>
         </div>
       </div>
     </div>

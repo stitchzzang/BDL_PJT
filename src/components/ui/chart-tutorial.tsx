@@ -676,14 +676,14 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
   }, [hasValidData]);
 
   return (
-    <div className="relative">
+    <div className="relative h-full">
       <div
         className="flex h-full w-full flex-col overflow-hidden rounded-2xl shadow-md"
         style={{ backgroundColor: '#0D192B' }}
       >
         <div className="flex items-center p-4 text-sm text-white"></div>
         {!hasValidData && (
-          <div className="flex h-[600px] items-center justify-center p-4 text-white opacity-50">
+          <div className="flex h-full items-center justify-center p-4 text-white opacity-50">
             <div className="text-center">
               <p className="mb-2 text-xl">차트 데이터가 없습니다.</p>
               <p className="text-sm">
@@ -694,7 +694,13 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
           </div>
         )}
         {hasValidData && (
-          <ReactECharts ref={chartRef} option={option} style={{ height: `${height}px` }} />
+          <div className="h-full">
+            <ReactECharts
+              ref={chartRef}
+              option={option}
+              style={{ height: '100%', minHeight: '400px' }}
+            />
+          </div>
         )}
       </div>
     </div>
