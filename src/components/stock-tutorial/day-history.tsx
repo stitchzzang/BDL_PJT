@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 
 import { NewsResponse } from '@/api/types/tutorial';
 import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
@@ -8,26 +8,6 @@ export interface DayHistoryProps {
 }
 
 export const DayHistory = ({ news }: DayHistoryProps) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        scrollContainer.scrollLeft += e.deltaY;
-      }
-    };
-
-    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
-
-    return () => {
-      scrollContainer.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
-
   return (
     <div className="h-full rounded-xl bg-modal-background-color p-[20px]">
       <div className="mb-[15px] flex items-center gap-3">
@@ -38,12 +18,11 @@ export const DayHistory = ({ news }: DayHistoryProps) => {
           <p className="text-border-color">각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.</p>
         ) : (
           <div
-            ref={scrollContainerRef}
-            className="no-scrollbar flex w-full gap-4 overflow-x-scroll pb-4"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="flex flex-col w-full gap-4 overflow-y-auto h-[calc(100%-50px)] pr-2"
+            style={{ scrollbarWidth: 'thin' }}
           >
             {news.map((newsItem, index) => (
-              <div key={`${newsItem.newsId}-${index}`} className="flex-shrink-0">
+              <div key={`${newsItem.newsId}-${index}`}>
                 <DayHistoryCard newsItem={newsItem} />
               </div>
             ))}
