@@ -34,7 +34,13 @@ const signUpSchema = z
     birthDate: z.date(),
     phoneNumber: z.string().optional(),
     question: z.number().min(1, '질문을 선택해주세요.'),
-    answer: z.string().min(1, '답변을 입력해주세요.').max(10, '답변은 최대 10자까지 가능합니다.'),
+    answer: z
+      .string()
+      .min(1, '답변을 입력해주세요.')
+      .max(10, '답변은 최대 10자까지 가능합니다.')
+      .refine((value) => value.trim() === value || value.charAt(0) !== ' ', {
+        message: '답변의 첫 글자는 공백이 될 수 없습니다.',
+      }),
   })
   .refine((data) => data.password === data.passwordConfirm, {
     message: '비밀번호가 일치하지 않습니다.',
@@ -243,12 +249,14 @@ export const SignUpPage = () => {
                           <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                         )}
                       </div>
-                      <p className="text-sm text-text-main-color">
-                        닉네임은 2자 이상 5자 이하여야 하며,
-                      </p>
-                      <span className="text-sm text-text-main-color">
-                        특수문자 및 자음/모음은 사용할 수 없습니다.
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm text-text-main-color">
+                          닉네임은 2자 이상 5자 이하여야 하며,
+                        </p>
+                        <p className="text-sm text-text-main-color">
+                          특수문자 및 자음/모음은 사용할 수 없습니다.
+                        </p>
+                      </div>
                     </FormItem>
                   );
                 }}
@@ -361,9 +369,14 @@ export const SignUpPage = () => {
                           <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                         )}
                       </div>
-                      <p className="text-sm text-text-main-color">
-                        답변은 1자 이상 10자 이하여야 합니다.
-                      </p>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm text-text-main-color">
+                          답변은 1자 이상 10자 이하여야 하며,
+                        </p>
+                        <p className="text-sm text-text-main-color">
+                          답변의 첫 글자는 공백이 될 수 없습니다.
+                        </p>
+                      </div>
                     </FormItem>
                   );
                 }}
