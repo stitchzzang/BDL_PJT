@@ -111,25 +111,6 @@ export const TutorialOrderStatusSell = ({
       return;
     }
 
-    // 서버와 클라이언트 간 보유량 불일치 가능성을 고려, 50% 안전 마진 추가
-    // 이렇게 하면 실제 서버에 있는 값보다 많이 팔려는 상황 방지
-    const safeMaxSellCount = Math.floor(ownedStockCount * 0.5);
-
-    if (stockCount > safeMaxSellCount && ownedStockCount > 1) {
-      const confirmSell = window.confirm(
-        `안전한 거래를 위해 보유량(${ownedStockCount}주)의 절반인 ${safeMaxSellCount}주까지만 판매하는 것이 좋습니다. 이 수량으로 판매하시겠습니까?`,
-      );
-
-      if (confirmSell) {
-        // 사용자가 동의하면 안전 수량으로 조정
-        setStockCount(safeMaxSellCount);
-
-        // 안전 수량으로 판매 진행
-        onSell(sellPrice, safeMaxSellCount);
-      }
-      return;
-    }
-
     onSell(sellPrice, stockCount);
     setStockCount(0); // 판매 후 수량 초기화
   };
