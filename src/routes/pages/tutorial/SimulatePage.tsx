@@ -1557,7 +1557,7 @@ export const SimulatePage = () => {
         </div>
       </div>
 
-      <div className="mt-[32px] grid grid-cols-6 gap-3">
+      <div className="mt-[44px] grid grid-cols-6 gap-3">
         <div className="col-span-3">
           <StockTutorialComment comment={newsComment} />
         </div>
