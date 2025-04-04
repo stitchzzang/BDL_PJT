@@ -17,14 +17,14 @@ export const StockProgress = ({ progress: externalProgress }: StockProgressProps
   }, [externalProgress]);
 
   return (
-    <div className="flex gap-4">
-      <div className="flex flex-col gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
+    <div className="flex gap-3">
+      <div className="flex flex-col gap-3 rounded-xl bg-modal-background-color px-[16px] py-[12px]">
         <div className="flex items-center justify-between">
-          <p className="text-[16px] text-border-color">진행률 :</p>
-          <span className="font-medium">{internalProgress}%</span>
+          <p className="text-[14px] text-border-color">진행률 :</p>
+          <span className="text-[14px] font-medium">{internalProgress}%</span>
         </div>
       </div>
-      <div className="min-w-[230px]">
+      <div className="min-w-[210px]">
         <div
           ref={progressBarRef}
           className="relative h-full w-full select-none rounded-xl bg-btn-green-color bg-opacity-20"

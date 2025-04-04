@@ -15,17 +15,16 @@ export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatu
   };
 
   return (
-    <div className="flex flex-col h-full animate-fadeIn">
+    <div className="mt-1 flex h-full animate-fadeIn flex-col">
       <h3 className={h3Style}>관망하기</h3>
-      <div className="flex h-full flex-col justify-between">
+      <div className="mt-3 flex h-full flex-col justify-between">
         <div className="mb-3 flex flex-col gap-3">
           {/* 관망하기 설명 */}
           <div className="mb-2 rounded-lg bg-[#1A1D2D] p-4">
             <p className="mb-2 text-[16px] font-semibold text-white">관망은 무엇인가요?</p>
             <p className="text-[14px] text-gray-300">
-              관망은 현재 턴에서 매매 결정을 보류하고 시장 상황을 지켜보는 것입니다.
-              <br />
-              관망을 선택하면 이번 턴에서는 매수/매도가 불가능하며, 다음 턴으로 넘어갑니다.
+              • 매매 결정을 보류하고 시장 상황을 지켜보는 것
+              <br />• 관망을 선택하면 이번 턴에서는 매수/매도가 불가능하며, 다음 턴으로 넘어감
             </p>
           </div>
 
@@ -33,8 +32,8 @@ export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatu
           <div className="rounded-lg bg-[#2A2A3C] p-4">
             <p className="mb-2 text-[16px] font-semibold text-yellow-400">주의사항</p>
             <p className="text-[14px] text-gray-300">
-              • 관망을 선택하면 이번 턴에서 추가 매수/매도가 불가능합니다.
-              <br />• 한 턴당 한 번의 액션만 가능합니다.
+              • 관망을 선택하면 이번 턴에서 추가 매수/매도가 불가능
+              <br />• 한 턴당 한 번의 액션만 가능
             </p>
           </div>
         </div>
