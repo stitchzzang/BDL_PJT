@@ -678,7 +678,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
   return (
     <div className="relative">
       <div
-        className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
+        className="flex h-full w-full flex-col overflow-hidden rounded-2xl shadow-md"
         style={{ backgroundColor: '#0D192B' }}
       >
         <div className="flex items-center p-4 text-sm text-white"></div>

@@ -74,13 +74,13 @@ export const TutorialOrderStatus = ({
   return (
     <div className="relative h-full">
       <div className="h-[100%] rounded-2xl bg-modal-background-color p-5">
-        <div className="mb-[25px]">
+        <div className="mb-3">
           <TutorialOrderStatusCategory
             isActiveCategory={isActiveCategory}
             setIsActiveCategory={setIsActiveCategory}
           />
         </div>
-        <hr className="mb-[25px] border border-border-color border-opacity-20" />
+        <hr className="mb-3 border border-border-color border-opacity-20" />
         <div>
           {isActiveCategory === '구매' && (
             <TutorialOrderStatusBuy

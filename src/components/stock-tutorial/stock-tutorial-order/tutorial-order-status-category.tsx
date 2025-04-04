@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 // 허용된 탭 타입을 정의
 type TabType = '구매' | '판매' | '관망';
@@ -16,17 +16,12 @@ export const TutorialOrderStatusCategory: React.FC<OrderStatusCategoryProps> = (
     'w-[30%] cursor-pointer text-center rounded-xl py-2  transition-all duration-300';
   const [isActive, setIsActive] = useState<string>(isActiveCategory);
 
-  // isActiveCategory prop이 변경될 때마다 내부 상태도 업데이트
-  useEffect(() => {
-    setIsActive(isActiveCategory);
-  }, [isActiveCategory]);
-
   const changeCategory = (isActiveCategory: TabType) => {
     setIsActiveCategory(isActiveCategory);
   };
   return (
-    <div className=" rounded-xl border border-border-color p-2">
-      <div className="flex w-full animate-fadeIn justify-between gap-1">
+    <div className="rounded-xl border border-border-color border-opacity-20 p-2 text-[14px]">
+      <div className="flex w-full justify-between gap-1">
         <div
           className={`${orderButtonStyle} ${isActive === '구매' ? 'bg-btn-red-color bg-opacity-20' : ''} hover:bg-btn-red-color hover:bg-opacity-20`}
           onClick={() => {

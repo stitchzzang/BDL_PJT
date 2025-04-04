@@ -1514,8 +1514,8 @@ export const SimulatePage = () => {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-10 gap-3">
-        <div className="col-span-8">
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-12">
+        <div className="col-span-1 mb-6 lg:col-span-9">
           {!isTutorialStarted ? (
             <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="max-w-[400px]">
@@ -1570,7 +1570,7 @@ export const SimulatePage = () => {
             <ChartComponent periodData={stockData || undefined} height={600} />
           )}
         </div>
-        <div className="col-span-2">
+        <div className="col-span-1 lg:col-span-3">
           <TutorialOrderStatus
             onTrade={handleTrade}
             isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn < 4} // 4단계에서는 비활성화
