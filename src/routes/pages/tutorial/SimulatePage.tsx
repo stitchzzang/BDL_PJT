@@ -1487,6 +1487,7 @@ export const SimulatePage = () => {
             currentTurn={currentTurn}
             isCurrentTurnCompleted={isCurrentTurnCompleted}
             availableOrderAsset={assetInfo.availableOrderAsset}
+            isTutorialStarted={isTutorialStarted}
           />
         </div>
       </div>
@@ -1535,20 +1536,10 @@ export const SimulatePage = () => {
         </div>
       </div>
       <div>
-        {/* 
-          뉴스 코멘트는 /api/tutorial/news/comment API 호출 결과를 사용합니다.
-          각 턴별로 변곡점에 해당하는 코멘트 데이터를 가져와 StockTutorialComment 컴포넌트에 전달합니다.
-          newsComment 데이터는 loadNewsData 함수에서 setNewsComment를 통해 설정됩니다.
-        */}
         <StockTutorialComment comment={newsComment} />
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3">
         <div className="col-span-4">
-          {/* 
-            현재 뉴스는 /api/tutorial/news/current API 호출 결과를 사용합니다.
-            각 턴별로 변곡점에 해당하는 현재 뉴스 데이터를 가져와 StockTutorialNews 컴포넌트에 전달합니다.
-            currentNews 데이터는 loadNewsData 함수에서 setCurrentNews를 통해 설정됩니다.
-          */}
           <StockTutorialNews currentNews={currentNews} companyId={companyId} />
         </div>
         <div className="col-span-2">

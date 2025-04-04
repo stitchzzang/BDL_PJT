@@ -177,7 +177,7 @@ export const TutorialOrderStatusBuy = ({
           </div>
           <hr className="border border-border-color border-opacity-20" />
         </div>
-        <div className="mt-[20px] flex flex-col gap-4">
+        <div className="mt-[0px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
             <h3 className={h3Style}>

@@ -17,6 +17,7 @@ export interface TutorialOrderStatusProps {
   currentTurn: number; // 현재 턴 번호 추가
   isCurrentTurnCompleted: boolean; // 현재 턴 완료 여부 추가
   availableOrderAsset?: number; // 구매 가능 금액 추가
+  isTutorialStarted: boolean; // 튜토리얼 시작 여부 추가
 }
 
 export const TutorialOrderStatus = ({
@@ -28,6 +29,7 @@ export const TutorialOrderStatus = ({
   currentTurn,
   isCurrentTurnCompleted,
   availableOrderAsset = 0, // 기본값 0
+  isTutorialStarted = false, // 기본값 false
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';
@@ -107,6 +109,21 @@ export const TutorialOrderStatus = ({
           )}
         </div>
       </div>
+
+      {/* 튜토리얼 시작 전 오버레이 */}
+      {!isTutorialStarted && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+          <p className="mb-3 text-2xl font-bold text-white">튜토리얼을 시작해주세요!</p>
+          <p className="mb-4 text-center text-sm text-gray-400">
+            상단의 '튜토리얼 시작하기' 버튼을 클릭하여
+            <br />
+            주식 매매 튜토리얼을 시작해보세요.
+          </p>
+          <div className="mb-2 h-32 w-32">
+            <Lottie animationData={NextAnimation} loop={true} />
+          </div>
+        </div>
+      )}
 
       {/* 턴 완료 후 오버레이 표시 */}
       {isCurrentTurnCompleted && currentTurn < 4 && (
