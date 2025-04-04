@@ -427,6 +427,34 @@ export const SimulatePage = () => {
     4: 0,
   });
 
+  // AI 코멘트 높이를 감지하는 상태와 레퍼런스 추가
+  const [commentHeight, setCommentHeight] = useState(0);
+  const commentRef = useRef<HTMLDivElement>(null);
+
+  // AI 코멘트 높이 감지 함수
+  useEffect(() => {
+    if (!commentRef.current) return;
+
+    // ResizeObserver 생성하여 AI 코멘트 컴포넌트 높이 변화 감지
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = entry.contentRect.height;
+        // 최소 1px 이상일 때만 높이 업데이트 (초기화 문제 방지)
+        if (height > 1) {
+          setCommentHeight(height);
+        }
+      }
+    });
+
+    // AI 코멘트 컴포넌트 관찰 시작
+    resizeObserver.observe(commentRef.current);
+
+    // 컴포넌트 언마운트 시 관찰 중단
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   // 거래 처리 함수
   const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
     if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
@@ -1557,12 +1585,12 @@ export const SimulatePage = () => {
         </div>
       </div>
 
-      <div className="mt-[44px] grid grid-cols-6 gap-3" style={{ gridAutoRows: '1fr' }}>
-        <div className="col-span-3">
+      <div className="mt-[44px] grid grid-cols-6 gap-3">
+        <div className="col-span-3" ref={commentRef}>
           <StockTutorialComment comment={newsComment} />
         </div>
         <div className="col-span-3">
-          <DayHistory news={pastNewsList} />
+          <DayHistory news={pastNewsList} height={commentHeight} />
         </div>
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3">

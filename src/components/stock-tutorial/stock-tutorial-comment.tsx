@@ -34,29 +34,34 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
   // 줄바꿈 처리된 텍스트
   const displayText = useMemo(() => formatSentences(rawDisplayText), [rawDisplayText]);
 
+  // 뉴스 히스토리와 동일한 최소 높이 (DayHistory 컴포넌트와 일치)
+  const MIN_HEIGHT = 320;
+
   return (
-    <div className="flex h-full animate-fadeIn gap-4">
-      <div>
-        <Lottie
-          animationData={robotMove}
-          loop={true}
-          autoplay={true}
-          style={{ height: 70, width: 70 }}
-          rendererSettings={{
-            preserveAspectRatio: 'xMidYMid slice',
-          }}
-        />
-      </div>
-      <div className="items-left flex w-full rounded-lg border border-border-color bg-modal-background-color p-[25px]">
-        <h1 className="whitespace-pre-line leading-relaxed">
-          <DecryptedText
-            text={displayText}
-            animateOn="view"
-            speed={200}
-            encryptedClassName="text-border-color"
-            parentClassName="whitespace-pre-line"
+    <div className="w-full animate-fadeIn">
+      <div className="flex gap-4" style={{ minHeight: `${MIN_HEIGHT - 10}px` }}>
+        <div>
+          <Lottie
+            animationData={robotMove}
+            loop={true}
+            autoplay={true}
+            style={{ height: 70, width: 70 }}
+            rendererSettings={{
+              preserveAspectRatio: 'xMidYMid slice',
+            }}
           />
-        </h1>
+        </div>
+        <div className="flex w-full flex-col overflow-y-auto rounded-lg border border-border-color bg-modal-background-color p-[25px]">
+          <h1 className="whitespace-pre-line leading-relaxed">
+            <DecryptedText
+              text={displayText}
+              animateOn="view"
+              speed={200}
+              encryptedClassName="text-border-color"
+              parentClassName="whitespace-pre-line"
+            />
+          </h1>
+        </div>
       </div>
     </div>
   );
