@@ -308,12 +308,24 @@ export const SimulatePage = () => {
   // 현재 턴이 변경될 때마다 해당 턴의 뉴스 목록으로 업데이트
   useEffect(() => {
     if (currentTurn > 0 && currentTurn <= 4) {
-      // 해당 턴의 과거 뉴스 데이터 설정
-      const turnNews = turnNewsList[currentTurn];
-      setPastNewsList(turnNews || []);
+      // 이전 턴을 포함한 모든 턴의 뉴스를 누적하여 표시
+      const accumulatedNews: NewsResponse[] = [];
+
+      // 현재 턴까지의 모든 뉴스를 수집
+      for (let t = 1; t <= currentTurn; t++) {
+        const turnNews = turnNewsList[t] || [];
+        accumulatedNews.push(...turnNews);
+      }
+
+      // 날짜 기준으로 정렬 (최신순)
+      const sortedNews = [...accumulatedNews].sort(
+        (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+      );
+
+      setPastNewsList(sortedNews);
 
       // 이미 API가 호출되었지만 데이터가 없는 경우 다시 로드
-      if ((!turnNews || turnNews.length === 0) && isTutorialStarted) {
+      if (turnNewsList[currentTurn]?.length === 0 && isTutorialStarted) {
         // 변곡점 데이터가 있는지 확인하고 필요시 로드
         if (pointStockCandleIds.length === 0) {
           loadPointsData().then(() => {

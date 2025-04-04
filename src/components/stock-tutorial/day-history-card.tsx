@@ -17,9 +17,9 @@ export const DayHistoryCard = ({ newsItem }: DayHistoryCardProps) => {
   const formattedDate = `${year}-${month}-${day}`;
 
   return (
-    <div className="flex w-full items-center justify-between rounded-xl border border-btn-green-color bg-transparent px-6 py-4 text-btn-red-color shadow-sm transition-colors">
-      <p className="mr-3 line-clamp-1 font-bold text-white">{newsItem.newsTitle}</p>
-      <div className="flex items-center whitespace-nowrap">
+    <div className="flex w-full items-center justify-between rounded-xl border border-btn-green-color bg-transparent px-6 py-3 text-btn-red-color shadow-sm transition-colors">
+      <p className="mr-3 line-clamp-1 flex-1 font-bold text-white">{newsItem.newsTitle}</p>
+      <div className="flex items-center shrink-0 whitespace-nowrap">
         <span className={`font-semibold ${changeStyle}`}>
           {changeSymbol}
           {newsItem.changeRate.toFixed(2)}%
