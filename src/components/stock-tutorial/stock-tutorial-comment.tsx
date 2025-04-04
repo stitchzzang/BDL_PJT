@@ -52,7 +52,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
           <DecryptedText
             text={displayText}
             animateOn="view"
-            speed={250}
+            speed={200}
             encryptedClassName="text-border-color"
             parentClassName="whitespace-pre-line"
           />

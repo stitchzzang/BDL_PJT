@@ -1557,20 +1557,20 @@ export const SimulatePage = () => {
         </div>
       </div>
 
-      <div className="mt-[44px] grid grid-cols-6 gap-3">
+      <div className="mt-[44px] grid grid-cols-6 gap-3" style={{ gridAutoRows: '1fr' }}>
         <div className="col-span-3">
           <StockTutorialComment comment={newsComment} />
         </div>
         <div className="col-span-3">
-          <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
+          <DayHistory news={pastNewsList} />
         </div>
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3">
-        <div className="col-span-3">
+        <div className="col-span-4">
           <StockTutorialNews currentNews={currentNews} companyId={companyId} />
         </div>
-        <div className="col-span-3">
-          <DayHistory news={pastNewsList} />
+        <div className="col-span-2">
+          <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
         </div>
       </div>
       <TutorialEndModal
