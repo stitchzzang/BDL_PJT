@@ -218,61 +218,67 @@ export const StockTutorialInfo = ({
         : '튜토리얼 시작하기');
 
   return (
-    <div className="flex items-center">
+    <div className="flex animate-fadeIn items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
-        <div className="max-h-[70px] max-w-[70px] overflow-hidden rounded-xl">
-          <img
-            src={companyInfo?.companyImage || TestImage}
-            alt={`${companyInfo?.companyName || '회사'}-로고`}
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="flex w-full flex-col">
-          <div className="flex items-center gap-2">
-            <h3 className="text-[20px] font-medium text-white">
-              {companyInfo?.companyName || '회사명'}
-            </h3>
-            <h3 className="text-[14px] font-light text-border-color">
-              {companyInfo?.companyCode || '회사코드'}
-            </h3>
+        <div className="flex w-full items-center gap-3">
+          <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
+            <img
+              src={companyInfo?.companyImage || TestImage}
+              alt={`${companyInfo?.companyName || '회사'}-로고`}
+              className="h-full w-full object-cover"
+            />
           </div>
-          <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-[18px] sm:flex-row sm:items-center">
-              <h3 className="text-[30px] font-medium text-white">
-                {addCommasToThousand(displayPrice || 0)}원
+          <div className="flex w-full flex-col">
+            <div className="mb-1 flex items-center gap-2">
+              <h3 className="text-[16px] font-medium text-white">
+                {companyInfo?.companyName || '회사명'}
               </h3>
-              {isTutorialStarted && currentTurn > 0 && (
-                <span className="text-sm text-border-color">{currentTurn}단계 현재가</span>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {normalizedCategories.map((categoryName, index) => (
-                  <div
-                    key={`${categoryName}-${index}`}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-modal-background-color px-3 py-2"
-                  >
-                    <div className="h-5 w-5">{renderCategoryIcon(categoryName)}</div>
-                    <p className="text-sm text-border-color">{categoryName}</p>
-                  </div>
-                ))}
-              </div>
+              <p className="text-[14px] font-light text-border-color">
+                {companyInfo?.companyCode || '회사코드'}
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              {showButtonInInfoSection && (
-                <Button
-                  className="max-h-[45px] w-[225px]"
-                  variant={'green'}
-                  size={'lg'}
-                  onClick={handleButtonClick}
-                  disabled={
-                    (isTutorialStarted && !isCurrentTurnCompleted) ||
-                    initSessionMutation.isPending ||
-                    !companyInfo
-                  }
-                >
-                  {buttonTextContent}
-                </Button>
-              )}
-              <StockTutorialHelp />
+            <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
+              <div className="ite flex flex-col gap-1 sm:flex-row">
+                <div className="flex flex-col items-center gap-2 text-[14px] sm:flex-row">
+                  <h3 className="text-[22px] font-medium text-white">
+                    {addCommasToThousand(displayPrice || 0)}원
+                  </h3>
+                  {isTutorialStarted && currentTurn > 0 && (
+                    <div className="flex justify-center gap-2 rounded-lg">
+                      <p className="text-border-color">{currentTurn}단계 현재가</p>
+                    </div>
+                  )}
+                </div>
+                <div className="ml-4 flex flex-wrap items-center justify-center gap-[15px] rounded-lg border border-border-color border-opacity-20 bg-modal-background-color px-3 py-1">
+                  {normalizedCategories.map((categoryName, index) => (
+                    <div
+                      key={`${categoryName}-${index}`}
+                      className="flex min-h-[25px] min-w-[25px] items-center justify-center gap-1"
+                    >
+                      <div className="h-4 w-4">{renderCategoryIcon(categoryName)}</div>
+                      <p className="ml-1 text-[13px] text-border-color">{categoryName}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                {showButtonInInfoSection && (
+                  <Button
+                    className="max-h-[45px] max-w-[225px]"
+                    variant={'green'}
+                    size={'lg'}
+                    onClick={handleButtonClick}
+                    disabled={
+                      (isTutorialStarted && !isCurrentTurnCompleted) ||
+                      initSessionMutation.isPending ||
+                      !companyInfo
+                    }
+                  >
+                    {buttonTextContent}
+                  </Button>
+                )}
+                <StockTutorialHelp />
+              </div>
             </div>
           </div>
         </div>
