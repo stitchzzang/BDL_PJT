@@ -1,7 +1,6 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
 
 import { useLogout } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
@@ -11,48 +10,15 @@ import { useAuthStore } from '@/store/useAuthStore';
 export const NavBar = () => {
   const { isLogin, userData } = useAuthStore();
   const { mutate: logout } = useLogout();
-  const [searchValue, setSearchValue] = useState('');
   const [isRotating, setIsRotating] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearch = () => {
+  const handleNavigateToSearch = () => {
     setIsRotating(true);
     setTimeout(() => {
       setIsRotating(false);
-      setSearchValue('');
-      navigate(`/search?q=${encodeURIComponent(searchValue)}`);
+      navigate('/search');
     }, 500);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
-  // 문자열의 실제 바이트 길이를 계산하는 함수
-  const getByteLength = (str: string) => {
-    // TextEncoder를 사용하여 UTF-8 인코딩된 바이트 길이 계산
-    return new TextEncoder().encode(str).length;
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (getByteLength(value) > 15) {
-      setSearchValue('');
-      toast.info('검색 가능한 기업명은 15자 이하입니다.');
-      return;
-    }
-    setSearchValue(value);
-  };
-
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const pastedText = e.clipboardData.getData('text');
-    if (getByteLength(pastedText) > 15) {
-      e.preventDefault();
-      setSearchValue('');
-      toast.info('검색 가능한 기업명은 15자 이하입니다.');
-    }
   };
 
   return (
@@ -94,37 +60,16 @@ export const NavBar = () => {
           >
             주식 튜토리얼
           </NavLink>
-          <NavLink
-            to="/search"
-            className={({ isActive }) =>
-              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color mr-7 ${
-                isActive ? 'text-text-main-color' : ''
-              }`
-            }
-          >
-            모의 투자
-          </NavLink>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
-          <button
-            onClick={handleSearch}
-            className="group text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
-          >
-            <MagnifyingGlassIcon
-              className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'group-hover:animate-rotate group-hover:text-primary-color'}`}
-            />
-          </button>
-          <input
-            className="w-72 bg-transparent text-[#718096] focus:outline-none"
-            type="text"
-            name="search"
-            placeholder="모의투자를 진행할 기업을 검색해보세요."
-            value={searchValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            autoComplete="off"
+
+        <div
+          className="flex cursor-pointer items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-primary-color"
+          onClick={handleNavigateToSearch}
+        >
+          <MagnifyingGlassIcon
+            className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'hover:animate-rotate hover:text-primary-color'}`}
           />
+          <span className="w-60 text-[#718096]">모의 투자를 할 기업을 찾아보세요</span>
         </div>
       </div>
 
