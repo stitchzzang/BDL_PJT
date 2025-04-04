@@ -4,6 +4,7 @@ import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
+import { Company } from '@/api/types/category';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
 import { TutorialAnimation } from '@/components/common/tutorial-animation';
@@ -57,7 +58,7 @@ export const SelectPage = () => {
   const isLoadingData = isLoading || isFetching;
   const hasCompanies = companies && companies.length > 0;
 
-  const handleCompanySelect = (company: any) => {
+  const handleCompanySelect = (company: Company) => {
     setSelectedCompany(company);
     setIsDialogOpen(true);
   };
