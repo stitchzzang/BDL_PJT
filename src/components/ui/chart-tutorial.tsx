@@ -283,7 +283,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
     } else if (percent < 0) {
       return FALL_COLOR; // 하락 색상
     }
-    return '#ffffff'; // 기본 색상
+    return '#999999'; // 변동 없음(0%)일 때 회색 색상
   };
 
   const tooltipFormatter = useCallback(
