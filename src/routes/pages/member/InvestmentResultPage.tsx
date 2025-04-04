@@ -455,7 +455,7 @@ export const InvestmentResultPage = () => {
                 className={`text-3xl font-bold ${
                   displayData?.totalProfit && displayData.totalProfit > 0
                     ? 'text-btn-red-color'
-                    : displayData?.totalProfit && displayData.totalProfit === 0
+                    : displayData?.totalProfit && displayData.totalProfit < 0
                       ? 'text-btn-blue-color'
                       : 'text-text-main-color'
                 }`}
