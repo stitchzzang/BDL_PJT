@@ -122,7 +122,6 @@ export const TutorialOrderStatusSell = ({
 
   return (
     <div className="flex h-full animate-fadeIn flex-col">
-      <h3 className="text-[16px] font-bold text-blue-500">판매하기</h3>
       <div className="flex h-full flex-col justify-between">
         <div className="mb-3 flex w-full flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
@@ -210,7 +209,7 @@ export const TutorialOrderStatusSell = ({
           <hr className="border border-border-color border-opacity-20" />
         </div>
 
-        <div className="mt-auto">
+        <div className="mt-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h3 className={h3Style}>총 판매 금액</h3>
