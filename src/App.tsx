@@ -16,6 +16,7 @@ function App() {
         closeOnClick
         stacked
         limit={5}
+        style={{ width: '350px' }}
       />
       {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
