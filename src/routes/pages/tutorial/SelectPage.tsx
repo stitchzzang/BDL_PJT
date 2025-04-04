@@ -1,12 +1,13 @@
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
 import { Company } from '@/api/types/category';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
+import { ErrorScreen } from '@/components/common/error-screen';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { TutorialAnimation } from '@/components/common/tutorial-animation';
 import {
   AlertDialog,
@@ -16,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useAuthStore } from '@/store/useAuthStore';
 
 export const SelectPage = () => {
   const navigate = useNavigate();
@@ -25,15 +25,6 @@ export const SelectPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryQuery);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<any>(null);
-  const { isLogin } = useAuthStore();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-
-  useEffect(() => {
-    if (!isLogin) {
-      toast.error('로그인 후 이용해주세요.');
-      setShouldRedirect(true);
-    }
-  }, [isLogin]);
 
   useEffect(() => {
     setSelectedCategory(categoryQuery);
@@ -53,6 +44,7 @@ export const SelectPage = () => {
     isLoading,
     isFetching,
     isError,
+    refetch,
   } = useGetCompaniesByCategory(selectedCategory);
 
   const isLoadingData = isLoading || isFetching;
@@ -71,10 +63,6 @@ export const SelectPage = () => {
     }
     setIsDialogOpen(false);
   };
-
-  if (shouldRedirect) {
-    return <Navigate to="/login" />;
-  }
 
   return (
     <div className="flex flex-col items-center justify-center gap-3">
@@ -106,13 +94,10 @@ export const SelectPage = () => {
       <div className="mt-[50px] flex w-full flex-col items-center gap-4">
         {isLoadingData ? (
           <div className="flex h-20 items-center justify-center">
-            <p className="text-[16px]">기업 목록을 불러오는 중...</p>
+            <LoadingAnimation />
           </div>
         ) : isError ? (
-          <div className="flex h-[200px] flex-col items-center justify-center">
-            <p className="text-[16px]">데이터를 불러오는 중 오류가 발생했습니다.</p>
-            <p className="mt-2 text-[14px] text-gray-400">잠시 후 다시 시도해주세요.</p>
-          </div>
+          <ErrorScreen onRefresh={refetch} />
         ) : hasCompanies ? (
           <div className="flex w-full max-w-[600px] flex-col items-center gap-4">
             <h2 className="text-[20px] font-bold">기업 선택</h2>
