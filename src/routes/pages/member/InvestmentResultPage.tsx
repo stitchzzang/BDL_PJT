@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -58,11 +58,22 @@ export const InvestmentResultPage = () => {
     refetch: refetchUserSimulated,
   } = useUserSimulatedData(userData.memberId);
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
+
+  // 이전 데이터를 ref로 관리하여 렌더링 트리거 없이 값 보존
+  const prevDataRef = useRef<AccountSummaryResponse | null>(null);
   const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
   const [realTimeData, setRealTimeData] = useState<AccountSummaryResponse | null>(null);
-  const [prevData, setPrevData] = useState<AccountSummaryResponse | null>(null);
-  const [isFlashing, setIsFlashing] = useState(false);
   const [activeTab, setActiveTab] = useState('holdings');
+
+  // 하이라이트 타이머를 저장할 ref
+  const highlightTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
+  // 계정 및 항목별 하이라이트 상태를 관리하는 맵
+  const [highlightMap, setHighlightMap] = useState<{
+    [key: string]: {
+      isFlashing: boolean;
+      isIncreased?: boolean;
+    };
+  }>({});
 
   const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
 
@@ -117,7 +128,7 @@ export const InvestmentResultPage = () => {
     if (accountSummary) {
       // 초기값 설정
       setRealTimeData(accountSummary);
-      setPrevData(accountSummary);
+      prevDataRef.current = accountSummary;
 
       // 웹소켓 연결
       connectAccount(userData.memberId?.toString() ?? '', setAccountData);
@@ -129,17 +140,178 @@ export const InvestmentResultPage = () => {
 
   useEffect(() => {
     if (accountData) {
+      const prevData = prevDataRef.current;
       // 웹소켓으로 받은 데이터로 상태 업데이트
-      setPrevData(realTimeData || accountSummary || null);
       setRealTimeData(accountData);
 
-      // 깜빡임 효과 적용
-      setIsFlashing(true);
-      setTimeout(() => {
-        setIsFlashing(false);
-      }, 300);
+      // 계정별 값 변화 감지 및 하이라이트 설정
+      const newHighlightMap: { [key: string]: { isFlashing: boolean; isIncreased?: boolean } } = {};
+
+      // 총 수익률, 총 수익 변화 감지
+      if (prevData) {
+        // 총 수익률 변화
+        if (prevData.totalProfitRate !== accountData.totalProfitRate) {
+          // 값 자체의 양수/음수에 따라 isIncreased 설정
+          const isIncreased = accountData.totalProfitRate > 0;
+
+          newHighlightMap['totalProfitRate'] = {
+            isFlashing: true,
+            isIncreased,
+          };
+
+          // 이전 타이머 제거
+          if (highlightTimersRef.current['totalProfitRate']) {
+            clearTimeout(highlightTimersRef.current['totalProfitRate']);
+          }
+
+          // 새 타이머 설정 (1초 후 하이라이트 제거)
+          highlightTimersRef.current['totalProfitRate'] = setTimeout(() => {
+            setHighlightMap((prev) => ({
+              ...prev,
+              totalProfitRate: { ...prev['totalProfitRate'], isFlashing: false },
+            }));
+          }, 1000);
+        }
+
+        // 총 수익 변화
+        if (prevData.totalProfit !== accountData.totalProfit) {
+          // 값 자체의 양수/음수에 따라 isIncreased 설정
+          const isIncreased = accountData.totalProfit > 0;
+
+          newHighlightMap['totalProfit'] = {
+            isFlashing: true,
+            isIncreased,
+          };
+
+          // 이전 타이머 제거
+          if (highlightTimersRef.current['totalProfit']) {
+            clearTimeout(highlightTimersRef.current['totalProfit']);
+          }
+
+          // 새 타이머 설정 (1초 후 하이라이트 제거)
+          highlightTimersRef.current['totalProfit'] = setTimeout(() => {
+            setHighlightMap((prev) => ({
+              ...prev,
+              totalProfit: { ...prev['totalProfit'], isFlashing: false },
+            }));
+          }, 1000);
+        }
+
+        // 보유 종목별 변화 감지
+        accountData.accounts?.forEach((account) => {
+          const prevAccount = prevData.accounts?.find((a) => a.companyId === account.companyId);
+
+          if (prevAccount) {
+            // 종목별 수익률 변화
+            if (prevAccount.profitRate !== account.profitRate) {
+              const key = `profitRate_${account.companyId}`;
+              // 값 자체의 양수/음수에 따라 isIncreased 설정
+              const isIncreased = account.profitRate > 0;
+
+              newHighlightMap[key] = { isFlashing: true, isIncreased };
+
+              // 이전 타이머 제거
+              if (highlightTimersRef.current[key]) {
+                clearTimeout(highlightTimersRef.current[key]);
+              }
+
+              // 새 타이머 설정
+              highlightTimersRef.current[key] = setTimeout(() => {
+                setHighlightMap((prev) => ({
+                  ...prev,
+                  [key]: { ...prev[key], isFlashing: false },
+                }));
+              }, 1000);
+            }
+
+            // 종목별 수익 변화
+            if (prevAccount.profit !== account.profit) {
+              const key = `profit_${account.companyId}`;
+              // 값 자체의 양수/음수에 따라 isIncreased 설정
+              const isIncreased = account.profit > 0;
+
+              newHighlightMap[key] = { isFlashing: true, isIncreased };
+
+              // 이전 타이머 제거
+              if (highlightTimersRef.current[key]) {
+                clearTimeout(highlightTimersRef.current[key]);
+              }
+
+              // 새 타이머 설정
+              highlightTimersRef.current[key] = setTimeout(() => {
+                setHighlightMap((prev) => ({
+                  ...prev,
+                  [key]: { ...prev[key], isFlashing: false },
+                }));
+              }, 250);
+            }
+
+            // 종목별 현재가 변화
+            if (prevAccount.currentPrice !== account.currentPrice) {
+              const key = `currentPrice_${account.companyId}`;
+              // 현재가 비교는 이전과 현재 값을 비교하여 증감 판단
+              const isIncreased = account.currentPrice > prevAccount.currentPrice;
+
+              newHighlightMap[key] = { isFlashing: true, isIncreased };
+
+              // 이전 타이머 제거
+              if (highlightTimersRef.current[key]) {
+                clearTimeout(highlightTimersRef.current[key]);
+              }
+
+              // 새 타이머 설정
+              highlightTimersRef.current[key] = setTimeout(() => {
+                setHighlightMap((prev) => ({
+                  ...prev,
+                  [key]: { ...prev[key], isFlashing: false },
+                }));
+              }, 250);
+            }
+
+            // 종목별 평가금 변화
+            if (prevAccount.evaluation !== account.evaluation) {
+              const key = `evaluation_${account.companyId}`;
+              // 값 자체의 양수/음수에 따라 isIncreased 설정
+              const isIncreased = account.evaluation > 0;
+
+              newHighlightMap[key] = { isFlashing: true, isIncreased };
+
+              // 이전 타이머 제거
+              if (highlightTimersRef.current[key]) {
+                clearTimeout(highlightTimersRef.current[key]);
+              }
+
+              // 새 타이머 설정
+              highlightTimersRef.current[key] = setTimeout(() => {
+                setHighlightMap((prev) => ({
+                  ...prev,
+                  [key]: { ...prev[key], isFlashing: false },
+                }));
+              }, 250);
+            }
+          }
+        });
+      }
+
+      // 하이라이트 맵 업데이트
+      setHighlightMap((prev) => ({
+        ...prev,
+        ...newHighlightMap,
+      }));
+
+      // 이전 데이터 업데이트
+      prevDataRef.current = accountData;
     }
-  }, [accountData, accountSummary, realTimeData]);
+  }, [accountData]);
+
+  // 컴포넌트 언마운트시 모든 타이머 제거
+  useEffect(() => {
+    return () => {
+      Object.values(highlightTimersRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+    };
+  }, []);
 
   if (isAccountLoading) {
     return <LoadingAnimation />;
@@ -216,15 +388,10 @@ export const InvestmentResultPage = () => {
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
-                    isFlashing &&
-                    prevData?.accounts &&
-                    account.profitRate !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)?.profitRate
-                      ? account.profitRate > 0
-                        ? 'bg-btn-red-color/50'
-                        : account.profitRate < 0
-                          ? 'bg-btn-blue-color/50'
-                          : ''
+                    highlightMap[`profitRate_${account.companyId}`]?.isFlashing
+                      ? highlightMap[`profitRate_${account.companyId}`]?.isIncreased
+                        ? 'bg-btn-red-color/40'
+                        : 'bg-btn-blue-color/40'
                       : account.profitRate > 0
                         ? 'bg-btn-red-color/10'
                         : account.profitRate < 0
@@ -236,15 +403,10 @@ export const InvestmentResultPage = () => {
                 </TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.profit)} transition-all duration-300 ${
-                    isFlashing &&
-                    prevData?.accounts &&
-                    account.profit !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)?.profit
-                      ? account.profit > 0
-                        ? 'bg-btn-red-color/50'
-                        : account.profit < 0
-                          ? 'bg-btn-blue-color/50'
-                          : ''
+                    highlightMap[`profit_${account.companyId}`]?.isFlashing
+                      ? highlightMap[`profit_${account.companyId}`]?.isIncreased
+                        ? 'bg-btn-red-color/40'
+                        : 'bg-btn-blue-color/40'
                       : account.profit > 0
                         ? 'bg-btn-red-color/10'
                         : account.profit < 0
@@ -255,35 +417,14 @@ export const InvestmentResultPage = () => {
                   {`${plusMinusSign(account.profit)}${addCommasToThousand(account.profit)}`}
                 </TableCell>
                 <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
-                <TableCell
-                  className={`transition-all duration-300 ${
-                    isFlashing &&
-                    prevData?.accounts &&
-                    account.currentPrice !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)
-                        ?.currentPrice
-                      ? account.currentPrice >
-                        (prevData?.accounts.find((a) => a.companyId === account.companyId)
-                          ?.currentPrice || 0)
-                        ? 'bg-btn-red-color/50'
-                        : 'bg-btn-blue-color/50'
-                      : ''
-                  }`}
-                >
-                  {addCommasToThousand(account.currentPrice)}
-                </TableCell>
+                <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
                 <TableCell>{account.stockCnt}</TableCell>
                 <TableCell
                   className={`${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
-                    isFlashing &&
-                    prevData?.accounts &&
-                    account.evaluation !==
-                      prevData?.accounts.find((a) => a.companyId === account.companyId)?.evaluation
-                      ? account.evaluation > 0
-                        ? 'bg-btn-red-color/50'
-                        : account.evaluation < 0
-                          ? 'bg-btn-blue-color/50'
-                          : ''
+                    highlightMap[`evaluation_${account.companyId}`]?.isFlashing
+                      ? highlightMap[`evaluation_${account.companyId}`]?.isIncreased
+                        ? 'bg-btn-red-color/40'
+                        : 'bg-btn-blue-color/40'
                       : account.evaluation > 0
                         ? 'bg-btn-red-color/10'
                         : account.evaluation < 0
@@ -497,7 +638,7 @@ export const InvestmentResultPage = () => {
         <div className="flex flex-row gap-3">
           <Badge
             variant={
-              isFlashing && displayData?.totalProfitRate !== prevData?.totalProfitRate
+              highlightMap['totalProfitRate']?.isFlashing
                 ? (displayData?.totalProfitRate ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
@@ -521,7 +662,7 @@ export const InvestmentResultPage = () => {
           </Badge>
           <Badge
             variant={
-              isFlashing && displayData?.totalProfit !== prevData?.totalProfit
+              highlightMap['totalProfit']?.isFlashing
                 ? (displayData?.totalProfit ?? 0) > 0
                   ? 'increase-flash'
                   : 'decrease-flash'
