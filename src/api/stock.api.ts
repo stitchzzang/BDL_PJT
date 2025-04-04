@@ -1,9 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { HTTPError } from 'ky';
 
 import { _kyAuth } from '@/api/instance';
+import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
 import {
   CompanyInfo,
+  CompanyMainInfo,
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
@@ -113,6 +116,10 @@ export const StockApi = {
         },
       })
       .json<ApiResponse<string>>(),
+
+  // 회사 메인 정보
+  getCompanyMainInfo: (companyId: number) =>
+    _kyAuth.get(`company/${companyId}/basic`).json<ApiResponse<CompanyMainInfo>>(),
 };
 
 // 회사 정보(초기) 가져오기
@@ -202,6 +209,9 @@ export const usePostStockLimitOrder = () => {
   return useMutation({
     mutationFn: ({ memberId, companyId, tradeType, quantity, price }: LimitOrderData) =>
       StockApi.postStockLimitOrder(memberId, companyId, tradeType, quantity, price),
+    onError: (error: HTTPError) => {
+      handleKyError(error);
+    },
   });
 };
 
@@ -210,5 +220,16 @@ export const usePostStockMarketOrder = () => {
   return useMutation({
     mutationFn: ({ memberId, companyId, tradeType, quantity }: MarketOrderData) =>
       StockApi.postStockMarketOrder(memberId, companyId, tradeType, quantity),
+    onError: (error: HTTPError) => {
+      handleKyError(error);
+    },
+  });
+};
+
+// 회사 메인 정보 가져오기
+export const useCompanyMainInfo = (companyId: number) => {
+  return useQuery({
+    queryKey: ['companyMainInfo'],
+    queryFn: () => StockApi.getCompanyMainInfo(companyId).then((res) => res.result),
   });
 };

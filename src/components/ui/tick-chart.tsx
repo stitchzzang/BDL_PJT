@@ -420,7 +420,7 @@ const TickChartComponent: React.FC<TickChartProps> = ({
       <style>{transitionStyle}</style>
 
       <div
-        className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
+        className="flex h-full w-full flex-col rounded-2xl"
         style={{ backgroundColor: '#0D192B' }}
       >
         <div className="flex items-center justify-between p-3 text-sm text-white">

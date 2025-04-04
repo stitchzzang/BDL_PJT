@@ -223,18 +223,20 @@ export const StockInfo = ({
           ) : (
             <>
               <Button
-                className="max-h-[45px] max-w-[225px]"
-                variant={'red'}
+                className={`max-h-[45px] max-w-[225px] ${StopAlgorithm.isPending ? 'pointer-events-none animate-pulse bg-btn-yellow-color text-white' : 'text-white'}`}
+                variant={'green'}
                 size={'lg'}
                 onClick={() => handleStopAlgorithm(nowAlgorithmId)}
               >
-                알고리즘 실행중
-                <p className="text-[12px] opacity-30"></p>
-                {StopAlgorithm.isPending ? (
-                  <p className="text-[14px]">정지중 ...</p>
-                ) : (
-                  <p className="text-[12px] opacity-30">정지하기</p>
-                )}
+                <div className="text-center">
+                  {StopAlgorithm.isPending ? <>알고리즘</> : <>알고리즘 실행중</>}
+                  <p className="text-[12px] opacity-30"></p>
+                  {StopAlgorithm.isPending ? (
+                    <p className="text-[14px]">정지중 ...</p>
+                  ) : (
+                    <p className="text-[12px] opacity-60">정지하기</p>
+                  )}
+                </div>
               </Button>
             </>
           )}

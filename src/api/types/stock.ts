@@ -173,3 +173,16 @@ export interface CompanyInfo {
   companyName: string;
   categories: CategoryName[];
 }
+
+// 회사 기본 정보
+export interface CompanyMainInfo {
+  capital: number;
+  listedSharesCnt: number;
+  listedCapitalAmount: number;
+  parValue: number;
+  issuePrice: number;
+  closePrice: number;
+  previousClosePrice: number;
+  isTradingStop: boolean;
+  isAdministrationItem: boolean;
+}
