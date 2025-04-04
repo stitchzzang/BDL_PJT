@@ -88,6 +88,10 @@ export const OrderStatusBuy = ({
   // 시장가 구매 api
   const marketOrderMutation = usePostStockMarketOrder();
   const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
+    if (stockCount === 0 || printCost) {
+      toast.error('수량을 입력해주세요.');
+      return;
+    }
     marketOrderMutation.mutate(
       {
         memberId: memberId,

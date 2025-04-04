@@ -95,7 +95,7 @@ export const OrderStatusShell = ({
     }
   };
 
-  // 시장가 구매 api
+  // 시장가 판매 api
   const marketOrderMutation = usePostStockMarketOrder();
   const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
     if (quantity <= 0) {
@@ -122,7 +122,7 @@ export const OrderStatusShell = ({
     );
   };
 
-  // 지정가 구매 api
+  // 지정가 판매매 api
   const limitOrderMutation = usePostStockLimitOrder();
   const handleLimitOrder = ({
     memberId,
