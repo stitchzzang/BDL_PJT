@@ -234,9 +234,6 @@ export const SimulatePage = () => {
   // 현재 표시할 코멘트
   const [newsComment, setNewsComment] = useState('');
 
-  // 전체 차트 데이터 상태 (1년 전 시점부터 현재까지)
-  const [fullChartData, setFullChartData] = useState<TutorialStockResponse | null>(null);
-
   // 턴별 차트 데이터를 저장할 상태 추가
   const [turnChartData, setTurnChartData] = useState<Record<number, TutorialStockResponse | null>>({
     1: null,
@@ -245,10 +242,10 @@ export const SimulatePage = () => {
     4: null,
   });
 
-  // 누적 차트 데이터 상태 추가
-  const [accumulatedChartData, setAccumulatedChartData] = useState<TutorialStockResponse | null>(
-    null,
-  );
+  // // 누적 차트 데이터 상태 추가
+  // const [accumulatedChartData, setAccumulatedChartData] = useState<TutorialStockResponse | null>(
+  //   null,
+  // );
 
   // 보유 주식 수량 추적 상태 추가
   const [ownedStockCount, setOwnedStockCount] = useState(0);
@@ -597,7 +594,7 @@ export const SimulatePage = () => {
         // 피드백 데이터가 로드될 시간 확보 (300ms)
         await new Promise((resolve) => setTimeout(resolve, 300));
       } catch (error) {
-        console.error('피드백 데이터 로드 실패:', error);
+        // 오류 발생
       }
     }
 
@@ -622,28 +619,28 @@ export const SimulatePage = () => {
       saveSuccess = saveResponse.isSuccess;
 
       if (saveSuccess) {
-        console.log('튜토리얼 결과가 성공적으로 저장되었습니다.');
+        // '
       } else {
-        console.error('튜토리얼 결과 저장 실패:', saveResponse.message);
+        // e
       }
     } catch (error) {
-      console.error('튜토리얼 결과 저장 중 오류 발생:', error);
+      // 오류 발생
     }
 
     // 세션 삭제 시도 (결과 저장 성공 여부와 관계없이)
     try {
       await deleteTutorialSession.mutateAsync(memberId);
-      console.log('튜토리얼 세션이 성공적으로 삭제되었습니다.');
+      // '
     } catch (error) {
-      console.error('튜토리얼 세션 삭제 중 오류 발생:', error);
+      // 오류 발생
 
       // 세션 삭제 실패 시 다시 시도
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
         await deleteTutorialSession.mutateAsync(memberId);
-        console.log('튜토리얼 세션 삭제 재시도 성공');
+        // '
       } catch (retryError) {
-        console.error('튜토리얼 세션 삭제 재시도 실패:', retryError);
+        // r
       }
     }
 
@@ -664,7 +661,7 @@ export const SimulatePage = () => {
         const prevOwnedStock = ownedStockCount;
 
         // 현재 턴 데이터에서 실제 마지막 일봉 가격 확인 (더 정확한 값)
-        let actualPrevTurnLastPrice = prevTurnLastPrice;
+        let _actualPrevTurnLastPrice = prevTurnLastPrice;
         const currentTurnData = turnChartData[currentTurn];
         if (currentTurnData?.data && currentTurnData.data.length > 0) {
           const dayCandles = currentTurnData.data.filter(
@@ -674,7 +671,7 @@ export const SimulatePage = () => {
             const sortedCandles = [...dayCandles].sort(
               (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
             );
-            actualPrevTurnLastPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            _actualPrevTurnLastPrice = sortedCandles[sortedCandles.length - 1].closePrice;
           }
         }
 
@@ -822,21 +819,6 @@ export const SimulatePage = () => {
         }
       }
 
-      // 턴 차트 데이터 업데이트 (함수형 업데이트 사용)
-      setTurnChartData((prev) => ({
-        ...prev,
-        [turn]: result,
-      }));
-
-      // 첫 턴인 경우 전체 차트 데이터도 설정
-      if (turn === 1) {
-        setFullChartData(result);
-        setAccumulatedChartData(result);
-      } else {
-        // 누적 데이터 계산
-        updateAccumulatedChartData(result, turn);
-      }
-
       // 최신 가격 업데이트
       updateLatestPrice(result);
 
@@ -850,44 +832,6 @@ export const SimulatePage = () => {
     } finally {
       setIsChartLoading(false);
     }
-  };
-
-  // 누적 차트 데이터 업데이트
-  const updateAccumulatedChartData = (newData: TutorialStockResponse, turn: number) => {
-    // 현재 턴과 이전 턴의 데이터 수집
-    const allData: StockCandle[] = [];
-
-    // 턴 데이터에서 수집
-    for (let i = 1; i <= turn; i++) {
-      const turnData = turnChartData[i];
-      if (turnData?.data && turnData.data.length > 0) {
-        allData.push(...turnData.data);
-      }
-    }
-
-    // 현재 턴 데이터 추가
-    if (newData.data && newData.data.length > 0) {
-      allData.push(...newData.data);
-    }
-
-    // 중복 제거 및 정렬
-    const uniqueDataMap = new Map<number, StockCandle>();
-    allData.forEach((candle: StockCandle) => {
-      if (!uniqueDataMap.has(candle.stockCandleId)) {
-        uniqueDataMap.set(candle.stockCandleId, candle);
-      }
-    });
-
-    // Map을 배열로 변환하고 날짜순 정렬
-    const sortedData = Array.from(uniqueDataMap.values()).sort(
-      (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-    );
-
-    // 누적 차트 데이터 설정
-    setAccumulatedChartData({
-      ...newData,
-      data: sortedData,
-    });
   };
 
   // 최신 가격 업데이트
@@ -1245,68 +1189,13 @@ export const SimulatePage = () => {
         // 첫 번째 턴 차트 데이터 로드
         return loadChartData(firstSession.startDate, firstSession.endDate, 1);
       })
-      .catch((error) => {
+      .catch(() => {
         setHasChartError(true);
-        console.error('튜토리얼 초기화 오류:', error);
         toast.error('튜토리얼 초기화 중 오류가 발생했습니다.');
       })
       .finally(() => {
         setIsChartLoading(false);
       });
-  };
-
-  // 튜토리얼 새로 시작
-  const restartTutorial = async () => {
-    // 상태 초기화
-    setCurrentTurn(0);
-    setIsTutorialStarted(false);
-    setIsCurrentTurnCompleted(false);
-    setPointStockCandleIds([]);
-    setPointDates([]);
-    setTrades([]);
-    setOwnedStockCount(0);
-    setTurnChartData({});
-    setStockData(null);
-    setFullChartData(null);
-    setAccumulatedChartData(null);
-    setFinalChangeRate(0);
-    setPastNewsList([]);
-    setCurrentNews(null);
-    setNewsComment('');
-    setTurnComments({});
-    setTurnNewsList({});
-    setHasChartError(false);
-    setCurrentSession({
-      startDate: defaultStartDate,
-      endDate: defaultStartDate,
-      currentPointIndex: 0,
-    });
-    setProgress(0);
-    setLatestPrice(0);
-
-    // 세션 삭제
-    if (memberId) {
-      deleteTutorialSession
-        .mutateAsync(memberId)
-        .catch(() => {
-          // 세션 삭제 실패해도 계속 진행
-        })
-        .finally(() => {
-          // 모달 닫기
-          setIsModalOpen(false);
-
-          // 잠시 후 다시 시작
-          setTimeout(() => {
-            handleTutorialStart();
-          }, 500);
-        });
-    } else {
-      // memberId가 없는 경우도 계속 진행
-      setIsModalOpen(false);
-      setTimeout(() => {
-        handleTutorialStart();
-      }, 500);
-    }
   };
 
   // 결과 확인 페이지로 이동

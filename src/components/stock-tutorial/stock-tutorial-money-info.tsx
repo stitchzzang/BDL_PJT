@@ -1,9 +1,4 @@
 import { addCommasToThousand } from '@/utils/numberFormatter';
-import {
-  calculateTradingAssets,
-  updateAssetsByTurn,
-  updateAssetsByTurnChange,
-} from '@/utils/asset-calculator';
 
 export interface StockTutorialMoneyInfoProps {
   initialAsset: number;
