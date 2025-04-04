@@ -40,6 +40,7 @@ export interface StockInfoProps {
   isCurrentTurnCompleted?: boolean;
   buttonText?: string;
   latestPrice?: number;
+  showButtonInInfoSection?: boolean;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -76,6 +77,7 @@ export const StockTutorialInfo = ({
   isCurrentTurnCompleted = false,
   buttonText = '튜토리얼 시작하기',
   latestPrice,
+  showButtonInInfoSection = false,
 }: StockInfoProps) => {
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -255,19 +257,21 @@ export const StockTutorialInfo = ({
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <Button
-                className="max-h-[45px] w-[225px]"
-                variant={'green'}
-                size={'lg'}
-                onClick={handleButtonClick}
-                disabled={
-                  (isTutorialStarted && !isCurrentTurnCompleted) ||
-                  initSessionMutation.isPending ||
-                  !companyInfo
-                }
-              >
-                {buttonTextContent}
-              </Button>
+              {showButtonInInfoSection && (
+                <Button
+                  className="max-h-[45px] w-[225px]"
+                  variant={'green'}
+                  size={'lg'}
+                  onClick={handleButtonClick}
+                  disabled={
+                    (isTutorialStarted && !isCurrentTurnCompleted) ||
+                    initSessionMutation.isPending ||
+                    !companyInfo
+                  }
+                >
+                  {buttonTextContent}
+                </Button>
+              )}
               <StockTutorialHelp />
             </div>
           </div>

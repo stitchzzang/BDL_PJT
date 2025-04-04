@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import { useGetCompanyProfile } from '@/api/company.api';
 import { _ky } from '@/api/instance/index';
 import {
   useDeleteTutorialSession,
@@ -292,10 +293,11 @@ export const SimulatePage = () => {
   const processUserAction = useProcessUserAction();
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
-  const initSession = useInitSession();
+  const initSessionMutation = useInitSession();
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
+  const { data: companyInfo } = useGetCompanyProfile(String(companyId));
 
   // 현재 턴이 변경될 때마다 해당 턴의 코멘트로 업데이트
   useEffect(() => {
@@ -1268,7 +1270,7 @@ export const SimulatePage = () => {
     setHasChartError(false);
 
     // 초기화 API 호출
-    initSession
+    initSessionMutation
       .mutateAsync({ memberId, companyId })
       .then(async () => {
         // 튜토리얼 시작 상태로 설정
@@ -1485,6 +1487,7 @@ export const SimulatePage = () => {
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}
           latestPrice={latestPrice}
+          showButtonInInfoSection={false}
         />
         <StockProgress progress={progress} />
       </div>
@@ -1574,7 +1577,7 @@ export const SimulatePage = () => {
           <div className="h-full">
             <TutorialOrderStatus
               onTrade={handleTrade}
-              isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn < 4} // 4단계에서는 비활성화
+              isSessionActive={isTutorialStarted && !isCurrentTurnCompleted && currentTurn < 4}
               companyId={companyId}
               latestPrice={latestPrice}
               ownedStockCount={ownedStockCount}
@@ -1582,6 +1585,10 @@ export const SimulatePage = () => {
               isCurrentTurnCompleted={isCurrentTurnCompleted}
               availableOrderAsset={assetInfo.availableOrderAsset}
               isTutorialStarted={isTutorialStarted}
+              onTutorialStart={handleTutorialStart}
+              onMoveToNextTurn={handleTutorialButtonClick}
+              initSessionPending={initSessionMutation.isPending}
+              companyInfoExists={!!companyInfo}
             />
           </div>
         </div>
