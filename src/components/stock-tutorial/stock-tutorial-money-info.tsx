@@ -26,7 +26,7 @@ export const StockTutorialMoneyInfo = ({
   const formattedCurrentAsset = addCommasToThousand(Math.round(currentTotalAsset));
 
   return (
-    <div className="flex gap-3">
+    <div className="mt-5 flex gap-3">
       <div className="flex gap-2 rounded-xl bg-modal-background-color px-[15px] py-[15px]">
         <p className="text-border-color">시드머니 :</p>
         <span className="font-bold">{formattedInitialAsset}원</span>

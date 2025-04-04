@@ -255,7 +255,6 @@ export const StockTutorialInfo = ({
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <StockTutorialHelp />
               <Button
                 className="max-h-[45px] w-[225px]"
                 variant={'green'}
@@ -269,6 +268,7 @@ export const StockTutorialInfo = ({
               >
                 {buttonTextContent}
               </Button>
+              <StockTutorialHelp />
             </div>
           </div>
         </div>
