@@ -77,7 +77,7 @@ export const ChartContainer = ({
   const todayInfo = getTodayFormatted();
 
   return (
-    <div className="rounded-2xl bg-modal-background-color p-2 pt-5 h-[100%]">
+    <div className="h-[100%] rounded-2xl bg-modal-background-color p-2 pt-5">
       <div className="flex justify-between text-[14px]">
         <div className="mx-2 flex gap-2 rounded-xl">
           <button
@@ -110,9 +110,6 @@ export const ChartContainer = ({
           >
             주
           </button>
-        </div>
-        <div className="flex items-center justify-center gap-1 rounded-xl p-1">
-          <p className="text-[14px]">{todayInfo}</p>
         </div>
       </div>
       <div className="mb-[15px] mt-[15px] border-b  border-border-color border-opacity-20"></div>
