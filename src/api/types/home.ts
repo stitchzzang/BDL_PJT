@@ -25,7 +25,7 @@ export interface SearchedCompanyResponse {
 export interface UserRanking {
   changeRate: number;
   nickname: string;
-  profile: string;
+  profileImageUrl: string;
 }
 
 export interface UserRankingResponse {

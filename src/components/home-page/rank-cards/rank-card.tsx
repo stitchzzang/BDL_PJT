@@ -5,16 +5,22 @@ interface RankCardProps {
 }
 
 export const RankCard = ({ rankInfo }: RankCardProps) => {
-  const { nickname, profile, changeRate } = rankInfo;
+  const { nickname, profileImageUrl, changeRate } = rankInfo;
   return (
     <div className="flex items-center justify-center rounded-2xl border border-background-color bg-modal-background-color p-[30px] transition-all duration-300 hover:border-btn-blue-color">
       <div className="flex flex-col items-center justify-center gap-[15px]">
-        {profile == null ? (
-          <div className="max-h-[168px] max-w-[168px] overflow-hidden rounded-2xl">
-            <img src="/none-img/none_profile_img.png" alt="noneImg" />
-          </div>
+        {profileImageUrl == null ? (
+          <img
+            className="h-[168px] w-[168px] overflow-hidden rounded-2xl object-cover"
+            src="/none-img/none_profile_img.png"
+            alt="noneImg"
+          />
         ) : (
-          <img src={profile} alt="profileImg" />
+          <img
+            className="h-[168px] w-[168px] overflow-hidden rounded-2xl object-cover"
+            src={profileImageUrl}
+            alt="profileImg"
+          />
         )}
         <p className="text-[22px] font-medium">{nickname}</p>
         <div className="rounded-2xl border border-btn-red-color px-[28px] py-[12px]">
