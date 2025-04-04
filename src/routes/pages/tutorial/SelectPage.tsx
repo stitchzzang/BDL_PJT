@@ -30,10 +30,11 @@ export const SelectPage = () => {
     setSelectedCategory(categoryQuery);
   }, [categoryQuery]);
 
-  // 현재 날짜와 1년 전 날짜 계산
+  // 어제 날짜와 1년 전 날짜 계산
   const currentDate = new Date();
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
+  currentDate.setDate(currentDate.getDate() - 1); // 어제 날짜로 설정
+  const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+  oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
   // 날짜 포맷팅 (YYYY-MM-DD)
   const startDate = format(oneYearAgo, 'yyyy-MM-dd');

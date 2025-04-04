@@ -250,13 +250,15 @@ export const SimulatePage = () => {
   // 보유 주식 수량 추적 상태 추가
   const [ownedStockCount, setOwnedStockCount] = useState(0);
 
-  // 오늘부터 1년 전까지의 날짜 범위 계산
-  const today = new Date();
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(today.getFullYear() - 1);
+  // 어제부터 1년 전까지의 날짜 범위 계산
+  const currentDate = new Date();
+  // 어제 날짜로 설정
+  currentDate.setDate(currentDate.getDate() - 1);
+  const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+  oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
   const defaultStartDate = formatDateToYYMMDD(oneYearAgo);
-  const defaultEndDate = formatDateToYYMMDD(today);
+  const defaultEndDate = formatDateToYYMMDD(currentDate);
 
   // 변곡점 날짜를 배열로 관리
   const [pointDates, setPointDates] = useState<string[]>([]);
@@ -333,6 +335,29 @@ export const SimulatePage = () => {
   const calculateSession = (turn: number) => {
     if (turn <= 0 || pointDates.length < 3) return null;
 
+    // 날짜 조정 함수: 주어진 날짜에서 1일을 뺍니다.
+    const subtractOneDay = (dateStr: string): string => {
+      try {
+        // 날짜 형식이 'YYMMDD'라고 가정
+        const year = parseInt('20' + dateStr.substring(0, 2));
+        const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
+        const day = parseInt(dateStr.substring(4, 6));
+
+        const date = new Date(year, month, day);
+        date.setDate(date.getDate() - 1);
+
+        // 다시 'YYMMDD' 형식으로 변환
+        const adjustedYear = date.getFullYear().toString().substring(2);
+        const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+        const adjustedDay = date.getDate().toString().padStart(2, '0');
+
+        return adjustedYear + adjustedMonth + adjustedDay;
+      } catch (e) {
+        console.error('날짜 조정 중 오류 발생:', e);
+        return dateStr; // 오류 시 원본 날짜 반환
+      }
+    };
+
     // 턴에 따른 세션과 진행률 매핑
     const turnToSessionMap: Record<
       number,
@@ -344,17 +369,17 @@ export const SimulatePage = () => {
     > = {
       1: {
         startDate: defaultStartDate,
-        endDate: pointDates[0],
+        endDate: subtractOneDay(pointDates[0]), // 변곡점1 - 1일
         currentPointIndex: 0,
       },
       2: {
         startDate: pointDates[0],
-        endDate: pointDates[1],
+        endDate: subtractOneDay(pointDates[1]), // 변곡점2 - 1일
         currentPointIndex: 1,
       },
       3: {
         startDate: pointDates[1],
-        endDate: pointDates[2],
+        endDate: subtractOneDay(pointDates[2]), // 변곡점3 - 1일
         currentPointIndex: 2,
       },
       4: {
@@ -407,8 +432,16 @@ export const SimulatePage = () => {
         ? pointStockCandleIds[currentTurn - 2]
         : 0;
 
-    const endPointId =
-      pointStockCandleIds.length >= currentTurn - 1 ? pointStockCandleIds[currentTurn - 1] : 0;
+    // endPointId 계산 - 변곡점 - 1일로 설정 (4턴 제외)
+    let endPointId = 0;
+    if (pointStockCandleIds.length >= currentTurn - 1) {
+      // 현재 턴의 변곡점 ID
+      const turnPointId = pointStockCandleIds[currentTurn - 1];
+
+      // 4번째 턴이 아닌 경우, 변곡점 ID에서 1을 빼서 처리 (변곡점 - 1일)
+      // 이는 calculateSession과 loadNewsData 함수의 변경 사항과 일치하게 함
+      endPointId = currentTurn < 4 && turnPointId > 1 ? turnPointId - 1 : turnPointId;
+    }
 
     if (endPointId === 0) {
       return;
@@ -574,8 +607,10 @@ export const SimulatePage = () => {
 
     // 날짜 정보 준비
     const currentDate = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
+    // 어제 날짜로 설정
+    currentDate.setDate(currentDate.getDate() - 1);
+    const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+    oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
     let saveSuccess = false;
     try {
@@ -886,19 +921,23 @@ export const SimulatePage = () => {
 
     // 턴별 stockCandleId 설정
     if (turn === 1) {
-      // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지
+      // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지 (변곡점 - 1 기준)
       startStockCandleId = 1; // 최소값 1로 설정 (0은 유효하지 않을 수 있음)
       // 첫 번째 턴에서는 더 넓은 범위의 ID를 사용하여 데이터를 보장함
-      endStockCandleId = pointStockCandleIds[0] || 500; // 첫 번째 변곡점 ID, 없으면 충분히 큰 값 사용
+      // 첫 번째 변곡점 ID에서 약간의 여유를 둠 (데이터 누락 방지)
+      endStockCandleId = pointStockCandleIds[0] > 1 ? pointStockCandleIds[0] - 1 : 500;
     } else if (turn > 1 && turn <= 4) {
-      // 2~4턴: 이전 변곡점부터 현재 변곡점까지
+      // 2~4턴: 이전 변곡점부터 현재 변곡점-1까지
       startStockCandleId = pointStockCandleIds[turn - 2] || 1;
 
       if (turn < 4) {
-        // 2~3턴은 다음 변곡점까지
-        endStockCandleId = pointStockCandleIds[turn - 1] || startStockCandleId + 200; // 범위 확장
+        // 2~3턴은 다음 변곡점-1까지
+        endStockCandleId =
+          pointStockCandleIds[turn - 1] > 1
+            ? pointStockCandleIds[turn - 1] - 1
+            : startStockCandleId + 200; // 범위 확장
       } else {
-        // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지
+        // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지 (여기는 변경 없음)
         endStockCandleId =
           pointStockCandleIds.length >= 3
             ? pointStockCandleIds[2] + 1000
@@ -1502,7 +1541,8 @@ export const SimulatePage = () => {
         */}
         <StockTutorialComment comment={newsComment} />
       </div>
-      <div className="mt-[25px] grid grid-cols-6 gap-3 ">
+      <div className="mt-[25px] grid grid-cols-6 gap-3"></div>
+      <div className="mt-[25px] grid grid-cols-6 gap-3">
         <div className="col-span-4">
           {/* 
             현재 뉴스는 /api/tutorial/news/current API 호출 결과를 사용합니다.
