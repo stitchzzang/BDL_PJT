@@ -72,13 +72,16 @@ export const subscribeToNotifications = () => {
         }
       };
 
-      const connectionTimeout = setTimeout(() => {
-        const state = getReadyState(newEventSource.readyState);
-        if (newEventSource.readyState !== EventSource.OPEN) {
-          newEventSource.close();
-          reconnectSSE();
-        }
-      }, 10000);
+      const connectionTimeout = setTimeout(
+        () => {
+          const state = getReadyState(newEventSource.readyState);
+          if (newEventSource.readyState !== EventSource.OPEN) {
+            newEventSource.close();
+            reconnectSSE();
+          }
+        },
+        60 * 60 * 1000,
+      );
 
       newEventSource.onopen = (event) => {
         clearTimeout(connectionTimeout);
@@ -106,7 +109,7 @@ export const subscribeToNotifications = () => {
           clearInterval(connectionCheck);
           reconnectSSE();
         }
-      }, 5000);
+      }, 15000);
 
       // @ts-expect-error EventSource type mismatch
       newEventSource.onerror = (ev: Event) => {
@@ -179,7 +182,6 @@ function showTradeNotification(data: TradeSignal, isAuto: boolean) {
   const textColor = signalType === 'BUY' ? '#076BFD' : '#F23636'; // 매수는 파란색, 매도는 빨간색
 
   toast(toastMessage, {
-    position: 'top-right',
     style: {
       background: backgroundColor,
       color: 'white',

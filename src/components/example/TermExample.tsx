@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { AutoTermTooltip, TermTooltip } from '@/components/ui/TermTooltip';
+import { AutoTermTooltip, TermTooltip } from '@/components/ui/term-tooltip';
 
 /**
  * 금융 용어 툴팁 사용 예시 컴포넌트

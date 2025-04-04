@@ -5,7 +5,7 @@ import graphMove from '@/assets/lottie/graph-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { TermTooltip } from '@/components/ui/TermTooltip';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';

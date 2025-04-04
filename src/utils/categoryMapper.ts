@@ -30,7 +30,7 @@ export type CategoryName =
   | '엔터테인먼트' // 엔터테인먼트 산업
   | '엔터' // 엔터테인먼트 산업 (줄임 표현)
   | '금융' // 금융 산업
-  | '음식'; // 식품/음식 산업
+  | '음식료'; // 식품/음식 산업
 
 /**
  * 카테고리 이름과 해당 아이콘 컴포넌트를 매핑하는 객체
@@ -49,7 +49,7 @@ const categoryIconMap: Record<CategoryName, ComponentType> = {
   엔터테인먼트: PaintBrushIcon,
   엔터: PaintBrushIcon,
   금융: CurrencyDollarIcon,
-  음식: CakeIcon,
+  음식료: CakeIcon,
 };
 
 /**

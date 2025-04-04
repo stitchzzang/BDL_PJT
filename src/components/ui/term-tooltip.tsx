@@ -37,7 +37,7 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild className={`cursor-help whitespace-nowrap ${className}`}>
-          <span className="border-b border-dotted border-gray-400">{children || term}</span>
+          <span className="border-b-[3px] border-dotted">{children || term}</span>
         </TooltipTrigger>
         <TooltipContent side={side} sideOffset={sideOffset}>
           <p className="whitespace-pre-line">{termDefinition.definition}</p>

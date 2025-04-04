@@ -29,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { TermTooltip } from '@/components/ui/TermTooltip';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { queryClient } from '@/lib/queryClient';
 import { useAccountConnection } from '@/services/SocketAccountService';
@@ -455,7 +455,7 @@ export const InvestmentResultPage = () => {
                 className={`text-3xl font-bold ${
                   displayData?.totalProfit && displayData.totalProfit > 0
                     ? 'text-btn-red-color'
-                    : displayData?.totalProfit && displayData.totalProfit === 0
+                    : displayData?.totalProfit && displayData.totalProfit < 0
                       ? 'text-btn-blue-color'
                       : 'text-text-main-color'
                 }`}
