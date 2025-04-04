@@ -632,17 +632,18 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       },
       grid: [
         {
-          left: '5%',
-          right: '10%',
+          left: '1%',
+          right: '8%',
           bottom: '45%',
           top: '5%',
           height: '50%',
           containLabel: false,
         },
         {
-          left: '5%',
-          right: '10%',
+          left: '1%',
+          right: '8%',
           top: '65%',
+          bottom: '5%',
           height: '15%',
           containLabel: false,
         },
@@ -728,7 +729,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           axisLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
+              color: 'rgba(204, 204, 204, 0.1)',
             },
           },
           axisPointer: {
@@ -770,7 +771,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           axisLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
+              color: 'rgba(204, 204, 204, 0.1)',
             },
           },
           axisTick: { show: false },
@@ -805,23 +806,24 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           end: dataZoomRange.end,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
+          maxSpan: 70,
           textStyle: {
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
         },
-        {
-          show: true,
-          xAxisIndex: [0, 1],
-          type: 'slider',
-          bottom: '10%',
-          start: dataZoomRange.start,
-          end: dataZoomRange.end,
-          textStyle: {
-            fontFamily:
-              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
-          },
-        },
+        // {
+        //   show: true,
+        //   xAxisIndex: [0, 1],
+        //   type: 'slider',
+        //   bottom: '10%',
+        //   start: dataZoomRange.start,
+        //   end: dataZoomRange.end,
+        //   textStyle: {
+        //     fontFamily:
+        //       'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+        //   },
+        // },
       ],
       series: [
         {
@@ -937,12 +939,12 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   ]);
 
   return (
-    <div className="relative">
+    <div className="relative animate-fadeIn">
       <div
         className="flex h-full w-full flex-col overflow-hidden rounded-2xl"
         style={{ backgroundColor: '#0D192B' }}
       >
-        <div className="flex items-center gap-4 p-4 text-sm text-white">
+        <div className="">
           <div className="flex gap-2">{/* 기간 전환 버튼 또는 컨트롤 표시 영역 */}</div>
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}

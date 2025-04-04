@@ -300,7 +300,9 @@ const TickChartComponent: React.FC<TickChartProps> = ({
         style={{ backgroundColor: '#0D192B' }}
       >
         <div className="items-centergap-4 mx-2 flex flex-col text-sm">
-          <h3 className="mb-3 text-[16px] font-bold">실시간 틱 캔들</h3>
+          <div className="text-center">
+            <h3 className="mb-3 text-[14px]">실시간 틱 캔들</h3>
+          </div>
           <div
             className={`flex w-full items-center justify-between gap-2 rounded-xl border border-border-color border-opacity-40 p-4 ${tickData?.ccldDvsn === '1' ? 'border-btn-red-color text-btn-red-color' : 'border-btn-blue-color text-btn-blue-color'}`}
           >

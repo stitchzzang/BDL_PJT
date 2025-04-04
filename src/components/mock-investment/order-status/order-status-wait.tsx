@@ -80,7 +80,7 @@ export const OrderStatusWait = ({
           <h3 className={h3Style}>{formatKoreanMoney(buyTotalPrice)}원</h3>
         </div>
         <div className="flex justify-between">
-          <h3 className={h3Style}>총 구매 주문액</h3>
+          <h3 className={h3Style}>총 판매 주문액</h3>
           <h3 className={h3Style}>{formatKoreanMoney(sellTotalPrice)}원</h3>
         </div>
       </div>

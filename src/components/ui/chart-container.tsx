@@ -64,19 +64,25 @@ interface MinuteChartProps {
   companyId?: number;
   initialData?: StockMinuteDefaultData; // 부모 컴포넌트에서 받는 초기 데이터
   tickData?: TickData;
+  closePrice?: number;
 }
 
-export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChartProps) => {
+export const ChartContainer = ({
+  initialData,
+  companyId,
+  tickData,
+  closePrice,
+}: MinuteChartProps) => {
   const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
   const todayInfo = getTodayFormatted();
 
   return (
-    <div className="h-[100%] overflow-hidden rounded-2xl bg-modal-background-color p-2 pt-5">
+    <div className="rounded-2xl bg-modal-background-color p-2 pt-5 h-[100%]">
       <div className="flex justify-between text-[14px]">
-        <div className="mx-2 flex gap-2 rounded-xl border border-border-color p-2">
+        <div className="mx-2 flex gap-2 rounded-xl">
           <button
             onClick={() => setChartType('minute')}
-            className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+            className={`rounded-sm p-1 px-2 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
               chartType === 'minute'
                 ? 'bg-btn-blue-color bg-opacity-20 text-white'
                 : 'bg-modal-background-color'
@@ -86,7 +92,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
           </button>
           <button
             onClick={() => setChartType('day')}
-            className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+            className={`rounded-sm p-1 px-2 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
               chartType === 'day'
                 ? 'bg-btn-blue-color bg-opacity-20 text-white'
                 : 'bg-modal-background-color'
@@ -96,7 +102,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
           </button>
           <button
             onClick={() => setChartType('week')}
-            className={`rounded-xl p-2 px-4 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
+            className={`rounded-sm p-1 px-2 text-border-color transition-all duration-300 hover:bg-btn-blue-color hover:text-white ${
               chartType === 'week'
                 ? 'bg-btn-blue-color bg-opacity-20 text-white'
                 : 'bg-modal-background-color'
@@ -105,35 +111,43 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
             주
           </button>
         </div>
-        <div className="flex items-center justify-center gap-1 rounded-xl border border-border-color border-opacity-20 p-4">
+        <div className="flex items-center justify-center gap-1 rounded-xl p-1">
           <p className="text-[14px]">{todayInfo}</p>
         </div>
       </div>
       <div className="mb-[15px] mt-[15px] border-b  border-border-color border-opacity-20"></div>
       {tickData ? (
-        <div className="grid grid-cols-10">
+        <div className="grid grid-cols-10 gap-1">
           <div className="col-span-8">
             {chartType === 'minute' && (
-              <MinuteChart initialData={initialData} companyId={companyId} />
+              <MinuteChart initialData={initialData} companyId={companyId} height={280} />
             )}
-            {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
-            {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}
+            {chartType === 'day' && (
+              <DailyChart periodType={'day'} companyId={companyId} height={280} />
+            )}
+            {chartType === 'week' && (
+              <WeekChart periodType={'week'} companyId={companyId} height={280} />
+            )}
           </div>
           <div className="col-span-2 mb-2  mr-2  rounded-2xl border border-border-color border-opacity-20">
             <TickCandleChart
               tickData={tickData}
               height={100}
-              basePrice={initialData?.data[0]?.openPrice} // 초기 기준가
+              basePrice={tickData.stckOprc} // 초기 기준가
             />
           </div>
         </div>
       ) : (
         <>
           {chartType === 'minute' && (
-            <MinuteChart initialData={initialData} companyId={companyId} />
+            <MinuteChart initialData={initialData} companyId={companyId} height={280} />
           )}
-          {chartType === 'day' && <DailyChart periodType={'day'} companyId={companyId} />}
-          {chartType === 'week' && <WeekChart periodType={'week'} companyId={companyId} />}
+          {chartType === 'day' && (
+            <DailyChart periodType={'day'} companyId={companyId} height={280} />
+          )}
+          {chartType === 'week' && (
+            <WeekChart periodType={'week'} companyId={companyId} height={280} />
+          )}
         </>
       )}
     </div>

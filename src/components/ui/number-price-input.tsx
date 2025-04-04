@@ -6,7 +6,7 @@ import { getAdjustToTickSize } from '@/utils/getAdjustToTickSize';
 interface InputProps {
   value: number;
   setValue: React.Dispatch<React.SetStateAction<number>>;
-  placeholder: string;
+  placeholder?: string;
   className?: string;
   tickSize: number; // 호가 단위
   roundingMethod?: 'round' | 'floor' | 'ceil'; // 반올림 방식
@@ -16,7 +16,7 @@ interface InputProps {
 export const NumberPriceInput: React.FC<InputProps> = ({
   value,
   setValue,
-  placeholder,
+  placeholder = '가격을 입력하세요',
   className,
   tickSize,
   roundingMethod = 'ceil',
@@ -75,7 +75,7 @@ export const NumberPriceInput: React.FC<InputProps> = ({
       <Input
         className={`${className} rounded-xl px-[20px] py-[15px] ${warningMessage ? 'border-red-500' : ''}`}
         type="text"
-        placeholder={placeholder}
+        placeholder={placeholder ?? '가격을 입력하세요'}
         value={inputValue} // 입력 중인 값 표시
         onChange={(e) => {
           const value = e.target.value;

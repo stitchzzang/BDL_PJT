@@ -1,9 +1,31 @@
-export const DayHistoryCard = () => {
+import { NewsResponse } from '@/api/types/tutorial';
+
+export interface DayHistoryCardProps {
+  newsItem: NewsResponse;
+}
+
+export const DayHistoryCard = ({ newsItem }: DayHistoryCardProps) => {
+  // 변동률에 따른 스타일 결정
+  const changeStyle = newsItem.changeRate >= 0 ? 'text-btn-red-color' : 'text-btn-blue-color';
+  const changeSymbol = newsItem.changeRate >= 0 ? '+' : '';
+
+  // 날짜 포맷팅 - YYYY-MM-DD 형식
+  const date = new Date(newsItem.newsDate);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const formattedDate = `${year}-${month}-${day}`;
+
   return (
-    <div>
-      <div className="flex justify-between gap-2 rounded-lg border border-btn-red-color px-[15px] py-[5px]">
-        <h1 className="text-[16px] text-btn-red-color">뉴스제목</h1>
-        <p className="text-[16px] text-border-color">2/12 - 13:03</p>
+    <div className="flex h-[50px] min-w-[400px] items-center rounded-xl border border-btn-green-color bg-transparent px-6 py-7 text-btn-red-color shadow-sm transition-colors">
+      <p className="mr-3 line-clamp-1 font-bold text-white">{newsItem.newsTitle}</p>
+      <div className="flex items-center whitespace-nowrap">
+        <span className={`font-semibold ${changeStyle}`}>
+          {changeSymbol}
+          {newsItem.changeRate.toFixed(2)}%
+        </span>
+        <span className="mx-3 text-white">|</span>
+        <span className="text-white">{formattedDate}</span>
       </div>
     </div>
   );

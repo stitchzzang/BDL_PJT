@@ -8,11 +8,17 @@ import {
 
 interface StockTutorialResultItemProps {
   result: TutorialResultResponse;
+  isHighlighted?: boolean;
 }
 
-export const StockTutorialResultItem = ({ result }: StockTutorialResultItemProps) => {
+export const StockTutorialResultItem = ({
+  result,
+  isHighlighted = false,
+}: StockTutorialResultItemProps) => {
   return (
-    <div className="flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3 hover:bg-modal-background-color/50">
+    <div
+      className={`flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3 transition-all duration-300 hover:bg-modal-background-color/50 ${isHighlighted ? 'animate-pulse border-2 border-blue-500 bg-blue-900/20' : ''}`}
+    >
       <div className="flex flex-row items-center gap-4">
         <img
           src={result.companyImage}

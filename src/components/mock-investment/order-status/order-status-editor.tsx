@@ -245,7 +245,6 @@ export const OrderStatusEditor = ({
               <Button
                 onClick={() => {
                   setEditor(!editor);
-                  toast.success('주문이 취소되었습니다.');
                 }}
                 variant="black"
                 className="w-full"

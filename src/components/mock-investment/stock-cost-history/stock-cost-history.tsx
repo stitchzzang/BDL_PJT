@@ -78,13 +78,13 @@ export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) =
         <div className="mt-[30px] inline-block rounded-lg bg-btn-primary-inactive-color p-1">
           <button
             onClick={() => handleModeChange('실시간')}
-            className={`${isActive === '실시간' ? 'bg-btn-primary-active-color' : 'text-border-color'} rounded-lg p-2 transition-all duration-300`}
+            className={`${isActive === '실시간' ? 'bg-btn-primary-active-color' : 'text-border-color'} rounded-lg p-2 text-[14px] transition-all duration-300`}
           >
             실시간
           </button>
           <button
             onClick={() => handleModeChange('일별')}
-            className={`${isActive === '일별' ? 'bg-btn-primary-active-color' : 'text-border-color'} rounded-lg p-2 transition-all duration-300`}
+            className={`${isActive === '일별' ? 'bg-btn-primary-active-color' : 'text-border-color'} rounded-lg p-2 text-[14px] transition-all duration-300`}
           >
             일별
           </button>
