@@ -14,6 +14,7 @@ function App() {
         transition={Slide}
         closeOnClick
         stacked
+        limit={5}
       />
       {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
