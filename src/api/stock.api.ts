@@ -1,11 +1,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
 
-import { _kyAuth } from '@/api/instance';
+import { _ky, _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
 import {
   CompanyInfo,
+  CompanyMainInfo,
   LimitOrderData,
   MarketOrderData,
   SimulatedData,
@@ -115,6 +116,10 @@ export const StockApi = {
         },
       })
       .json<ApiResponse<string>>(),
+
+  // 회사 메인 정보
+  getCompanyMainInfo: (companyId: number) =>
+    _ky.get(`company/${companyId}/basic`).json<ApiResponse<CompanyMainInfo>>(),
 };
 
 // 회사 정보(초기) 가져오기
@@ -218,5 +223,13 @@ export const usePostStockMarketOrder = () => {
     onError: (error: HTTPError) => {
       handleKyError(error);
     },
+  });
+};
+
+// 회사 메인 정보 가져오기
+export const useCompanyMainInfo = (companyId: number) => {
+  return useQuery({
+    queryKey: ['companyMainInfo'],
+    queryFn: () => StockApi.getCompanyMainInfo(companyId).then((res) => res.result),
   });
 };
