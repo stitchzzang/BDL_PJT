@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { useRankingChangeRate } from '@/api/home.api';
 import { HomeCompanyRankData, HomeCompanyRankTradeData } from '@/api/types/home';
@@ -25,6 +26,7 @@ const addCommasToThousand = (num: number | undefined): string => {
 };
 
 export const RealTimeChartRise = () => {
+  const navigate = useNavigate();
   // 초기 데이터
   const { data: ChangeRateFirstData, isLoading, isError } = useRankingChangeRate('high');
   // 랜더링 정보
@@ -111,14 +113,23 @@ export const RealTimeChartRise = () => {
                     >
                       <div className="flex w-[60%] items-center gap-3 font-medium">
                         <h3 className="text-[18px] font-bold">{index + 1}</h3>
-                        <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
-                          {rankVolumeData.companyImage === null ? (
-                            <img src="/none-img/none_stock_img.png" alt="noneimage" />
-                          ) : (
-                            <img src={rankVolumeData.companyImage} alt="stockprofileimage" />
-                          )}
-                        </div>
-                        <h3 className="text-[16px] font-medium">{rankVolumeData.companyName}</h3>
+                        <button className="flex flex-row items-center gap-2">
+                          <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
+                            {rankVolumeData.companyImage === null ? (
+                              <img src="/none-img/none_stock_img.png" alt="noneimage" />
+                            ) : (
+                              <img src={rankVolumeData.companyImage} alt="stockprofileimage" />
+                            )}
+                          </div>
+                          <h3
+                            className="text-[16px] font-medium hover:underline"
+                            onClick={() => {
+                              navigate(`/investment/simulate/${rankVolumeData.companyId}`);
+                            }}
+                          >
+                            {rankVolumeData.companyName}
+                          </h3>
+                        </button>
                       </div>
 
                       {/* 현재가 */}
