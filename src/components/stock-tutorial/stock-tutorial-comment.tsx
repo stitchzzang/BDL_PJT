@@ -13,7 +13,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
   const hasValidComment = comment && comment.trim() !== '';
   const rawDisplayText = hasValidComment
     ? comment
-    : '🤖 AI가 요약한 뉴스 코멘트를 제공해드립니다 🤖';
+    : '🤖 AI 뉴스 코멘트\nAI가 요약한 뉴스 코멘트를 제공해드립니다.';
 
   // 문장별로 분리하는 함수
   const formatSentences = (text: string): string => {
@@ -31,7 +31,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
   const displayText = useMemo(() => formatSentences(rawDisplayText), [rawDisplayText]);
 
   return (
-    <div className="flex animate-fadeIn gap-4">
+    <div className="flex h-full animate-fadeIn gap-4">
       <div>
         <Lottie
           animationData={robotMove}
@@ -43,7 +43,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
           }}
         />
       </div>
-      <div className="flex w-full items-center rounded-lg border border-border-color bg-modal-background-color p-[15px]">
+      <div className="items-left flex w-full rounded-lg border border-border-color bg-modal-background-color p-[15px]">
         <h1 className="whitespace-pre-line leading-relaxed">
           <DecryptedText
             text={displayText}

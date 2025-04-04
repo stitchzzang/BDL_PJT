@@ -1491,45 +1491,14 @@ export const SimulatePage = () => {
           />
         </div>
       </div>
-      <div>
-        <div className="my-[30px]">
-          <div className="mb-[15px] flex items-center justify-between">
-            <h3 className={h3Style}>일간 히스토리</h3>
-          </div>
-          {/* 디버깅을 위한 정보 추가 */}
-          {pastNewsList.length === 0 && currentTurn > 0 && !isNewsLoading && (
-            <p className="mb-4 text-sm text-gray-400">
-              {currentTurn === 1
-                ? '첫 번째 단계의 뉴스 데이터를 불러오는 중입니다. 잠시만 기다려주세요.'
-                : `${currentTurn}단계 뉴스 데이터를 불러오는 중입니다.`}
-            </p>
-          )}
 
-          {isNewsLoading && (
-            <div className="flex items-center justify-center p-4">
-              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-              <p className="text-sm text-gray-400">뉴스 데이터를 불러오는 중입니다...</p>
-            </div>
-          )}
-
-          {pastNewsList.length > 0 && (
-            <div className="mb-3">
-              <p className="mb-3 text-sm text-gray-400">
-                {currentTurn === 1 && '첫 번째 구간의 뉴스 히스토리입니다.'}
-                {currentTurn === 2 &&
-                  '첫 번째 변곡점부터 두 번째 변곡점까지의 뉴스 히스토리입니다.'}
-                {currentTurn === 3 &&
-                  '두 번째 변곡점부터 세 번째 변곡점까지의 뉴스 히스토리입니다.'}
-                {currentTurn === 4 && '세 번째 변곡점 이후의 뉴스 히스토리입니다.'}
-              </p>
-            </div>
-          )}
-
+      <div className="mt-[32px] grid grid-cols-6 gap-3">
+        <div className="col-span-4">
+          <StockTutorialComment comment={newsComment} />
+        </div>
+        <div className="col-span-2">
           <DayHistory news={pastNewsList} />
         </div>
-      </div>
-      <div>
-        <StockTutorialComment comment={newsComment} />
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3">
         <div className="col-span-4">
