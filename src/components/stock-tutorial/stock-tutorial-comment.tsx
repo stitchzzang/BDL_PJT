@@ -17,22 +17,10 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
   const hasValidComment = comment && comment.trim() !== '';
   const rawDisplayText = hasValidComment
     ? comment
-    : '🤖 AI 뉴스 코멘트\nAI가 요약한 뉴스 코멘트를 제공해드립니다.';
-
-  // 문장별로 분리하는 함수
-  const formatSentences = (text: string): string => {
-    // 문장 끝 감지 패턴 (마침표, 물음표, 느낌표 뒤에 공백이나 줄바꿈이 오는 경우)
-    const sentenceEndPattern = /([.!?])\s+/g;
-
-    // 문장 끝 문자 뒤에 줄바꿈 추가
-    const formattedText = text.replace(sentenceEndPattern, '$1\n');
-
-    // "요약:" 이라는 텍스트 앞에도 줄바꿈 추가 (API 응답이 "요약:" 으로 시작하는 경우 처리)
-    return formattedText.replace(/요약:/, '요약:');
-  };
+    : '🤖 AI 뉴스 코멘트\n- AI가 요약한 뉴스 코멘트를 제공해드립니다.';
 
   // 줄바꿈 처리된 텍스트
-  const displayText = useMemo(() => formatSentences(rawDisplayText), [rawDisplayText]);
+  const displayText = useMemo(() => rawDisplayText, [rawDisplayText]);
 
   // 뉴스 히스토리와 동일한 최소 높이 (DayHistory 컴포넌트와 일치)
   const MIN_HEIGHT = 320;
