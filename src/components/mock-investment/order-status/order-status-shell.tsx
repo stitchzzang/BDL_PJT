@@ -117,7 +117,6 @@ export const OrderStatusShell = ({
         },
         onError: () => {
           setStockCount(0);
-          toast.error('판매중 오류가 발생했습니다.');
         },
       },
     );

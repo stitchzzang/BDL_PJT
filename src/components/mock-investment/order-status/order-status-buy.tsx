@@ -135,9 +135,8 @@ export const OrderStatusBuy = ({
           queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
-        onError: (err) => {
-          console.log(err);
-          toast.error('잔액이 부족합니다.');
+        onError: () => {
+          setStockCount(0);
         },
       },
     );
