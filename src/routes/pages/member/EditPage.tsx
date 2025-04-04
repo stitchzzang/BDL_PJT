@@ -159,7 +159,7 @@ export const EditPage = () => {
       <div className="flex min-w-[400px] flex-col items-center gap-5 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <Form {...form}>
           <div className="flex flex-col items-center gap-4">
-            <div className="relative h-32 w-32 overflow-hidden rounded-full">
+            <div className="relative h-32 w-32 overflow-hidden rounded-full border border-border-color">
               <img
                 src={
                   useDefaultProfile
