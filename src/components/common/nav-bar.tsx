@@ -1,6 +1,7 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { useLogout } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
@@ -26,6 +27,31 @@ export const NavBar = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
+    }
+  };
+
+  // 문자열의 실제 바이트 길이를 계산하는 함수
+  const getByteLength = (str: string) => {
+    // TextEncoder를 사용하여 UTF-8 인코딩된 바이트 길이 계산
+    return new TextEncoder().encode(str).length;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (getByteLength(value) > 15) {
+      setSearchValue('');
+      toast.info('검색 가능한 기업명은 15자 이하입니다.');
+      return;
+    }
+    setSearchValue(value);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (getByteLength(pastedText) > 15) {
+      e.preventDefault();
+      setSearchValue('');
+      toast.info('검색 가능한 기업명은 15자 이하입니다.');
     }
   };
 
@@ -94,8 +120,9 @@ export const NavBar = () => {
             name="search"
             placeholder="모의투자를 진행할 기업을 검색해보세요."
             value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             autoComplete="off"
           />
         </div>

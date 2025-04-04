@@ -1,6 +1,7 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { useSearchedCompanies } from '@/api/home.api';
 import { CategoryList } from '@/components/common/category-list';
@@ -8,6 +9,7 @@ import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { SearchAnimation } from '@/components/common/search-animation';
 import { SearchedCompanyListItem } from '@/components/home-page/searched-company-list';
+
 export const SearchPage = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
@@ -47,6 +49,31 @@ export const SearchPage = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSearch();
+    }
+  };
+
+  // 문자열의 실제 바이트 길이를 계산하는 함수
+  const getByteLength = (str: string) => {
+    // TextEncoder를 사용하여 UTF-8 인코딩된 바이트 길이 계산
+    return new TextEncoder().encode(str).length;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (getByteLength(value) > 15) {
+      setCompanyName('');
+      toast.info('검색 가능한 기업명은 15자 이하입니다.');
+      return;
+    }
+    setCompanyName(value);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (getByteLength(pastedText) > 15) {
+      e.preventDefault();
+      setCompanyName('');
+      toast.info('검색 가능한 기업명은 15자 이하입니다.');
     }
   };
 
@@ -92,8 +119,9 @@ export const SearchPage = () => {
                 id="search"
                 placeholder="기업을 검색하세요."
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
               />
 
               <button
