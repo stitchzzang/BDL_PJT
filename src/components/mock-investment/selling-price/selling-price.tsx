@@ -29,15 +29,15 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
       {orderbooks ? (
         <div className="h-full rounded-2xl bg-modal-background-color p-[20px]">
           <div className="flex justify-between">
-            <h3 className="text-[18px] font-bold">호가</h3>
+            <h3 className="text-[14px] font-bold">호가</h3>
             {/* 장시간 string */}
             <p className="text-[14px] font-light text-border-color">12:32</p>
           </div>
-          <div className="mt-[20px] flex justify-between">
-            <p className="text-[18px] text-btn-blue-color">매도잔량</p>
-            <p className="text-[18px] text-btn-red-color">매수잔량</p>
+          <div className="mt-2 flex justify-between">
+            <p className="text-[14px] text-btn-blue-color">매도잔량</p>
+            <p className="text-[14px] text-btn-red-color">매수잔량</p>
           </div>
-          <hr className="mt-[16px] border-border-color border-opacity-20" />
+          <hr className="mt-2 border-border-color border-opacity-20" />
           <div>
             <SellingPriceSell orderbooks={orderbooks} />
           </div>
