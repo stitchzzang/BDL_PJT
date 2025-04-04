@@ -7,7 +7,12 @@ import { toast } from 'react-toastify';
 import { _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
-import { AccountSummaryResponse, MemberInfo, MemberPassword } from '@/api/types/member';
+import {
+  AccountSummaryResponse,
+  MemberInfo,
+  MemberPassword,
+  OrderResponse,
+} from '@/api/types/member';
 export const memberApi = {
   getMemberInfo: (memberId: string) =>
     _kyAuth.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
@@ -45,6 +50,39 @@ export const memberApi = {
 
   resetAccount: (memberId: string) =>
     _kyAuth.delete<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
+
+  getPendingOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
+
+  getConfirmedOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/confirmed/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
+
+  getAutoOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/auto/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
 };
 
 export const useMemberInfo = (memberId: string) => {
@@ -159,5 +197,38 @@ export const useResetAccount = (memberId: string, onSuccess?: () => void, onErro
       handleKyError(error, '계좌 초기화에 실패했습니다. 다시 시도해주세요.');
       onError?.();
     },
+  });
+};
+
+export const useGetPendingOrders = (
+  memberId: string,
+  page: number,
+  size: number,
+  search: string,
+) => {
+  return useQuery({
+    queryKey: ['pendingOrders'],
+    queryFn: () =>
+      memberApi.getPendingOrders(memberId, page, size, search).then((res) => res.result),
+  });
+};
+
+export const useGetConfirmedOrders = (
+  memberId: string,
+  page: number,
+  size: number,
+  search: string,
+) => {
+  return useQuery({
+    queryKey: ['confirmedOrders'],
+    queryFn: () =>
+      memberApi.getConfirmedOrders(memberId, page, size, search).then((res) => res.result),
+  });
+};
+
+export const useGetAutoOrders = (memberId: string, page: number, size: number, search: string) => {
+  return useQuery({
+    queryKey: ['autoOrders'],
+    queryFn: () => memberApi.getAutoOrders(memberId, page, size, search).then((res) => res.result),
   });
 };
