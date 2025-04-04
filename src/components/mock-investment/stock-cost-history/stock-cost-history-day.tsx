@@ -1,4 +1,5 @@
 import { StockDayCandle, TickData } from '@/api/types/stock';
+import { PriceChangeResult } from '@/utils/calculate-price-change';
 import { getDataFormatted } from '@/utils/getDataFormatted';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
@@ -6,8 +7,13 @@ import { formatKoreanMoney } from '@/utils/numberFormatter';
 interface StockCostHistoryDayProps {
   DayData: StockDayCandle[] | undefined;
   tickData: TickData | null;
+  priceChange: PriceChangeResult | null;
 }
-export const StockCostHistoryDay = ({ DayData, tickData }: StockCostHistoryDayProps) => {
+export const StockCostHistoryDay = ({
+  DayData,
+  tickData,
+  priceChange,
+}: StockCostHistoryDayProps) => {
   return (
     <div>
       <div className="w-full">
@@ -40,10 +46,18 @@ export const StockCostHistoryDay = ({ DayData, tickData }: StockCostHistoryDayPr
                         : 'text-border-color'
                   }`}
                 >
-                  {tickData ? formatKoreanMoney(tickData.stckPrpr) : ''}
+                  {tickData ? formatKoreanMoney(tickData.stckPrpr) : ''} 원
                 </div>
                 <div className="w-[20%] text-right text-[14px] font-light text-border-color">
-                  등락률
+                  {priceChange ? (
+                    <p
+                      className={priceChange.isRise ? 'text-btn-red-color' : 'text-btn-blue-color'}
+                    >
+                      {priceChange.isRise ? '+' : '-'}({priceChange.percent}%)
+                    </p>
+                  ) : (
+                    <></>
+                  )}
                 </div>
                 <div className="w-[20%] text-right text-[14px] font-light text-border-color">
                   {tickData ? formatKoreanMoney(tickData.acmlVol) : ''}

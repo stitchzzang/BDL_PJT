@@ -4,14 +4,19 @@ import { toast } from 'react-toastify';
 import { StockDayCandle, TickData } from '@/api/types/stock';
 import { StockCostHistoryDay } from '@/components/mock-investment/stock-cost-history/stock-cost-history-day';
 import { StockCostHistoryRealTime } from '@/components/mock-investment/stock-cost-history/stock-cost-history-realtime';
+import { calculatePriceChange } from '@/utils/calculate-price-change';
 
 // 실시간 데이터 - 실제
 interface StockCostHistoryProps {
   tickData: TickData | null;
   DayData: StockDayCandle[] | undefined;
+  closePrice: number | null;
 }
 
-export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) => {
+export const StockCostHistory = ({ tickData, DayData, closePrice }: StockCostHistoryProps) => {
+  const priceToCompare = tickData ? tickData.stckPrpr : closePrice;
+  // 외부 함수 호출 (퍼센트 계산)
+  const priceChange = calculatePriceChange(closePrice ?? 0, priceToCompare ?? 0);
   const [isActive, setIsActive] = useState<string>('실시간');
   // 실시간 정보 관리
   const [tickDataLists, setTickDataLists] = useState<TickData[]>([]);
@@ -99,7 +104,7 @@ export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) =
           {isActive === '실시간' ? (
             <StockCostHistoryRealTime tickDataLists={tickDataLists} animationKey={animationKey} />
           ) : (
-            <StockCostHistoryDay DayData={DayData} tickData={tickData} />
+            <StockCostHistoryDay DayData={DayData} tickData={tickData} priceChange={priceChange} />
           )}
         </div>
       </div>
