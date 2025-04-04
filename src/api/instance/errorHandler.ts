@@ -3,13 +3,13 @@ import { HTTPError } from 'ky';
 import { toast } from 'react-toastify';
 
 const ERROR_CODES = {
+  EXPIRED_ACCESS_TOKEN: 401,
   // 1000번대: 회원 관련 오류
   NOT_FOUND_MEMBER: 1000,
   DUPLICATE_NICKNAME: 1001,
   INVALID_SECURITY_ANSWER: 1002,
   DUPLICATE_EMAIL: 1003,
   REFRESH_AUTHORIZATION_FAIL: 1004,
-  EXPIRED_ACCESS_TOKEN: 1005,
 
   // 2000번대: 기업 관련 오류
   NOT_FOUND_COMPANY: 2000,
