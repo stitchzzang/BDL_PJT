@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
 
-import { _ky, _kyAuth } from '@/api/instance';
+import { _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
 import {
@@ -119,7 +119,7 @@ export const StockApi = {
 
   // 회사 메인 정보
   getCompanyMainInfo: (companyId: number) =>
-    _ky.get(`company/${companyId}/basic`).json<ApiResponse<CompanyMainInfo>>(),
+    _kyAuth.get(`company/${companyId}/basic`).json<ApiResponse<CompanyMainInfo>>(),
 };
 
 // 회사 정보(초기) 가져오기
