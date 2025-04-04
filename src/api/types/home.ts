@@ -48,3 +48,25 @@ export interface HomeChartKosdaqKospiData {
   kosdaq: HomeChartData[];
   kospi: HomeChartData[];
 }
+
+// 홈 랭킹 인터페이스
+export interface HomeCompanyRankData {
+  companyId: number;
+  stockCode: string;
+  companyImage: string;
+  companyName: string;
+}
+
+export interface HomeCompanyRankTradeData {
+  stockCode: string; // 종목 코드 (예: "005930")
+  stckCntgHour: string; // 주식 체결 시간 (문자열, HHmmss 형식 등)
+  stckPrpr: number; // 주식 현재가 (체결 가격)
+  stckOprc: number; // 주식 시가
+  stckHgpr: number; // 주식 최고가
+  stckLwpr: number; // 주식 최저가
+  cntgVol: number; // 체결 거래량
+  acmlVol: number; // 누적 거래량
+  acmlTrPbm: number; // 누적 거래 대금
+  ccldDvsn: string; // 체결구분 (예: "1" - 매수, "3" - 장전, "5" - 매도)
+  changeRate: number;
+}

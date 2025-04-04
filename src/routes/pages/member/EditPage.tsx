@@ -149,7 +149,7 @@ export const EditPage = () => {
 
   const handleSignout = () => {
     if (window.confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-      signout();
+      signout(userData.memberId?.toString() || '');
     }
   };
 
@@ -225,14 +225,7 @@ export const EditPage = () => {
               }}
             />
           </div>
-          <div className="flex w-full flex-col gap-4">
-            <Button
-              variant="gray"
-              className="w-full"
-              onClick={() => navigate('/member/edit/password')}
-            >
-              비밀번호 변경
-            </Button>
+          <div className="flex w-full flex-col gap-5">
             <Button
               variant="blue"
               className="w-full"
@@ -243,11 +236,23 @@ export const EditPage = () => {
             >
               프로필 수정
             </Button>
-            <Button variant="red" className="w-full" onClick={handleSignout}>
-              회원탈퇴
-            </Button>
           </div>
         </Form>
+      </div>
+
+      <div className="flex w-[400px] flex-col pt-2">
+        <div className="flex justify-between">
+          <Button
+            variant="gray"
+            className="w-[48%] text-sm"
+            onClick={() => navigate('/member/edit/password')}
+          >
+            비밀번호 변경
+          </Button>
+          <Button variant="red" className="w-[48%] text-sm" onClick={handleSignout}>
+            회원탈퇴
+          </Button>
+        </div>
       </div>
     </div>
   );

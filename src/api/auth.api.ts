@@ -23,14 +23,14 @@ export const authApi = {
       })
       .json<ApiResponse<LoginResponse>>(),
 
-  logout: () => _ky.post('auth/logout', {}).json<ApiResponse<void>>(),
+  logout: () => _kyAuth.post('auth/logout', {}).json<ApiResponse<void>>(),
   signup: (data: SignupRequest) =>
     _ky
       .post('auth/signup', {
         json: data,
       })
       .json<ApiResponse<void>>(),
-  signout: () => _kyAuth.patch('member/register', {}).json<ApiResponse<void>>(),
+  signout: (memberId: string) => _kyAuth.delete(`member/${memberId}`, {}).json<ApiResponse<void>>(),
 };
 
 export const useLogin = () => {
@@ -85,7 +85,11 @@ export const useLogout = () => {
       navigate('/');
     },
     onError: (error: HTTPError) => {
-      handleKyError(error, '로그아웃에 실패했습니다.');
+      // 사용자가 의도적으로 로그아웃한 경우에는 토큰 오류여도 성공적으로 처리
+      unsubscribeFromNotifications(); // SSE 연결 종료
+      logoutAuth();
+      toast.success('로그아웃되었습니다.');
+      navigate('/');
     },
   });
 };
@@ -107,7 +111,7 @@ export const useSignout = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: () => authApi.signout(),
+    mutationFn: (memberId: string) => authApi.signout(memberId),
     onSuccess: () => {
       logoutAuth();
       toast.success('회원탈퇴가 완료되었습니다.');

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { useCompanyInfoData, useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
@@ -13,11 +14,20 @@ import { StockInfoDetail } from '@/components/mock-investment/stock-info-detail/
 import { ChartContainer } from '@/components/ui/chart-container';
 import { TickChart } from '@/components/ui/tick-chart';
 import { useTickConnection } from '@/services/SocketStockTickDataService';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const SimulatedInvestmentPage = () => {
   const { companyId } = useParams(); // companyId 주소 파라미터에서 가져오기
   const stockCompanyId = Number(companyId); // 숫자로 변환
+  const { isLogin } = useAuthStore();
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
+  useEffect(() => {
+    if (!isLogin) {
+      toast.error('로그인 후 이용해주세요.');
+      setShouldRedirect(true);
+    }
+  }, [isLogin]);
   //초기 데이터 설정 및 소켓 연결
   const { data: stockCompanyInfo, isLoading, isError } = useCompanyInfoData(stockCompanyId);
   const { data: minuteData, isSuccess } = useStockMinuteData(stockCompanyId, 100);
@@ -57,6 +67,9 @@ export const SimulatedInvestmentPage = () => {
       };
     }
   }, [isSuccess, minuteData, connectTick, disconnectTick, stockDailyData]);
+  if (shouldRedirect) {
+    return <Navigate to="/login" />;
+  }
 
   if (isLoading) {
     return (
@@ -94,12 +107,13 @@ export const SimulatedInvestmentPage = () => {
           tickData={tickData}
           closePrice={closePrice}
           comparePrice={comparePrice}
+          companyId={stockCompanyId}
         />
       </div>
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
+      <div className="grid grid-cols-1 gap-1 lg:grid-cols-12">
         <div className="col-span-1 lg:col-span-9">
           {tickData ? (
-            <div className="">
+            <>
               {minuteData ? (
                 <ChartContainer
                   initialData={minuteData}
@@ -109,15 +123,15 @@ export const SimulatedInvestmentPage = () => {
               ) : (
                 <LoadingAnimation />
               )}
-            </div>
+            </>
           ) : (
-            <div className="">
+            <>
               {minuteData ? (
                 <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
               ) : (
                 <LoadingAnimation />
               )}
-            </div>
+            </>
           )}
         </div>
         <div className="col-span-1 lg:col-span-3">
@@ -129,7 +143,7 @@ export const SimulatedInvestmentPage = () => {
         </div>
       </div>
       {tickData ? (
-        <div className="my-3">
+        <div className="my-1">
           <TickChart
             tickData={tickData}
             height={150}
@@ -137,9 +151,9 @@ export const SimulatedInvestmentPage = () => {
           />
         </div>
       ) : (
-        <div></div>
+        <div className="my-1"></div>
       )}
-      <div className="grid grid-cols-10 gap-3">
+      <div className="grid grid-cols-10 gap-2">
         <div className="col-span-6">
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { TermTooltip } from '@/components/ui/TermTooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
@@ -82,12 +84,16 @@ export const MarketPage = () => {
   return (
     <div className="flex flex-col items-center justify-center gap-8">
       <h2 className="text-3xl font-bold">시장 반응 설정</h2>
-      <HelpBadge
-        title="시장 변화에 대응하기"
-        description="주식 가격 변화에 어떻게 반응할까요?
+      <div className="flex w-full flex-col gap-2">
+        <HelpBadge
+          title="시장 변화에 대응하기"
+          description="주식 가격 변화에 어떻게 반응할까요?
         여러분의 선택에 따라 다양한 방법으로 반응이 가능합니다."
-      />
-      <p className="w-full text-left text-lg font-bold">옵션 중 하나를 선택해주세요.</p>
+        />
+        <Badge variant="default" className="w-full text-left font-medium">
+          💡 해당 옵션은 필수값이 아니므로, 건너뛰어도 괜찮습니다.
+        </Badge>
+      </div>
       <div className="flex w-full gap-4">
         <Button
           variant="blue"
@@ -97,7 +103,10 @@ export const MarketPage = () => {
           }`}
         >
           <p className="text-lg font-bold">
-            단기 변화에 반응 <span className="text-sm font-normal">(분봉)</span>
+            단기 변화에 반응{' '}
+            <span className="text-sm font-normal">
+              (5<TermTooltip term="분봉">분봉</TermTooltip>)
+            </span>
           </p>
           <p className="whitespace-normal break-keep text-sm">
             짧은 시간 동안의 급격한 가격 변화에 빠르게 대응합니다.
@@ -111,7 +120,10 @@ export const MarketPage = () => {
           }`}
         >
           <p className="text-lg font-bold">
-            일간 추세에 반응 <span className="text-sm font-normal">(일봉)</span>
+            일간 추세에 반응{' '}
+            <span className="text-sm font-normal">
+              (<TermTooltip term="일봉">일봉</TermTooltip>)
+            </span>
           </p>
           <p className="whitespace-normal break-keep text-sm">
             하루 동안의 전체적인 추세를 바탕으로 대응합니다.
@@ -122,7 +134,9 @@ export const MarketPage = () => {
         <div className="flex flex-col gap-2">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-600">상승 시 반응 강도</p>
+              <p className="text-sm text-gray-600">
+                상승 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip>
+              </p>
               {selectedTimeframe && (
                 <span className="text-sm font-bold text-primary-color">
                   (
@@ -151,7 +165,7 @@ export const MarketPage = () => {
                 }
                 disabled={!selectedTimeframe}
               >
-                매수
+                구매
               </Button>
               <Button
                 variant="blue"
@@ -170,7 +184,7 @@ export const MarketPage = () => {
                 }
                 disabled={!selectedTimeframe}
               >
-                매도
+                판매
               </Button>
             </div>
           </div>
@@ -197,7 +211,9 @@ export const MarketPage = () => {
         <div>
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-600">하락 시 반응 강도</p>
+              <p className="text-sm text-gray-600">
+                하락 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip>
+              </p>
               {selectedTimeframe && (
                 <span className="text-sm font-bold text-primary-color">
                   (
@@ -226,7 +242,7 @@ export const MarketPage = () => {
                 }
                 disabled={!selectedTimeframe}
               >
-                매수
+                구매
               </Button>
               <Button
                 variant="blue"
@@ -245,7 +261,7 @@ export const MarketPage = () => {
                 }
                 disabled={!selectedTimeframe}
               >
-                매도
+                판매
               </Button>
             </div>
           </div>
@@ -273,10 +289,14 @@ export const MarketPage = () => {
       <div className="flex flex-col gap-4">
         <HelpBadge
           title="주식의 장기적인 움직임을 분석할까요?"
-          description={`주식의 장기적인 움직임을 분석할 이동평균선 사용이 가능합니다.
-                      해당 기능은 주가의 추세를 파악하는데 도움이 됩니다.
-
-                      단기선이 장기선을 상향 돌파할 때 매수 신호, 하양 돌파할 때 매도 신호로 활용 할 수 있습니다.`}
+          description={
+            <>
+              주식의 장기적인 움직임을 분석할 수 있는{' '}
+              <TermTooltip term="이동평균선">이동평균선</TermTooltip> 사용이 가능합니다. 해당 기능은
+              주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수 신호,
+              하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
+            </>
+          }
         />
         <div className="flex items-center gap-2">
           <Button
