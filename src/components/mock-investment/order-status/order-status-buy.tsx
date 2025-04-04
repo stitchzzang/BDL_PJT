@@ -203,13 +203,13 @@ export const OrderStatusBuy = ({
             <div className="min-w-[74px]">
               <h3 className={h3Style}>수량</h3>
             </div>
-            <div className="relative flex w-full max-w-[80%] flex-col gap-2">
+            <div className=" flex w-full max-w-[80%] gap-2">
               <NumberInput
                 value={stockCount}
                 setValue={setStockCount}
                 placeholder="수량을 입력하세요."
               />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+              <div className="pointer-events-none inset-0 flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
                     className="text-[22px]"
