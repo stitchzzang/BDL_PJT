@@ -74,6 +74,11 @@ export const TutorialOrderStatusBuy = ({
     return Math.floor(availableOrderAsset / buyCost);
   };
 
+  // 전체 수량 설정 - 최대 구매 가능 수량으로 설정
+  const setMaxStockCount = () => {
+    setStockCount(maxPurchasableStocks());
+  };
+
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -132,11 +137,7 @@ export const TutorialOrderStatusBuy = ({
               <h3 className={h3Style}>수량</h3>
             </div>
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput
-                value={stockCount}
-                setValue={setStockCount}
-                placeholder="수량을 입력하세요."
-              />
+              <NumberInput value={stockCount} setValue={setStockCount} placeholder="" />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
@@ -152,6 +153,11 @@ export const TutorialOrderStatusBuy = ({
                     onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
                   >
                     +
+                  </button>
+                </div>
+                <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
+                  <button className="text-[14px]" onClick={setMaxStockCount}>
+                    전체
                   </button>
                 </div>
               </div>

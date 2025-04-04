@@ -94,6 +94,11 @@ export const TutorialOrderStatusSell = ({
     handleStockCountChange(newValue);
   };
 
+  // 전체 수량 설정 - 보유 주식 수량으로 설정
+  const setMaxStockCount = () => {
+    setStockCount(ownedStockCount);
+  };
+
   // 판매 처리
   const handleSellStock = () => {
     if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) {
@@ -160,11 +165,7 @@ export const TutorialOrderStatusSell = ({
               <h3 className={h3Style}>수량</h3>
             </div>
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput
-                value={stockCount}
-                setValue={handleSetStockCount}
-                placeholder="수량을 입력하세요."
-              />
+              <NumberInput value={stockCount} setValue={handleSetStockCount} placeholder="" />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
                   <button
@@ -185,6 +186,11 @@ export const TutorialOrderStatusSell = ({
                     }}
                   >
                     +
+                  </button>
+                </div>
+                <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
+                  <button className="text-[14px]" onClick={setMaxStockCount}>
+                    전체
                   </button>
                 </div>
               </div>
