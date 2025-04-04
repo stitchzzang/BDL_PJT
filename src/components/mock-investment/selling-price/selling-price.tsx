@@ -1,8 +1,6 @@
-import Lottie from 'lottie-react';
 import { useEffect, useState } from 'react';
 
 import { CompanyInfo, OrderbookDatas } from '@/api/types/stock';
-import walkMove from '@/assets/lottie/walk-animation.json';
 import { SellingPriceSell } from '@/components/mock-investment/selling-price/selling-price-sell';
 import { SparklesCore } from '@/components/ui/sparkles';
 import { useOrderbookConnection } from '@/services/SocketStockOrderbookDataService';
@@ -55,7 +53,7 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
               className="h-full w-full"
             />
           </div>
-          <div className="flex items-center justify-center gap-4">
+          {/* <div className="flex items-center justify-center gap-4">
             <Lottie
               animationData={walkMove}
               loop={true}
@@ -68,7 +66,7 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
             <p className="text-[18px] text-border-color">
               현재 <span className="font-bold text-btn-blue-color">거래시간</span>이 아닙니다.
             </p>
-          </div>
+          </div> */}
         </div>
       )}
     </>
