@@ -169,7 +169,7 @@ export const OrderStatusBuy = ({
                   <p className="text-[14px]">시장가</p>
                 </div>
               </div>
-              <p className="text-[11px] opacity-40">지정가는 거래시간에 가능합니다.</p>
+              <p className="text-[11px] opacity-40">시장가는 거래시간에 가능합니다.</p>
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
