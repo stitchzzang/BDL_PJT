@@ -54,8 +54,7 @@ const CATEGORY_MAPPING: Record<string, CategoryName> = {
   방위: '방위',
   방산: '방위',
   화장품: '화장품',
-  음식: '음식',
-  음식료: '음식',
+  음식료: '음식료',
   금속: '금속',
   바이오: '바이오',
 };
