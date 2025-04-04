@@ -17,7 +17,7 @@ export const NumberInput: React.FC<InputProps> = ({
   formatAsCurrency = false,
 }) => {
   // 최대 입력 가능 금액 (9999억원)
-  const MAX_AMOUNT = 999900000000;
+  const MAX_AMOUNT = 999999999999;
 
   const displayValue = () => {
     if (value === 0) return '';

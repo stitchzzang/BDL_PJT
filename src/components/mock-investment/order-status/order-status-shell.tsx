@@ -80,6 +80,8 @@ export const OrderStatusShell = ({
       if (stockAccount < stockCount) {
         setStockCount(stockAccount);
       }
+    } else if (stockAccount === 0) {
+      setStockCount(0);
     }
   }, [stockCount]);
   // 총 판매 금액
