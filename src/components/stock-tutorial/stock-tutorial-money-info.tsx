@@ -26,20 +26,20 @@ export const StockTutorialMoneyInfo = ({
   const formattedCurrentAsset = addCommasToThousand(Math.round(currentTotalAsset));
 
   return (
-    <div className="mt-3 flex gap-2">
-      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[12px] py-[12px]">
+    <div className="mt-3 flex gap-3">
+      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[13px] py-[12px]">
         <p className="text-[14px] text-border-color">시드머니 :</p>
         <span className="text-[14px] font-bold">{formattedInitialAsset}원</span>
       </div>
-      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[12px] py-[12px]">
+      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[13px] py-[12px]">
         <p className="text-[14px] text-border-color">주문가능 :</p>
         <span className="text-[14px] font-bold">{formattedAvailableAsset}원</span>
       </div>
-      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[12px] py-[12px]">
+      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[13px] py-[12px]">
         <p className="text-[14px] text-border-color">현재자산 :</p>
         <span className="text-[14px] font-bold">{formattedCurrentAsset}원</span>
       </div>
-      <div className={`flex gap-2 rounded-xl px-[12px] py-[12px] ${profitColor} bg-opacity-20`}>
+      <div className={`flex gap-2 rounded-xl px-[15px] py-[12px] ${profitColor} bg-opacity-20`}>
         <p className="text-[14px] text-border-color">총 수익률 :</p>
         <span className={`font-bold ${textProfitColor} text-[14px]`}>{displayPercentage}</span>
       </div>
