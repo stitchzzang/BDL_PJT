@@ -256,7 +256,12 @@ export const SignUpPage = () => {
             </div>
             <hr className="w-full border-none" />
             <div className="flex w-full flex-col gap-1">
-              <h1 className="w-full text-left text-lg font-bold text-primary-color">생년월일</h1>
+              <div className="flex flex-row items-center gap-1">
+                <h1 className="text-left text-lg font-bold text-primary-color">생년월일</h1>
+                <span className="text-xs text-border-color">
+                  (1900년 1월 1일~ 2004년 12월 31일)
+                </span>
+              </div>
               <FormField
                 control={form.control}
                 name="birthDate"
