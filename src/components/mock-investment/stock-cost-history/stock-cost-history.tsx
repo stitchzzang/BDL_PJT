@@ -57,7 +57,13 @@ export const StockCostHistory = ({ tickData, DayData }: StockCostHistoryProps) =
   // tickData가 변경될 때마다 리스트에 추가 (실시간 정보)
   useEffect(() => {
     if (tickData) {
-      setTickDataLists((prevData) => [tickData, ...prevData]);
+      setTickDataLists((prevData) => {
+        // 새 데이터를 앞에 추가
+        const newData = [tickData, ...prevData];
+
+        // 배열 길이가 100을 초과하면 뒷부분 잘라내기
+        return newData.length > 100 ? newData.slice(0, 100) : newData;
+      });
       setAnimationKey((prev) => prev + 1);
     }
   }, [tickData]);
