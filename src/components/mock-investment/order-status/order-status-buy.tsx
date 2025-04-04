@@ -6,6 +6,7 @@ import { LimitOrderData, MarketOrderData } from '@/api/types/stock';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { queryClient } from '@/lib/queryClient';
 import { getAdjustToTickSize } from '@/utils/getAdjustToTickSize';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
@@ -96,6 +97,9 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: () => {
+          setBuyCost(0);
+          setStockCount(0);
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: (err) => {
@@ -128,7 +132,9 @@ export const OrderStatusBuy = ({
       {
         onSuccess: (res) => {
           setBuyCost(0);
-          toast('주문이 성공적으로 처리되었습니다.');
+          setStockCount(0);
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
+          toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: (err) => {
           console.log(err);
@@ -144,7 +150,7 @@ export const OrderStatusBuy = ({
     <div className="h-full animate-fadeIn">
       <h3 className={h3Style}>구매하기</h3>
       <div className="flex h-full flex-col justify-between">
-        <div className="mb-[25px] flex w-full flex-col gap-4">
+        <div className="mb-[25px] flex w-full flex-col gap-2">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
@@ -175,7 +181,7 @@ export const OrderStatusBuy = ({
               {isActive === '지정가' ? (
                 <>
                   <NumberPriceInput
-                    value={0}
+                    value={buyCost}
                     setValue={setBuyCost}
                     placeholder={`${closePrice.toLocaleString()}원`}
                     tickSize={tickSize}
@@ -223,9 +229,8 @@ export const OrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <hr className="border border-border-color border-opacity-20" />
         </div>
-        <div className="mt-[20px] flex flex-col gap-4">
+        <div className=" flex flex-col gap-4 rounded-xl border border-border-color border-opacity-20 p-3">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
             <h3 className={h3Style}>
@@ -259,7 +264,7 @@ export const OrderStatusBuy = ({
             <Button
               variant="red"
               className="w-full"
-              size="lg"
+              size="sm"
               onClick={() =>
                 handleLimitOrder({
                   memberId: memberId,
@@ -276,7 +281,7 @@ export const OrderStatusBuy = ({
             <Button
               variant="red"
               className="w-full"
-              size="lg"
+              size="sm"
               onClick={() =>
                 handleMarketOrder({
                   memberId: memberId,

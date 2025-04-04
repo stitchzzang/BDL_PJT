@@ -68,13 +68,12 @@ export const OrderStatus = ({ closePrice, realTime, companyId }: orderStatusProp
   return (
     <div className="h-full">
       <div className="h-[100%] rounded-2xl bg-modal-background-color p-5">
-        <div className="mb-[25px]">
+        <div className="mb-3">
           <OrderStatusCategory
             isActiveCategory={isActiveCategory}
             setIsActiveCategory={setIsActiveCategory}
           />
         </div>
-        <hr className="mb-[25px] border border-border-color border-opacity-20" />
         <div>{Components[isActiveCategory]}</div>
       </div>
     </div>

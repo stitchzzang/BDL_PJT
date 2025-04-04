@@ -25,13 +25,13 @@ export const StockCostHistoryRealTime = ({
             <div className="flex flex-col space-y-2">
               {/* 테이블 헤더 */}
               <div className="rounded-lgp-2 flex flex-row">
-                <div className="w-[20%] text-[16px] text-border-color">채결가</div>
-                <div className="w-[20%] text-right text-[16px] text-border-color">체결량(주)</div>
-                <div className="w-[20%] text-right text-[16px] text-border-color">누적 거래량</div>
-                <div className="w-[20%] text-right text-[16px] text-border-color">
+                <div className="w-[20%] text-[14px] text-border-color">채결가</div>
+                <div className="w-[20%] text-right text-[14px] text-border-color">체결량(주)</div>
+                <div className="w-[20%] text-right text-[14px] text-border-color">누적 거래량</div>
+                <div className="w-[20%] text-right text-[14px] text-border-color">
                   누적 거래대금
                 </div>
-                <div className="w-[20%] text-right text-[16px] text-border-color">시간</div>
+                <div className="w-[20%] text-right text-[14px] text-border-color">시간</div>
               </div>
               <div
                 className="max-h-[450px] animate-fadeIn overflow-y-auto"
@@ -45,7 +45,7 @@ export const StockCostHistoryRealTime = ({
                   <div
                     // 첫 번째 항목에는 변경되는 키를, 나머지는 인덱스 키를 사용
                     key={index === 0 ? `item-${animationKey}` : index}
-                    className={`my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color ${index === 0 ? 'animate-fadeIn' : ''}`}
+                    className={`my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-[14px] text-white hover:bg-modal-background-color ${index === 0 ? 'animate-fadeIn' : ''}`}
                   >
                     <div className="w-[20%] font-medium">
                       {addCommasToThousand(item.stckPrpr)}원

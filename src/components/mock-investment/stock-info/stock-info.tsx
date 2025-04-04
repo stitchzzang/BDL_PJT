@@ -122,8 +122,8 @@ export const StockInfo = ({
   return (
     <div className="flex animate-fadeIn items-center">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
-        <div className="flex w-full gap-3">
-          <div className="max-h-[60px] max-w-[60px] overflow-hidden rounded-xl">
+        <div className="flex w-full items-center gap-3">
+          <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
             {/* 이미지 */}
             <img src={stockCompanyInfo?.companyImage} alt="stock-icon" />
           </div>
@@ -155,7 +155,7 @@ export const StockInfo = ({
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-center gap-[15px] rounded-lg border border-border-color border-opacity-20 bg-modal-background-color p-2">
+                <div className="flex items-center justify-center gap-[15px] rounded-lg border border-border-color border-opacity-20 bg-modal-background-color p-1">
                   {stockCompanyInfo?.categories.map((name, index) => {
                     const IconComponent = getCategoryIcon(name);
                     return (
@@ -163,81 +163,81 @@ export const StockInfo = ({
                         className="flex min-h-[25px] min-w-[25px] items-center justify-center gap-1"
                         key={index}
                       >
-                        <div className="h-5 w-5">
+                        <div className="h-4 w-4">
                           {IconComponent ? (
-                            <div className="h-5 w-5">
+                            <div className="h-4 w-4">
                               <IconComponent />
                             </div>
                           ) : (
-                            <div className="h-5 w-5">{/* 기본 아이콘 또는 빈 요소 */}</div>
+                            <div className="h-4 w-4">{/* 기본 아이콘 또는 빈 요소 */}</div>
                           )}
                         </div>
-                        <p className="text-border-color">{name}</p>
+                        <p className="text-[12px] text-border-color">{name}</p>
                       </div>
                     );
                   })}
                 </div>
               </div>
-              <div>
-                {algorithmActive === false ? (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
-                        알고리즘 선택
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>알고리즘을 선택하세요.</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          <>
-                            {algorithms?.length !== 0 && algorithms ? (
-                              <div>
-                                {algorithms.map((algorithm) => (
-                                  <div
-                                    onClick={() => handleStartAlgorithm(algorithm.algorithmId)}
-                                    className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-6 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
-                                  >
-                                    <p className="font-bold= text-[14px]">
-                                      {algorithm.algorithmName}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div>
-                                <p>현재 생성된 알고리즘이 없습니다.</p>
-                              </div>
-                            )}
-                          </>
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>취소</AlertDialogCancel>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                ) : (
-                  <>
-                    <Button
-                      className="max-h-[45px] max-w-[225px]"
-                      variant={'red'}
-                      size={'lg'}
-                      onClick={() => handleStopAlgorithm(nowAlgorithmId)}
-                    >
-                      알고리즘 실행중
-                      <p className="text-[12px] opacity-30"></p>
-                      {StopAlgorithm.isPending ? (
-                        <p className="text-[14px]">정지중 ...</p>
-                      ) : (
-                        <p className="text-[12px] opacity-30">정지하기</p>
-                      )}
-                    </Button>
-                  </>
-                )}
-              </div>
             </div>
           </div>
+        </div>
+      </div>
+      <div>
+        <div>
+          {algorithmActive === false ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button className="max-h-[45px] max-w-[225px]" variant={'red'} size={'lg'}>
+                  알고리즘 선택
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>알고리즘을 선택하세요.</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <>
+                      {algorithms?.length !== 0 && algorithms ? (
+                        <div>
+                          {algorithms.map((algorithm) => (
+                            <div
+                              onClick={() => handleStartAlgorithm(algorithm.algorithmId)}
+                              className="mb-2 cursor-pointer rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-6 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
+                            >
+                              <p className="font-bold= text-[14px]">{algorithm.algorithmName}</p>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div>
+                          <p>현재 생성된 알고리즘이 없습니다.</p>
+                        </div>
+                      )}
+                    </>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>취소</AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <>
+              <Button
+                className="max-h-[45px] max-w-[225px]"
+                variant={'red'}
+                size={'lg'}
+                onClick={() => handleStopAlgorithm(nowAlgorithmId)}
+              >
+                알고리즘 실행중
+                <p className="text-[12px] opacity-30"></p>
+                {StopAlgorithm.isPending ? (
+                  <p className="text-[14px]">정지중 ...</p>
+                ) : (
+                  <p className="text-[12px] opacity-30">정지하기</p>
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>

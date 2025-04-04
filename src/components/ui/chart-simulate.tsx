@@ -495,8 +495,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             // 새 데이터가 추가되었으므로 표시 범위 조정
             console.log('시작값 변경');
             setDataZoomRange({
-              start: start + 10,
-              end: end + 10,
+              start: start + 6,
+              end: end + 6,
             });
           })
           .catch((error) => {
@@ -871,10 +871,11 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       },
       tooltip: {
         trigger: 'axis',
+        confine: false,
         axisPointer: {
           type: 'cross',
           crossStyle: {
-            color: '#999',
+            color: 'rgba(204, 204, 204, 0.2)',
           },
           label: {
             backgroundColor: '#1976d2',
@@ -898,8 +899,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       },
       grid: [
         {
-          left: '5%',
-          right: '10%',
+          left: '1%',
+          right: '8%',
           bottom: '45%',
           top: '5%',
           height: '50%',
@@ -907,9 +908,10 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           clipOverflow: true, // 그리드 오버플로우 클리핑 추가
         },
         {
-          left: '5%',
-          right: '10%',
+          left: '1%',
+          right: '8%',
           top: '65%',
+          bottom: '5%',
           height: '15%',
           containLabel: false,
           clipOverflow: true, // 그리드 오버플로우 클리핑 추가
@@ -942,7 +944,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             },
           },
           axisLabel: {
-            margin: 8,
+            margin: 6,
             color: 'rgba(255, 255, 255, 0.7)',
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
@@ -995,7 +997,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           axisLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
+              color: 'rgba(204, 204, 204, 0.1))',
             },
           },
           axisPointer: {
@@ -1037,7 +1039,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           axisLine: {
             show: true,
             lineStyle: {
-              color: 'rgba(255, 255, 255, 0.3)',
+              color: 'rgba(204, 204, 204, 0.1)',
             },
           },
           axisTick: { show: false },
@@ -1072,25 +1074,41 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           end: dataZoomRange.end,
           zoomOnMouseWheel: true,
           moveOnMouseMove: true,
+          maxSpan: 70,
           textStyle: {
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
           // onZoom: handleDataZoomChange,
         },
-        {
-          show: true,
-          xAxisIndex: [0, 1],
-          type: 'slider',
-          bottom: '10%',
-          start: dataZoomRange.start,
-          end: dataZoomRange.end,
-          textStyle: {
-            fontFamily:
-              'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
-          },
-          // onZoom: handleDataZoomChange,
-        },
+        // {
+        //   show: true,
+        //   xAxisIndex: [0, 1],
+        //   type: 'slider',
+        //   bottom: '7%',
+        //   start: dataZoomRange.start,
+        //   end: dataZoomRange.end,
+        //   height: 10,
+        //   backgroundColor: 'rgba(40, 44, 52, 0.8)',
+        //   fillerColor: 'rgba(13, 25, 43, 0.5)',
+        //   borderColor: 'rgba(204, 204, 204, 0.2)',
+        //   handleSize: '10%',
+        //   handleStyle: {
+        //     color: '#4169E1',
+        //     borderColor: '#fff',
+        //     borderWidth: 1,
+        //     shadowBlur: 3,
+        //     shadowColor: 'rgba(0, 0, 0, 0.6)',
+        //     shadowOffsetX: 2,
+        //     shadowOffsetY: 2,
+        //   },
+        //   textStyle: {
+        //     color: 'rgba(255, 255, 255, 0.7)',
+        //     fontFamily:
+        //       'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
+        //   },
+        //   // onZoom: handleDataZoomChange,
+        // },
       ],
       series: [
         {
@@ -1207,9 +1225,9 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   ]);
 
   return (
-    <div className="relative">
+    <div className="relative animate-fadeIn">
       <div className="bg-modal-background-color">
-        <div className="flex items-center gap-4 p-4 text-sm text-white">
+        <div className="">
           {loading && <div className="text-blue-400">추가 데이터 로딩 중...</div>}
           {error && <div className="text-red-400">{error}</div>}
         </div>

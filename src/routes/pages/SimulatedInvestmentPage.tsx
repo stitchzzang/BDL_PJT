@@ -146,21 +146,21 @@ export const SimulatedInvestmentPage = () => {
         <div className="my-1">
           <TickChart
             tickData={tickData}
-            height={150}
-            basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
+            height={120}
+            basePrice={tickData.stckOprc} // 기준가 (첫번째 데이터의 시가)
           />
         </div>
       ) : (
         <div className="my-1"></div>
       )}
       <div className="grid grid-cols-10 gap-2">
-        <div className="col-span-6">
+        <div className="col-span-5">
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>
         <div className="col-span-2">
           <StockInfoDetail />
         </div>
-        <div className="col-span-2">
+        <div className="col-span-3">
           <SellingPrice stockCompanyInfo={stockCompanyInfo} />
         </div>
       </div>
