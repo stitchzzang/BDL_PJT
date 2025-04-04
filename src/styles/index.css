@@ -113,3 +113,8 @@ html {
 .no-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+
+/* 토스트 메시지 줄바꿈 */
+.Toastify__toast {
+  word-break: keep-all;
+}
