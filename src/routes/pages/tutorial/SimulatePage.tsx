@@ -1321,6 +1321,14 @@ export const SimulatePage = () => {
             totalReturnRate={assetInfo.totalReturnRate}
           />
           <div className="flex items-center gap-2">
+            {currentTurn > 0 && (
+              <div className="mr-14 flex items-center gap-2">
+                <span className="text-white">현재 단계:</span>
+                <span className="rounded-lg bg-[#2A2A3C] px-3 py-1 font-medium text-white">
+                  {currentTurn}/4 단계
+                </span>
+              </div>
+            )}
             <p className="text-border-color">진행 기간 : </p>
             <div className="flex gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
               <p>{formatYYMMDDToYYYYMMDD(tutorialDateRange.startDate)}</p>
@@ -1402,14 +1410,6 @@ export const SimulatePage = () => {
         <div className="my-[30px]">
           <div className="mb-[15px] flex items-center justify-between">
             <h3 className={h3Style}>일간 히스토리</h3>
-            {currentTurn > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-white">현재 단계:</span>
-                <span className="rounded-lg bg-[#2A2A3C] px-3 py-1 font-medium text-white">
-                  {currentTurn}/4 단계
-                </span>
-              </div>
-            )}
           </div>
 
           {/* 
