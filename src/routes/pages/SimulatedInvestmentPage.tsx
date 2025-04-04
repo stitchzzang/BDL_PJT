@@ -158,7 +158,7 @@ export const SimulatedInvestmentPage = () => {
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>
         <div className="col-span-2">
-          <StockInfoDetail />
+          <StockInfoDetail companyId={stockCompanyId} />
         </div>
         <div className="col-span-3">
           <SellingPrice stockCompanyInfo={stockCompanyInfo} />
