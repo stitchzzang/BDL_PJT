@@ -16,6 +16,9 @@ export const NumberInput: React.FC<InputProps> = ({
   className,
   formatAsCurrency = false,
 }) => {
+  // 최대 입력 가능 금액 (9999억원)
+  const MAX_AMOUNT = 999900000000;
+
   const displayValue = () => {
     if (value === 0) return '';
     return formatAsCurrency ? formatKoreanMoney(value) : value.toString();
@@ -34,7 +37,13 @@ export const NumberInput: React.FC<InputProps> = ({
         if (numericValue === '') {
           setValue(0);
         } else {
-          setValue(parseInt(numericValue, 10));
+          // 숫자로 변환
+          const parsedValue = parseInt(numericValue, 10);
+
+          // 최대값(9999억) 제한 적용
+          const limitedValue = Math.min(parsedValue, MAX_AMOUNT);
+
+          setValue(limitedValue);
         }
       }}
     />
