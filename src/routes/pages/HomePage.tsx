@@ -1,10 +1,14 @@
+import { useNavigate } from 'react-router-dom';
+
 import { useUserRanking } from '@/api/home.api';
 import { HomeBanner } from '@/components/common/home-banner';
 import { KosdaqKospiChartContainer } from '@/components/home-page/kosdaq-kospi-chart/kosdaq-kospi-chart-container';
 import { NewsChart } from '@/components/home-page/news/news-chart';
 import { RankCards } from '@/components/home-page/rank-cards/rank-cards';
 import { RealTimeChart } from '@/components/home-page/real-time-chart/real-time-chart';
+
 export const HomePage = () => {
+  const navigate = useNavigate();
   const { data: userRanking, isLoading, isError } = useUserRanking();
 
   return (
@@ -32,10 +36,18 @@ export const HomePage = () => {
       <div className="mt-[100px] w-full">
         <div className="mb-[25px] flex flex-col gap-1">
           <h3 className="text-[28px] font-bold">
+            <span
+              className="cursor-pointer border-b-2"
+              onClick={() => {
+                navigate('/tutorial');
+              }}
+            >
+              주식 튜토리얼
+            </span>{' '}
             수익률 랭킹 <span className="text-btn-red-color">TOP5</span>
           </h3>
           <p className="text-[20px] font-light text-text-inactive-2-color">
-            BDL에서 가장 높은 수입률을 자랑하는 유저를 소개합니다.
+            BDL에서 가장 주식 튜토리얼 수익률이 높은 유저를 소개합니다.
           </p>
         </div>
         <div>

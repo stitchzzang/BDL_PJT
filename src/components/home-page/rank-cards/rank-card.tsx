@@ -1,5 +1,5 @@
 import { UserRanking } from '@/api/types/home';
-
+import { roundToTwoDecimalPlaces } from '@/utils/numberFormatter';
 interface RankCardProps {
   rankInfo: UserRanking;
 }
@@ -18,7 +18,9 @@ export const RankCard = ({ rankInfo }: RankCardProps) => {
         )}
         <p className="text-[22px] font-medium">{nickname}</p>
         <div className="rounded-2xl border border-btn-red-color px-[28px] py-[12px]">
-          <p className="text-[28px] font-bold text-btn-red-color">{changeRate} %</p>
+          <p className="text-[28px] font-bold text-btn-red-color">
+            {roundToTwoDecimalPlaces(changeRate)} %
+          </p>
         </div>
       </div>
     </div>
