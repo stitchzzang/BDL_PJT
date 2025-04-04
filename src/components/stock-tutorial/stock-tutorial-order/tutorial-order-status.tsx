@@ -1,6 +1,8 @@
+import Lottie from 'lottie-react';
 import { useEffect, useState } from 'react';
 
 export type TradeAction = 'buy' | 'sell' | 'wait';
+import NextAnimation from '@/assets/lottie/next-animation.json';
 import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-buy';
 import { TutorialOrderStatusCategory } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-category';
 import { TutorialOrderStatusSell } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-sell';
@@ -66,7 +68,7 @@ export const TutorialOrderStatus = ({
   };
 
   return (
-    <div className="h-full">
+    <div className="relative h-full">
       <div className="h-[100%] rounded-2xl bg-modal-background-color p-5">
         <div className="mb-[25px]">
           <TutorialOrderStatusCategory
@@ -101,6 +103,27 @@ export const TutorialOrderStatus = ({
           )}
         </div>
       </div>
+
+      {/* 턴 완료 후 오버레이 표시 */}
+      {isCurrentTurnCompleted && currentTurn < 4 && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+          <p className="mb-2 text-xl font-bold text-white">거래 체결 성공</p>
+          <p className="mb-4 text-xl font-bold text-white">다음 턴으로 가기를 선택하세요!</p>
+          <div className="mb-2 h-32 w-32">
+            <Lottie animationData={NextAnimation} loop={true} />
+          </div>
+        </div>
+      )}
+
+      {/* 4단계(마지막 턴)에서는 결과 확인하기 안내 */}
+      {isCurrentTurnCompleted && currentTurn === 4 && (
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+          <p className="mb-4 text-xl font-bold text-white">튜토리얼 결과를 확인해보세요!</p>
+          <div className="mb-2 h-32 w-32">
+            <Lottie animationData={NextAnimation} loop={true} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
