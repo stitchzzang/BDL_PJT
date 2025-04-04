@@ -107,8 +107,8 @@ export const TutorialOrderStatus = ({
       {/* 턴 완료 후 오버레이 표시 */}
       {isCurrentTurnCompleted && currentTurn < 4 && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
-          <p className="mb-2 text-xl font-bold text-white">거래 체결 성공</p>
-          <p className="mb-4 text-xl font-bold text-white">다음 턴으로 가기를 선택하세요!</p>
+          <p className="mb-3 text-2xl font-bold text-white">거래 체결 성공!</p>
+          <p className="mb-1 text-lg font-bold text-white">한 턴당 한 번만 거래할 수 있어요.</p>
           <div className="mb-2 h-32 w-32">
             <Lottie animationData={NextAnimation} loop={true} />
           </div>
