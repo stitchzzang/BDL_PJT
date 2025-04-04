@@ -10,7 +10,7 @@ export const StockTutorialNews = ({ currentNews, companyId }: StockTutorialNewsP
   if (!currentNews) {
     return (
       <div>
-        <div className="rounded-xl bg-modal-background-color p-5">
+        <div className="mb-[15px] rounded-xl bg-modal-background-color p-5">
           <h1 className="mb-2 text-[20px] font-bold">교육용 뉴스</h1>
           <p className="text-border-color">튜토리얼을 진행하면 이 곳에 교육용 뉴스가 표시됩니다.</p>
         </div>
