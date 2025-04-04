@@ -47,7 +47,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
           }}
         />
       </div>
-      <div className="items-left flex w-full rounded-lg border border-border-color bg-modal-background-color p-[15px]">
+      <div className="items-left flex w-full rounded-lg border border-border-color bg-modal-background-color p-[25px]">
         <h1 className="whitespace-pre-line leading-relaxed">
           <DecryptedText
             text={displayText}
