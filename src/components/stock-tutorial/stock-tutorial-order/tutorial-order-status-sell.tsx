@@ -235,9 +235,6 @@ export const TutorialOrderStatusSell = ({
           >
             <p className=" text-[18px] font-medium text-white">판매하기</p>
           </Button>
-          <p className="text-[14px] font-light text-[#718096]">
-            결제 수수료는 결제 금액의 0.004% 입니다.
-          </p>
         </div>
       </div>
     </div>
