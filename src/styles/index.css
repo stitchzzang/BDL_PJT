@@ -103,3 +103,13 @@ html {
 .Toastify__toast {
   font-family: 'Spoqa Han Sans Neo';
 }
+
+/* 스크롤바 숨기기 */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
