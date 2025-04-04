@@ -287,6 +287,7 @@ export const OrderStatusShell = ({
               variant="blue"
               className="w-full"
               size="sm"
+              disabled={stockAccount === 0}
               onClick={() =>
                 handleLimitOrder({
                   memberId: memberId,
@@ -297,13 +298,14 @@ export const OrderStatusShell = ({
                 })
               }
             >
-              <p className=" text-[16px] font-medium text-white">판매하기</p>
+              <p className="text-[16px] font-medium text-white">판매하기</p>
             </Button>
           ) : (
             <Button
               variant="blue"
               className="w-full"
               size="sm"
+              disabled={stockAccount === 0}
               onClick={() =>
                 handleMarketOrder({
                   memberId: memberId,
@@ -313,7 +315,7 @@ export const OrderStatusShell = ({
                 })
               }
             >
-              <p className=" text-[16px] font-medium text-white">판매하기</p>
+              <p className="text-[16px] font-medium text-white">판매하기</p>
             </Button>
           )}
           <p className="text-[14px] font-light text-[#718096]">
