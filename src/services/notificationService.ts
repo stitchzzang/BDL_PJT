@@ -72,13 +72,16 @@ export const subscribeToNotifications = () => {
         }
       };
 
-      const connectionTimeout = setTimeout(() => {
-        const state = getReadyState(newEventSource.readyState);
-        if (newEventSource.readyState !== EventSource.OPEN) {
-          newEventSource.close();
-          reconnectSSE();
-        }
-      }, 10000);
+      const connectionTimeout = setTimeout(
+        () => {
+          const state = getReadyState(newEventSource.readyState);
+          if (newEventSource.readyState !== EventSource.OPEN) {
+            newEventSource.close();
+            reconnectSSE();
+          }
+        },
+        60 * 60 * 1000,
+      );
 
       newEventSource.onopen = (event) => {
         clearTimeout(connectionTimeout);
@@ -106,7 +109,7 @@ export const subscribeToNotifications = () => {
           clearInterval(connectionCheck);
           reconnectSSE();
         }
-      }, 5000);
+      }, 15000);
 
       // @ts-expect-error EventSource type mismatch
       newEventSource.onerror = (ev: Event) => {
