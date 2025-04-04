@@ -114,7 +114,7 @@ export const TutorialOrderStatus = ({
           />
         </div>
         <hr className="mb-2 border border-border-color border-opacity-20" />
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-[450px] overflow-y-auto">
           {isActiveCategory === '구매' && (
             <TutorialOrderStatusBuy
               onBuy={(price, quantity) => handleTrade('buy', price, quantity)}

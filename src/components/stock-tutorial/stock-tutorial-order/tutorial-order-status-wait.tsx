@@ -7,9 +7,10 @@ export interface TutorialOrderStatusWaitProps {
 
 export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatusWaitProps) => {
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-col">
-        <div className="mb-1 flex flex-col gap-1.5">
+    <div className="flex h-full animate-fadeIn flex-col">
+      <h3 className="text-[16px] font-bold text-btn-green-color">관망하기</h3>
+      <div className="flex h-full flex-col justify-between">
+        <div className="mb-3 flex w-full flex-col gap-3">
           <div className="rounded-lg bg-[#1A1D2D] p-3">
             <p className="mb-1 text-[16px] font-semibold text-white">관망은 무엇인가요?</p>
             <p className="mb-1 text-[14px] text-gray-300">
@@ -23,10 +24,11 @@ export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatu
             </p>
           </div>
         </div>
-        <div className="mt-1">
+        <div className="mt-auto">
           <Button
             variant="green"
-            className="min-h-10 w-full px-8 py-6"
+            className="w-full"
+            size="lg"
             onClick={onWait}
             disabled={!isActive}
           >
