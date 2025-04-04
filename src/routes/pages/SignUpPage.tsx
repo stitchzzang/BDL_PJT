@@ -130,7 +130,7 @@ export const SignUpPage = () => {
                   <FormItem className="w-full">
                     <div className="relative">
                       <FormControl>
-                        <Input placeholder="이메일" className="h-12 pr-10" {...field} />
+                        <Input placeholder="example@domain.com" className="h-12 pr-10" {...field} />
                       </FormControl>
                       {isValid && (
                         <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
@@ -139,9 +139,9 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    <p className="text-sm text-text-main-color">
+                    {/* <p className="text-sm text-text-main-color">
                       이메일은 example@domain.com 형식이어야 합니다.
-                    </p>
+                    </p> */}
                   </FormItem>
                 );
               }}
