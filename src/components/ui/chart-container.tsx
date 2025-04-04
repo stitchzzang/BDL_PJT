@@ -5,6 +5,7 @@ import { MinuteChart } from '@/components/ui/chart-simulate';
 import { WeekChart } from '@/components/ui/chart-week';
 import { TickCandleChart } from '@/components/ui/tick-chart2';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
+import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 // 타입 정의 (분봉데이터 - 초기 데이터 적재를 위하여)
 interface StockMinuteData {
@@ -77,7 +78,7 @@ export const ChartContainer = ({
   const todayInfo = getTodayFormatted();
 
   return (
-    <div className="rounded-2xl bg-modal-background-color p-2 pt-5 h-[100%]">
+    <div className="h-[100%] rounded-2xl bg-modal-background-color p-2 pt-5">
       <div className="flex justify-between text-[14px]">
         <div className="mx-2 flex gap-2 rounded-xl">
           <button
@@ -111,28 +112,58 @@ export const ChartContainer = ({
             주
           </button>
         </div>
-        <div className="flex items-center justify-center gap-1 rounded-xl p-1">
-          <p className="text-[14px]">{todayInfo}</p>
-        </div>
+        {tickData ? (
+          <div className="flex gap-2 text-border-color">
+            <div>
+              <p>
+                시가:{' '}
+                <span className="font-bold text-white">
+                  {' '}
+                  {formatKoreanMoney(tickData.stckOprc)} 원
+                </span>
+              </p>
+            </div>
+            <div>
+              <p>
+                고가:{' '}
+                <span className="font-bold text-white">
+                  {' '}
+                  {formatKoreanMoney(tickData.stckHgpr)} 원
+                </span>
+              </p>
+            </div>
+            <div>
+              <p>
+                저가:{' '}
+                <span className="font-bold text-white">
+                  {' '}
+                  {formatKoreanMoney(tickData.stckLwpr)} 원
+                </span>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
       <div className="mb-[15px] mt-[15px] border-b  border-border-color border-opacity-20"></div>
       {tickData ? (
         <div className="grid grid-cols-10 gap-1">
           <div className="col-span-8">
             {chartType === 'minute' && (
-              <MinuteChart initialData={initialData} companyId={companyId} height={280} />
+              <MinuteChart initialData={initialData} companyId={companyId} height={440} />
             )}
             {chartType === 'day' && (
-              <DailyChart periodType={'day'} companyId={companyId} height={280} />
+              <DailyChart periodType={'day'} companyId={companyId} height={440} />
             )}
             {chartType === 'week' && (
-              <WeekChart periodType={'week'} companyId={companyId} height={280} />
+              <WeekChart periodType={'week'} companyId={companyId} height={440} />
             )}
           </div>
           <div className="col-span-2 mb-2  mr-2  rounded-2xl border border-border-color border-opacity-20">
             <TickCandleChart
               tickData={tickData}
-              height={100}
+              height={180}
               basePrice={tickData.stckOprc} // 초기 기준가
             />
           </div>
@@ -140,13 +171,13 @@ export const ChartContainer = ({
       ) : (
         <>
           {chartType === 'minute' && (
-            <MinuteChart initialData={initialData} companyId={companyId} height={280} />
+            <MinuteChart initialData={initialData} companyId={companyId} height={440} />
           )}
           {chartType === 'day' && (
-            <DailyChart periodType={'day'} companyId={companyId} height={280} />
+            <DailyChart periodType={'day'} companyId={companyId} height={440} />
           )}
           {chartType === 'week' && (
-            <WeekChart periodType={'week'} companyId={companyId} height={280} />
+            <WeekChart periodType={'week'} companyId={companyId} height={440} />
           )}
         </>
       )}

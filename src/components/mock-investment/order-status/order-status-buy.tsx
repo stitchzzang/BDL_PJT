@@ -88,6 +88,10 @@ export const OrderStatusBuy = ({
   // 시장가 구매 api
   const marketOrderMutation = usePostStockMarketOrder();
   const handleMarketOrder = ({ memberId, companyId, tradeType, quantity }: MarketOrderData) => {
+    if (stockCount === 0) {
+      toast.error('수량을 입력해주세요.');
+      return;
+    }
     marketOrderMutation.mutate(
       {
         memberId: memberId,
@@ -131,14 +135,12 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: (res) => {
-          setBuyCost(0);
           setStockCount(0);
           queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
-        onError: (err) => {
-          console.log(err);
-          toast.error('잔액이 부족합니다.');
+        onError: () => {
+          setStockCount(0);
         },
       },
     );
@@ -171,7 +173,7 @@ export const OrderStatusBuy = ({
                   <p className="text-[14px]">시장가</p>
                 </div>
               </div>
-              <p className="text-[11px] opacity-40">지정가는 거래시간에 가능합니다.</p>
+              <p className="text-[11px] opacity-40">시장가는 거래시간에 가능합니다.</p>
             </div>
           </div>
           <div className="flex items-center justify-between gap-4">
@@ -203,13 +205,13 @@ export const OrderStatusBuy = ({
             <div className="min-w-[74px]">
               <h3 className={h3Style}>수량</h3>
             </div>
-            <div className="relative flex w-full max-w-[80%] flex-col gap-2">
+            <div className=" flex w-full max-w-[80%] gap-2">
               <NumberInput
                 value={stockCount}
                 setValue={setStockCount}
                 placeholder="수량을 입력하세요."
               />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+              <div className="pointer-events-none inset-0 flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
                     className="text-[22px]"

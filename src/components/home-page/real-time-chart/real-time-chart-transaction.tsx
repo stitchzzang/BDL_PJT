@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useRankingVolume } from '@/api/home.api';
@@ -17,6 +17,8 @@ type StockTickDataMap = {
     stckPrpr: number;
     changeRate: number;
     tradingValue?: number; // acmlTrPbm 값을 표시하기 위해
+    priceChanged?: boolean; // 가격 변경 여부
+    isIncreased?: boolean; // 가격 상승 여부
   };
 };
 
@@ -37,22 +39,76 @@ export const RealTimeChartTransaction = () => {
   // 각 종목별 최신 틱데이터를 저장하는 상태
   const [stockTickDataMap, setStockTickDataMap] = useState<StockTickDataMap>({});
 
+  // 이전 틱데이터를 저장하는 ref (렌더링 트리거 없이 값 보존)
+  const prevTickDataMapRef = useRef<StockTickDataMap>({});
+
+  // 하이라이트 타이머를 저장할 맵
+  const highlightTimersRef = useRef<{ [stockCode: string]: NodeJS.Timeout }>({});
+
   const { IsConnected, connectRankVolume, disconnectRankVolume } = useRankVolumeConnection();
   const { connectionRankTradeData, disconnectRankTradeData } = useRankTradeDataConnection();
 
   // 틱데이터가 업데이트될 때마다 해당 종목의 데이터를 stockTickDataMap에 저장
   useEffect(() => {
     if (tickData && tickData.stockCode) {
-      setStockTickDataMap((prevMap) => ({
-        ...prevMap,
-        [tickData.stockCode]: {
-          stckPrpr: tickData.stckPrpr,
-          changeRate: tickData.changeRate,
-          tradingValue: tickData.acmlTrPbm,
-        },
-      }));
+      setStockTickDataMap((prevMap) => {
+        // 이전 가격 데이터 가져오기
+        const prevStockData = prevMap[tickData.stockCode];
+        const prevPrice = prevStockData?.stckPrpr;
+
+        // 이전 가격과 현재 가격 비교하여 변화 감지
+        const priceChanged = prevPrice !== undefined && prevPrice !== tickData.stckPrpr;
+        const isIncreased = prevPrice !== undefined && tickData.stckPrpr > prevPrice;
+
+        // 이전 맵에 현재 데이터 저장 (다음 비교용)
+        prevTickDataMapRef.current = {
+          ...prevTickDataMapRef.current,
+          [tickData.stockCode]: {
+            stckPrpr: tickData.stckPrpr,
+            changeRate: tickData.changeRate,
+            tradingValue: tickData.acmlTrPbm,
+          },
+        };
+
+        // 이전 하이라이트 타이머가 있으면 제거
+        if (highlightTimersRef.current[tickData.stockCode]) {
+          clearTimeout(highlightTimersRef.current[tickData.stockCode]);
+        }
+
+        // 새 하이라이트 타이머 설정 (1.5초 후 하이라이트 제거)
+        highlightTimersRef.current[tickData.stockCode] = setTimeout(() => {
+          setStockTickDataMap((currentMap) => ({
+            ...currentMap,
+            [tickData.stockCode]: {
+              ...currentMap[tickData.stockCode],
+              priceChanged: false,
+            },
+          }));
+        }, 1500);
+
+        // 새 데이터 반환
+        return {
+          ...prevMap,
+          [tickData.stockCode]: {
+            stckPrpr: tickData.stckPrpr,
+            changeRate: tickData.changeRate,
+            tradingValue: tickData.acmlTrPbm,
+            priceChanged: priceChanged,
+            isIncreased: isIncreased,
+          },
+        };
+      });
     }
-  }, [tickData, VolumeFirstData]);
+  }, [tickData]);
+
+  // 컴포넌트 언마운트시 모든 타이머 제거
+  useEffect(() => {
+    return () => {
+      Object.values(highlightTimersRef.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+    };
+  }, []);
 
   useEffect(() => {
     // 소켓 연결
@@ -96,12 +152,19 @@ export const RealTimeChartTransaction = () => {
                   const stockTick = stockTickDataMap[rankVolumeData.stockCode];
 
                   // 가격 변화에 따른 텍스트 색상 지정
-                  const priceColor =
+                  let priceColor =
                     stockTick?.changeRate > 0
                       ? 'text-btn-red-color'
                       : stockTick?.changeRate < 0
                         ? 'text-btn-blue-color'
-                        : 'text-btn-red-color';
+                        : '';
+
+                  // 가격이 방금 변경되었으면 변경 하이라이트 색상 적용
+                  if (stockTick?.priceChanged) {
+                    priceColor = stockTick.isIncreased
+                      ? 'text-btn-red-color font-bold animate-pulse'
+                      : 'text-btn-blue-color font-bold animate-pulse';
+                  }
 
                   return (
                     <div
@@ -130,20 +193,25 @@ export const RealTimeChartTransaction = () => {
                       </div>
 
                       {/* 현재가 */}
-                      <div className={`w-[20%] text-right ${priceColor}`}>
+                      <div
+                        className={`w-[20%] text-right transition-all duration-300 ${priceColor}`}
+                      >
                         {stockTick
                           ? `${addCommasToThousand(stockTick.stckPrpr)} 원`
                           : VolumeFirstData && VolumeFirstData[index]
                             ? `${addCommasToThousand(VolumeFirstData[index].stckPrpr)} 원`
                             : '0 원'}
                       </div>
+
                       {/* 등락률 */}
-                      <div className={`w-[20%] text-right ${priceColor}`}>
+                      <div
+                        className={`w-[20%] text-right transition-all duration-300 ${priceColor}`}
+                      >
                         {stockTick
-                          ? `${formatKoreanMoney(stockTick.stckPrpr)} 원`
+                          ? `${stockTick.changeRate > 0 ? '+' : ''}${stockTick.changeRate.toFixed(2)}%`
                           : VolumeFirstData && VolumeFirstData[index]
-                            ? `${formatKoreanMoney(VolumeFirstData[index].stckPrpr)} 원`
-                            : '0 원'}
+                            ? `${VolumeFirstData[index].changeRate > 0 ? '+' : ''}${VolumeFirstData[index].changeRate.toFixed(2)}%`
+                            : '0%'}
                       </div>
 
                       {/* 거래대금 */}
