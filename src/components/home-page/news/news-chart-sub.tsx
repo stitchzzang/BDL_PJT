@@ -14,7 +14,7 @@ export const NewsChartSub = ({ newsSubInfo }: NewsChartSubProps) => {
   return (
     <button className="group w-full rounded-2xl transition-all" onClick={handleNewsClick}>
       <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center">
-        <div className="max-h-[100px] max-w-[100px] overflow-hidden rounded-2xl transition-opacity group-hover:opacity-90">
+        <div className="max-h-[100px] max-w-[100px] overflow-hidden rounded-md transition-opacity group-hover:opacity-90">
           {newsSubInfo?.newsThumbnailUrl === null ? (
             <img
               src="/none-img/none_stock_img.png"
@@ -29,7 +29,7 @@ export const NewsChartSub = ({ newsSubInfo }: NewsChartSubProps) => {
             />
           )}
         </div>
-        <h3 className="line-clamp-2 whitespace-normal break-words text-left text-[18px] font-bold transition-colors group-hover:text-primary-color group-hover:underline">
+        <h3 className="line-clamp-1 whitespace-normal break-words text-left text-[18px] font-bold transition-colors group-hover:text-primary-color group-hover:underline">
           {newsSubInfo?.newsTitle}
         </h3>
       </div>

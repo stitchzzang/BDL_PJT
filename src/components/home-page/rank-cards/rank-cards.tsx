@@ -8,34 +8,6 @@ export interface RankInformation {
   imgUrl: string | null;
 }
 
-const RankInformations: RankInformation[] = [
-  {
-    name: '크와와왕',
-    rate: 23.2,
-    imgUrl: null,
-  },
-  {
-    name: '크와와왕',
-    rate: 23.2,
-    imgUrl: null,
-  },
-  {
-    name: '크와와왕',
-    rate: 23.2,
-    imgUrl: null,
-  },
-  {
-    name: '크와와왕',
-    rate: 23.2,
-    imgUrl: null,
-  },
-  {
-    name: '크와와왕',
-    rate: 23.2,
-    imgUrl: null,
-  },
-];
-
 export const RankCards = ({
   userRanking,
   isLoading,

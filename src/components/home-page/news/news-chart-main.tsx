@@ -13,7 +13,7 @@ export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
 
   return (
     <button className="group w-full rounded-2xl" onClick={handleNewsClick}>
-      <div className="inline-block max-h-[250px] overflow-hidden rounded-2xl transition-opacity group-hover:opacity-90">
+      <div className="inline-block max-h-[250px] overflow-hidden rounded-md transition-opacity group-hover:opacity-90">
         {newsMainInfo?.newsThumbnailUrl === null ? (
           <img
             src="/none-img/none_news_img.png"
@@ -34,7 +34,7 @@ export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
             {newsMainInfo?.newsTitle}
           </h3>
         </div>
-        <p className="mt-1 line-clamp-4 whitespace-normal break-words text-left text-[15px] font-light transition-colors group-hover:text-text-main-color group-hover:underline">
+        <p className="mt-1 line-clamp-2 whitespace-normal break-words text-left text-[15px] font-light transition-colors group-hover:text-text-main-color group-hover:underline">
           {newsMainInfo?.newsContent}
         </p>
       </div>
