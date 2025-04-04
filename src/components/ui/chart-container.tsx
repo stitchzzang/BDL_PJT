@@ -64,14 +64,20 @@ interface MinuteChartProps {
   companyId?: number;
   initialData?: StockMinuteDefaultData; // 부모 컴포넌트에서 받는 초기 데이터
   tickData?: TickData;
+  closePrice?: number;
 }
 
-export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChartProps) => {
+export const ChartContainer = ({
+  initialData,
+  companyId,
+  tickData,
+  closePrice,
+}: MinuteChartProps) => {
   const [chartType, setChartType] = useState<'minute' | 'day' | 'week'>('minute');
   const todayInfo = getTodayFormatted();
 
   return (
-    <div className="rounded-2xl bg-modal-background-color p-2 pt-5">
+    <div className="rounded-2xl bg-modal-background-color p-2 pt-5 h-[100%]">
       <div className="flex justify-between text-[14px]">
         <div className="mx-2 flex gap-2 rounded-xl">
           <button
@@ -111,7 +117,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
       </div>
       <div className="mb-[15px] mt-[15px] border-b  border-border-color border-opacity-20"></div>
       {tickData ? (
-        <div className="grid grid-cols-10">
+        <div className="grid grid-cols-10 gap-1">
           <div className="col-span-8">
             {chartType === 'minute' && (
               <MinuteChart initialData={initialData} companyId={companyId} height={280} />
@@ -127,7 +133,7 @@ export const ChartContainer = ({ initialData, companyId, tickData }: MinuteChart
             <TickCandleChart
               tickData={tickData}
               height={100}
-              basePrice={initialData?.data[0]?.openPrice} // 초기 기준가
+              basePrice={tickData.stckOprc} // 초기 기준가
             />
           </div>
         </div>
