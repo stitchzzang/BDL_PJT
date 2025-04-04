@@ -44,7 +44,7 @@ export const SellingPrice = ({ stockCompanyInfo }: SellingPrice) => {
         <div className="relative h-full overflow-hidden rounded-2xl border border-border-color border-opacity-20 p-[20px]">
           <div className="absolute inset-0 h-full w-full">
             <SparklesCore
-              id="sparkles"
+              id="sparkles1"
               background="transparent"
               minSize={0.6}
               maxSize={1.4}
