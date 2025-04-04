@@ -1486,6 +1486,7 @@ export const SimulatePage = () => {
             ownedStockCount={ownedStockCount}
             currentTurn={currentTurn}
             isCurrentTurnCompleted={isCurrentTurnCompleted}
+            availableOrderAsset={assetInfo.availableOrderAsset}
           />
         </div>
       </div>
@@ -1541,7 +1542,6 @@ export const SimulatePage = () => {
         */}
         <StockTutorialComment comment={newsComment} />
       </div>
-      <div className="mt-[25px] grid grid-cols-6 gap-3"></div>
       <div className="mt-[25px] grid grid-cols-6 gap-3">
         <div className="col-span-4">
           {/* 

@@ -9,12 +9,16 @@ export interface TutorialOrderStatusBuyProps {
   companyId: number;
   latestPrice: number;
   isActive: boolean;
+  availableOrderAsset?: number; // 구매 가능한 자금 (옵션)
+  ownedStockCount?: number; // 보유 주식 수량 (옵션)
 }
 
 export const TutorialOrderStatusBuy = ({
   onBuy,
   latestPrice,
   isActive: isSessionActive,
+  availableOrderAsset = 0, // 기본값 0
+  ownedStockCount = 0, // 기본값 0
 }: TutorialOrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
@@ -64,6 +68,12 @@ export const TutorialOrderStatusBuy = ({
     return buyCost * stockCount;
   };
 
+  // 최대 구매 가능한 수량 계산
+  const maxPurchasableStocks = () => {
+    if (buyCost <= 0) return 0;
+    return Math.floor(availableOrderAsset / buyCost);
+  };
+
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -71,6 +81,13 @@ export const TutorialOrderStatusBuy = ({
   // 구매 처리
   const handleBuyStock = () => {
     if (!isSessionActive || stockCount <= 0 || buyCost <= 0) return;
+
+    // 구매 가능 금액 체크
+    if (totalPrice() > availableOrderAsset) {
+      alert(`구매 가능 금액(${formatKoreanMoney(availableOrderAsset)}원)을 초과했습니다.`);
+      return;
+    }
+
     onBuy(buyCost, stockCount);
     setStockCount(0); // 구매 후 수량 초기화
   };
@@ -140,12 +157,32 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
+          {/* 구매 가능 수량 표시 */}
+          <div className="flex items-center justify-between">
+            <div className="min-w-[74px]">
+              <h3 className="text-[14px] text-border-color">구매 가능 수량</h3>
+            </div>
+            <div className="flex w-full max-w-[60%] flex-col">
+              <p className="text-right text-[14px] text-border-color">{maxPurchasableStocks()}주</p>
+            </div>
+          </div>
+          {/* 보유 수량 표시 */}
+          <div className="flex items-center justify-between">
+            <div className="min-w-[74px]">
+              <h3 className="text-[14px] text-border-color">보유 수량</h3>
+            </div>
+            <div className="flex w-full max-w-[80%] flex-col">
+              <p className="text-right text-[14px] text-border-color">{ownedStockCount}주</p>
+            </div>
+          </div>
           <hr className="border border-border-color border-opacity-20" />
         </div>
         <div className="mt-[20px] flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>구매가능 금액</h3>
-            <h3 className={h3Style}>{isSessionActive ? formatKoreanMoney(buyCost) : '-'} 원</h3>
+            <h3 className={h3Style}>
+              {isSessionActive ? formatKoreanMoney(availableOrderAsset) : '-'} 원
+            </h3>
           </div>
           <div className="flex items-center justify-between">
             <h3 className={h3Style}>총 주문 금액</h3>
@@ -160,7 +197,7 @@ export const TutorialOrderStatusBuy = ({
             className="w-full"
             size="lg"
             onClick={handleBuyStock}
-            disabled={!isSessionActive || stockCount <= 0}
+            disabled={!isSessionActive || stockCount <= 0 || totalPrice() > availableOrderAsset}
           >
             <p className=" text-[18px] font-medium text-white">구매하기</p>
           </Button>

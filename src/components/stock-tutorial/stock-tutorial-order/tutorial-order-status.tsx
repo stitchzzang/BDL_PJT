@@ -16,6 +16,7 @@ export interface TutorialOrderStatusProps {
   ownedStockCount?: number; // 보유 주식 수량 (옵션)
   currentTurn: number; // 현재 턴 번호 추가
   isCurrentTurnCompleted: boolean; // 현재 턴 완료 여부 추가
+  availableOrderAsset?: number; // 구매 가능 금액 추가
 }
 
 export const TutorialOrderStatus = ({
@@ -26,6 +27,7 @@ export const TutorialOrderStatus = ({
   ownedStockCount = 0, // 기본값 0
   currentTurn,
   isCurrentTurnCompleted,
+  availableOrderAsset = 0, // 기본값 0
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';
@@ -83,7 +85,9 @@ export const TutorialOrderStatus = ({
               onBuy={(price, quantity) => handleTrade('buy', price, quantity)}
               companyId={companyId}
               latestPrice={latestPrice}
-              isActive={isSessionActive && !isCurrentTurnCompleted}
+              isActive={isSessionActive && !isCurrentTurnCompleted && currentTurn < 4}
+              availableOrderAsset={availableOrderAsset}
+              ownedStockCount={ownedStockCount}
             />
           )}
           {isActiveCategory === '판매' && (
