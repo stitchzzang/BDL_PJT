@@ -122,7 +122,7 @@ export const OrderStatusShell = ({
     );
   };
 
-  // 지정가 판매매 api
+  // 지정가 판매 api
   const limitOrderMutation = usePostStockLimitOrder();
   const handleLimitOrder = ({
     memberId,
