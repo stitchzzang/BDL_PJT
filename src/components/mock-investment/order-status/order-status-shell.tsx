@@ -111,10 +111,12 @@ export const OrderStatusShell = ({
       },
       {
         onSuccess: () => {
-          toast.success(`주문이 성공적으로 처리되었습니다.`);
           queryClient.invalidateQueries({ queryKey: ['stockAccount'] });
+          setStockCount(0);
+          toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: () => {
+          setStockCount(0);
           toast.error('판매중 오류가 발생했습니다.');
         },
       },
@@ -145,9 +147,11 @@ export const OrderStatusShell = ({
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['stockAccount'] });
+          setStockCount(0);
           toast.success('주문이 성공적으로 처리되었습니다.');
         },
         onError: () => {
+          setStockCount(0);
           toast.success('판매중 오류가 발생했습니다.');
         },
       },

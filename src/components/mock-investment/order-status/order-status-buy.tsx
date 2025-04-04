@@ -131,7 +131,6 @@ export const OrderStatusBuy = ({
       },
       {
         onSuccess: (res) => {
-          setBuyCost(0);
           setStockCount(0);
           queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           toast.success(`주문이 성공적으로 처리되었습니다.`);
