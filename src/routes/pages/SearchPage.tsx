@@ -22,6 +22,7 @@ export const SearchPage = () => {
     categoryId: categoryQuery,
     companyName: searchQuery,
   });
+  const [isRotating, setIsRotating] = useState(false);
 
   const {
     data: searchedCompanies,
@@ -40,10 +41,12 @@ export const SearchPage = () => {
   }, [searchQuery, categoryQuery]);
 
   const handleSearch = () => {
+    setIsRotating(true);
     navigate(`/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
     setTimeout(() => {
+      setIsRotating(false);
       refetch();
-    }, 100);
+    }, 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -60,7 +63,7 @@ export const SearchPage = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (getByteLength(value) > 15) {
+    if (value.length > 15) {
       setCompanyName('');
       toast.info('검색 가능한 기업명은 15자 이하입니다.');
       return;
@@ -111,7 +114,7 @@ export const SearchPage = () => {
                 </p>
               </div>
             </div>
-            <div className="flex w-full items-center gap-2 rounded-full bg-[#0D192B] p-4 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
+            <div className="flex w-full items-center gap-2 rounded-full border border-border-color border-opacity-40 bg-[#0D192B] p-4 duration-300 focus-within:outline-primary-color hover:border-btn-blue-color">
               <input
                 className="w-full bg-transparent text-[#718096] focus:outline-none"
                 type="text"
@@ -123,12 +126,13 @@ export const SearchPage = () => {
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
               />
-
               <button
-                className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
+                className="group text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
                 onClick={handleSearch}
               >
-                <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
+                <MagnifyingGlassIcon
+                  className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'group-hover:animate-rotate group-hover:text-primary-color'}`}
+                />
               </button>
             </div>
             <CategoryList setCategoryId={handleCategoryChange} activeCategoryId={categoryId} />
