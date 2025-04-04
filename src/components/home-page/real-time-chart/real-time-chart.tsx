@@ -2,7 +2,7 @@ import { RealTimeChartFall } from '@/components/home-page/real-time-chart/real-t
 import { RealTimeChartRise } from '@/components/home-page/real-time-chart/real-time-chart-rise';
 import { RealTimeChartTransaction } from '@/components/home-page/real-time-chart/real-time-chart-transaction';
 import { Tabs } from '@/components/ui/tabs';
-import { TermTooltip } from '@/components/ui/TermTooltip';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 
 // 차트 타입 정의
 enum chartType {

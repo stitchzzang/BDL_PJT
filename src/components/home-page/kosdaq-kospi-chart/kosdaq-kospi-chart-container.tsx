@@ -3,7 +3,7 @@ import { ChartLoadingAnimation } from '@/components/common/chart-loading-animati
 import { ErrorScreen } from '@/components/common/error-screen';
 import { KosdaqChart } from '@/components/home-page/kosdaq-kospi-chart/kosdaq-chart';
 import { KospiChart } from '@/components/home-page/kosdaq-kospi-chart/kospi-chart';
-import { TermTooltip } from '@/components/ui/TermTooltip';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 export const KosdaqKospiChartContainer = () => {
   const { data: KosdaqKospiData, isError, isLoading } = useKosdaqKospiData();
   if (isLoading) {

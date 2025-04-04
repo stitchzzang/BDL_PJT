@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useCreateAlgorithm } from '@/api/algorithm.api';
 import { Button } from '@/components/ui/button';
-import { TermTooltip } from '@/components/ui/TermTooltip';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';

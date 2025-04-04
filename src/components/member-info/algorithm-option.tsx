@@ -1,5 +1,5 @@
 import { Algorithm } from '@/api/types/algorithm';
-import { TermTooltip } from '@/components/ui/TermTooltip';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 type AlgorithmOptionProps = {
