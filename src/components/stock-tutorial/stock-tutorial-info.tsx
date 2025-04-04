@@ -244,7 +244,7 @@ export const StockTutorialInfo = ({
                     {addCommasToThousand(displayPrice || 0)}원
                   </h3>
                   {isTutorialStarted && currentTurn > 0 && (
-                    <div className="flex justify-center gap-2 rounded-lg">
+                    <div className="ml-2 flex justify-center gap-2 rounded-lg">
                       <p className="text-border-color">{currentTurn}단계 현재가</p>
                     </div>
                   )}

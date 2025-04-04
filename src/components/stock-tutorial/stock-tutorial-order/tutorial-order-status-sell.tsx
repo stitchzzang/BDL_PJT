@@ -116,8 +116,8 @@ export const TutorialOrderStatusSell = ({
   };
 
   return (
-    <div className="flex flex-col h-full animate-fadeIn">
-      <h3 className={h3Style}>판매하기</h3>
+    <div className="flex h-full animate-fadeIn flex-col">
+      <h3 className="text-[16px] font-bold text-blue-500">판매하기</h3>
       <div className="flex h-full flex-col justify-between">
         <div className="mb-3 flex w-full flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
