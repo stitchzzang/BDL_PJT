@@ -29,12 +29,6 @@ export const StockInfoDetailList = ({ companyMainInfo }: StockInfoDetailListProp
         </span>
       </div>
       <div className={divStyle}>
-        <span className="text-[14px] text-border-color">발행금액:</span>
-        <span className="text-[14px] font-light">
-          {formatKoreanMoney(companyMainInfo.issuePrice)} 원
-        </span>
-      </div>
-      <div className={divStyle}>
         <span className="text-[14px] text-border-color">당일종가:</span>
         <span className="text-[14px] font-light">
           {formatKoreanMoney(companyMainInfo.closePrice)} 원
