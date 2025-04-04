@@ -10,7 +10,7 @@ const DB_CATEGORY_NAMES: CategoryName[] = [
   '엔터',
   '방산',
   '화장품',
-  '음식',
+  '음식료',
   '금속',
   '바이오',
 ];
