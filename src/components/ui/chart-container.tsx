@@ -117,19 +117,19 @@ export const ChartContainer = ({
         <div className="grid grid-cols-10 gap-1">
           <div className="col-span-8">
             {chartType === 'minute' && (
-              <MinuteChart initialData={initialData} companyId={companyId} height={280} />
+              <MinuteChart initialData={initialData} companyId={companyId} height={440} />
             )}
             {chartType === 'day' && (
-              <DailyChart periodType={'day'} companyId={companyId} height={280} />
+              <DailyChart periodType={'day'} companyId={companyId} height={440} />
             )}
             {chartType === 'week' && (
-              <WeekChart periodType={'week'} companyId={companyId} height={280} />
+              <WeekChart periodType={'week'} companyId={companyId} height={440} />
             )}
           </div>
           <div className="col-span-2 mb-2  mr-2  rounded-2xl border border-border-color border-opacity-20">
             <TickCandleChart
               tickData={tickData}
-              height={100}
+              height={180}
               basePrice={tickData.stckOprc} // 초기 기준가
             />
           </div>
@@ -137,13 +137,13 @@ export const ChartContainer = ({
       ) : (
         <>
           {chartType === 'minute' && (
-            <MinuteChart initialData={initialData} companyId={companyId} height={280} />
+            <MinuteChart initialData={initialData} companyId={companyId} height={440} />
           )}
           {chartType === 'day' && (
-            <DailyChart periodType={'day'} companyId={companyId} height={280} />
+            <DailyChart periodType={'day'} companyId={companyId} height={440} />
           )}
           {chartType === 'week' && (
-            <WeekChart periodType={'week'} companyId={companyId} height={280} />
+            <WeekChart periodType={'week'} companyId={companyId} height={440} />
           )}
         </>
       )}
