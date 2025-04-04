@@ -21,7 +21,7 @@ export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) 
 
       <div className="mt-4 flex flex-col gap-5 md:flex-row">
         {news.newsThumbnailUrl ? (
-          <div className="h-[200px] w-full overflow-hidden rounded-lg md:h-[240px] md:w-2/5">
+          <div className="object-fit:cover h-[100px] w-[100px] overflow-hidden rounded-lg md:h-[240px] md:w-2/5">
             <img
               src={news.newsThumbnailUrl}
               alt={news.newsTitle}
