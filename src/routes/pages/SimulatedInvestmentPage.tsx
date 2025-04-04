@@ -100,8 +100,8 @@ export const SimulatedInvestmentPage = () => {
     );
   }
   return (
-    <div className="flex h-full w-full flex-col px-4">
-      <div className="mb-3">
+    <div className="flex h-full w-full flex-col px-6">
+      <div className="mb-6">
         <StockInfo
           stockCompanyInfo={stockCompanyInfo}
           tickData={tickData}
@@ -110,82 +110,60 @@ export const SimulatedInvestmentPage = () => {
           companyId={stockCompanyId}
         />
       </div>
-      <div className="grid grid-cols-1 gap-1 lg:grid-cols-16">
-        <div className="col-span-1 flex flex-col gap-1 lg:col-span-12">
-          <div>
-            {tickData ? (
-              <>
-                {minuteData ? (
-                  <ChartContainer
-                    initialData={minuteData}
-                    companyId={stockCompanyId}
-                    tickData={tickData}
-                  />
-                ) : (
-                  <LoadingAnimation />
-                )}
-              </>
-            ) : (
-              <>
-                {minuteData ? (
-                  <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
-                ) : (
-                  <LoadingAnimation />
-                )}
-              </>
-            )}
-          </div>
-          <div className="grid grid-cols-2 gap-1">
-            {tickData ? (
-              <>
-                <div className="col-span-1">
-                  <TickChart
-                    tickData={tickData}
-                    height={150}
-                    basePrice={minuteData?.data[0]?.openPrice} // 기준가 (첫번째 데이터의 시가)
-                  />
-                </div>
-                <div className="col-span-1">
-                  <SellingPrice stockCompanyInfo={stockCompanyInfo} />
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="col-span-2">
-                  <SellingPrice stockCompanyInfo={stockCompanyInfo} />
-                </div>
-              </>
-            )}
-          </div>
-          <div>
-            <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
-          </div>
+      <div className="grid grid-cols-1 gap-1 lg:grid-cols-12">
+        <div className="col-span-1 lg:col-span-9">
+          {tickData ? (
+            <>
+              {minuteData ? (
+                <ChartContainer
+                  initialData={minuteData}
+                  companyId={stockCompanyId}
+                  tickData={tickData}
+                />
+              ) : (
+                <LoadingAnimation />
+              )}
+            </>
+          ) : (
+            <>
+              {minuteData ? (
+                <ChartContainer initialData={minuteData} companyId={stockCompanyId} />
+              ) : (
+                <LoadingAnimation />
+              )}
+            </>
+          )}
         </div>
-        <div className="sticky top-2 col-span-1 flex flex-col gap-1 lg:col-span-4">
-          <div>
-            <OrderStatus
-              closePrice={closePrice}
-              realTime={tickData?.stckPrpr}
-              companyId={stockCompanyId}
-            />
-          </div>
-          <div>
-            <StockInfoDetail />
-          </div>
+        <div className="col-span-1 lg:col-span-3">
+          <OrderStatus
+            closePrice={closePrice}
+            realTime={tickData?.stckPrpr}
+            companyId={stockCompanyId}
+          />
         </div>
       </div>
-
-      {/* <div className="grid grid-cols-10 gap-2">
-        <div className="col-span-6">
+      {tickData ? (
+        <div className="my-1">
+          <TickChart
+            tickData={tickData}
+            height={120}
+            basePrice={tickData.stckOprc} // 기준가 (첫번째 데이터의 시가)
+          />
+        </div>
+      ) : (
+        <div className="my-1"></div>
+      )}
+      <div className="grid grid-cols-10 gap-2">
+        <div className="col-span-5">
           <StockCostHistory tickData={tickData} DayData={stockDailyData?.result.data} />
         </div>
         <div className="col-span-2">
           <StockInfoDetail />
         </div>
-        <div className="col-span-2">
+        <div className="col-span-3">
           <SellingPrice stockCompanyInfo={stockCompanyInfo} />
         </div>
-      </div> */}
+      </div>
     </div>
   );
 };
