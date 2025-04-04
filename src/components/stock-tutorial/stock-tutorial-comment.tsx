@@ -5,6 +5,10 @@ import robotMove from '@/assets/lottie/robot-animation.json';
 import { DecryptedText } from '@/components/ui/decrypted-text';
 
 interface StockTutorialCommentProps {
+  /**
+   * AI가 제공하는 뉴스 코멘트 문자열
+   * API에서 받아온 코멘트가 없는 경우 기본 텍스트가 표시됨
+   */
   comment: string;
 }
 

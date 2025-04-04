@@ -514,7 +514,7 @@ export const SimulatePage = () => {
         setAssetInfo((prev) => ({
           ...prev,
           availableOrderAsset: newAvailableAsset,
-          // 현재 총자산과 수익률은 변경하지 않음 (다음 턴으로 넘어갈 때 계산)
+          // currentTotalAsset과 totalReturnRate는 변경하지 않음 (다음 턴으로 넘어갈 때 계산)
         }));
 
         // 보유 주식 수량 업데이트
@@ -529,7 +529,7 @@ export const SimulatePage = () => {
         setAssetInfo((prev) => ({
           ...prev,
           availableOrderAsset: newAvailableAsset,
-          // 현재 총자산과 수익률은 변경하지 않음 (다음 턴으로 넘어갈 때 계산)
+          // currentTotalAsset과 totalReturnRate는 변경하지 않음 (다음 턴으로 넘어갈 때 계산)
         }));
 
         // 보유 주식 수량 업데이트
@@ -775,6 +775,7 @@ export const SimulatePage = () => {
       totalReturnRate: newReturnRate,
     };
 
+    // 수익률 업데이트는 다음 턴으로 넘어갈 때만 수행됨 (moveToNextTurn에서 호출)
     setAssetInfo(updatedAssetInfo);
     setFinalChangeRate(newReturnRate);
   };
@@ -1323,8 +1324,8 @@ export const SimulatePage = () => {
 
     if (isTutorialStarted && currentTurn > 0 && isMounted) {
       loadInitialData().then(() => {
-        if (isMounted) {
-          // 컴포넌트가 여전히 마운트되어 있을 때만 자산 정보 업데이트
+        if (isMounted && currentTurn > 1) {
+          // 컴포넌트가 여전히 마운트되어 있고 첫 번째 턴 이후일 때만 자산 정보 업데이트
           updateAssetInfo();
         }
       });
@@ -1376,9 +1377,22 @@ export const SimulatePage = () => {
   // 거래 내역 변경 시 자산 정보 업데이트
   useEffect(() => {
     if (trades.length > 0 && isTutorialStarted) {
-      updateAssetInfo();
+      // 수익률 업데이트를 방지하기 위해 updateAssetInfo() 호출 제거
+      // 대신 주문 가능 금액만 업데이트
+      const prevAvailableAsset = assetInfo.availableOrderAsset;
+      let totalStock = 0;
+      trades.forEach((trade) => {
+        if (trade.action === 'buy') {
+          totalStock += trade.quantity;
+        } else if (trade.action === 'sell') {
+          totalStock -= trade.quantity;
+        }
+      });
+      // 음수가 되지 않도록 보정
+      totalStock = Math.max(0, totalStock);
+      setOwnedStockCount(totalStock);
     }
-  }, [trades, latestPrice]);
+  }, [trades]);
 
   return (
     <div className="flex h-full w-full flex-col px-6">
