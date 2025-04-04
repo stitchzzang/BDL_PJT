@@ -70,7 +70,7 @@ export const SearchPage = () => {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pastedText = e.clipboardData.getData('text');
-    if (getByteLength(pastedText) > 15) {
+    if (pastedText.length > 15) {
       e.preventDefault();
       setCompanyName('');
       toast.info('검색 가능한 기업명은 15자 이하입니다.');
