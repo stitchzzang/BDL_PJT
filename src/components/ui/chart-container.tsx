@@ -5,6 +5,7 @@ import { MinuteChart } from '@/components/ui/chart-simulate';
 import { WeekChart } from '@/components/ui/chart-week';
 import { TickCandleChart } from '@/components/ui/tick-chart2';
 import { getTodayFormatted } from '@/utils/getTodayFormatted';
+import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 // 타입 정의 (분봉데이터 - 초기 데이터 적재를 위하여)
 interface StockMinuteData {
@@ -111,6 +112,39 @@ export const ChartContainer = ({
             주
           </button>
         </div>
+        {tickData ? (
+          <div className="flex gap-2 text-border-color">
+            <div>
+              <p>
+                시가:{' '}
+                <span className="font-bold text-white">
+                  {' '}
+                  {formatKoreanMoney(tickData.stckOprc)} 원
+                </span>
+              </p>
+            </div>
+            <div>
+              <p>
+                고가:{' '}
+                <span className="font-bold text-white">
+                  {' '}
+                  {formatKoreanMoney(tickData.stckHgpr)} 원
+                </span>
+              </p>
+            </div>
+            <div>
+              <p>
+                저가:{' '}
+                <span className="font-bold text-white">
+                  {' '}
+                  {formatKoreanMoney(tickData.stckLwpr)} 원
+                </span>
+              </p>
+            </div>
+          </div>
+        ) : (
+          <></>
+        )}
       </div>
       <div className="mb-[15px] mt-[15px] border-b  border-border-color border-opacity-20"></div>
       {tickData ? (
