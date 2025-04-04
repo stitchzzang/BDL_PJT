@@ -1,5 +1,6 @@
 import Lottie from 'lottie-react';
 import { useEffect, useState } from 'react';
+
 import { Button } from '@/components/ui/button';
 
 export type TradeAction = 'buy' | 'sell' | 'wait';
@@ -143,7 +144,7 @@ export const TutorialOrderStatus = ({
 
         {/* 튜토리얼 시작 전 오버레이 */}
         {!isTutorialStarted && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-95">
             <p className="mb-3 text-2xl font-bold text-white">튜토리얼을 시작해주세요!</p>
             <p className="mb-4 text-center text-sm text-gray-400">
               주식 매매 튜토리얼을 시작하려면
@@ -167,7 +168,7 @@ export const TutorialOrderStatus = ({
 
         {/* 턴 완료 후 오버레이 표시 */}
         {isCurrentTurnCompleted && currentTurn < 4 && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-95">
             <p className="mb-3 text-2xl font-bold text-white">거래 체결 성공!</p>
             <p className="mb-1 text-lg font-bold text-white">한 턴당 한 번만 거래할 수 있어요.</p>
             <div className="mb-4 h-32 w-32">
@@ -187,7 +188,7 @@ export const TutorialOrderStatus = ({
 
         {/* 4단계(마지막 턴)에서는 결과 확인하기 안내 */}
         {isCurrentTurnCompleted && currentTurn === 4 && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-90">
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-95">
             <p className="mb-4 text-xl font-bold text-white">튜토리얼 결과를 확인해보세요!</p>
             <div className="mb-4 h-32 w-32">
               <Lottie animationData={NextAnimation} loop={true} />

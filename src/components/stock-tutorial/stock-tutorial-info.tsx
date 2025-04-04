@@ -253,7 +253,7 @@ export const StockTutorialInfo = ({
                   {normalizedCategories.map((categoryName, index) => (
                     <div
                       key={`${categoryName}-${index}`}
-                      className="flex min-h-[25px] min-w-[25px] items-center justify-center gap-1"
+                      className="flex h-7 min-h-[25px] min-w-[25px] items-center justify-center gap-1"
                     >
                       <div className="h-4 w-4">{renderCategoryIcon(categoryName)}</div>
                       <p className="ml-1 text-[13px] text-border-color">{categoryName}</p>
