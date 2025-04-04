@@ -18,7 +18,7 @@ export const NewsChart = () => {
         </div>
       ) : (
         <div className="mt-10 w-full">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {latestNews && latestNews.length > 0 ? (
               <>
                 <NewsChartMain newsMainInfo={latestNews[0]} />
