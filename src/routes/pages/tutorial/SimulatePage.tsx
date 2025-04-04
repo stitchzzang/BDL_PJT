@@ -1516,7 +1516,7 @@ export const SimulatePage = () => {
         <div className="col-span-1 h-full lg:col-span-9">
           {!isTutorialStarted ? (
             <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
-              <div className="max-w-[400px]">
+              <div className="max-w-[300px]">
                 <Lottie animationData={ChartAnimation} loop={true} />
               </div>
               <p className="mt-4 text-center text-xl font-medium">
