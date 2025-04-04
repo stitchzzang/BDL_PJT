@@ -182,7 +182,6 @@ function showTradeNotification(data: TradeSignal, isAuto: boolean) {
   const textColor = signalType === 'BUY' ? '#076BFD' : '#F23636'; // 매수는 파란색, 매도는 빨간색
 
   toast(toastMessage, {
-    position: 'top-right',
     style: {
       background: backgroundColor,
       color: 'white',
