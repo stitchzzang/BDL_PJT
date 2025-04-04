@@ -200,12 +200,7 @@ export const useResetAccount = (memberId: string, onSuccess?: () => void, onErro
   });
 };
 
-export const useGetPendingOrders = (
-  memberId: string,
-  page: number,
-  size: number,
-  search: string,
-) => {
+export const useGetPendingOrders = (memberId: string, page: number, size: 10, search: string) => {
   return useQuery({
     queryKey: ['pendingOrders'],
     queryFn: () =>
@@ -213,12 +208,7 @@ export const useGetPendingOrders = (
   });
 };
 
-export const useGetConfirmedOrders = (
-  memberId: string,
-  page: number,
-  size: number,
-  search: string,
-) => {
+export const useGetConfirmedOrders = (memberId: string, page: number, size: 10, search: string) => {
   return useQuery({
     queryKey: ['confirmedOrders'],
     queryFn: () =>
@@ -226,7 +216,7 @@ export const useGetConfirmedOrders = (
   });
 };
 
-export const useGetAutoOrders = (memberId: string, page: number, size: number, search: string) => {
+export const useGetAutoOrders = (memberId: string, page: number, size: 10, search: string) => {
   return useQuery({
     queryKey: ['autoOrders'],
     queryFn: () => memberApi.getAutoOrders(memberId, page, size, search).then((res) => res.result),
