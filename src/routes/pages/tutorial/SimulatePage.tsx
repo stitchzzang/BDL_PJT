@@ -1429,7 +1429,7 @@ export const SimulatePage = () => {
                 <Lottie animationData={ChartAnimation} loop={true} />
               </div>
               <p className="mt-4 text-center text-xl font-medium">
-                튜토리얼을 시작하여 주식 투자를 연습해보세요!
+                튜토리얼을 시작하여 주식 차트를 확인해보세요.
               </p>
               <p className="mt-2 text-center text-sm text-gray-400">
                 4단계로 구성된 주식 튜토리얼에서 실전과 같은 투자 경험을 해볼 수 있습니다.
@@ -1496,13 +1496,6 @@ export const SimulatePage = () => {
           <div className="mb-[15px] flex items-center justify-between">
             <h3 className={h3Style}>일간 히스토리</h3>
           </div>
-
-          {/* 
-            일간 히스토리는 /api/tutorial/news/past API 호출 결과를 사용합니다.
-            각 턴별로 변곡점에 해당하는 뉴스 데이터를 가져와 DayHistory 컴포넌트에 전달합니다.
-            pastNewsList 데이터는 loadNewsData 함수에서 setPastNewsList을 통해 설정됩니다.
-          */}
-
           {/* 디버깅을 위한 정보 추가 */}
           {pastNewsList.length === 0 && currentTurn > 0 && !isNewsLoading && (
             <p className="mb-4 text-sm text-gray-400">

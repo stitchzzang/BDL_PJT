@@ -1,6 +1,7 @@
+import React, { useEffect, useRef } from 'react';
+
 import { NewsResponse } from '@/api/types/tutorial';
 import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
-import React, { useRef, useEffect } from 'react';
 
 export interface DayHistoryProps {
   news: NewsResponse[];
@@ -28,14 +29,14 @@ export const DayHistory = ({ news }: DayHistoryProps) => {
   }, []);
 
   if (news.length === 0) {
-    return <p className="text-border-color">표시할 뉴스가 없습니다.</p>;
+    return <p className="text-border-color">각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.</p>;
   }
 
   return (
     <div className="w-full">
       <div
         ref={scrollContainerRef}
-        className="flex w-full gap-4 overflow-x-scroll pb-4 no-scrollbar"
+        className="no-scrollbar flex w-full gap-4 overflow-x-scroll pb-4"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {news.map((newsItem, index) => (
