@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useGetCompanyProfile } from '@/api/company.api';
+import { handleKyError } from '@/api/instance/errorHandler';
 import { _ky } from '@/api/instance/index';
 import {
   useDeleteTutorialSession,
@@ -471,78 +472,82 @@ export const SimulatePage = () => {
 
   // 거래 처리 함수
   const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
-    if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
+    if (!isUserLoggedIn()) {
+      alert('로그인이 필요한 기능입니다.');
       return;
     }
 
-    // 4번째 턴에서는 액션 처리하지 않음 (별도의 action이 필요 없음)
-    if (currentTurn === 4) {
-      alert('4단계에서는 최종 결과만 확인할 수 있습니다.');
-      return;
-    }
-
-    if (!isUserLoggedIn()) return;
-
-    // 현재 변곡점의 stockCandleId 가져오기
-    const startPointId =
-      currentTurn > 1 && pointStockCandleIds.length >= currentTurn - 1
-        ? pointStockCandleIds[currentTurn - 2]
-        : 0;
-
-    // endPointId 계산 - 변곡점 - 1일로 설정 (4턴 제외)
-    let endPointId = 0;
-    if (pointStockCandleIds.length >= currentTurn - 1) {
-      // 현재 턴의 변곡점 ID
-      const turnPointId = pointStockCandleIds[currentTurn - 1];
-
-      // 4번째 턴이 아닌 경우, 변곡점 ID에서 1을 빼서 처리 (변곡점 - 1일)
-      // 이는 calculateSession과 loadNewsData 함수의 변경 사항과 일치하게 함
-      endPointId = currentTurn < 4 && turnPointId > 1 ? turnPointId - 1 : turnPointId;
-    }
-
-    if (endPointId === 0) {
-      return;
-    }
-
-    // 판매 수량 확인
-    if (action === 'sell' && quantity > ownedStockCount) {
-      alert(`보유량(${ownedStockCount}주)보다 많은 수량을 판매할 수 없습니다.`);
-      return;
-    }
-
-    // 이전 자산 상태 저장 (초기화 방지용)
-    const prevAvailableAsset = assetInfo.availableOrderAsset;
-    const prevOwnedStockCount = ownedStockCount;
-    // 이전 현재 총자산 및 수익률도 저장 (초기화 방지용)
-    const prevCurrentTotalAsset = assetInfo.currentTotalAsset;
-    const prevTotalReturnRate = assetInfo.totalReturnRate;
-
-    // 현재 턴의 수익률 가져오기 (초기화 방지)
-    const currentTurnReturnRate = turnReturnRates[currentTurn] || prevTotalReturnRate;
-
-    // 관망 선택 시 API 호출 없이 턴 완료 처리
-    if (action === 'wait') {
-      // 관망 기록 추가
-      const newTrade: TradeRecord = {
-        action: 'wait',
-        price: 0,
-        quantity: 0,
-        timestamp: new Date(),
-        stockCandleId: endPointId,
-        turnNumber: currentTurn,
-      };
-
-      setTrades((prev) => [...prev, newTrade]);
-
-      // 관망 시에는 현재 자산 상태를 유지하고 턴 완료 상태만 변경
-      // (실제 자산 변동은 moveToNextTurn에서 처리)
-      setIsCurrentTurnCompleted(true);
-
-      return;
-    }
-
-    // API 요청은 buy 또는 sell 액션에 대해서만 처리
+    // 거래 처리
     try {
+      if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
+        return;
+      }
+
+      // 4번째 턴에서는 액션 처리하지 않음 (별도의 action이 필요 없음)
+      if (currentTurn === 4) {
+        alert('4단계에서는 최종 결과만 확인할 수 있습니다.');
+        return;
+      }
+
+      // 현재 변곡점의 stockCandleId 가져오기
+      const startPointId =
+        currentTurn > 1 && pointStockCandleIds.length >= currentTurn - 1
+          ? pointStockCandleIds[currentTurn - 2]
+          : 0;
+
+      // endPointId 계산 - 변곡점 - 1일로 설정 (4턴 제외)
+      let endPointId = 0;
+      if (pointStockCandleIds.length >= currentTurn - 1) {
+        // 현재 턴의 변곡점 ID
+        const turnPointId = pointStockCandleIds[currentTurn - 1];
+
+        // 4번째 턴이 아닌 경우, 변곡점 ID에서 1을 빼서 처리 (변곡점 - 1일)
+        // 이는 calculateSession과 loadNewsData 함수의 변경 사항과 일치하게 함
+        endPointId = currentTurn < 4 && turnPointId > 1 ? turnPointId - 1 : turnPointId;
+      }
+
+      if (endPointId === 0) {
+        return;
+      }
+
+      // 판매 수량 확인
+      if (action === 'sell' && quantity > ownedStockCount) {
+        alert(`보유량(${ownedStockCount}주)보다 많은 수량을 판매할 수 없습니다.`);
+        return;
+      }
+
+      // 이전 자산 상태 저장 (초기화 방지용)
+      const prevAvailableAsset = assetInfo.availableOrderAsset;
+      const prevOwnedStockCount = ownedStockCount;
+      // 이전 현재 총자산 및 수익률도 저장 (초기화 방지용)
+      const prevCurrentTotalAsset = assetInfo.currentTotalAsset;
+      const prevTotalReturnRate = assetInfo.totalReturnRate;
+
+      // 현재 턴의 수익률 가져오기 (초기화 방지)
+      const currentTurnReturnRate = turnReturnRates[currentTurn] || prevTotalReturnRate;
+
+      // 관망 선택 시 API 호출 없이 턴 완료 처리
+      if (action === 'wait') {
+        // 관망 기록 추가
+        const newTrade: TradeRecord = {
+          action: 'wait',
+          price: 0,
+          quantity: 0,
+          timestamp: new Date(),
+          stockCandleId: endPointId,
+          turnNumber: currentTurn,
+        };
+
+        setTrades((prev) => [...prev, newTrade]);
+
+        // 관망 시에는 현재 자산 상태를 유지하고 턴 완료 상태만 변경
+        // (실제 자산 변동은 moveToNextTurn에서 처리)
+        setIsCurrentTurnCompleted(true);
+
+        return;
+      }
+
+      // API 요청은 buy 또는 sell 액션에 대해서만 처리
       const response = await processUserAction.mutateAsync({
         memberId,
         action: action.toLowerCase(),
@@ -608,26 +613,26 @@ export const SimulatePage = () => {
     } catch (error) {
       // 오류 발생 시 처리
       if (error instanceof Error) {
+        // KY 라이브러리 에러 처리
+        handleKyError(error as any, '거래 처리 중 오류가 발생했습니다.');
+
+        // 주식 수량 부족 오류인 경우 보유 주식 수량 갱신
         const errorText = await (error as any).response?.text?.().catch(() => null);
         if (errorText) {
           try {
             const errorJson = JSON.parse(errorText);
-            if (errorJson.message) {
-              alert(`거래 오류: ${errorJson.message}`);
-              if (
-                errorJson.code === 7105 ||
-                errorJson.message.includes('보유한 주식 수량이 부족')
-              ) {
-                await initOwnedStockCount();
-              }
-              return;
+            if (errorJson.code === 7105 || errorJson.message.includes('보유한 주식 수량이 부족')) {
+              await initOwnedStockCount();
             }
           } catch {
             // JSON 파싱 오류 무시
           }
         }
+      } else {
+        // 일반 오류 처리
+        alert('거래 처리 중 오류가 발생했습니다.');
       }
-      alert('거래 처리 중 오류가 발생했습니다.');
+      // 보유 주식 수량 초기화
       await initOwnedStockCount();
     }
   };
