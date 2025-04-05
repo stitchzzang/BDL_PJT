@@ -4,7 +4,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export const Profile = () => {
-  const { userData } = useAuthStore();
+  const { userData, isLogin } = useAuthStore();
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -13,7 +13,11 @@ export const Profile = () => {
         alt="profile"
         className="h-14 w-14 rounded-full border border-border-color object-cover"
       />
-      <p className="text-2xl font-medium">{userData.nickname || '현재 닉네임이 없습니다.'}</p>
+      {isLogin ? (
+        <p className="text-2xl font-medium">{userData.nickname || '현재 닉네임이 없습니다.'}</p>
+      ) : (
+        <p className="text-2xl font-medium">로그아웃 중...</p>
+      )}
       <NavLink
         to="/member/edit"
         className={({ isActive }) =>
