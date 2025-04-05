@@ -125,7 +125,7 @@ export const ConfirmPage = () => {
       <div className="w-full space-y-6 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">알고리즘 이름</h3>
-          <p className="font-bold text-btn-blue-color">{algorithmName}</p>
+          <p className="text-2xl font-bold text-btn-blue-color">{algorithmName}</p>
           <hr className="border border-border-color border-opacity-35" />
         </div>
         <div className="flex flex-col gap-2">
