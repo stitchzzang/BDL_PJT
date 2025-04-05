@@ -196,7 +196,9 @@ export const StylePage = () => {
         </Button>
       </div>
       <div className="flex w-full max-w-md flex-col gap-2">
-        <p className="text-sm font-bold text-border-color">이익률 ({profitPercentToSell}%)</p>
+        <p className="text-sm font-bold text-border-color">
+          이익률 ({profitPercentToSell.toFixed(1)}%)
+        </p>
         <Slider
           value={[profitPercentToSell]}
           onValueChange={(value) => {
@@ -207,7 +209,9 @@ export const StylePage = () => {
           max={30}
           step={0.5}
         />
-        <p className="text-sm font-semibold text-border-color">손절매 ({lossPercentToSell}%)</p>
+        <p className="text-sm font-semibold text-border-color">
+          손절매 ({lossPercentToSell.toFixed(1)}%)
+        </p>
         <Slider
           value={[lossPercentToSell]}
           onValueChange={(value) => {
