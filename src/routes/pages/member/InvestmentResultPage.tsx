@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -48,6 +48,57 @@ import {
   roundToTwoDecimalPlaces,
 } from '@/utils/numberFormatter';
 
+// 검색 컴포넌트 (별도 분리하여 리렌더링 최소화)
+const SearchBarComponent = React.memo(
+  ({
+    onSearch,
+    mainTab,
+    transactionSubTab,
+  }: {
+    onSearch: (query: string) => void;
+    mainTab: string;
+    transactionSubTab: string;
+  }) => {
+    const [localSearch, setLocalSearch] = useState('');
+
+    const handleLocalSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (value.length > 15) {
+        toast.info('검색 가능한 종목명은 15자 이하입니다.');
+        return;
+      }
+      setLocalSearch(value);
+    };
+
+    const handleLocalSearchSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onSearch(localSearch);
+    };
+
+    // 탭 변경 시 local input 값 초기화
+    useEffect(() => {
+      setLocalSearch('');
+    }, [mainTab, transactionSubTab]);
+
+    return (
+      <form onSubmit={handleLocalSearchSubmit} className="flex items-center gap-2">
+        <input
+          type="text"
+          placeholder="종목명 검색"
+          value={localSearch}
+          onChange={handleLocalSearchChange}
+          className="rounded-md border border-border-color bg-background px-3 py-2 text-sm text-black"
+        />
+        <Button type="submit" variant="blue" className="border-border-color">
+          검색
+        </Button>
+      </form>
+    );
+  },
+);
+
+SearchBarComponent.displayName = 'SearchBarComponent';
+
 export const InvestmentResultPage = () => {
   const navigate = useNavigate();
   const { userData } = useAuthStore();
@@ -74,26 +125,23 @@ export const InvestmentResultPage = () => {
     refetch: refetchPendingOrders,
   } = useGetPendingOrders(memberId, pendingPage, pageSize, search);
 
-  const { data: confirmedOrdersData, isLoading: isConfirmedOrdersLoading } = useGetConfirmedOrders(
-    memberId,
-    confirmedPage,
-    pageSize,
-    search,
-  );
+  const {
+    data: confirmedOrdersData,
+    isLoading: isConfirmedOrdersLoading,
+    refetch: refetchConfirmedOrders,
+  } = useGetConfirmedOrders(memberId, confirmedPage, pageSize, search);
 
-  const { data: manualOrdersData, isLoading: isManualOrdersLoading } = useGetManualOrders(
-    memberId,
-    manualPage,
-    pageSize,
-    search,
-  );
+  const {
+    data: manualOrdersData,
+    isLoading: isManualOrdersLoading,
+    refetch: refetchManualOrders,
+  } = useGetManualOrders(memberId, manualPage, pageSize, search);
 
-  const { data: autoOrdersData, isLoading: isAutoOrdersLoading } = useGetAutoOrders(
-    memberId,
-    autoPage,
-    pageSize,
-    search,
-  );
+  const {
+    data: autoOrdersData,
+    isLoading: isAutoOrdersLoading,
+    refetch: refetchAutoOrders,
+  } = useGetAutoOrders(memberId, autoPage, pageSize, search);
 
   // UI 관련 상태
   const [mainTab, setMainTab] = useState('holdings'); // 'holdings', 'transactions', 'pendingOrders'
@@ -191,28 +239,37 @@ export const InvestmentResultPage = () => {
     setAutoPage(page);
   };
 
-  // 검색 핸들러
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
+  // 검색 핸들러 (부모 컴포넌트에 정의)
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearch(query);
 
-  // 검색 제출 핸들러
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // 현재 활성화된 탭에 따라 적절한 API 호출
-    if (mainTab === 'pendingOrders') {
-      setPendingPage(0);
-      refetchPendingOrders();
-    } else if (mainTab === 'transactions') {
-      if (transactionSubTab === 'all') {
-        setConfirmedPage(0);
-      } else if (transactionSubTab === 'manual') {
-        setManualPage(0);
-      } else {
-        setAutoPage(0);
+      // 현재 활성화된 탭에 따라 적절한 API 호출
+      if (mainTab === 'pendingOrders') {
+        setPendingPage(0);
+        refetchPendingOrders();
+      } else if (mainTab === 'transactions') {
+        if (transactionSubTab === 'all') {
+          setConfirmedPage(0);
+          refetchConfirmedOrders();
+        } else if (transactionSubTab === 'manual') {
+          setManualPage(0);
+          refetchManualOrders();
+        } else {
+          setAutoPage(0);
+          refetchAutoOrders();
+        }
       }
-    }
-  };
+    },
+    [
+      mainTab,
+      transactionSubTab,
+      refetchPendingOrders,
+      refetchConfirmedOrders,
+      refetchManualOrders,
+      refetchAutoOrders,
+    ],
+  );
 
   useEffect(() => {
     if (accountSummary) {
@@ -492,24 +549,6 @@ export const InvestmentResultPage = () => {
     );
   };
 
-  // 검색 컴포넌트
-  const SearchBar = () => {
-    return (
-      <form onSubmit={handleSearchSubmit} className="flex items-center gap-2">
-        <input
-          type="text"
-          placeholder="종목명 검색"
-          value={search}
-          onChange={handleSearchChange}
-          className="rounded-md border border-border-color bg-background px-3 py-2 text-sm text-black"
-        />
-        <Button type="submit" variant="blue" className="border-border-color">
-          검색
-        </Button>
-      </form>
-    );
-  };
-
   // 보유 종목 탭 콘텐츠
   const holdingsTabContent = (
     <>
@@ -664,7 +703,11 @@ export const InvestmentResultPage = () => {
       </div>
 
       <div className="mb-4 flex justify-end">
-        <SearchBar />
+        <SearchBarComponent
+          onSearch={handleSearch}
+          mainTab={mainTab}
+          transactionSubTab={transactionSubTab}
+        />
       </div>
 
       <div className="rounded-lg bg-modal-background-color">
@@ -874,7 +917,11 @@ export const InvestmentResultPage = () => {
           </div>
         </div>
         <div className="flex">
-          <SearchBar />
+          <SearchBarComponent
+            onSearch={handleSearch}
+            mainTab={mainTab}
+            transactionSubTab={transactionSubTab}
+          />
         </div>
       </div>
 
