@@ -4,13 +4,13 @@ import { ChartContainer } from '@/components/ui/chart-container';
 import { AlgorithmLabLayout } from '@/layouts/AlgorithmLabLayout';
 import { MainLayout } from '@/layouts/MainLayout';
 import { MemberLayout } from '@/layouts/MemberLayout';
-import { BackTesting } from '@/routes/pages/algorithm-lab/BackTesting';
 import { ConfirmPage } from '@/routes/pages/algorithm-lab/ConfirmPage';
 import { MarketPage } from '@/routes/pages/algorithm-lab/MarketPage';
 import { MethodPage } from '@/routes/pages/algorithm-lab/MethodPage';
 import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
 import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
+import { BackTesting } from '@/routes/pages/BackTesting';
 import { BadGatewayPage } from '@/routes/pages/BadGatewayPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
@@ -98,10 +98,6 @@ export const router = createBrowserRouter([
             path: 'confirm',
             element: <ConfirmPage />,
           },
-          {
-            path: 'backtest',
-            element: <BackTesting />,
-          },
         ],
       },
       {
@@ -145,6 +141,10 @@ export const router = createBrowserRouter([
       {
         path: '/test',
         element: <ChartContainer />,
+      },
+      {
+        path: 'backtest',
+        element: <BackTesting />,
       },
     ],
   },
