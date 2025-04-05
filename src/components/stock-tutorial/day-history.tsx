@@ -8,9 +8,10 @@ import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
 export interface DayHistoryProps {
   news: NewsResponse[];
   height?: number; // AI 코멘트 높이와 동기화하기 위한 prop
+  isTutorialStarted?: boolean; // 튜토리얼 시작 여부 프로퍼티 추가
 }
 
-export const DayHistory = ({ news, height }: DayHistoryProps) => {
+export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHistoryProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   // 뉴스 카드 3개 정도 표시할 수 있는 기본 높이 (카드 하나당 약 90px + 간격 + 패딩 고려)
   const MIN_HEIGHT = 320;
@@ -47,8 +48,14 @@ export const DayHistory = ({ news, height }: DayHistoryProps) => {
         </div>
         <h1 className="text-[20px] font-bold">뉴스 히스토리</h1>
       </div>
-      {news.length === 0 ? (
-        <p className="text-border-color">각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.</p>
+      {!isTutorialStarted ? (
+        <p className="text-[16px] text-border-color">
+          각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.
+        </p>
+      ) : news.length === 0 ? (
+        <p className="text-[16px] text-border-color">
+          이 구간에서는 눈에 띄는 뉴스 데이터가 없네요😂. 교육용 뉴스를 참고해주세요!
+        </p>
       ) : (
         <div
           ref={scrollContainerRef}

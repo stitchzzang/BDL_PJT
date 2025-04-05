@@ -1660,10 +1660,14 @@ export const SimulatePage = () => {
 
       <div className="mt-[44px] grid grid-cols-6 gap-3">
         <div className="col-span-3" ref={commentRef}>
-          <StockTutorialComment comment={newsComment} />
+          <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
         </div>
         <div className="col-span-3">
-          <DayHistory news={pastNewsList} height={commentHeight} />
+          <DayHistory
+            news={pastNewsList}
+            height={commentHeight}
+            isTutorialStarted={isTutorialStarted}
+          />
         </div>
       </div>
       <div className="mt-[25px] grid grid-cols-6 gap-3">
