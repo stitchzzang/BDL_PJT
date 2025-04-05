@@ -257,7 +257,7 @@ export const SignUpPage = () => {
                           <Input
                             placeholder="닉네임 작성"
                             className="h-12 pr-10"
-                            maxLength={5}
+                            maxLength={10}
                             {...field}
                           />
                         </FormControl>
@@ -270,7 +270,7 @@ export const SignUpPage = () => {
                       </div>
                       <div className="flex flex-col gap-1">
                         <p className="text-sm text-text-main-color">
-                          닉네임은 2자 이상 5자 이하여야 하며,
+                          닉네임은 2자 이상 10자 이하여야 하며,
                         </p>
                         <p className="text-sm text-text-main-color">
                           특수문자 및 자음/모음은 사용할 수 없습니다.
