@@ -383,55 +383,50 @@ export const MarketPage = () => {
           <p className="text-xs text-gray-500">0.10 ~ 30.00 사이의 값만 입력 가능합니다.</p>
         </div>
       </div>
-      <div className="flex flex-col gap-4">
-        <p className="mt-5 text-lg font-bold">
-          <TermTooltip term="이동평균선">이동평균선</TermTooltip> 설정
-        </p>
-        <HelpBadge
-          title="주식의 장기적인 움직임을 분석할까요?"
-          description={
-            <>
-              주식의 장기적인 움직임을 분석할 수 있는 이동평균선 사용이 가능합니다. 해당 기능은
-              주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수 신호,
-              하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
-            </>
-          }
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            variant="blue"
-            onClick={() => {
-              if (shortTermMaPeriod === 5 && longTermMaPeriod === 20) {
-                setShortTermMaPeriod(null);
-                setLongTermMaPeriod(null);
-              } else {
-                setShortTermMaPeriod(5);
-                setLongTermMaPeriod(20);
+      <div className="w-full overflow-hidden">
+        {selectedTimeframe === 'daily' && (
+          <div className="flex animate-fadeIn flex-col gap-4">
+            <p className="mt-5 text-lg font-bold">
+              <TermTooltip term="이동평균선">이동평균선</TermTooltip> 설정
+            </p>
+            <HelpBadge
+              title="주식의 장기적인 움직임을 분석할까요?"
+              description={
+                <>
+                  주식의 장기적인 움직임을 분석할 수 있는 이동평균선 사용이 가능합니다. 해당 기능은
+                  주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수
+                  신호, 하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
+                </>
               }
-            }}
-            className={
-              shortTermMaPeriod === 5 && longTermMaPeriod === 20
-                ? 'bg-btn-blue-color'
-                : 'bg-btn-blue-color/20'
-            }
-            disabled={!selectedTimeframe || selectedTimeframe === 'oneMinute'}
-          >
-            {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
-          </Button>
-          <p className="text-base text-btn-primary-active-color">
-            {!selectedTimeframe || selectedTimeframe === 'oneMinute' ? (
-              <>
-                옵션을
-                <span className="font-semibold text-primary-color"> 일간 추세에 반응</span>으로
-                선택해주세요.
-              </>
-            ) : shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? (
-              '이동평균선이 적용되었습니다.'
-            ) : (
-              '버튼 클릭시 이동평균선 사용이 가능합니다.'
-            )}
-          </p>
-        </div>
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="blue"
+                onClick={() => {
+                  if (shortTermMaPeriod === 5 && longTermMaPeriod === 20) {
+                    setShortTermMaPeriod(null);
+                    setLongTermMaPeriod(null);
+                  } else {
+                    setShortTermMaPeriod(5);
+                    setLongTermMaPeriod(20);
+                  }
+                }}
+                className={
+                  shortTermMaPeriod === 5 && longTermMaPeriod === 20
+                    ? 'bg-btn-blue-color'
+                    : 'bg-btn-blue-color/20'
+                }
+              >
+                {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
+              </Button>
+              <p className="text-base text-btn-primary-active-color">
+                {shortTermMaPeriod === 5 && longTermMaPeriod === 20
+                  ? '이동평균선이 적용되었습니다.'
+                  : '버튼 클릭시 이동평균선 사용이 가능합니다.'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="flex w-full gap-2">
         <Button variant="blue" onClick={() => navigate('/algorithm-lab/method')} className="flex-1">
