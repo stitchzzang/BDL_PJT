@@ -46,8 +46,8 @@ export const HomeBanner = () => {
           className="mt-4 rounded-full border border-primary-color/30 bg-background-color/20 px-8 py-4 backdrop-blur-md"
         >
           <h3 className="text-lg font-semibold text-white md:text-xl">
-            <span className="text-primary-color">모의 투자와 주식 튜토리얼</span>을 통해 더 가까운
-            금융 지식
+            <span className="text-primary-color">모의 투자와 주식 튜토리얼</span>을 통해 금융 지식에
+            한 걸음 더 가까이
           </h3>
         </motion.div>
 
