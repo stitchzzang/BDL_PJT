@@ -19,7 +19,7 @@ const editProfileSchema = z.object({
   nickname: z
     .string()
     .min(2, '닉네임은 최소 2자 이상이어야 합니다.')
-    .max(5, '닉네임은 최대 5자까지 가능합니다.')
+    .max(10, '닉네임은 최대 10자까지 가능합니다.')
     .refine((value) => /^[가-힣a-zA-Z0-9]+$/.test(value), {
       message: '특수문자 및 자음/모음은 사용할 수 없습니다.',
     }),
@@ -254,7 +254,7 @@ export const EditPage = () => {
                     >
                       {hasError
                         ? errors.nickname?.message
-                        : '닉네임은 2-5자, 특수문자 및 자음/모음 사용 불가'}
+                        : '닉네임은 2-10자, 특수문자 및 자음/모음 사용 불가'}
                     </p>
                   </FormItem>
                 );
