@@ -83,11 +83,6 @@ export const StockTutorialInfo = ({
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const initSessionMutation = useInitSession();
 
-  // props로 전달된 latestPrice 변경 감지
-  useEffect(() => {
-    console.log('[StockTutorialInfo] latestPrice props 변경:', latestPrice);
-  }, [latestPrice]);
-
   // 오늘부터 1년 전까지의 날짜 범위 계산
   const today = new Date();
   const oneYearAgo = new Date();
@@ -134,15 +129,6 @@ export const StockTutorialInfo = ({
       ? latestPrice
       : initialPrice
     : initialPrice;
-
-  // 디버깅을 위한 로그 추가
-  console.log('[StockTutorialInfo] 현재가 정보:', {
-    isTutorialStarted,
-    latestPrice: latestPrice ?? '미정의',
-    initialPrice,
-    displayPrice,
-    currentTurn,
-  });
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
