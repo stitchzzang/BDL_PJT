@@ -10,7 +10,6 @@ import { useUpdateMemberInfo } from '@/api/member.api';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
 import { getResizeImage } from '@/utils/getResizeImage';
@@ -94,6 +93,7 @@ export const EditPage = () => {
         const result = reader.result as string;
         setTempProfile(result);
         setProfileChanged(true);
+        setIsDefaultImage(false); // 이미지를 업로드했으므로 기본 이미지 상태 해제
       };
       reader.readAsDataURL(resizedFile);
 
@@ -102,6 +102,15 @@ export const EditPage = () => {
     } catch (error) {
       alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     }
+  };
+
+  // 이미지 변경 버튼 클릭 핸들러
+  const handleImageChangeClick = () => {
+    // 파일 입력 초기화 (같은 파일 재선택 가능하도록)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    fileInputRef.current?.click();
   };
 
   const { mutate: updateMemberInfo } = useUpdateMemberInfo({
@@ -156,6 +165,21 @@ export const EditPage = () => {
     }
   };
 
+  // 기본 프로필 설정 함수
+  const handleUseDefaultProfile = () => {
+    if (useDefaultProfile) return; // 이미 기본 프로필 사용 중이면 아무것도 하지 않음
+
+    setUseDefaultProfile(true);
+    setProfileChanged(true);
+    setTempProfile('');
+    setSelectedFile(null);
+
+    // 파일 입력 요소 초기화 (같은 파일을 다시 선택할 수 있도록)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const { mutate: signout } = useSignout();
 
   const handleSignout = () => {
@@ -188,24 +212,19 @@ export const EditPage = () => {
               accept="image/jpeg,image/png"
               onChange={handleImageChange}
             />
-            <div className="flex items-center justify-center gap-2">
-              <Switch
-                checked={useDefaultProfile}
-                onCheckedChange={handleSwitchChange}
-                disabled={isDefaultImage}
-              />
-              <p className="text-text-border-color text-sm">
-                {isDefaultImage ? '이미 기본 프로필 사용 중' : '기본 프로필 사용'}
-              </p>
+            <div className="flex w-full justify-center gap-2">
+              <Button className="w-full" variant="black" onClick={handleImageChangeClick}>
+                이미지 변경
+              </Button>
+              <Button
+                className="w-full"
+                variant="black"
+                onClick={handleUseDefaultProfile}
+                disabled={useDefaultProfile}
+              >
+                프로필 삭제
+              </Button>
             </div>
-            <Button
-              className="w-full"
-              variant="black"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={useDefaultProfile}
-            >
-              이미지 변경
-            </Button>
           </div>
           <div className="flex w-full flex-col items-center gap-2">
             <FormField
