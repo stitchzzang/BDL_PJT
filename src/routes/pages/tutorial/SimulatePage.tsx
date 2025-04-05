@@ -150,6 +150,13 @@ export const SimulatePage = () => {
   const initialized = useRef(false);
   // 세션 캐싱을 위한 ref
   const prevSessionRef = useRef('');
+  // API 요청 상태를 추적하기 위한 ref 추가
+  const newsRequestRef = useRef<Record<number, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+  });
   // 현재 진행 중인 턴 번호 (1~4)
   const [currentTurn, setCurrentTurn] = useState<number>(0);
   // 현재 턴이 완료되었는지 여부를 추적하는 상태 추가
@@ -327,7 +334,12 @@ export const SimulatePage = () => {
       setPastNewsList(sortedNews);
 
       // 이미 API가 호출되었지만 데이터가 없는 경우 다시 로드
-      if (turnNewsList[currentTurn]?.length === 0 && isTutorialStarted) {
+      // 이미 요청 중인 경우 중복 요청하지 않음
+      if (
+        turnNewsList[currentTurn]?.length === 0 &&
+        isTutorialStarted &&
+        !newsRequestRef.current[currentTurn]
+      ) {
         // 변곡점 데이터가 있는지 확인하고 필요시 로드
         if (pointStockCandleIds.length === 0) {
           loadPointsData().then(() => {
@@ -1034,8 +1046,10 @@ export const SimulatePage = () => {
         }
       }
 
-      // 뉴스 데이터 로드
-      await loadNewsData(turn);
+      // 뉴스 데이터 로드 (API 요청이 중복되지 않도록 조건 체크)
+      if (!newsRequestRef.current[turn]) {
+        await loadNewsData(turn);
+      }
 
       // 데이터 로드가 완료되었음을 나타내는 return
       return result;
@@ -1081,8 +1095,28 @@ export const SimulatePage = () => {
     }
   };
 
+  // 뉴스 API 요청 완료 후 호출되는 콜백 함수
+  const handleNewsDataLoaded = useCallback((turn: number) => {
+    // 해당 턴의 API 요청 상태를 false로 설정
+    newsRequestRef.current = {
+      ...newsRequestRef.current,
+      [turn]: false,
+    };
+  }, []);
+
   // 뉴스 데이터 로드
   const loadNewsData = async (turn: number) => {
+    // 이미 요청 중인 턴에 대해서는 중복 요청하지 않음
+    if (newsRequestRef.current[turn]) {
+      return;
+    }
+
+    // 해당 턴의 API 요청 상태를 true로 설정
+    newsRequestRef.current = {
+      ...newsRequestRef.current,
+      [turn]: true,
+    };
+
     setIsNewsLoading(true);
 
     // 각 턴별 시작/종료 ID 계산
@@ -1256,6 +1290,9 @@ export const SimulatePage = () => {
     }
 
     setIsNewsLoading(false);
+
+    // API 요청 완료 콜백 호출
+    handleNewsDataLoaded(turn);
   };
 
   // 변곡점 데이터 로드
