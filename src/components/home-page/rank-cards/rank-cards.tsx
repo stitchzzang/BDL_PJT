@@ -24,7 +24,7 @@ export const RankCards = ({
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {userRanking.map((rankInfo, index) => (
         <div key={index}>
-          <RankCard rankInfo={rankInfo} />
+          <RankCard rankInfo={rankInfo} rank={index + 1} />
         </div>
       ))}
     </div>
