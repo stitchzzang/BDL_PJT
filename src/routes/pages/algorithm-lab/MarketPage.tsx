@@ -198,7 +198,7 @@ export const MarketPage = () => {
           description="주식 가격 변화에 어떻게 반응할까요?
         여러분의 선택에 따라 다양한 방법으로 반응이 가능합니다."
         />
-        <Badge variant="yellow" className="w-full text-left font-medium opacity-90">
+        <Badge variant="yellow" className="w-full text-left font-medium">
           💡 해당 옵션은 필수값이 아니므로, 건너뛰어도 괜찮습니다.
         </Badge>
       </div>
