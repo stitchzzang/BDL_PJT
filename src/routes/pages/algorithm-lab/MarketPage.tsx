@@ -146,8 +146,8 @@ export const MarketPage = () => {
                 <span className="text-sm font-bold text-primary-color">
                   (
                   {selectedTimeframe === 'oneMinute'
-                    ? (oneMinuteIncreasePercent ?? 1)
-                    : (dailyIncreasePercent ?? 1)}
+                    ? (oneMinuteIncreasePercent ?? 1).toFixed(1)
+                    : (dailyIncreasePercent ?? 1).toFixed(1)}
                   %)
                 </span>
               )}
@@ -223,8 +223,8 @@ export const MarketPage = () => {
                 <span className="text-sm font-bold text-primary-color">
                   (
                   {selectedTimeframe === 'oneMinute'
-                    ? (oneMinuteDecreasePercent ?? 1)
-                    : (dailyDecreasePercent ?? 1)}
+                    ? (oneMinuteDecreasePercent ?? 1).toFixed(1)
+                    : (dailyDecreasePercent ?? 1).toFixed(1)}
                   %)
                 </span>
               )}
