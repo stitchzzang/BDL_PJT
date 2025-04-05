@@ -140,7 +140,6 @@ export interface StockInfoProps {
 export const SimulatePage = () => {
   const navigate = useNavigate();
   const { companyId: companyIdParam } = useParams<{ companyId: string }>();
-  const h3Style = 'text-[20px] font-bold';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [finalChangeRate, setFinalChangeRate] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -166,8 +165,8 @@ export const SimulatePage = () => {
   const [isChartLoading, setIsChartLoading] = useState(false);
   // 차트 데이터 로딩 오류 여부 추가
   const [hasChartError, setHasChartError] = useState(false);
-  // 뉴스 데이터 로딩 상태 추가
-  const [isNewsLoading, setIsNewsLoading] = useState(false);
+  // 뉴스 데이터 로딩 상태 추가 - 사용되지 않음
+  // const [isNewsLoading, setIsNewsLoading] = useState(false);
 
   // 로그인 상태 및 유저 정보 가져오기
   const { userData, isLogin } = useAuthStore();
@@ -285,9 +284,6 @@ export const SimulatePage = () => {
     startDate: defaultStartDate,
     endDate: defaultEndDate,
   });
-
-  // 피드백 요청 상태 추가
-  const [shouldFetchFeedback, setShouldFetchFeedback] = useState(false);
 
   // 피드백 API는 수동으로 제어
   const { data: tutorialFeedbackResponse, refetch: refetchFeedback } = useGetTutorialFeedback(
@@ -548,7 +544,7 @@ export const SimulatePage = () => {
       }
 
       // API 요청은 buy 또는 sell 액션에 대해서만 처리
-      const response = await processUserAction.mutateAsync({
+      await processUserAction.mutateAsync({
         memberId,
         action: action.toLowerCase(),
         price,
@@ -642,14 +638,14 @@ export const SimulatePage = () => {
     if (currentTurn > 0 && isTutorialStarted) {
       initOwnedStockCount();
     }
-  }, [currentTurn, isTutorialStarted]);
+  }, [currentTurn, isTutorialStarted, initOwnedStockCount]);
 
   // 거래 내역이 변경될 때마다 보유 주식 수량 재계산
   useEffect(() => {
     if (trades.length > 0) {
       initOwnedStockCount();
     }
-  }, [trades]);
+  }, [trades, initOwnedStockCount]);
 
   // 자산 정보 업데이트 함수 추가
   const updateAssetInfo = () => {
@@ -864,6 +860,7 @@ export const SimulatePage = () => {
   ]);
 
   // 튜토리얼 완료 처리 함수
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const completeTutorial = async () => {
     if (!isUserLoggedIn()) return;
 
@@ -879,7 +876,7 @@ export const SimulatePage = () => {
     }
 
     // 피드백 데이터가 있는지 확인하고 없으면 수동으로 로드
-    if (shouldFetchFeedback || !tutorialFeedback) {
+    if (!tutorialFeedback) {
       try {
         await refetchFeedback();
         // 피드백 데이터가 로드될 시간 확보 (300ms)
@@ -942,28 +939,6 @@ export const SimulatePage = () => {
 
     // 종료 모달 표시
     setIsModalOpen(true);
-  };
-
-  // 세션 업데이트 및 차트 데이터 로드
-  const updateSessionAndLoadData = async (turn: number) => {
-    // 턴에 맞는 세션 계산
-    const newSession = calculateSession(turn);
-    if (!newSession) return;
-
-    // 세션 업데이트
-    setCurrentSession(newSession);
-
-    // 진행률 업데이트
-    const turnToProgressMap: Record<number, number> = {
-      1: 25,
-      2: 50,
-      3: 75,
-      4: 100,
-    };
-    setProgress(turnToProgressMap[turn]);
-
-    // 차트 데이터 로드
-    await loadChartData(newSession.startDate, newSession.endDate, turn);
   };
 
   // 차트 데이터 로드 함수
@@ -1066,40 +1041,6 @@ export const SimulatePage = () => {
     }
   };
 
-  // 최신 가격 업데이트 함수 - 가격만 업데이트하고 자산 정보는 업데이트하지 않음
-  const updateLatestPrice = (data: TutorialStockResponse, turn: number = currentTurn) => {
-    const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
-    if (dayCandles.length > 0) {
-      // 날짜순 정렬
-      const sortedCandles = [...dayCandles].sort(
-        (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-      );
-
-      let priceToShow = 0;
-
-      // 각 턴별로 요구사항에 맞는 가격 설정
-      if (turn === 1) {
-        // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
-        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
-      } else if (turn === 2) {
-        // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
-        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
-      } else if (turn === 3) {
-        // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
-        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
-      } else if (turn === 4) {
-        // 4턴: 끝점의 종가 (마지막 캔들)
-        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
-      }
-
-      // 가격이 변경된 경우에만 업데이트
-      if (priceToShow > 0 && priceToShow !== latestPrice) {
-        // 최신 가격만 업데이트
-        setLatestPrice(priceToShow);
-      }
-    }
-  };
-
   // 뉴스 API 요청 완료 후 호출되는 콜백 함수
   const handleNewsDataLoaded = useCallback((turn: number) => {
     // 해당 턴의 API 요청 상태를 false로 설정
@@ -1121,8 +1062,6 @@ export const SimulatePage = () => {
       ...newsRequestRef.current,
       [turn]: true,
     };
-
-    setIsNewsLoading(true);
 
     // 각 턴별 시작/종료 ID 계산
     let startStockCandleId = 0;
@@ -1294,8 +1233,6 @@ export const SimulatePage = () => {
       }
     }
 
-    setIsNewsLoading(false);
-
     // API 요청 완료 콜백 호출
     handleNewsDataLoaded(turn);
   };
@@ -1355,6 +1292,7 @@ export const SimulatePage = () => {
   };
 
   // 튜토리얼 시작 함수
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleTutorialStart = async () => {
     if (!isUserLoggedIn()) return;
 
@@ -1550,7 +1488,8 @@ export const SimulatePage = () => {
         });
       }
     }
-  }, []); // 빈 의존성 배열로 마운트 시에만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 거래 내역 변경 시 자산 정보 업데이트
   useEffect(() => {
@@ -1583,7 +1522,6 @@ export const SimulatePage = () => {
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}
           latestPrice={latestPrice}
-          showButtonInInfoSection={false}
         />
       </div>
       <div className="mb-[25px] flex justify-between">
