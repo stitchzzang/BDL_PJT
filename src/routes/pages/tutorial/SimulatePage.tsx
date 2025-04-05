@@ -642,14 +642,6 @@ export const SimulatePage = () => {
     const newTotalAsset = prevAvailableAsset + stockValue;
     const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
 
-    console.log(`자산 정보 업데이트:
-      주문 가능 금액: ${prevAvailableAsset.toLocaleString()}원
-      보유 주식: ${ownedStockCount}주
-      주식 가치: ${stockValue.toLocaleString()}원
-      총 자산: ${newTotalAsset.toLocaleString()}원
-      수익률: ${newReturnRate.toFixed(2)}%
-    `);
-
     const updatedAssetInfo = {
       tradingDate: new Date().toISOString(),
       availableOrderAsset: prevAvailableAsset,
@@ -782,7 +774,6 @@ export const SimulatePage = () => {
             // 가격 변경
             if (nextTurnPrice > 0) {
               setLatestPrice(nextTurnPrice);
-              console.log(`[moveToNextTurn] ${nextTurn}턴 현재가 설정: ${nextTurnPrice}원`);
             } else {
               // 기본값으로 마지막 캔들 사용
               nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
@@ -1040,9 +1031,6 @@ export const SimulatePage = () => {
         // 가격 설정
         if (priceToShow > 0) {
           setLatestPrice(priceToShow);
-          console.log(
-            `[loadChartData] ${turn}턴 현재가 설정: ${priceToShow}원 (${sortedCandles.length}개 데이터)`,
-          );
         }
       }
 
@@ -1089,7 +1077,6 @@ export const SimulatePage = () => {
       if (priceToShow > 0 && priceToShow !== latestPrice) {
         // 최신 가격만 업데이트
         setLatestPrice(priceToShow);
-        console.log(`[updateLatestPrice] ${turn}턴 현재가 업데이트: ${priceToShow}원`);
       }
     }
   };
@@ -1541,13 +1528,6 @@ export const SimulatePage = () => {
       setOwnedStockCount(totalStock);
     }
   }, [trades]);
-
-  // 현재가와 턴 변경 감지를 위한 useEffect
-  useEffect(() => {
-    console.log(`[SimulatePage] 현재가 변경: ${latestPrice}원, 현재 턴: ${currentTurn}`);
-  }, [latestPrice, currentTurn]);
-
-  // 컴포넌트가 처음 마운트될 때 초기 데이터 로드
 
   return (
     <div className="flex h-full w-full flex-col px-6">
