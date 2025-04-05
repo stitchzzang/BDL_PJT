@@ -286,7 +286,7 @@ export const SignUpPage = () => {
               <div className="flex flex-row items-center gap-1">
                 <h1 className="text-left text-lg font-bold text-primary-color">생년월일</h1>
                 <span className="text-xs text-border-color">
-                  (1900년 1월 1일~ 2004년 12월 31일)
+                  (1900년 1월 1일~ 2006년 12월 31일)
                 </span>
               </div>
               <FormField
@@ -324,7 +324,7 @@ export const SignUpPage = () => {
                           disabled={(date) =>
                             date > new Date() ||
                             date < new Date('1900-01-01') ||
-                            date > new Date('2004-01-01')
+                            date > new Date('2006-12-31')
                           }
                           className="w-auto"
                           fromYear={1900}
