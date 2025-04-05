@@ -113,7 +113,7 @@ export interface Summary {
   winRate: number;
 }
 
-// 백테스트 일봉 정보
+// 백테스트 하루 정보
 // 일봉 백테스팅 기록
 export interface Trade {
   type: string;
@@ -121,7 +121,7 @@ export interface Trade {
   quantity: number;
   reason: string;
 }
-// 벡테스팅 일봉 전체 정보
+// 벡테스팅 하루 전체 정보
 export interface DailyData {
   index: number;
   date: string;
