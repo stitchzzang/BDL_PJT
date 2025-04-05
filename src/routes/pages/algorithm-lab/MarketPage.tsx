@@ -99,7 +99,7 @@ export const MarketPage = () => {
           variant="blue"
           onClick={() => handleTimeframeClick('oneMinute')}
           className={`flex-1 flex-col items-center p-4 ${
-            selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
+            selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
           }`}
         >
           <p className="text-lg font-bold">
@@ -116,7 +116,7 @@ export const MarketPage = () => {
           variant="blue"
           onClick={() => handleTimeframeClick('daily')}
           className={`flex-1 flex-col items-center p-4 ${
-            selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
+            selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
           }`}
         >
           <p className="text-lg font-bold">
@@ -161,7 +161,7 @@ export const MarketPage = () => {
                     ? oneMinuteIncreaseAction
                     : dailyIncreaseAction) === 'BUY'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -180,7 +180,7 @@ export const MarketPage = () => {
                     ? oneMinuteIncreaseAction
                     : dailyIncreaseAction) === 'SELL'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -238,7 +238,7 @@ export const MarketPage = () => {
                     ? oneMinuteDecreaseAction
                     : dailyDecreaseAction) === 'BUY'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -257,7 +257,7 @@ export const MarketPage = () => {
                     ? oneMinuteDecreaseAction
                     : dailyDecreaseAction) === 'SELL'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >

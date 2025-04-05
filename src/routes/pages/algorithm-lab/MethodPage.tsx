@@ -210,7 +210,7 @@ export const MethodPage = () => {
               className={`flex-1 ${
                 entryInvestmentMethod === 'FIXED_AMOUNT'
                   ? 'bg-btn-blue-color'
-                  : 'bg-btn-blue-color/20'
+                  : 'bg-btn-blue-color/10'
               }`}
             >
               고정 금액
@@ -226,7 +226,7 @@ export const MethodPage = () => {
               className={`flex-1 ${
                 entryInvestmentMethod === 'FIXED_PERCENTAGE'
                   ? 'bg-btn-blue-color'
-                  : 'bg-btn-blue-color/20'
+                  : 'bg-btn-blue-color/10'
               }`}
             >
               고정 비율
@@ -344,7 +344,7 @@ export const MethodPage = () => {
               className={`flex-1 ${
                 exitInvestmentMethod === 'FIXED_AMOUNT'
                   ? 'bg-btn-blue-color'
-                  : 'bg-btn-blue-color/20'
+                  : 'bg-btn-blue-color/10'
               }`}
             >
               고정 금액
@@ -360,7 +360,7 @@ export const MethodPage = () => {
               className={`flex-1 ${
                 exitInvestmentMethod === 'FIXED_PERCENTAGE'
                   ? 'bg-btn-blue-color'
-                  : 'bg-btn-blue-color/20'
+                  : 'bg-btn-blue-color/10'
               }`}
             >
               고정 비율
