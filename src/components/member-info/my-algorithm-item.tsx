@@ -42,9 +42,11 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
   };
 
   return (
-    <div className="flex w-full flex-row items-center justify-between rounded-[10px] bg-modal-background-color p-5">
-      <div className="flex flex-col items-start gap-2">
-        <p className="mr-20 whitespace-nowrap text-text-main-color">{algorithm.algorithmName}</p>
+    <div className="flex w-full flex-row items-center justify-between gap-16 rounded-[10px] bg-modal-background-color p-5">
+      <div className="flex w-[200px] flex-col items-start gap-2">
+        <p className="whitespace-nowrap font-semibold text-text-main-color">
+          {algorithm.algorithmName}
+        </p>
         {algorithm.isRunning && (
           <div className="flex items-center gap-2">
             <TooltipProvider>
@@ -65,7 +67,9 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
           </div>
         )}
       </div>
-      <AlgorithmOption algorithm={algorithm} />
+      <div className="flex-1 overflow-x-auto">
+        <AlgorithmOption algorithm={algorithm} />
+      </div>
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogTrigger asChild>
           <button className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white">

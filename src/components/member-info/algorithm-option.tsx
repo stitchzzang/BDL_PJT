@@ -55,6 +55,14 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
           },
         ]
       : []),
+    ...(algorithm.shortTermMaPeriod && algorithm.longTermMaPeriod
+      ? [
+          {
+            optionName: <TermTooltip term="이동평균선">이동평균선</TermTooltip>,
+            optionDescription: `사용`,
+          },
+        ]
+      : []),
     ...(algorithm.oneMinuteIncreasePercent || algorithm.oneMinuteDecreasePercent
       ? [
           {
@@ -118,7 +126,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
   ];
 
   return (
-    <div className="flex flex-row flex-wrap gap-2">
+    <div className="flex w-full flex-row flex-wrap justify-start gap-2">
       {options.map((option, index) => (
         <p
           key={index}
