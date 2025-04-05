@@ -64,7 +64,6 @@ export const SearchPage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value.length > 15) {
-      setCompanyName('');
       toast.info('검색 가능한 기업명은 15자 이하입니다.');
       return;
     }
@@ -75,7 +74,6 @@ export const SearchPage = () => {
     const pastedText = e.clipboardData.getData('text');
     if (pastedText.length > 15) {
       e.preventDefault();
-      setCompanyName('');
       toast.info('검색 가능한 기업명은 15자 이하입니다.');
     }
   };
