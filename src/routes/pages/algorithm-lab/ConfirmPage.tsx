@@ -152,7 +152,7 @@ export const ConfirmPage = () => {
             </p>
             {entryInvestmentMethod === 'FIXED_AMOUNT' && entryFixedAmount && (
               <p className="font-light">
-                진입 금액:{' '}
+                구매 금액:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {entryFixedAmount.toLocaleString()}원
                 </span>
@@ -160,7 +160,7 @@ export const ConfirmPage = () => {
             )}
             {entryInvestmentMethod === 'FIXED_PERCENTAGE' && entryFixedPercentage && (
               <p className="font-light">
-                진입 비율:{' '}
+                구매 비율:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {entryFixedPercentage}%
                 </span>
@@ -174,7 +174,7 @@ export const ConfirmPage = () => {
             </p>
             {exitInvestmentMethod === 'FIXED_AMOUNT' && exitFixedAmount && (
               <p className="font-light">
-                청산 금액:{' '}
+                판매 금액:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {exitFixedAmount.toLocaleString()}원
                 </span>
@@ -182,7 +182,7 @@ export const ConfirmPage = () => {
             )}
             {exitInvestmentMethod === 'FIXED_PERCENTAGE' && exitFixedPercentage && (
               <p className="font-light">
-                청산 비율:{' '}
+                판매 비율:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {exitFixedPercentage}%
                 </span>
