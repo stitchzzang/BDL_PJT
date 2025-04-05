@@ -696,6 +696,16 @@ export const InvestmentResultPage = () => {
         <Button
           variant="blue"
           size="icon"
+          onClick={() => handlePageNumberClick(0)}
+          disabled={currentPage === 0}
+          className="h-8 w-8 border-border-color"
+          title="첫 페이지"
+        >
+          &lt;&lt;
+        </Button>
+        <Button
+          variant="blue"
+          size="icon"
           onClick={handlePrevPage}
           disabled={currentPage === 0}
           className="h-8 w-8 border-border-color"
@@ -723,6 +733,16 @@ export const InvestmentResultPage = () => {
           className="h-8 w-8 border-border-color"
         >
           &gt;
+        </Button>
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={() => handlePageNumberClick(totalPages - 1)}
+          disabled={currentPage === totalPages - 1 || totalPages === 0}
+          className="h-8 w-8 border-border-color"
+          title="마지막 페이지"
+        >
+          &gt;&gt;
         </Button>
       </div>
     );
