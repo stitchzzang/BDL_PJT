@@ -1457,6 +1457,9 @@ export const SimulatePage = () => {
           startDate={tutorialDateRange.startDate}
           endDate={tutorialDateRange.endDate}
           formatDateFn={formatYYMMDDToYYYYMMDD}
+          pointDates={pointDates}
+          defaultStartDate={defaultStartDate}
+          defaultEndDate={defaultEndDate}
         />
       </div>
       <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
