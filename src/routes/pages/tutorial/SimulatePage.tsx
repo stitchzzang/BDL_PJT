@@ -1563,13 +1563,6 @@ export const SimulatePage = () => {
           latestPrice={latestPrice}
           showButtonInInfoSection={false}
         />
-        <StockProgress
-          progress={progress}
-          currentTurn={currentTurn}
-          startDate={tutorialDateRange.startDate}
-          endDate={tutorialDateRange.endDate}
-          formatDateFn={formatYYMMDDToYYYYMMDD}
-        />
       </div>
       <div className="mb-[25px] flex justify-between">
         <StockTutorialMoneyInfo
@@ -1577,6 +1570,13 @@ export const SimulatePage = () => {
           availableOrderAsset={assetInfo.availableOrderAsset}
           currentTotalAsset={assetInfo.currentTotalAsset}
           totalReturnRate={assetInfo.totalReturnRate}
+        />
+        <StockProgress
+          progress={progress}
+          currentTurn={currentTurn}
+          startDate={tutorialDateRange.startDate}
+          endDate={tutorialDateRange.endDate}
+          formatDateFn={formatYYMMDDToYYYYMMDD}
         />
       </div>
       <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
