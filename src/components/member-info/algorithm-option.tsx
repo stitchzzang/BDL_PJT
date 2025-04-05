@@ -58,7 +58,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.oneMinuteIncreasePercent || algorithm.oneMinuteDecreasePercent
       ? [
           {
-            optionName: '단기 변화 반응',
+            optionName: '단기 변화 반응(분봉)',
             optionDescription: (
               <>
                 {algorithm.oneMinuteIncreasePercent && (
@@ -88,7 +88,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.dailyIncreasePercent || algorithm.dailyDecreasePercent
       ? [
           {
-            optionName: '일간 추세 반응',
+            optionName: '일간 추세 반응(일봉)',
             optionDescription: (
               <>
                 {algorithm.dailyIncreasePercent && (
