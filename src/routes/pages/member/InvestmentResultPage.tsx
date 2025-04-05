@@ -515,7 +515,7 @@ export const InvestmentResultPage = () => {
     return (
       <div className="flex items-center justify-center space-x-2 py-4">
         <Button
-          variant="outline"
+          variant="blue"
           size="icon"
           onClick={handlePrevPage}
           disabled={currentPage === 0}
@@ -527,17 +527,17 @@ export const InvestmentResultPage = () => {
         {getPageNumbers().map((page) => (
           <Button
             key={page}
-            variant={page === currentPage ? 'default' : 'outline'}
+            variant={page === currentPage ? 'blue' : 'gray'}
             size="icon"
             onClick={() => onPageChange(page)}
-            className={`h-8 w-8 ${page === currentPage ? 'bg-btn-blue-color' : 'border-border-color'}`}
+            className={'h-8 w-8'}
           >
             {page + 1}
           </Button>
         ))}
 
         <Button
-          variant="outline"
+          variant="blue"
           size="icon"
           onClick={handleNextPage}
           disabled={currentPage === totalPages - 1 || totalPages === 0}
@@ -566,19 +566,19 @@ export const InvestmentResultPage = () => {
             <TableHead>종목명</TableHead>
             <TableHead>총 수익률</TableHead>
             <TableHead>총 수익금(원)</TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="1주 평균 금액">1주 평균 금액</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
             </TableHead>
-            <TableHead>현재가(원)</TableHead>
-            <TableHead>
+            <TableHead className="text-right">현재가(원)</TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="보유수량">보유수량</TermTooltip>
             </TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="평가금">평가금</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
             </TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="구매금액">구매금액</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
             </TableHead>
@@ -641,11 +641,15 @@ export const InvestmentResultPage = () => {
                 >
                   {`${plusMinusSign(account.profit)}${addCommasToThousand(account.profit)}`}
                 </TableCell>
-                <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
-                <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
-                <TableCell>{account.stockCnt}</TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(account.avgPrice)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(account.currentPrice)}
+                </TableCell>
+                <TableCell className="text-right">{account.stockCnt}</TableCell>
                 <TableCell
-                  className={`${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
+                  className={`text-right ${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
                     highlightMap[`evaluation_${account.companyId}`]?.isFlashing
                       ? highlightMap[`evaluation_${account.companyId}`]?.isIncreased
                         ? 'bg-btn-red-color/40'
@@ -659,7 +663,9 @@ export const InvestmentResultPage = () => {
                 >
                   {`${addCommasToThousand(account.evaluation)}`}
                 </TableCell>
-                <TableCell>{addCommasToThousand(account.investment)}</TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(account.investment)}
+                </TableCell>
               </TableRow>
             ))
           ) : (
@@ -716,9 +722,9 @@ export const InvestmentResultPage = () => {
             <TableRow>
               <TableHead>종목명</TableHead>
               <TableHead>거래 유형</TableHead>
-              <TableHead>주문 수량</TableHead>
-              <TableHead>주문 가격(원)</TableHead>
-              <TableHead>총 금액(원)</TableHead>
+              <TableHead className="text-right">주문 수량</TableHead>
+              <TableHead className="text-right">주문 가격(원)</TableHead>
+              <TableHead className="text-right">총 금액(원)</TableHead>
               <TableHead>주문 시간</TableHead>
               <TableHead>주문 취소</TableHead>
             </TableRow>
@@ -760,9 +766,11 @@ export const InvestmentResultPage = () => {
                       {getTradeTypeText(order.tradeType)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.quantity}주</TableCell>
-                  <TableCell>{addCommasToThousand(order.price)}</TableCell>
-                  <TableCell>{addCommasToThousand(order.price * order.quantity)}</TableCell>
+                  <TableCell className="text-right">{order.quantity}주</TableCell>
+                  <TableCell className="text-right">{addCommasToThousand(order.price)}</TableCell>
+                  <TableCell className="text-right">
+                    {addCommasToThousand(order.price * order.quantity)}
+                  </TableCell>
                   <TableCell>{formatTradeTime(order.tradingTime)}</TableCell>
                   <TableCell>
                     <AlertDialog>
@@ -831,9 +839,9 @@ export const InvestmentResultPage = () => {
             <TableHead>종목명</TableHead>
             <TableHead>거래 유형</TableHead>
             <TableHead>주문 방식</TableHead>
-            <TableHead>주문 수량</TableHead>
-            <TableHead>주문 가격(원)</TableHead>
-            <TableHead>총 금액(원)</TableHead>
+            <TableHead className="text-right">주문 수량</TableHead>
+            <TableHead className="text-right">주문 가격(원)</TableHead>
+            <TableHead className="text-right">총 금액(원)</TableHead>
             <TableHead>주문 시간</TableHead>
           </TableRow>
         </TableHeader>
@@ -879,9 +887,11 @@ export const InvestmentResultPage = () => {
                     {getOrderModeText(order.auto)}
                   </Badge>
                 </TableCell>
-                <TableCell>{order.quantity}주</TableCell>
-                <TableCell>{addCommasToThousand(order.price)}</TableCell>
-                <TableCell>{addCommasToThousand(order.price * order.quantity)}</TableCell>
+                <TableCell className="text-right">{order.quantity}주</TableCell>
+                <TableCell className="text-right">{addCommasToThousand(order.price)}</TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(order.price * order.quantity)}
+                </TableCell>
                 <TableCell>{formatTradeTime(order.tradingTime)}</TableCell>
               </TableRow>
             ))
