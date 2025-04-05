@@ -994,9 +994,19 @@ export const SimulatePage = () => {
       // 최신 가격만 업데이트 (자산 정보 업데이트는 안 함)
       const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
       if (dayCandles.length > 0) {
-        const lastCandle = dayCandles[dayCandles.length - 1];
-        const newLatestPrice = lastCandle.closePrice;
-        setLatestPrice(newLatestPrice);
+        // 날짜순으로 정렬하여 가장 최근 일봉의 종가를 현재가로 설정
+        const sortedCandles = [...dayCandles].sort(
+          (a, b) => new Date(b.tradingDate).getTime() - new Date(a.tradingDate).getTime(),
+        );
+        // 가장 최근 일봉(첫 번째 요소)의 종가를 현재가로 설정
+        const latestCandle = sortedCandles[0];
+        const newLatestPrice = latestCandle.closePrice;
+
+        // 가격이 변경된 경우에만 업데이트
+        if (newLatestPrice !== latestPrice) {
+          // 최신 가격만 업데이트
+          setLatestPrice(newLatestPrice);
+        }
       }
 
       // 뉴스 데이터 로드
@@ -1009,21 +1019,6 @@ export const SimulatePage = () => {
       return null;
     } finally {
       setIsChartLoading(false);
-    }
-  };
-
-  // 최신 가격 업데이트 함수 - 가격만 업데이트하고 자산 정보는 업데이트하지 않음
-  const updateLatestPrice = (data: TutorialStockResponse) => {
-    const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
-    if (dayCandles.length > 0) {
-      const lastCandle = dayCandles[dayCandles.length - 1];
-      const newLatestPrice = lastCandle.closePrice;
-
-      // 가격이 변경된 경우에만 업데이트
-      if (newLatestPrice !== latestPrice) {
-        // 최신 가격만 업데이트
-        setLatestPrice(newLatestPrice);
-      }
     }
   };
 

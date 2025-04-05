@@ -27,7 +27,7 @@ export const StockTutorialComment = ({ comment }: StockTutorialCommentProps) => 
 
   return (
     <div className="w-full animate-fadeIn">
-      <div className="flex gap-4" style={{ minHeight: `${MIN_HEIGHT - 10}px` }}>
+      <div className="flex gap-4" style={{ minHeight: `${MIN_HEIGHT}px` }}>
         <div>
           <Lottie
             animationData={robotMove}
