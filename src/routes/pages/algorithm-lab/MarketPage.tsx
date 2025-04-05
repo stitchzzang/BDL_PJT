@@ -90,45 +90,50 @@ export const MarketPage = () => {
           description="주식 가격 변화에 어떻게 반응할까요?
         여러분의 선택에 따라 다양한 방법으로 반응이 가능합니다."
         />
-        <Badge variant="default" className="w-full text-left font-medium">
+        <Badge variant="yellow" className="w-full text-left font-medium opacity-90">
           💡 해당 옵션은 필수값이 아니므로, 건너뛰어도 괜찮습니다.
         </Badge>
       </div>
       <div className="flex w-full gap-4">
-        <Button
-          variant="blue"
-          onClick={() => handleTimeframeClick('oneMinute')}
-          className={`flex-1 flex-col items-center p-4 ${
-            selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
-          }`}
-        >
-          <p className="text-lg font-bold">
-            단기 변화에 반응{' '}
-            <span className="text-sm font-normal">
-              (5<TermTooltip term="분봉">분봉</TermTooltip>)
-            </span>
-          </p>
-          <p className="whitespace-normal break-keep text-sm">
-            짧은 시간 동안의 급격한 가격 변화에 빠르게 대응합니다.
-          </p>
-        </Button>
-        <Button
-          variant="blue"
-          onClick={() => handleTimeframeClick('daily')}
-          className={`flex-1 flex-col items-center p-4 ${
-            selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
-          }`}
-        >
-          <p className="text-lg font-bold">
-            일간 추세에 반응{' '}
-            <span className="text-sm font-normal">
-              (<TermTooltip term="일봉">일봉</TermTooltip>)
-            </span>
-          </p>
-          <p className="whitespace-normal break-keep text-sm">
-            하루 동안의 전체적인 추세를 바탕으로 대응합니다.
-          </p>
-        </Button>
+        <div className="flex w-full flex-col gap-2">
+          <p className="text-lg font-bold">시장 변화에 대응하기</p>
+          <div className="flex w-full gap-2">
+            <Button
+              variant="blue"
+              onClick={() => handleTimeframeClick('oneMinute')}
+              className={`flex-1 flex-col items-center p-4 ${
+                selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
+              }`}
+            >
+              <p className="text-lg font-bold">
+                단기 변화에 반응{' '}
+                <span className="text-sm font-normal">
+                  (5<TermTooltip term="분봉">분봉</TermTooltip>)
+                </span>
+              </p>
+              <p className="whitespace-normal break-keep text-sm">
+                짧은 시간 동안의 급격한 가격 변화에 빠르게 대응합니다.
+              </p>
+            </Button>
+            <Button
+              variant="blue"
+              onClick={() => handleTimeframeClick('daily')}
+              className={`flex-1 flex-col items-center p-4 ${
+                selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
+              }`}
+            >
+              <p className="text-lg font-bold">
+                일간 추세에 반응{' '}
+                <span className="text-sm font-normal">
+                  (<TermTooltip term="일봉">일봉</TermTooltip>)
+                </span>
+              </p>
+              <p className="whitespace-normal break-keep text-sm">
+                하루 동안의 전체적인 추세를 바탕으로 대응합니다.
+              </p>
+            </Button>
+          </div>
+        </div>
       </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col gap-2">
@@ -287,12 +292,14 @@ export const MarketPage = () => {
         </div>
       </div>
       <div className="flex flex-col gap-4">
+        <p className="mt-5 text-lg font-bold">
+          <TermTooltip term="이동평균선">이동평균선</TermTooltip> 설정
+        </p>
         <HelpBadge
           title="주식의 장기적인 움직임을 분석할까요?"
           description={
             <>
-              주식의 장기적인 움직임을 분석할 수 있는{' '}
-              <TermTooltip term="이동평균선">이동평균선</TermTooltip> 사용이 가능합니다. 해당 기능은
+              주식의 장기적인 움직임을 분석할 수 있는 이동평균선 사용이 가능합니다. 해당 기능은
               주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수 신호,
               하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
             </>
