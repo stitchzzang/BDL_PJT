@@ -21,7 +21,13 @@ import { cn } from '@/lib/utils';
 // 회원가입 폼 유효성 검사를 위한 스키마 정의
 const signUpSchema = z
   .object({
-    email: z.string().email('올바른 이메일 형식이 아닙니다.'),
+    email: z
+      .string()
+      .min(6, '아이디는 최소 6자 이상이어야 합니다.')
+      .max(12, '아이디는 최대 12자까지 가능합니다.')
+      .refine((value) => /^[a-zA-Z0-9_]+$/.test(value), {
+        message: '아이디는 영어 대소문자, 숫자, 특수문자(_)만 사용할 수 있습니다.',
+      }),
     password: z.string().min(8, '비밀번호는 최소 8자 이상이어야 합니다.'),
     passwordConfirm: z.string(),
     nickname: z
@@ -119,7 +125,7 @@ export const SignUpPage = () => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col items-center justify-center gap-3"
           >
-            <h1 className="w-full text-left text-lg font-bold text-primary-color">이메일</h1>
+            <h1 className="w-full text-left text-lg font-bold text-primary-color">아이디</h1>
             <FormField
               control={form.control}
               name="email"
@@ -130,7 +136,13 @@ export const SignUpPage = () => {
                   <FormItem className="w-full">
                     <div className="relative">
                       <FormControl>
-                        <Input placeholder="example@domain.com" className="h-12 pr-10" {...field} />
+                        <Input
+                          placeholder="아이디 입력"
+                          className="h-12 pr-10"
+                          maxLength={15}
+                          pattern="[a-zA-Z0-9_]+"
+                          {...field}
+                        />
                       </FormControl>
                       {isValid && (
                         <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
@@ -139,9 +151,9 @@ export const SignUpPage = () => {
                         <XCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-red-color" />
                       )}
                     </div>
-                    {/* <p className="text-sm text-text-main-color">
-                      이메일은 example@domain.com 형식이어야 합니다.
-                    </p> */}
+                    <p className="text-sm text-text-main-color">
+                      아이디는 6-12자 영어 대소문자, 숫자, 특수문자(_)만 사용할 수 있습니다.
+                    </p>
                   </FormItem>
                 );
               }}
@@ -163,6 +175,7 @@ export const SignUpPage = () => {
                             type="password"
                             placeholder="비밀번호"
                             className="h-12 pr-10"
+                            maxLength={20}
                             {...field}
                           />
                         </FormControl>
@@ -174,7 +187,7 @@ export const SignUpPage = () => {
                         )}
                       </div>
                       <p className="text-sm text-text-main-color">
-                        비밀번호는 최소 8자 이상이어야 합니다.
+                        비밀번호는 최소 8자 이상 최대 20자 이하여야 합니다.
                       </p>
                     </FormItem>
                   );
@@ -194,6 +207,7 @@ export const SignUpPage = () => {
                             type="password"
                             placeholder="비밀번호 확인"
                             className="h-12 pr-10"
+                            maxLength={20}
                             {...field}
                           />
                         </FormControl>
@@ -240,7 +254,12 @@ export const SignUpPage = () => {
                     <FormItem className="w-full">
                       <div className="relative">
                         <FormControl>
-                          <Input placeholder="닉네임 작성" className="h-12 pr-10" {...field} />
+                          <Input
+                            placeholder="닉네임 작성"
+                            className="h-12 pr-10"
+                            maxLength={10}
+                            {...field}
+                          />
                         </FormControl>
                         {isValid && (
                           <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
@@ -251,7 +270,7 @@ export const SignUpPage = () => {
                       </div>
                       <div className="flex flex-col gap-1">
                         <p className="text-sm text-text-main-color">
-                          닉네임은 2자 이상 5자 이하여야 하며,
+                          닉네임은 2자 이상 10자 이하여야 하며,
                         </p>
                         <p className="text-sm text-text-main-color">
                           특수문자 및 자음/모음은 사용할 수 없습니다.
@@ -359,6 +378,7 @@ export const SignUpPage = () => {
                           <Input
                             placeholder="비밀번호 찾기 답변"
                             className="h-12 pr-10"
+                            maxLength={10}
                             {...field}
                           />
                         </FormControl>

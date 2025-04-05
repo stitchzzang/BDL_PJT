@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import graphMove from '@/assets/lottie/graph-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
@@ -39,12 +40,70 @@ export const MethodPage = () => {
     return <InvalidAccessPage />;
   }
 
-  // 금액 빠른 선택 버튼 핸들러
-  const handleEntryAmountSelect = (amount: number) => {
+  // 금액 변경 핸들러 - 100원 단위, 100원 이상 10,000,000원 이하 제한
+  const handleEntryAmountChange = (value: string) => {
+    // 숫자만 필터링
+    const numericValue = value.replace(/[^\d]/g, '');
+
+    if (numericValue === '') {
+      setEntryInvestmentMethod('FIXED_AMOUNT');
+      setEntryFixedAmount(null);
+      setEntryFixedPercentage(null);
+      setEntryMethod('DIVIDE');
+      return;
+    }
+
+    let parsedValue = parseInt(numericValue, 10);
+
+    // 100원 단위로 맞추기 (올림)
+    if (parsedValue % 100 !== 0) {
+      parsedValue = Math.ceil(parsedValue / 100) * 100;
+    }
+
+    // 최소 100원, 최대 10,000,000원으로 제한
+    if (parsedValue < 100) {
+      parsedValue = 100;
+    } else if (parsedValue > 10000000) {
+      parsedValue = 10000000;
+    }
+
     setEntryInvestmentMethod('FIXED_AMOUNT');
-    setEntryFixedAmount(amount);
+    setEntryFixedAmount(parsedValue);
     setEntryFixedPercentage(null);
-    setEntryMethod('DIVIDE'); // 금액 선택 시 항상 DIVIDE로 설정
+    setEntryMethod('DIVIDE');
+  };
+
+  // 청산 금액 변경 핸들러 - 100원 단위, 100원 이상 10,000,000원 이하 제한
+  const handleExitAmountChange = (value: string) => {
+    // 숫자만 필터링
+    const numericValue = value.replace(/[^\d]/g, '');
+
+    if (numericValue === '') {
+      setExitInvestmentMethod('FIXED_AMOUNT');
+      setExitFixedAmount(null);
+      setExitFixedPercentage(null);
+      setExitMethod('DIVIDE');
+      return;
+    }
+
+    let parsedValue = parseInt(numericValue, 10);
+
+    // 100원 단위로 맞추기 (올림)
+    if (parsedValue % 100 !== 0) {
+      parsedValue = Math.ceil(parsedValue / 100) * 100;
+    }
+
+    // 최소 100원, 최대 10,000,000원으로 제한
+    if (parsedValue < 100) {
+      parsedValue = 100;
+    } else if (parsedValue > 10000000) {
+      parsedValue = 10000000;
+    }
+
+    setExitInvestmentMethod('FIXED_AMOUNT');
+    setExitFixedAmount(parsedValue);
+    setExitFixedPercentage(null);
+    setExitMethod('DIVIDE');
   };
 
   // 비율 빠른 선택 버튼 핸들러
@@ -55,29 +114,6 @@ export const MethodPage = () => {
 
     // 100%일 때만 ONCE, 나머지는 DIVIDE로 설정
     setEntryMethod(percentage === 100 ? 'ONCE' : 'DIVIDE');
-  };
-
-  // 금액 증가 핸들러
-  const handleEntryAmountIncrease = () => {
-    if (!entryFixedAmount) {
-      handleEntryAmountSelect(10000);
-      return;
-    }
-
-    const newAmount = entryFixedAmount + 10000;
-    if (newAmount <= 1000000) {
-      handleEntryAmountSelect(newAmount);
-    }
-  };
-
-  // 금액 감소 핸들러
-  const handleEntryAmountDecrease = () => {
-    if (!entryFixedAmount || entryFixedAmount <= 10000) {
-      handleEntryAmountSelect(10000);
-      return;
-    }
-
-    handleEntryAmountSelect(entryFixedAmount - 10000);
   };
 
   // 비율 증가 핸들러
@@ -101,37 +137,6 @@ export const MethodPage = () => {
     }
 
     handleEntryPercentageSelect(entryFixedPercentage - 10);
-  };
-
-  // 청산 금액 빠른 선택 버튼 핸들러
-  const handleExitAmountSelect = (amount: number) => {
-    setExitInvestmentMethod('FIXED_AMOUNT');
-    setExitFixedAmount(amount);
-    setExitFixedPercentage(null);
-    setExitMethod('DIVIDE'); // 금액 선택 시 항상 DIVIDE로 설정
-  };
-
-  // 청산 금액 증가 핸들러
-  const handleExitAmountIncrease = () => {
-    if (!exitFixedAmount) {
-      handleExitAmountSelect(10000);
-      return;
-    }
-
-    const newAmount = exitFixedAmount + 10000;
-    if (newAmount <= 1000000) {
-      handleExitAmountSelect(newAmount);
-    }
-  };
-
-  // 청산 금액 감소 핸들러
-  const handleExitAmountDecrease = () => {
-    if (!exitFixedAmount || exitFixedAmount <= 10000) {
-      handleExitAmountSelect(10000);
-      return;
-    }
-
-    handleExitAmountSelect(exitFixedAmount - 10000);
   };
 
   // 청산 비율 빠른 선택 버튼 핸들러
@@ -235,44 +240,16 @@ export const MethodPage = () => {
           {entryInvestmentMethod === 'FIXED_AMOUNT' && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 rounded-md bg-modal-background-color p-2">
-                <Button
-                  variant="blue"
-                  size="icon"
-                  onClick={handleEntryAmountDecrease}
-                  disabled={entryFixedAmount ? entryFixedAmount <= 10000 : false}
-                  className="h-8 w-8"
-                >
-                  -
-                </Button>
-                <div className="flex-1 text-center font-medium">
-                  {entryFixedAmount ? addCommasToThousand(entryFixedAmount) : '10,000'}원
-                  <div className="text-xs text-gray-500">단위: 10,000원</div>
-                </div>
-                <Button
-                  variant="blue"
-                  size="icon"
-                  onClick={handleEntryAmountIncrease}
-                  disabled={entryFixedAmount ? entryFixedAmount >= 1000000 : false}
-                  className="h-8 w-8"
-                >
-                  +
-                </Button>
+                <Input
+                  className="flex-1 text-center font-medium"
+                  value={entryFixedAmount ? addCommasToThousand(entryFixedAmount) : ''}
+                  onChange={(e) => handleEntryAmountChange(e.target.value)}
+                  placeholder="금액을 입력하세요 (100원 단위)"
+                />
+                <div className="text-sm text-gray-500">원</div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="blue"
-                  onClick={() => handleEntryAmountSelect(100000)}
-                  className={`flex-1 ${entryFixedAmount === 100000 ? 'opacity-100' : 'opacity-50'}`}
-                >
-                  100,000원
-                </Button>
-                <Button
-                  variant="blue"
-                  onClick={() => handleEntryAmountSelect(1000000)}
-                  className={`flex-1 ${entryFixedAmount === 1000000 ? 'opacity-100' : 'opacity-50'}`}
-                >
-                  1,000,000원
-                </Button>
+              <div className="text-center text-xs text-gray-500">
+                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (100원 단위)
               </div>
             </div>
           )}
@@ -369,44 +346,16 @@ export const MethodPage = () => {
           {exitInvestmentMethod === 'FIXED_AMOUNT' && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 rounded-md bg-modal-background-color p-2">
-                <Button
-                  variant="blue"
-                  size="icon"
-                  onClick={handleExitAmountDecrease}
-                  disabled={exitFixedAmount ? exitFixedAmount <= 10000 : false}
-                  className="h-8 w-8"
-                >
-                  -
-                </Button>
-                <div className="flex-1 text-center font-medium">
-                  {exitFixedAmount ? addCommasToThousand(exitFixedAmount) : '10,000'}원
-                  <div className="text-xs text-gray-500">단위: 10,000원</div>
-                </div>
-                <Button
-                  variant="blue"
-                  size="icon"
-                  onClick={handleExitAmountIncrease}
-                  disabled={exitFixedAmount ? exitFixedAmount >= 1000000 : false}
-                  className="h-8 w-8"
-                >
-                  +
-                </Button>
+                <Input
+                  className="flex-1 text-center font-medium"
+                  value={exitFixedAmount ? addCommasToThousand(exitFixedAmount) : ''}
+                  onChange={(e) => handleExitAmountChange(e.target.value)}
+                  placeholder="금액을 입력하세요 (100원 단위)"
+                />
+                <div className="text-sm text-gray-500">원</div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="blue"
-                  onClick={() => handleExitAmountSelect(100000)}
-                  className={`flex-1 ${exitFixedAmount === 100000 ? 'opacity-100' : 'opacity-50'}`}
-                >
-                  100,000원
-                </Button>
-                <Button
-                  variant="blue"
-                  onClick={() => handleExitAmountSelect(1000000)}
-                  className={`flex-1 ${exitFixedAmount === 1000000 ? 'opacity-100' : 'opacity-50'}`}
-                >
-                  1,000,000원
-                </Button>
+              <div className="text-center text-xs text-gray-500">
+                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (100원 단위)
               </div>
             </div>
           )}
@@ -474,12 +423,12 @@ export const MethodPage = () => {
           disabled={
             !entryInvestmentMethod ||
             (entryInvestmentMethod === 'FIXED_AMOUNT' &&
-              (!entryFixedAmount || entryFixedAmount < 10000 || entryFixedAmount > 1000000)) ||
+              (!entryFixedAmount || entryFixedAmount < 100 || entryFixedAmount > 10000000)) ||
             (entryInvestmentMethod === 'FIXED_PERCENTAGE' &&
               (!entryFixedPercentage || entryFixedPercentage < 1)) ||
             !exitInvestmentMethod ||
             (exitInvestmentMethod === 'FIXED_AMOUNT' &&
-              (!exitFixedAmount || exitFixedAmount < 10000 || exitFixedAmount > 1000000)) ||
+              (!exitFixedAmount || exitFixedAmount < 100 || exitFixedAmount > 10000000)) ||
             (exitInvestmentMethod === 'FIXED_PERCENTAGE' &&
               (!exitFixedPercentage || exitFixedPercentage < 1))
           }

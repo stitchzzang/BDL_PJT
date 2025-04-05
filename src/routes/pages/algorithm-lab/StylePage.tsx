@@ -1,3 +1,4 @@
+import { ArrowTrendingDownIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/solid';
 import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -5,7 +6,6 @@ import StableMotion from '@/assets/lottie/stable-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
@@ -74,6 +74,60 @@ export const StylePage = () => {
         title="어떤 투자 스타일을 선호하시나요?"
         description="3가지 선택지 중 가장 선호하는 투자 스타일을 선택하거나 바를 드래그하여 원하는 값을 선택해주세요."
       />
+
+      <div className="w-full rounded-2xl bg-gray-50 p-4 shadow-sm">
+        <div>
+          <p className="flex items-center text-lg font-bold text-primary-color">
+            <ArrowTrendingUpIcon className="mr-1 h-5 w-5" />
+            이익률이란?
+          </p>
+          <p className="text-sm text-gray-600">
+            주식 가격이 <b className="text-primary-color">얼마나 올라갔을 때 팔지</b>를 결정하는
+            비율입니다.
+          </p>
+          <div className="my-2 rounded-lg bg-white p-2">
+            <p className="text-sm text-gray-700">
+              예를 들어, 이익률이 10%라면 주식을 산 가격보다
+              <br />
+              <b className="text-primary-color">10% 더 올라갔을 때 자동으로 팔게</b> 됩니다.
+            </p>
+          </div>
+          <div className="rounded-lg bg-white p-2">
+            <p className="text-sm text-gray-700">
+              이익률이 높을수록 <b className="text-primary-color">더 큰 수익을 기대</b>할 수 있지만,
+              <br />
+              <b className="text-primary-color">가격이 떨어질 위험</b>도 있습니다.
+            </p>
+          </div>
+        </div>
+
+        <hr className="my-4 border-t border-gray-300" />
+
+        <div>
+          <p className="flex items-center text-lg font-bold text-primary-color">
+            <ArrowTrendingDownIcon className="mr-1 h-5 w-5" />
+            손절매란?
+          </p>
+          <p className="text-sm text-gray-600">
+            주식 가격이{' '}
+            <b className="text-primary-color">얼마나 내려갔을 때 손해를 감수하고 팔지</b>를<br />
+            결정하는 비율입니다.
+          </p>
+          <div className="my-2 rounded-lg bg-white p-2">
+            <p className="text-sm text-gray-700">
+              예를 들어, 손절매가 5%라면 주식을 산 가격보다
+              <br />
+              <b className="text-primary-color">5% 더 내려갔을 때 자동으로 팔게</b> 됩니다.
+            </p>
+          </div>
+          <div className="rounded-lg bg-white p-2">
+            <p className="text-sm text-gray-700">
+              이는 <b className="text-primary-color">더 큰 손실을 방지하기 위한 안전장치</b>입니다.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="flex w-full flex-col gap-4">
         <Button
           variant="green"
@@ -88,9 +142,14 @@ export const StylePage = () => {
           <p className="whitespace-normal text-sm">
             작은 이익을 안정적으로 추구하고 손실은 최소화합니다.
           </p>
-          <p className="mt-1 text-xs text-border-color">
-            <TermTooltip term="이익률">이익률</TermTooltip>: 3~5%,{' '}
-            <TermTooltip term="손절매">손절매</TermTooltip>: 1~2%
+          <p
+            className={`mt-1 text-sm font-bold ${
+              isConservativeValid || investmentStyle === 'conservative'
+                ? 'text-white'
+                : 'text-btn-green-color'
+            }`}
+          >
+            이익률: 3~5%, 손절매: 1~2%
           </p>
         </Button>
         <Button
@@ -104,9 +163,14 @@ export const StylePage = () => {
         >
           <p className="font-bold">균형적(중립형)</p>
           <p className="whitespace-normal text-sm">이익과 위험 사이의 균형을 유지합니다.</p>
-          <p className="mt-1 text-xs text-border-color">
-            <TermTooltip term="이익률">이익률</TermTooltip>: 8~12%,{' '}
-            <TermTooltip term="손절매">손절매</TermTooltip>: 3~5%
+          <p
+            className={`mt-1 text-sm font-bold ${
+              isBalancedValid || investmentStyle === 'balanced'
+                ? 'text-white'
+                : 'text-btn-yellow-color'
+            }`}
+          >
+            이익률: 8~12%, 손절매: 3~5%
           </p>
         </Button>
         <Button
@@ -120,15 +184,20 @@ export const StylePage = () => {
         >
           <p className="font-bold">공격적(수익 지향형)</p>
           <p className="whitespace-normal text-sm">더 큰 이익을 위해 더 큰 위험을 감수합니다.</p>
-          <p className="mt-1 text-xs text-border-color">
-            <TermTooltip term="이익률">이익률</TermTooltip>: 15~25%,{' '}
-            <TermTooltip term="손절매">손절매</TermTooltip>: 7~10%
+          <p
+            className={`mt-1 text-sm font-bold ${
+              isAggressiveValid || investmentStyle === 'aggressive'
+                ? 'text-white'
+                : 'text-btn-red-color'
+            }`}
+          >
+            이익률: 15~25%, 손절매: 7~10%
           </p>
         </Button>
       </div>
       <div className="flex w-full max-w-md flex-col gap-2">
-        <p className="mb-2 text-sm text-border-color">
-          <TermTooltip term="이익률">이익률</TermTooltip> ({profitPercentToSell}%)
+        <p className="text-sm font-bold text-border-color">
+          이익률 ({profitPercentToSell.toFixed(1)}%)
         </p>
         <Slider
           value={[profitPercentToSell]}
@@ -140,8 +209,8 @@ export const StylePage = () => {
           max={30}
           step={0.5}
         />
-        <p className="text-sm text-border-color">
-          <TermTooltip term="손절매">손절매</TermTooltip> ({lossPercentToSell}%)
+        <p className="text-sm font-semibold text-border-color">
+          손절매 ({lossPercentToSell.toFixed(1)}%)
         </p>
         <Slider
           value={[lossPercentToSell]}

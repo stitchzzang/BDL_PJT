@@ -44,11 +44,12 @@ export const LoginPage = () => {
       <div className="w-full max-w-96 rounded-lg bg-modal-background-color p-6 shadow-lg">
         <form onSubmit={handleLogin} className="flex flex-col items-center justify-center gap-3">
           <Input
-            placeholder="이메일"
+            placeholder="아이디"
             className="h-12"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            maxLength={20}
           />
           <Input
             placeholder="비밀번호"
@@ -57,6 +58,7 @@ export const LoginPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            maxLength={20}
           />
           <Button variant="blue" className="mt-5 w-full" type="submit" disabled={isPending}>
             {isPending ? '로그인 중...' : '로그인'}

@@ -42,9 +42,11 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
   };
 
   return (
-    <div className="flex w-full flex-row items-center justify-between rounded-[10px] bg-modal-background-color p-5">
-      <div className="flex flex-col items-start gap-2">
-        <p className="mr-20 whitespace-nowrap text-text-main-color">{algorithm.algorithmName}</p>
+    <div className="flex w-full flex-row items-center justify-between gap-16 rounded-[10px] bg-modal-background-color p-5">
+      <div className="flex w-[200px] flex-col items-start gap-2">
+        <p className="whitespace-nowrap font-semibold text-text-main-color">
+          {algorithm.algorithmName}
+        </p>
         {algorithm.isRunning && (
           <div className="flex items-center gap-2">
             <TooltipProvider>
@@ -52,7 +54,7 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
                 <TooltipTrigger asChild>
                   <div className="flex cursor-help items-center gap-1 rounded-full bg-btn-red-color px-3 py-1">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                    <span className="text-sm text-white">실행 중</span>
+                    <span className="text-sm text-white underline">실행 중</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={5}>
@@ -65,7 +67,9 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
           </div>
         )}
       </div>
-      <AlgorithmOption algorithm={algorithm} />
+      <div className="flex-1 overflow-x-auto">
+        <AlgorithmOption algorithm={algorithm} />
+      </div>
       <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
         <AlertDialogTrigger asChild>
           <button className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white">

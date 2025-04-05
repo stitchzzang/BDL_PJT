@@ -147,13 +147,12 @@ export const ConfirmPage = () => {
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 방식</h3>
           <div>
             <p className="font-light">
-              <TermTooltip term="진입">진입</TermTooltip> 방식 :{' '}
-              {entryMethod && getMethodText(entryMethod)}
+              구매 방식 : {entryMethod && getMethodText(entryMethod)}
               {entryInvestmentMethod && ` (${getInvestmentMethodText(entryInvestmentMethod)})`}
             </p>
             {entryInvestmentMethod === 'FIXED_AMOUNT' && entryFixedAmount && (
               <p className="font-light">
-                진입 금액:{' '}
+                구매 금액:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {entryFixedAmount.toLocaleString()}원
                 </span>
@@ -161,7 +160,7 @@ export const ConfirmPage = () => {
             )}
             {entryInvestmentMethod === 'FIXED_PERCENTAGE' && entryFixedPercentage && (
               <p className="font-light">
-                진입 비율:{' '}
+                구매 비율:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {entryFixedPercentage}%
                 </span>
@@ -170,13 +169,12 @@ export const ConfirmPage = () => {
           </div>
           <div>
             <p className="font-light">
-              <TermTooltip term="청산">청산</TermTooltip> 방식 :{' '}
-              {exitMethod && getMethodText(exitMethod)}
+              판매 방식 : {exitMethod && getMethodText(exitMethod)}
               {exitInvestmentMethod && ` (${getInvestmentMethodText(exitInvestmentMethod)})`}
             </p>
             {exitInvestmentMethod === 'FIXED_AMOUNT' && exitFixedAmount && (
               <p className="font-light">
-                청산 금액:{' '}
+                판매 금액:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {exitFixedAmount.toLocaleString()}원
                 </span>
@@ -184,7 +182,7 @@ export const ConfirmPage = () => {
             )}
             {exitInvestmentMethod === 'FIXED_PERCENTAGE' && exitFixedPercentage && (
               <p className="font-light">
-                청산 비율:{' '}
+                판매 비율:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {exitFixedPercentage}%
                 </span>
