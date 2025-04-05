@@ -15,6 +15,7 @@ import { useDeleteUserSimulated } from '@/api/stock.api';
 import { AccountSummaryResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
+import { RocketAnimation } from '@/components/common/rocket-animation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -841,7 +842,24 @@ export const InvestmentResultPage = () => {
             <TableRow>
               <TableCell colSpan={10} className="py-10 text-center">
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <p className="text-lg">보유 종목이 없습니다.</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="cursor-pointer text-lg underline"
+                          onClick={() => navigate('/search')}
+                        >
+                          보유 종목이 없습니다.
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-row items-center gap-1">
+                          <RocketAnimation />
+                          <p>투자를 시작해볼까요?</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </TableCell>
             </TableRow>
@@ -1009,7 +1027,24 @@ export const InvestmentResultPage = () => {
               <TableRow>
                 <TableCell colSpan={7} className="py-10 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <p className="text-lg">대기 중인 주문이 없습니다.</p>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p
+                            className="cursor-pointer text-lg underline"
+                            onClick={() => navigate('/search')}
+                          >
+                            대기 중인 주문이 없습니다.
+                          </p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="flex flex-row items-center gap-1">
+                            <RocketAnimation />
+                            <p>투자를 시작해볼까요?</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <p className="text-sm">주문을 하면 이곳에 표시됩니다.</p>
                   </div>
                 </TableCell>
@@ -1122,7 +1157,24 @@ export const InvestmentResultPage = () => {
             <TableRow>
               <TableCell colSpan={8} className="py-10 text-center">
                 <div className="flex flex-col items-center justify-center gap-2">
-                  <p className="text-lg">거래 내역이 없습니다.</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="cursor-pointer text-lg underline"
+                          onClick={() => navigate('/search')}
+                        >
+                          거래 내역이 없습니다.
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-row items-center gap-1">
+                          <RocketAnimation />
+                          <p>투자를 시작해볼까요?</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </TableCell>
             </TableRow>
