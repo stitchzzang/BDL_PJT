@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useBackTestAlgorithm } from '@/api/algorithm.api';
 import { CompanyProfile } from '@/api/types/algorithm';
@@ -7,12 +7,12 @@ import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-i
 export const BackTesting = () => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const backTestAlgorithm = useBackTestAlgorithm();
+  // 백테스팅 자료 요청
   const handleBackTest = () => {
-    console.log('cool!!!');
     backTestAlgorithm.mutate(
       {
-        algorithmId: 20, // 실제 알고리즘 ID로 변경
-        companyId: 1, // 실제 회사 ID로 변경
+        algorithmId: 20, // 파라미터로 전달
+        companyId: 1, // 파라미터로 전달
         startDate: '2024-01-01',
         endDate: '2025-01-01',
       },
@@ -24,13 +24,16 @@ export const BackTesting = () => {
       },
     );
   };
+  useEffect(() => {
+    handleBackTest();
+  }, []);
   return (
     <div className="w-full px-6">
       <div className="">
         <AlgorithmCompanyInfo companyProfile={companyProfile} />
       </div>
       <div>
-        <button onClick={() => handleBackTest()}>test</button>
+        <p>hello</p>
       </div>
     </div>
   );
