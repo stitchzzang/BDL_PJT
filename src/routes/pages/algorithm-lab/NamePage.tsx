@@ -58,7 +58,7 @@ export const NamePage = () => {
 
     // 15자 이상인 경우 토스트 메시지 출력
     if (value.length > 15) {
-      toast.info('알고리즘 이름은 15자 이하여야 합니다.');
+      alert('알고리즘 이름은 15자 이하여야 합니다.');
       return;
     }
 
@@ -71,7 +71,7 @@ export const NamePage = () => {
     const pastedText = e.clipboardData.getData('text');
     if (pastedText.length > 15) {
       e.preventDefault();
-      toast.info('알고리즘 이름은 15자 이하입니다.');
+      alert('알고리즘 이름은 15자 이하여야 합니다.');
     }
   };
 
