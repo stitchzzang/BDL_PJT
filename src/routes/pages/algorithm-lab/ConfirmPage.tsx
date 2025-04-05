@@ -147,8 +147,7 @@ export const ConfirmPage = () => {
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 방식</h3>
           <div>
             <p className="font-light">
-              <TermTooltip term="진입">진입</TermTooltip> 방식 :{' '}
-              {entryMethod && getMethodText(entryMethod)}
+              구매 방식 : {entryMethod && getMethodText(entryMethod)}
               {entryInvestmentMethod && ` (${getInvestmentMethodText(entryInvestmentMethod)})`}
             </p>
             {entryInvestmentMethod === 'FIXED_AMOUNT' && entryFixedAmount && (
@@ -170,8 +169,7 @@ export const ConfirmPage = () => {
           </div>
           <div>
             <p className="font-light">
-              <TermTooltip term="청산">청산</TermTooltip> 방식 :{' '}
-              {exitMethod && getMethodText(exitMethod)}
+              판매 방식 : {exitMethod && getMethodText(exitMethod)}
               {exitInvestmentMethod && ` (${getInvestmentMethodText(exitInvestmentMethod)})`}
             </p>
             {exitInvestmentMethod === 'FIXED_AMOUNT' && exitFixedAmount && (
