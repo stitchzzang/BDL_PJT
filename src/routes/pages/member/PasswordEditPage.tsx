@@ -116,6 +116,13 @@ export const PasswordEditPage = () => {
                             placeholder="새로운 비밀번호를 입력해주세요."
                             className="h-14 pr-10"
                             {...field}
+                            onChange={(e) => {
+                              field.onChange(e);
+                              // 비밀번호가 변경될 때 비밀번호 확인 필드도 검증
+                              if (dirtyFields.passwordConfirm) {
+                                form.trigger('passwordConfirm');
+                              }
+                            }}
                           />
                         </FormControl>
                         {isValid && (
