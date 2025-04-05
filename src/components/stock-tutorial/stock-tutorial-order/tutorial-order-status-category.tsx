@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // 허용된 탭 타입을 정의
 type TabType = '구매' | '판매' | '관망';
@@ -6,15 +6,30 @@ type TabType = '구매' | '판매' | '관망';
 interface OrderStatusCategoryProps {
   isActiveCategory: TabType;
   setIsActiveCategory: React.Dispatch<React.SetStateAction<TabType>>;
+  resetToInitial?: boolean; // 턴이 넘어갈 때 true로 설정하여 기본값(구매)으로 리셋
 }
 
 export const TutorialOrderStatusCategory: React.FC<OrderStatusCategoryProps> = ({
   isActiveCategory,
   setIsActiveCategory,
+  resetToInitial = false,
 }) => {
   const orderButtonStyle =
     'w-[30%] cursor-pointer text-center rounded-xl py-2  transition-all duration-300';
   const [isActive, setIsActive] = useState<string>(isActiveCategory);
+
+  // resetToInitial이 true로 변경될 때 카테고리를 '구매'로 리셋
+  useEffect(() => {
+    if (resetToInitial && isActiveCategory !== '구매') {
+      setIsActive('구매');
+      setIsActiveCategory('구매');
+    }
+  }, [resetToInitial, setIsActiveCategory, isActiveCategory]);
+
+  // isActiveCategory가 외부에서 변경될 때 내부 상태도 동기화
+  useEffect(() => {
+    setIsActive(isActiveCategory);
+  }, [isActiveCategory]);
 
   const changeCategory = (isActiveCategory: TabType) => {
     setIsActiveCategory(isActiveCategory);
