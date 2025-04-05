@@ -83,6 +83,11 @@ export const StockTutorialInfo = ({
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
   const initSessionMutation = useInitSession();
 
+  // props로 전달된 latestPrice 변경 감지
+  useEffect(() => {
+    console.log('[StockTutorialInfo] latestPrice props 변경:', latestPrice);
+  }, [latestPrice]);
+
   // 오늘부터 1년 전까지의 날짜 범위 계산
   const today = new Date();
   const oneYearAgo = new Date();
@@ -124,7 +129,20 @@ export const StockTutorialInfo = ({
   // 렌더링에 사용할 현재 가격 결정
   // 튜토리얼 시작 전: API에서 가져온 초기 가격
   // 튜토리얼 시작 후: props로 전달받은 턴별 최신 가격
-  const displayPrice = isTutorialStarted ? latestPrice : initialPrice;
+  const displayPrice = isTutorialStarted
+    ? latestPrice !== undefined && latestPrice !== null && latestPrice > 0
+      ? latestPrice
+      : initialPrice
+    : initialPrice;
+
+  // 디버깅을 위한 로그 추가
+  console.log('[StockTutorialInfo] 현재가 정보:', {
+    isTutorialStarted,
+    latestPrice: latestPrice ?? '미정의',
+    initialPrice,
+    displayPrice,
+    currentTurn,
+  });
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
@@ -244,7 +262,7 @@ export const StockTutorialInfo = ({
                     {addCommasToThousand(displayPrice || 0)}원
                   </h3>
                   {isTutorialStarted && currentTurn > 0 && (
-                    <div className="ml-2 flex justify-center gap-2 rounded-lg">
+                    <div className="ml-2 flex justify-center gap-2 rounded-lg bg-[#2A2A3C] px-2 py-1">
                       <p className="text-border-color">{currentTurn}단계 현재가</p>
                     </div>
                   )}

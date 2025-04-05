@@ -761,14 +761,36 @@ export const SimulatePage = () => {
               (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
             );
 
-            // 다음 턴의 첫 일봉 종가 (주가)
-            const nextTurnFirstPrice = sortedCandles[0].closePrice;
+            // 요구사항에 맞는 가격 설정
+            let nextTurnPrice = 0;
+
+            // 각 턴별로 적절한 가격 설정
+            if (nextTurn === 1) {
+              // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            } else if (nextTurn === 2) {
+              // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            } else if (nextTurn === 3) {
+              // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            } else if (nextTurn === 4) {
+              // 4턴: 끝점의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            }
 
             // 가격 변경
-            setLatestPrice(nextTurnFirstPrice);
+            if (nextTurnPrice > 0) {
+              setLatestPrice(nextTurnPrice);
+              console.log(`[moveToNextTurn] ${nextTurn}턴 현재가 설정: ${nextTurnPrice}원`);
+            } else {
+              // 기본값으로 마지막 캔들 사용
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+              setLatestPrice(nextTurnPrice);
+            }
 
             // 턴 변경에 따른 자산 정보 명시적 업데이트 (수익률 변동 포함)
-            const stockValue = prevOwnedStock * nextTurnFirstPrice;
+            const stockValue = prevOwnedStock * nextTurnPrice;
             const newTotalAsset = prevAvailableOrderAsset + stockValue;
             const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
 
@@ -991,21 +1013,36 @@ export const SimulatePage = () => {
         }
       }
 
-      // 최신 가격만 업데이트 (자산 정보 업데이트는 안 함)
+      // 최신 가격 업데이트 (요구사항에 맞게 각 턴별로 적절한 종가 설정)
       const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
       if (dayCandles.length > 0) {
-        // 날짜순으로 정렬하여 가장 최근 일봉의 종가를 현재가로 설정
         const sortedCandles = [...dayCandles].sort(
-          (a, b) => new Date(b.tradingDate).getTime() - new Date(a.tradingDate).getTime(),
+          (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
         );
-        // 가장 최근 일봉(첫 번째 요소)의 종가를 현재가로 설정
-        const latestCandle = sortedCandles[0];
-        const newLatestPrice = latestCandle.closePrice;
 
-        // 가격이 변경된 경우에만 업데이트
-        if (newLatestPrice !== latestPrice) {
-          // 최신 가격만 업데이트
-          setLatestPrice(newLatestPrice);
+        let priceToShow = 0;
+
+        // 각 턴별로 요구사항에 맞는 가격 설정
+        if (turn === 1) {
+          // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        } else if (turn === 2) {
+          // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        } else if (turn === 3) {
+          // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        } else if (turn === 4) {
+          // 4턴: 끝점의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        }
+
+        // 가격 설정
+        if (priceToShow > 0) {
+          setLatestPrice(priceToShow);
+          console.log(
+            `[loadChartData] ${turn}턴 현재가 설정: ${priceToShow}원 (${sortedCandles.length}개 데이터)`,
+          );
         }
       }
 
@@ -1019,6 +1056,41 @@ export const SimulatePage = () => {
       return null;
     } finally {
       setIsChartLoading(false);
+    }
+  };
+
+  // 최신 가격 업데이트 함수 - 가격만 업데이트하고 자산 정보는 업데이트하지 않음
+  const updateLatestPrice = (data: TutorialStockResponse, turn: number = currentTurn) => {
+    const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
+    if (dayCandles.length > 0) {
+      // 날짜순 정렬
+      const sortedCandles = [...dayCandles].sort(
+        (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+      );
+
+      let priceToShow = 0;
+
+      // 각 턴별로 요구사항에 맞는 가격 설정
+      if (turn === 1) {
+        // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      } else if (turn === 2) {
+        // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      } else if (turn === 3) {
+        // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      } else if (turn === 4) {
+        // 4턴: 끝점의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      }
+
+      // 가격이 변경된 경우에만 업데이트
+      if (priceToShow > 0 && priceToShow !== latestPrice) {
+        // 최신 가격만 업데이트
+        setLatestPrice(priceToShow);
+        console.log(`[updateLatestPrice] ${turn}턴 현재가 업데이트: ${priceToShow}원`);
+      }
     }
   };
 
@@ -1469,6 +1541,13 @@ export const SimulatePage = () => {
       setOwnedStockCount(totalStock);
     }
   }, [trades]);
+
+  // 현재가와 턴 변경 감지를 위한 useEffect
+  useEffect(() => {
+    console.log(`[SimulatePage] 현재가 변경: ${latestPrice}원, 현재 턴: ${currentTurn}`);
+  }, [latestPrice, currentTurn]);
+
+  // 컴포넌트가 처음 마운트될 때 초기 데이터 로드
 
   return (
     <div className="flex h-full w-full flex-col px-6">
