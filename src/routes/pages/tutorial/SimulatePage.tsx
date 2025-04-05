@@ -349,34 +349,34 @@ export const SimulatePage = () => {
     }
   }, [currentTurn, turnNewsList, isTutorialStarted]);
 
+  // 날짜에서 하루를 빼는 유틸리티 함수
+  const subtractOneDay = (dateStr: string): string => {
+    try {
+      // 날짜 형식이 'YYMMDD'라고 가정
+      const year = parseInt('20' + dateStr.substring(0, 2));
+      const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
+      const day = parseInt(dateStr.substring(4, 6));
+
+      const date = new Date(year, month, day);
+      date.setDate(date.getDate() - 1);
+
+      // 다시 'YYMMDD' 형식으로 변환
+      const adjustedYear = date.getFullYear().toString().substring(2);
+      const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+      const adjustedDay = date.getDate().toString().padStart(2, '0');
+
+      return adjustedYear + adjustedMonth + adjustedDay;
+    } catch (e) {
+      console.error('날짜 조정 중 오류 발생:', e);
+      return dateStr; // 오류 시 원본 날짜 반환
+    }
+  };
+
   // 날짜 범위에 따른 세션 설정
   const calculateSession = (turn: number) => {
     if (turn <= 0 || pointDates.length < 3) return null;
 
-    // 날짜 조정 함수: 주어진 날짜에서 1일을 뺍니다.
-    const subtractOneDay = (dateStr: string): string => {
-      try {
-        // 날짜 형식이 'YYMMDD'라고 가정
-        const year = parseInt('20' + dateStr.substring(0, 2));
-        const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
-        const day = parseInt(dateStr.substring(4, 6));
-
-        const date = new Date(year, month, day);
-        date.setDate(date.getDate() - 1);
-
-        // 다시 'YYMMDD' 형식으로 변환
-        const adjustedYear = date.getFullYear().toString().substring(2);
-        const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
-        const adjustedDay = date.getDate().toString().padStart(2, '0');
-
-        return adjustedYear + adjustedMonth + adjustedDay;
-      } catch (e) {
-        console.error('날짜 조정 중 오류 발생:', e);
-        return dateStr; // 오류 시 원본 날짜 반환
-      }
-    };
-
-    // 턴에 따른 세션과 진행률 매핑
+    // 누적 차트를 위한 턴별 세션 설정 (시작 날짜는 항상 defaultStartDate로 고정)
     const turnToSessionMap: Record<
       number,
       {
@@ -391,18 +391,18 @@ export const SimulatePage = () => {
         currentPointIndex: 0,
       },
       2: {
-        startDate: pointDates[0],
+        startDate: defaultStartDate, // 1단계부터 누적
         endDate: subtractOneDay(pointDates[1]), // 변곡점2 - 1일
         currentPointIndex: 1,
       },
       3: {
-        startDate: pointDates[1],
+        startDate: defaultStartDate, // 1단계부터 누적
         endDate: subtractOneDay(pointDates[2]), // 변곡점3 - 1일
         currentPointIndex: 2,
       },
       4: {
-        startDate: pointDates[2],
-        endDate: defaultEndDate,
+        startDate: defaultStartDate, // 1단계부터 누적
+        endDate: defaultEndDate, // 끝점까지
         currentPointIndex: 3,
       },
     };
@@ -667,7 +667,12 @@ export const SimulatePage = () => {
     setFinalChangeRate(newReturnRate);
   };
 
-  // 다음 턴으로 이동하는 함수
+  // 일시적으로 moveToNextTurn을 일반 함수로 선언 (loadChartData 의존성 제거)
+  const moveToNextTurnTemp = async () => {
+    // 내용은 비워두고 나중에 올바른 구현으로 교체할 예정
+  };
+
+  // 이제 loadChartData가 선언되었으므로 moveToNextTurn 함수를 올바르게 재정의합니다
   const moveToNextTurn = useCallback(async () => {
     if (currentTurn < 4) {
       try {
@@ -681,7 +686,7 @@ export const SimulatePage = () => {
         // 다음 턴 번호 계산
         const nextTurn = currentTurn + 1;
 
-        // 세션 업데이트 및 데이터 로드
+        // 세션 업데이트 및 데이터 로드 (누적 방식)
         const newSession = calculateSession(nextTurn);
         if (!newSession) return;
 
@@ -699,8 +704,12 @@ export const SimulatePage = () => {
         };
         setProgress(turnToProgressMap[nextTurn]);
 
-        // 차트 데이터 로드 - 비동기 작업 (결과를 직접 저장)
-        const chartResult = await loadChartData(newSession.startDate, newSession.endDate, nextTurn);
+        // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate, 종료일만 변경)
+        const chartResult = await loadChartData(
+          defaultStartDate, // 항상 처음부터 시작 (누적)
+          newSession.endDate,
+          nextTurn,
+        );
 
         // 데이터 로드 완료 후 자산 정보 업데이트 (일정 시간 후)
         setTimeout(() => {
@@ -851,12 +860,14 @@ export const SimulatePage = () => {
     }
   }, [
     currentTurn,
-    latestPrice,
     assetInfo.availableOrderAsset,
     assetInfo.currentTotalAsset,
     assetInfo.totalReturnRate,
+    calculateSession,
+    latestPrice,
     ownedStockCount,
     turnChartData,
+    defaultStartDate,
   ]);
 
   // 튜토리얼 완료 처리 함수
@@ -941,7 +952,7 @@ export const SimulatePage = () => {
     setIsModalOpen(true);
   };
 
-  // 차트 데이터 로드 함수
+  // 차트 데이터 로드
   const loadChartData = async (startDate: string, endDate: string, turn: number) => {
     // 중복 로드 방지
     const sessionKey = `${startDate}-${endDate}-${turn}`;
@@ -953,8 +964,13 @@ export const SimulatePage = () => {
     setIsChartLoading(true);
     setHasChartError(false);
 
-    // 차트 데이터 가져오기
-    const apiUrl = `stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`;
+    // 차트 데이터 가져오기 - 각 턴에 맞게 누적 방식으로 변경
+    // 턴에 따라 시작 날짜는 항상 기본 시작 날짜(defaultStartDate)로 고정하고 종료 날짜만 변경
+    const actualStartDate = defaultStartDate; // 항상 기본 시작 날짜부터 시작
+    const actualEndDate = endDate; // 종료 날짜는 각 턴의 종료 날짜
+
+    // 각 턴별 API 호출을 위한 URL 생성
+    const apiUrl = `stocks/${companyId}/tutorial?startDate=${actualStartDate}&endDate=${actualEndDate}`;
 
     try {
       const response = await _ky.get(apiUrl).json();
@@ -1063,34 +1079,23 @@ export const SimulatePage = () => {
       [turn]: true,
     };
 
-    // 각 턴별 시작/종료 ID 계산
-    let startStockCandleId = 0;
+    // 각 턴별 시작/종료 ID 계산 - 누적 방식으로 변경
+    const startStockCandleId = 1; // 항상 처음부터 시작 (누적)
     let endStockCandleId = 0;
 
-    // 턴별 stockCandleId 설정
+    // 턴별 stockCandleId 설정 (종료 ID만 변경)
     if (turn === 1) {
       // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지 (변곡점 - 1 기준)
-      startStockCandleId = 1; // 최소값 1로 설정 (0은 유효하지 않을 수 있음)
-      // 첫 번째 턴에서는 더 넓은 범위의 ID를 사용하여 데이터를 보장함
-      // 첫 번째 변곡점 ID에서 약간의 여유를 둠 (데이터 누락 방지)
       endStockCandleId = pointStockCandleIds[0] > 1 ? pointStockCandleIds[0] - 1 : 500;
-    } else if (turn > 1 && turn <= 4) {
-      // 2~4턴: 이전 변곡점부터 현재 변곡점-1까지
-      startStockCandleId = pointStockCandleIds[turn - 2] || 1;
-
-      if (turn < 4) {
-        // 2~3턴은 다음 변곡점-1까지
-        endStockCandleId =
-          pointStockCandleIds[turn - 1] > 1
-            ? pointStockCandleIds[turn - 1] - 1
-            : startStockCandleId + 200; // 범위 확장
-      } else {
-        // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지 (여기는 변경 없음)
-        endStockCandleId =
-          pointStockCandleIds.length >= 3
-            ? pointStockCandleIds[2] + 1000
-            : startStockCandleId + 1000; // 충분히 큰 값
-      }
+    } else if (turn === 2) {
+      // 두 번째 턴: 시작점부터 두 번째 변곡점까지 (누적)
+      endStockCandleId = pointStockCandleIds[1] > 1 ? pointStockCandleIds[1] - 1 : 1000;
+    } else if (turn === 3) {
+      // 세 번째 턴: 시작점부터 세 번째 변곡점까지 (누적)
+      endStockCandleId = pointStockCandleIds[2] > 1 ? pointStockCandleIds[2] - 1 : 1500;
+    } else if (turn === 4) {
+      // 네 번째 턴: 시작점부터 마지막까지 (누적)
+      endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 2000;
     }
 
     // =============================================================
@@ -1145,95 +1150,12 @@ export const SimulatePage = () => {
         if (turn === currentTurn) {
           setPastNewsList(sortedNews);
         }
-      } else if (pastNewsResponse?.result && Array.isArray(pastNewsResponse.result)) {
-        // 직접 result 배열을 사용하는 경우
-        const sortedNews = [...pastNewsResponse.result].sort(
-          (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
-        );
-
-        // 턴별 뉴스 목록 상태 업데이트
-        setTurnNewsList((prev) => ({
-          ...prev,
-          [turn]: sortedNews,
-        }));
-
-        // 현재 턴이면 화면에 표시할 뉴스도 업데이트
-        if (turn === currentTurn) {
-          setPastNewsList(sortedNews);
-        }
-      } else {
-        //
       }
     } catch {
-      // 과거 뉴스 로드 실패 시, 샘플 데이터로 대체하거나 빈 배열 설정
-      if (turn === 1) {
-        const sampleNews: NewsResponse[] = [
-          {
-            newsId: 1001,
-            newsTitle: '종목 분석 보고서: 앞으로의 성장 가능성 주목',
-            newsDate: new Date().toISOString(),
-            changeRate: 0.5,
-            stockCandleId: 101,
-          },
-          {
-            newsId: 1002,
-            newsTitle: '시장 동향: 업계 전반적인 흐름 살펴보기',
-            newsDate: new Date(Date.now() - 86400000).toISOString(), // 하루 전
-            changeRate: -0.3,
-            stockCandleId: 102,
-          },
-        ];
-
-        setTurnNewsList((prev) => ({
-          ...prev,
-          [turn]: sampleNews,
-        }));
-
-        if (turn === currentTurn) {
-          setPastNewsList(sampleNews);
-        }
-      } else if (turn === currentTurn) {
-        setPastNewsList([]);
-      }
+      // 뉴스 로드 실패 시 무시
     }
 
-    // =================================================================
-    // 3. 현재 뉴스 API 호출 -> StockTutorialNews 컴포넌트
-    // =================================================================
-    if (turn > 0 && turn <= pointStockCandleIds.length) {
-      // 현재 턴에 해당하는 변곡점 ID 가져오기
-      const pointStockCandleId = pointStockCandleIds[turn - 1];
-
-      // 변곡점 ID가 없으면 다른 방법으로 ID 계산
-      const fallbackStockCandleId =
-        turn === 1
-          ? endStockCandleId
-          : turn <= 3
-            ? pointStockCandleIds[turn - 1] || endStockCandleId
-            : endStockCandleId;
-
-      const targetStockCandleId = pointStockCandleId || fallbackStockCandleId;
-
-      if (targetStockCandleId > 0) {
-        try {
-          const currentNewsResponse = await getCurrentNews.mutateAsync({
-            companyId,
-            stockCandleId: targetStockCandleId,
-          });
-
-          if (currentNewsResponse?.result && turn === currentTurn) {
-            setCurrentNews(currentNewsResponse.result);
-          }
-        } catch {
-          // 현재 뉴스 로드 실패 시 처리
-          if (turn === currentTurn) {
-            setCurrentNews(null);
-          }
-        }
-      }
-    }
-
-    // API 요청 완료 콜백 호출
+    // API 요청 완료 처리
     handleNewsDataLoaded(turn);
   };
 
@@ -1292,11 +1214,9 @@ export const SimulatePage = () => {
   };
 
   // 튜토리얼 시작 함수
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleTutorialStart = async () => {
-    if (!isUserLoggedIn()) return;
-
-    if (isTutorialStarted) {
+    if (!isUserLoggedIn()) {
+      alert('로그인이 필요한 기능입니다.');
       return;
     }
 
@@ -1326,10 +1246,10 @@ export const SimulatePage = () => {
         // 튜토리얼 1단계(1턴)로 설정
         setCurrentTurn(1);
 
-        // 첫 번째 턴에 맞는 세션 설정
+        // 첫 번째 턴에 맞는 세션 설정 - 누적 차트 방식
         const firstSession = {
-          startDate: defaultStartDate,
-          endDate: pointDatesLoaded[0],
+          startDate: defaultStartDate, // 항상 시작점부터
+          endDate: subtractOneDay(pointDatesLoaded[0]), // 변곡점1 - 1일
           currentPointIndex: 0,
         };
 

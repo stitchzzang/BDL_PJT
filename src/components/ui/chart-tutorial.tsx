@@ -501,7 +501,6 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ periodData }
         position: function (point, params, dom, rect, size) {
           const chartWidth = size.viewSize[0];
           const tooltipWidth = size.contentSize[0];
-          const tooltipHeight = size.contentSize[1];
           const posX = point[0];
 
           if (posX + tooltipWidth > chartWidth - 20) {
