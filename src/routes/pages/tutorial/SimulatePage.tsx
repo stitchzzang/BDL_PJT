@@ -1563,7 +1563,13 @@ export const SimulatePage = () => {
           latestPrice={latestPrice}
           showButtonInInfoSection={false}
         />
-        <StockProgress progress={progress} />
+        <StockProgress
+          progress={progress}
+          currentTurn={currentTurn}
+          startDate={tutorialDateRange.startDate}
+          endDate={tutorialDateRange.endDate}
+          formatDateFn={formatYYMMDDToYYYYMMDD}
+        />
       </div>
       <div className="mb-[25px] flex justify-between">
         <StockTutorialMoneyInfo
@@ -1572,22 +1578,6 @@ export const SimulatePage = () => {
           currentTotalAsset={assetInfo.currentTotalAsset}
           totalReturnRate={assetInfo.totalReturnRate}
         />
-        <div className="flex items-center gap-2">
-          {currentTurn > 0 && (
-            <div className="mr-12 flex items-center gap-2">
-              <span className="text-[14px] text-white">현재 단계:</span>
-              <span className="rounded-lg bg-[#2A2A3C] px-2 py-1 text-[14px] font-medium text-white">
-                {currentTurn}/4 단계
-              </span>
-            </div>
-          )}
-          <p className="text-[14px] text-border-color">진행 기간 : </p>
-          <div className="flex gap-3 rounded-xl bg-modal-background-color px-[16px] py-[12px]">
-            <p className="text-[14px]">{formatYYMMDDToYYYYMMDD(tutorialDateRange.startDate)}</p>
-            <span className="text-[14px] font-bold text-border-color"> - </span>
-            <p className="text-[14px]">{formatYYMMDDToYYYYMMDD(tutorialDateRange.endDate)}</p>
-          </div>
-        </div>
       </div>
       <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
         <div className="col-span-1 h-full lg:col-span-9">
