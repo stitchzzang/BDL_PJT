@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 // 회원가입 폼 유효성 검사를 위한 스키마 정의
 const signUpSchema = z
   .object({
-    email: z.string().email('올바른 이메일 형식이 아닙니다.'),
+    email: z.string().email('올바른 아이디 형식이 아닙니다.'),
     password: z.string().min(8, '비밀번호는 최소 8자 이상이어야 합니다.'),
     passwordConfirm: z.string(),
     nickname: z
@@ -119,7 +119,7 @@ export const SignUpPage = () => {
             onSubmit={form.handleSubmit(onSubmit)}
             className="flex flex-col items-center justify-center gap-3"
           >
-            <h1 className="w-full text-left text-lg font-bold text-primary-color">이메일</h1>
+            <h1 className="w-full text-left text-lg font-bold text-primary-color">아이디</h1>
             <FormField
               control={form.control}
               name="email"
@@ -130,7 +130,7 @@ export const SignUpPage = () => {
                   <FormItem className="w-full">
                     <div className="relative">
                       <FormControl>
-                        <Input placeholder="example@domain.com" className="h-12 pr-10" {...field} />
+                        <Input placeholder="아이디 입력" className="h-12 pr-10" {...field} />
                       </FormControl>
                       {isValid && (
                         <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
@@ -140,7 +140,7 @@ export const SignUpPage = () => {
                       )}
                     </div>
                     {/* <p className="text-sm text-text-main-color">
-                      이메일은 example@domain.com 형식이어야 합니다.
+                      아이디는 example@domain.com 형식이어야 합니다.
                     </p> */}
                   </FormItem>
                 );

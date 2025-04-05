@@ -44,7 +44,7 @@ export const LoginPage = () => {
       <div className="w-full max-w-96 rounded-lg bg-modal-background-color p-6 shadow-lg">
         <form onSubmit={handleLogin} className="flex flex-col items-center justify-center gap-3">
           <Input
-            placeholder="이메일"
+            placeholder="아이디"
             className="h-12"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
