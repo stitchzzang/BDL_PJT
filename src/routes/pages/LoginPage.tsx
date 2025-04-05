@@ -49,6 +49,7 @@ export const LoginPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            maxLength={15}
           />
           <Input
             placeholder="비밀번호"
@@ -57,6 +58,7 @@ export const LoginPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            maxLength={20}
           />
           <Button variant="blue" className="mt-5 w-full" type="submit" disabled={isPending}>
             {isPending ? '로그인 중...' : '로그인'}
