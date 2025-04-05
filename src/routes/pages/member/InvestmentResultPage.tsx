@@ -501,9 +501,9 @@ export const InvestmentResultPage = () => {
           placeholder="종목명 검색"
           value={search}
           onChange={handleSearchChange}
-          className="rounded-md border border-border-color bg-background px-3 py-2 text-sm"
+          className="rounded-md border border-border-color bg-background px-3 py-2 text-sm text-black"
         />
-        <Button type="submit" variant="outline" className="border-border-color">
+        <Button type="submit" variant="blue" className="border-border-color">
           검색
         </Button>
       </form>
@@ -880,8 +880,8 @@ export const InvestmentResultPage = () => {
 
       <div className="mb-4 flex gap-2">
         <Button
-          variant={transactionSubTab === 'all' ? 'default' : 'outline'}
-          className={`border-border-color ${transactionSubTab === 'all' ? 'bg-btn-blue-color' : ''}`}
+          variant="blue"
+          className={transactionSubTab === 'all' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'}
           onClick={() => {
             setTransactionSubTab('all');
             setConfirmedPage(0);
@@ -890,8 +890,10 @@ export const InvestmentResultPage = () => {
           전체
         </Button>
         <Button
-          variant={transactionSubTab === 'manual' ? 'default' : 'outline'}
-          className={`border-border-color ${transactionSubTab === 'manual' ? 'bg-btn-blue-color' : ''}`}
+          variant="blue"
+          className={
+            transactionSubTab === 'manual' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'
+          }
           onClick={() => {
             setTransactionSubTab('manual');
             setManualPage(0);
@@ -900,8 +902,8 @@ export const InvestmentResultPage = () => {
           수동
         </Button>
         <Button
-          variant={transactionSubTab === 'auto' ? 'default' : 'outline'}
-          className={`border-border-color ${transactionSubTab === 'auto' ? 'bg-btn-blue-color' : ''}`}
+          variant="blue"
+          className={transactionSubTab === 'auto' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'}
           onClick={() => {
             setTransactionSubTab('auto');
             setAutoPage(0);
