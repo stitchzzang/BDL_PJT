@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 
 import { useBackTestAlgorithm } from '@/api/algorithm.api';
-import { CompanyProfile } from '@/api/types/algorithm';
+import { CompanyProfile, StockDailyData } from '@/api/types/algorithm';
+import { CandlestickAlgorithmChart } from '@/components/algorithm/algorithm-chart';
 import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-info';
 
 export const BackTesting = () => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [dailyData, setDailyData] = useState<StockDailyData[] | null>(null);
   const backTestAlgorithm = useBackTestAlgorithm();
   // 백테스팅 자료 요청
   const handleBackTest = () => {
@@ -19,6 +21,7 @@ export const BackTesting = () => {
       {
         onSuccess: (res) => {
           setCompanyProfile(res.companyProfile);
+          setDailyData(res.stockDaily.data);
           console.log(res);
         },
       },
@@ -33,7 +36,7 @@ export const BackTesting = () => {
         <AlgorithmCompanyInfo companyProfile={companyProfile} />
       </div>
       <div>
-        <p>hello</p>
+        <CandlestickAlgorithmChart data={dailyData} />
       </div>
     </div>
   );
