@@ -1,14 +1,14 @@
 // 카테고리 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
 import { useQuery } from '@tanstack/react-query';
 
-import { _kyAuth } from '@/api/instance';
+import { _ky } from '@/api/instance';
 import { Category, Company } from '@/api/types/category';
 import { ApiResponse } from '@/api/types/common';
 
 export const categoryAPI = {
-  getCategoryList: () => _kyAuth.get('category').json<ApiResponse<Category[]>>(),
+  getCategoryList: () => _ky.get('category').json<ApiResponse<Category[]>>(),
   getCompaniesByCategory: (categoryId: string) =>
-    _kyAuth.get(`category/${categoryId}`).json<ApiResponse<Company[]>>(),
+    _ky.get(`category/${categoryId}`).json<ApiResponse<Company[]>>(),
 };
 
 export const useGetCategoryList = () => {
