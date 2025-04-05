@@ -563,9 +563,9 @@ export const InvestmentResultPage = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>종목명</TableHead>
-            <TableHead>총 수익률</TableHead>
-            <TableHead>총 수익금(원)</TableHead>
+            <TableHead className="w-[200px]">종목명</TableHead>
+            <TableHead className="text-right">총 수익률</TableHead>
+            <TableHead className="text-right">총 수익금(원)</TableHead>
             <TableHead className="text-right">
               <TermTooltip term="1주 평균 금액">1주 평균 금액</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
@@ -589,7 +589,7 @@ export const InvestmentResultPage = () => {
           {displayData?.accounts.length && displayData?.accounts.length > 0 ? (
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
-                <TableCell>
+                <TableCell className="w-[200px]">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -612,7 +612,7 @@ export const InvestmentResultPage = () => {
                   </TooltipProvider>
                 </TableCell>
                 <TableCell
-                  className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
+                  className={`${addStockValueColorClass(account.profitRate)} text-right transition-all duration-300 ${
                     highlightMap[`profitRate_${account.companyId}`]?.isFlashing
                       ? highlightMap[`profitRate_${account.companyId}`]?.isIncreased
                         ? 'bg-btn-red-color/40'
@@ -627,7 +627,7 @@ export const InvestmentResultPage = () => {
                   {`${plusMinusSign(roundToTwoDecimalPlaces(account.profitRate))}${roundToTwoDecimalPlaces(account.profitRate)}%`}
                 </TableCell>
                 <TableCell
-                  className={`${addStockValueColorClass(account.profit)} transition-all duration-300 ${
+                  className={`${addStockValueColorClass(account.profit)} text-right transition-all duration-300 ${
                     highlightMap[`profit_${account.companyId}`]?.isFlashing
                       ? highlightMap[`profit_${account.companyId}`]?.isIncreased
                         ? 'bg-btn-red-color/40'
@@ -720,8 +720,8 @@ export const InvestmentResultPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>종목명</TableHead>
-              <TableHead>거래 유형</TableHead>
+              <TableHead className="w-[200px]">종목명</TableHead>
+              <TableHead className="text-center">거래 유형</TableHead>
               <TableHead className="text-right">주문 수량</TableHead>
               <TableHead className="text-right">주문 가격(원)</TableHead>
               <TableHead className="text-right">총 금액(원)</TableHead>
@@ -739,7 +739,7 @@ export const InvestmentResultPage = () => {
             ) : pendingOrdersData?.orders && pendingOrdersData.orders.length > 0 ? (
               pendingOrdersData.orders.map((order) => (
                 <TableRow key={order.orderId}>
-                  <TableCell>
+                  <TableCell className="w-[200px]">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -761,7 +761,7 @@ export const InvestmentResultPage = () => {
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <Badge variant={order.tradeType === 0 ? 'increase' : 'decrease'}>
                       {getTradeTypeText(order.tradeType)}
                     </Badge>
@@ -836,9 +836,9 @@ export const InvestmentResultPage = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>종목명</TableHead>
-            <TableHead>거래 유형</TableHead>
-            <TableHead>주문 방식</TableHead>
+            <TableHead className="w-[200px]">종목명</TableHead>
+            <TableHead className="text-center">거래 유형</TableHead>
+            <TableHead className="text-center">주문 방식</TableHead>
             <TableHead className="text-right">주문 수량</TableHead>
             <TableHead className="text-right">주문 가격(원)</TableHead>
             <TableHead className="text-right">총 금액(원)</TableHead>
@@ -855,7 +855,7 @@ export const InvestmentResultPage = () => {
           ) : data?.orders && data.orders.length > 0 ? (
             data.orders.map((order: any) => (
               <TableRow key={order.orderId}>
-                <TableCell>
+                <TableCell className="w-[200px]">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -877,12 +877,12 @@ export const InvestmentResultPage = () => {
                     </Tooltip>
                   </TooltipProvider>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <Badge variant={order.tradeType === 0 ? 'red' : 'blue'}>
                     {getTradeTypeText(order.tradeType)}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-center">
                   <Badge variant={order.auto ? 'auto' : 'manual'}>
                     {getOrderModeText(order.auto)}
                   </Badge>
