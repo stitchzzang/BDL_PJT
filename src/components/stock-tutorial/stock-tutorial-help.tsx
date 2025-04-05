@@ -14,7 +14,7 @@ export const StockTutorialHelp = ({ className, onClick, ...props }: StockTutoria
     <Button
       variant="ghost"
       className={cn(
-        'flex h-8 w-auto items-center justify-center gap-1.5 rounded-full bg-[#2D2D2D] px-3 py-0 text-xs font-medium text-white hover:bg-[#2D2D2D]/80',
+        'flex h-8 w-auto items-center justify-center gap-1.5 rounded-lg bg-[#2D2D2D] px-3 py-0 text-xs font-medium text-white hover:bg-[#2D2D2D]/80',
         className,
       )}
       onClick={onClick}

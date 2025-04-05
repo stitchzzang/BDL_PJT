@@ -1,6 +1,10 @@
+import Lottie from 'lottie-react';
 import { useEffect, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+
 export type TradeAction = 'buy' | 'sell' | 'wait';
+import NextAnimation from '@/assets/lottie/next-animation.json';
 import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-buy';
 import { TutorialOrderStatusCategory } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-category';
 import { TutorialOrderStatusSell } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-sell';
@@ -14,6 +18,13 @@ export interface TutorialOrderStatusProps {
   ownedStockCount?: number; // 보유 주식 수량 (옵션)
   currentTurn: number; // 현재 턴 번호 추가
   isCurrentTurnCompleted: boolean; // 현재 턴 완료 여부 추가
+  availableOrderAsset?: number; // 구매 가능 금액 추가
+  isTutorialStarted: boolean; // 튜토리얼 시작 여부 추가
+  // 버튼 관련 props 추가
+  onTutorialStart?: () => void;
+  onMoveToNextTurn?: () => void;
+  initSessionPending?: boolean;
+  companyInfoExists?: boolean;
 }
 
 export const TutorialOrderStatus = ({
@@ -24,6 +35,12 @@ export const TutorialOrderStatus = ({
   ownedStockCount = 0, // 기본값 0
   currentTurn,
   isCurrentTurnCompleted,
+  availableOrderAsset = 0, // 기본값 0
+  isTutorialStarted = false, // 기본값 false
+  onTutorialStart,
+  onMoveToNextTurn,
+  initSessionPending = false,
+  companyInfoExists = true,
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';
@@ -65,23 +82,47 @@ export const TutorialOrderStatus = ({
     onTrade('wait', 0, 0);
   };
 
+  // 버튼 클릭 처리 함수
+  const handleButtonClick = () => {
+    if (!isTutorialStarted) {
+      // 튜토리얼이 시작되지 않은 경우 시작
+      onTutorialStart?.();
+    } else if (isCurrentTurnCompleted) {
+      // 현재 턴이 완료된 경우 다음 턴으로 이동
+      onMoveToNextTurn?.();
+    }
+  };
+
+  // 버튼 텍스트 결정 로직
+  const buttonTextContent = !isTutorialStarted
+    ? initSessionPending
+      ? '초기화 중...'
+      : '튜토리얼 시작하기'
+    : currentTurn === 4
+      ? '튜토리얼 완료'
+      : currentTurn > 0
+        ? '다음 턴으로'
+        : '튜토리얼 진행중';
+
   return (
     <div className="h-full">
-      <div className="h-[100%] rounded-2xl bg-modal-background-color p-5">
-        <div className="mb-[25px]">
+      <div className="relative flex h-full flex-col rounded-2xl bg-modal-background-color p-4">
+        <div className="mb-2">
           <TutorialOrderStatusCategory
             isActiveCategory={isActiveCategory}
             setIsActiveCategory={setIsActiveCategory}
           />
         </div>
-        <hr className="mb-[25px] border border-border-color border-opacity-20" />
-        <div>
+        <hr className="mb-2 border border-border-color border-opacity-20" />
+        <div className="flex-1 min-h-[450px] overflow-y-auto">
           {isActiveCategory === '구매' && (
             <TutorialOrderStatusBuy
               onBuy={(price, quantity) => handleTrade('buy', price, quantity)}
               companyId={companyId}
               latestPrice={latestPrice}
-              isActive={isSessionActive && !isCurrentTurnCompleted}
+              isActive={isSessionActive && !isCurrentTurnCompleted && currentTurn < 4}
+              availableOrderAsset={availableOrderAsset}
+              ownedStockCount={ownedStockCount}
             />
           )}
           {isActiveCategory === '판매' && (
@@ -100,6 +141,69 @@ export const TutorialOrderStatus = ({
             />
           )}
         </div>
+
+        {/* 튜토리얼 시작 전 오버레이 */}
+        {!isTutorialStarted && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-95">
+            <p className="mb-3 text-2xl font-bold text-white">튜토리얼을 시작해주세요!</p>
+            <p className="mb-4 text-center text-sm text-gray-400">
+              주식 매매 튜토리얼을 시작하려면
+              <br />
+              아래 버튼을 클릭해주세요.
+            </p>
+            <div className="mb-4 h-32 w-32">
+              <Lottie animationData={NextAnimation} loop={true} />
+            </div>
+            <Button
+              className="max-h-[45px] w-[225px]"
+              variant={'green'}
+              size={'lg'}
+              onClick={handleButtonClick}
+              disabled={initSessionPending || !companyInfoExists}
+            >
+              {buttonTextContent}
+            </Button>
+          </div>
+        )}
+
+        {/* 턴 완료 후 오버레이 표시 */}
+        {isCurrentTurnCompleted && currentTurn < 4 && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-95">
+            <p className="mb-3 text-2xl font-bold text-white">거래 체결 성공!</p>
+            <p className="mb-1 text-lg font-bold text-white">한 턴당 한 번만 거래할 수 있어요.</p>
+            <div className="mb-4 h-32 w-32">
+              <Lottie animationData={NextAnimation} loop={true} />
+            </div>
+            <Button
+              className="max-h-[45px] w-[225px]"
+              variant={'green'}
+              size={'lg'}
+              onClick={handleButtonClick}
+              disabled={!isCurrentTurnCompleted}
+            >
+              다음 턴으로
+            </Button>
+          </div>
+        )}
+
+        {/* 4단계(마지막 턴)에서는 결과 확인하기 안내 */}
+        {isCurrentTurnCompleted && currentTurn === 4 && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-modal-background-color bg-opacity-95">
+            <p className="mb-4 text-xl font-bold text-white">튜토리얼 결과를 확인해보세요!</p>
+            <div className="mb-4 h-32 w-32">
+              <Lottie animationData={NextAnimation} loop={true} />
+            </div>
+            <Button
+              className="max-h-[45px] w-[225px]"
+              variant={'green'}
+              size={'lg'}
+              onClick={handleButtonClick}
+              disabled={!isCurrentTurnCompleted}
+            >
+              튜토리얼 완료
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

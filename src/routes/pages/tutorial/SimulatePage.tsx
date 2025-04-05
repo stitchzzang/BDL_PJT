@@ -3,6 +3,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
+import { useGetCompanyProfile } from '@/api/company.api';
 import { _ky } from '@/api/instance/index';
 import {
   useDeleteTutorialSession,
@@ -242,21 +243,18 @@ export const SimulatePage = () => {
     4: null,
   });
 
-  // // 누적 차트 데이터 상태 추가
-  // const [accumulatedChartData, setAccumulatedChartData] = useState<TutorialStockResponse | null>(
-  //   null,
-  // );
-
   // 보유 주식 수량 추적 상태 추가
   const [ownedStockCount, setOwnedStockCount] = useState(0);
 
-  // 오늘부터 1년 전까지의 날짜 범위 계산
-  const today = new Date();
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(today.getFullYear() - 1);
+  // 어제부터 1년 전까지의 날짜 범위 계산
+  const currentDate = new Date();
+  // 어제 날짜로 설정
+  currentDate.setDate(currentDate.getDate() - 1);
+  const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+  oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
   const defaultStartDate = formatDateToYYMMDD(oneYearAgo);
-  const defaultEndDate = formatDateToYYMMDD(today);
+  const defaultEndDate = formatDateToYYMMDD(currentDate);
 
   // 변곡점 날짜를 배열로 관리
   const [pointDates, setPointDates] = useState<string[]>([]);
@@ -295,10 +293,11 @@ export const SimulatePage = () => {
   const processUserAction = useProcessUserAction();
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
-  const initSession = useInitSession();
+  const initSessionMutation = useInitSession();
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
+  const { data: companyInfo } = useGetCompanyProfile(String(companyId));
 
   // 현재 턴이 변경될 때마다 해당 턴의 코멘트로 업데이트
   useEffect(() => {
@@ -311,12 +310,24 @@ export const SimulatePage = () => {
   // 현재 턴이 변경될 때마다 해당 턴의 뉴스 목록으로 업데이트
   useEffect(() => {
     if (currentTurn > 0 && currentTurn <= 4) {
-      // 해당 턴의 과거 뉴스 데이터 설정
-      const turnNews = turnNewsList[currentTurn];
-      setPastNewsList(turnNews || []);
+      // 이전 턴을 포함한 모든 턴의 뉴스를 누적하여 표시
+      const accumulatedNews: NewsResponse[] = [];
+
+      // 현재 턴까지의 모든 뉴스를 수집
+      for (let t = 1; t <= currentTurn; t++) {
+        const turnNews = turnNewsList[t] || [];
+        accumulatedNews.push(...turnNews);
+      }
+
+      // 날짜 기준으로 정렬 (최신순)
+      const sortedNews = [...accumulatedNews].sort(
+        (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+      );
+
+      setPastNewsList(sortedNews);
 
       // 이미 API가 호출되었지만 데이터가 없는 경우 다시 로드
-      if ((!turnNews || turnNews.length === 0) && isTutorialStarted) {
+      if (turnNewsList[currentTurn]?.length === 0 && isTutorialStarted) {
         // 변곡점 데이터가 있는지 확인하고 필요시 로드
         if (pointStockCandleIds.length === 0) {
           loadPointsData().then(() => {
@@ -333,6 +344,29 @@ export const SimulatePage = () => {
   const calculateSession = (turn: number) => {
     if (turn <= 0 || pointDates.length < 3) return null;
 
+    // 날짜 조정 함수: 주어진 날짜에서 1일을 뺍니다.
+    const subtractOneDay = (dateStr: string): string => {
+      try {
+        // 날짜 형식이 'YYMMDD'라고 가정
+        const year = parseInt('20' + dateStr.substring(0, 2));
+        const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
+        const day = parseInt(dateStr.substring(4, 6));
+
+        const date = new Date(year, month, day);
+        date.setDate(date.getDate() - 1);
+
+        // 다시 'YYMMDD' 형식으로 변환
+        const adjustedYear = date.getFullYear().toString().substring(2);
+        const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+        const adjustedDay = date.getDate().toString().padStart(2, '0');
+
+        return adjustedYear + adjustedMonth + adjustedDay;
+      } catch (e) {
+        console.error('날짜 조정 중 오류 발생:', e);
+        return dateStr; // 오류 시 원본 날짜 반환
+      }
+    };
+
     // 턴에 따른 세션과 진행률 매핑
     const turnToSessionMap: Record<
       number,
@@ -344,17 +378,17 @@ export const SimulatePage = () => {
     > = {
       1: {
         startDate: defaultStartDate,
-        endDate: pointDates[0],
+        endDate: subtractOneDay(pointDates[0]), // 변곡점1 - 1일
         currentPointIndex: 0,
       },
       2: {
         startDate: pointDates[0],
-        endDate: pointDates[1],
+        endDate: subtractOneDay(pointDates[1]), // 변곡점2 - 1일
         currentPointIndex: 1,
       },
       3: {
         startDate: pointDates[1],
-        endDate: pointDates[2],
+        endDate: subtractOneDay(pointDates[2]), // 변곡점3 - 1일
         currentPointIndex: 2,
       },
       4: {
@@ -387,9 +421,51 @@ export const SimulatePage = () => {
     }
   };
 
+  // 자산 정보 초기화 방지를 위한 상태 추가
+  const [turnReturnRates, setTurnReturnRates] = useState<Record<number, number>>({
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+  });
+
+  // AI 코멘트 높이를 감지하는 상태와 레퍼런스 추가
+  const [commentHeight, setCommentHeight] = useState(0);
+  const commentRef = useRef<HTMLDivElement>(null);
+
+  // AI 코멘트 높이 감지 함수
+  useEffect(() => {
+    if (!commentRef.current) return;
+
+    // ResizeObserver 생성하여 AI 코멘트 컴포넌트 높이 변화 감지
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const height = entry.contentRect.height;
+        // 최소 1px 이상일 때만 높이 업데이트 (초기화 문제 방지)
+        if (height > 1) {
+          setCommentHeight(height);
+        }
+      }
+    });
+
+    // AI 코멘트 컴포넌트 관찰 시작
+    resizeObserver.observe(commentRef.current);
+
+    // 컴포넌트 언마운트 시 관찰 중단
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   // 거래 처리 함수
   const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
     if (!isTutorialStarted || currentTurn === 0 || pointStockCandleIds.length === 0) {
+      return;
+    }
+
+    // 4번째 턴에서는 액션 처리하지 않음 (별도의 action이 필요 없음)
+    if (currentTurn === 4) {
+      alert('4단계에서는 최종 결과만 확인할 수 있습니다.');
       return;
     }
 
@@ -401,8 +477,16 @@ export const SimulatePage = () => {
         ? pointStockCandleIds[currentTurn - 2]
         : 0;
 
-    const endPointId =
-      pointStockCandleIds.length >= currentTurn - 1 ? pointStockCandleIds[currentTurn - 1] : 0;
+    // endPointId 계산 - 변곡점 - 1일로 설정 (4턴 제외)
+    let endPointId = 0;
+    if (pointStockCandleIds.length >= currentTurn - 1) {
+      // 현재 턴의 변곡점 ID
+      const turnPointId = pointStockCandleIds[currentTurn - 1];
+
+      // 4번째 턴이 아닌 경우, 변곡점 ID에서 1을 빼서 처리 (변곡점 - 1일)
+      // 이는 calculateSession과 loadNewsData 함수의 변경 사항과 일치하게 함
+      endPointId = currentTurn < 4 && turnPointId > 1 ? turnPointId - 1 : turnPointId;
+    }
 
     if (endPointId === 0) {
       return;
@@ -417,6 +501,12 @@ export const SimulatePage = () => {
     // 이전 자산 상태 저장 (초기화 방지용)
     const prevAvailableAsset = assetInfo.availableOrderAsset;
     const prevOwnedStockCount = ownedStockCount;
+    // 이전 현재 총자산 및 수익률도 저장 (초기화 방지용)
+    const prevCurrentTotalAsset = assetInfo.currentTotalAsset;
+    const prevTotalReturnRate = assetInfo.totalReturnRate;
+
+    // 현재 턴의 수익률 가져오기 (초기화 방지)
+    const currentTurnReturnRate = turnReturnRates[currentTurn] || prevTotalReturnRate;
 
     // 관망 선택 시 API 호출 없이 턴 완료 처리
     if (action === 'wait') {
@@ -432,33 +522,9 @@ export const SimulatePage = () => {
 
       setTrades((prev) => [...prev, newTrade]);
 
-      // 관망 시에도 자산 정보 업데이트
-      const stockValue = prevOwnedStockCount * latestPrice;
-      const newTotalAsset = prevAvailableAsset + stockValue;
-      const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-      // 자산 정보 업데이트
-      const updatedAssetInfo = {
-        tradingDate: new Date().toISOString(),
-        availableOrderAsset: prevAvailableAsset,
-        currentTotalAsset: newTotalAsset,
-        totalReturnRate: newReturnRate,
-      };
-
-      setAssetInfo(updatedAssetInfo);
-      setFinalChangeRate(newReturnRate);
-
-      // 턴 완료 처리
+      // 관망 시에는 현재 자산 상태를 유지하고 턴 완료 상태만 변경
+      // (실제 자산 변동은 moveToNextTurn에서 처리)
       setIsCurrentTurnCompleted(true);
-
-      // 4턴이 아닐 경우에만 자동으로 다음 턴으로 이동
-      // 4턴일 경우에는 사용자가 직접 "결과 확인하기" 버튼을 클릭해야 함
-      if (currentTurn < 4) {
-        // 잠시 후 자동으로 다음 턴으로 이동
-        setTimeout(() => {
-          moveToNextTurn();
-        }, 500);
-      }
 
       return;
     }
@@ -487,49 +553,45 @@ export const SimulatePage = () => {
 
       setTrades((prev) => [...prev, newTrade]);
 
-      // 매수/매도에 따른 자산 계산 (API 응답 없을 경우 대비)
-      let newAvailableAsset = prevAvailableAsset;
-      let newOwnedStockCount = prevOwnedStockCount;
-
+      // 매수/매도 로직은 기록하되 현재 보유 주식 수량만 업데이트
+      // (자산 가치와 수익률 변화는 moveToNextTurn에서 처리)
       if (action === 'buy') {
         // 매수: 주문 가능 금액에서 (지정가 * 수량) 차감
-        newAvailableAsset -= price * quantity;
+        const newAvailableAsset = prevAvailableAsset - price * quantity;
         // 보유 주식 수 증가
-        newOwnedStockCount += quantity;
+        const newOwnedStockCount = prevOwnedStockCount + quantity;
+
+        // 주문 가능 금액만 업데이트 (총자산 및 수익률은 다음 턴에서 계산)
+        setAssetInfo((prev) => ({
+          ...prev,
+          availableOrderAsset: newAvailableAsset,
+          // 현재 총자산 및 수익률은 이전 값 유지 (초기화 방지)
+          currentTotalAsset: prevCurrentTotalAsset,
+          totalReturnRate: currentTurnReturnRate,
+        }));
+
+        // 보유 주식 수량 업데이트
+        setOwnedStockCount(newOwnedStockCount);
       } else if (action === 'sell') {
         // 매도: 주문 가능 금액 증가 (지정가 * 수량)
-        newAvailableAsset += price * quantity;
+        const newAvailableAsset = prevAvailableAsset + price * quantity;
         // 보유 주식에서 해당 수량 차감
-        newOwnedStockCount = Math.max(0, newOwnedStockCount - quantity);
-      }
+        const newOwnedStockCount = Math.max(0, prevOwnedStockCount - quantity);
 
-      // 현재 보유 주식 가치 계산
-      const stockValue = newOwnedStockCount * latestPrice;
-      const newTotalAsset = newAvailableAsset + stockValue;
-      const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-      // 자산 정보 업데이트
-      if (response.result?.AssetResponse && response.result.AssetResponse.length > 0) {
-        const lastAsset = response.result.AssetResponse[response.result.AssetResponse.length - 1];
-        setAssetInfo(lastAsset);
-        setFinalChangeRate(lastAsset.totalReturnRate);
-      } else {
-        // 서버 응답이 없는 경우 로컬에서 계산된 값 사용
-        const localCalculatedAsset = {
-          tradingDate: new Date().toISOString(),
+        // 주문 가능 금액만 업데이트 (총자산 및 수익률은 다음 턴에서 계산)
+        setAssetInfo((prev) => ({
+          ...prev,
           availableOrderAsset: newAvailableAsset,
-          currentTotalAsset: newTotalAsset,
-          totalReturnRate: newReturnRate,
-        };
+          // 현재 총자산 및 수익률은 이전 값 유지 (초기화 방지)
+          currentTotalAsset: prevCurrentTotalAsset,
+          totalReturnRate: currentTurnReturnRate,
+        }));
 
-        setAssetInfo(localCalculatedAsset);
-        setFinalChangeRate(newReturnRate);
+        // 보유 주식 수량 업데이트
+        setOwnedStockCount(newOwnedStockCount);
       }
 
-      // 보유 주식 수량 업데이트
-      setOwnedStockCount(newOwnedStockCount);
-
-      // 턴 완료 처리
+      // 턴 완료 처리 (다음 턴에서 최종 결과 계산)
       setIsCurrentTurnCompleted(true);
     } catch (error) {
       // 오류 발생 시 처리
@@ -572,6 +634,227 @@ export const SimulatePage = () => {
     }
   }, [trades]);
 
+  // 자산 정보 업데이트 함수 추가
+  const updateAssetInfo = () => {
+    // 현재 자산 계산
+    const prevAvailableAsset = assetInfo.availableOrderAsset;
+    const stockValue = ownedStockCount * latestPrice;
+    const newTotalAsset = prevAvailableAsset + stockValue;
+    const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+    console.log(`자산 정보 업데이트:
+      주문 가능 금액: ${prevAvailableAsset.toLocaleString()}원
+      보유 주식: ${ownedStockCount}주
+      주식 가치: ${stockValue.toLocaleString()}원
+      총 자산: ${newTotalAsset.toLocaleString()}원
+      수익률: ${newReturnRate.toFixed(2)}%
+    `);
+
+    const updatedAssetInfo = {
+      tradingDate: new Date().toISOString(),
+      availableOrderAsset: prevAvailableAsset,
+      currentTotalAsset: newTotalAsset,
+      totalReturnRate: newReturnRate,
+    };
+
+    // 자산 정보 및 수익률 설정
+    setAssetInfo(updatedAssetInfo);
+    setFinalChangeRate(newReturnRate);
+  };
+
+  // 다음 턴으로 이동하는 함수
+  const moveToNextTurn = useCallback(async () => {
+    if (currentTurn < 4) {
+      try {
+        // 현재 턴의 마지막 가격과 상태 저장 (비동기 작업 전에 값을 보존)
+        const prevTurnLastPrice = latestPrice;
+        const prevAvailableOrderAsset = assetInfo.availableOrderAsset;
+        const prevOwnedStock = ownedStockCount;
+        const prevTotalAsset = assetInfo.currentTotalAsset;
+        const prevReturnRate = assetInfo.totalReturnRate;
+
+        // 다음 턴 번호 계산
+        const nextTurn = currentTurn + 1;
+
+        // 세션 업데이트 및 데이터 로드
+        const newSession = calculateSession(nextTurn);
+        if (!newSession) return;
+
+        // 시각적인 업데이트를 위해 먼저 턴과 세션 정보 업데이트
+        setCurrentTurn(nextTurn);
+        setIsCurrentTurnCompleted(false);
+        setCurrentSession(newSession);
+
+        // 진행률 업데이트
+        const turnToProgressMap: Record<number, number> = {
+          1: 25,
+          2: 50,
+          3: 75,
+          4: 100,
+        };
+        setProgress(turnToProgressMap[nextTurn]);
+
+        // 차트 데이터 로드 - 비동기 작업 (결과를 직접 저장)
+        const chartResult = await loadChartData(newSession.startDate, newSession.endDate, nextTurn);
+
+        // 데이터 로드 완료 후 자산 정보 업데이트 (일정 시간 후)
+        setTimeout(() => {
+          try {
+            // 로드된 차트 데이터 또는 상태에 저장된 차트 데이터 사용
+            const nextTurnData = chartResult || turnChartData[nextTurn];
+
+            // 차트 데이터가 없는 경우 - 자산 계산 기본값 설정
+            if (!nextTurnData?.data || nextTurnData.data.length === 0) {
+              // 변화율 0%로 가정하여 자산 계산 (실제 주가는 그대로 유지)
+              const stockValue = prevOwnedStock * prevTurnLastPrice;
+              const newTotalAsset = prevAvailableOrderAsset + stockValue;
+              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+              // 현재 턴의 수익률 저장
+              setTurnReturnRates((prev) => ({
+                ...prev,
+                [nextTurn]: newReturnRate,
+              }));
+
+              // 자산 정보 업데이트
+              setAssetInfo({
+                tradingDate: new Date().toISOString(),
+                availableOrderAsset: prevAvailableOrderAsset,
+                currentTotalAsset: newTotalAsset,
+                totalReturnRate: newReturnRate,
+              });
+              setFinalChangeRate(newReturnRate);
+              return;
+            }
+
+            // 다음 턴의 일봉 데이터 추출
+            const dayCandles = nextTurnData.data.filter(
+              (candle: StockCandle) => candle.periodType === 1,
+            );
+
+            // 일봉 데이터 없는 경우 - 자산 계산 기본값 설정
+            if (dayCandles.length === 0) {
+              // 변화율 0%로 가정하여 자산 계산
+              const stockValue = prevOwnedStock * prevTurnLastPrice;
+              const newTotalAsset = prevAvailableOrderAsset + stockValue;
+              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+              // 현재 턴의 수익률 저장
+              setTurnReturnRates((prev) => ({
+                ...prev,
+                [nextTurn]: newReturnRate,
+              }));
+
+              // 자산 정보 업데이트
+              setAssetInfo({
+                tradingDate: new Date().toISOString(),
+                availableOrderAsset: prevAvailableOrderAsset,
+                currentTotalAsset: newTotalAsset,
+                totalReturnRate: newReturnRate,
+              });
+              setFinalChangeRate(newReturnRate);
+              return;
+            }
+
+            // 날짜순 정렬
+            const sortedCandles = [...dayCandles].sort(
+              (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+            );
+
+            // 요구사항에 맞는 가격 설정
+            let nextTurnPrice = 0;
+
+            // 각 턴별로 적절한 가격 설정
+            if (nextTurn === 1) {
+              // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            } else if (nextTurn === 2) {
+              // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            } else if (nextTurn === 3) {
+              // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            } else if (nextTurn === 4) {
+              // 4턴: 끝점의 종가 (마지막 캔들)
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            }
+
+            // 가격 변경
+            if (nextTurnPrice > 0) {
+              setLatestPrice(nextTurnPrice);
+              console.log(`[moveToNextTurn] ${nextTurn}턴 현재가 설정: ${nextTurnPrice}원`);
+            } else {
+              // 기본값으로 마지막 캔들 사용
+              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+              setLatestPrice(nextTurnPrice);
+            }
+
+            // 턴 변경에 따른 자산 정보 명시적 업데이트 (수익률 변동 포함)
+            const stockValue = prevOwnedStock * nextTurnPrice;
+            const newTotalAsset = prevAvailableOrderAsset + stockValue;
+            const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+            // 현재 턴의 수익률 저장
+            setTurnReturnRates((prev) => ({
+              ...prev,
+              [nextTurn]: newReturnRate,
+            }));
+
+            // 자산 정보 수동 업데이트
+            setAssetInfo({
+              tradingDate: new Date().toISOString(),
+              availableOrderAsset: prevAvailableOrderAsset,
+              currentTotalAsset: newTotalAsset,
+              totalReturnRate: newReturnRate,
+            });
+            setFinalChangeRate(newReturnRate);
+          } catch (error) {
+            // 오류 발생 시 이전 상태 유지하면서 기본 계산 시도
+            try {
+              // 변화율 0%로 가정하여 자산 계산
+              const stockValue = prevOwnedStock * prevTurnLastPrice;
+              const newTotalAsset = prevAvailableOrderAsset + stockValue;
+              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+
+              // 현재 턴의 수익률 저장
+              setTurnReturnRates((prev) => ({
+                ...prev,
+                [nextTurn]: newReturnRate,
+              }));
+
+              // 자산 정보 업데이트
+              setAssetInfo({
+                tradingDate: new Date().toISOString(),
+                availableOrderAsset: prevAvailableOrderAsset,
+                currentTotalAsset: newTotalAsset,
+                totalReturnRate: newReturnRate,
+              });
+              setFinalChangeRate(newReturnRate);
+            } catch (fallbackError) {
+              // 최종 예외 처리 - 이전 상태 그대로 유지
+              setAssetInfo({
+                tradingDate: new Date().toISOString(),
+                availableOrderAsset: prevAvailableOrderAsset,
+                currentTotalAsset: prevTotalAsset,
+                totalReturnRate: prevReturnRate,
+              });
+            }
+          }
+        }, 800);
+      } catch (error) {
+        // 오류 발생 시 처리
+      }
+    }
+  }, [
+    currentTurn,
+    latestPrice,
+    assetInfo.availableOrderAsset,
+    assetInfo.currentTotalAsset,
+    assetInfo.totalReturnRate,
+    ownedStockCount,
+    turnChartData,
+  ]);
+
   // 튜토리얼 완료 처리 함수
   const completeTutorial = async () => {
     if (!isUserLoggedIn()) return;
@@ -600,8 +883,10 @@ export const SimulatePage = () => {
 
     // 날짜 정보 준비
     const currentDate = new Date();
-    const oneYearAgo = new Date();
-    oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
+    // 어제 날짜로 설정
+    currentDate.setDate(currentDate.getDate() - 1);
+    const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+    oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
     let saveSuccess = false;
     try {
@@ -649,103 +934,6 @@ export const SimulatePage = () => {
 
     // 종료 모달 표시
     setIsModalOpen(true);
-  };
-
-  // 다음 턴으로 이동하는 함수
-  const moveToNextTurn = async () => {
-    if (currentTurn < 4) {
-      try {
-        // 현재 턴의 마지막 가격과 상태 저장 (비동기 작업 전에 값을 보존)
-        const prevTurnLastPrice = latestPrice;
-        const prevAvailableOrderAsset = assetInfo.availableOrderAsset;
-        const prevOwnedStock = ownedStockCount;
-
-        // 현재 턴 데이터에서 실제 마지막 일봉 가격 확인 (더 정확한 값)
-        let _actualPrevTurnLastPrice = prevTurnLastPrice;
-        const currentTurnData = turnChartData[currentTurn];
-        if (currentTurnData?.data && currentTurnData.data.length > 0) {
-          const dayCandles = currentTurnData.data.filter(
-            (candle: StockCandle) => candle.periodType === 1,
-          );
-          if (dayCandles.length > 0) {
-            const sortedCandles = [...dayCandles].sort(
-              (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-            );
-            _actualPrevTurnLastPrice = sortedCandles[sortedCandles.length - 1].closePrice;
-          }
-        }
-
-        // 다음 턴 번호 설정 및 UI 상태 업데이트
-        const nextTurn = currentTurn + 1;
-        setCurrentTurn(nextTurn);
-        setIsCurrentTurnCompleted(false);
-
-        // 세션 업데이트 및 데이터 로드 (차트 데이터 비동기 로드)
-        await updateSessionAndLoadData(nextTurn);
-
-        // 자산 정보가 리셋되지 않도록 1초 지연 후 처리
-        // (차트 데이터가 완전히 로드된 후에 자산 정보를 업데이트)
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // 다음 턴의 첫 가격 확인 (차트 데이터 로드 완료 후)
-        const nextTurnData = turnChartData[nextTurn];
-        if (!nextTurnData?.data || nextTurnData.data.length === 0) {
-          return;
-        }
-
-        // 다음 턴의 첫 일봉 가격 가져오기
-        const dayCandles = nextTurnData.data.filter(
-          (candle: StockCandle) => candle.periodType === 1,
-        );
-
-        if (dayCandles.length === 0) {
-          return;
-        }
-
-        // 날짜순 정렬
-        const sortedCandles = [...dayCandles].sort(
-          (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-        );
-
-        // 다음 턴의 첫 일봉 종가
-        const nextTurnFirstPrice = sortedCandles[0].closePrice;
-
-        // 턴 변경에 따른 자산 정보 업데이트 (가격 변화 반영)
-        const updatedAssets = {
-          tradingDate: new Date().toISOString(),
-          availableOrderAsset: prevAvailableOrderAsset,
-          currentTotalAsset: prevAvailableOrderAsset + prevOwnedStock * nextTurnFirstPrice,
-          totalReturnRate:
-            ((prevAvailableOrderAsset + prevOwnedStock * nextTurnFirstPrice - 10000000) /
-              10000000) *
-            100,
-        };
-
-        // 자산 정보 동기적으로 직접 업데이트
-        setAssetInfo(updatedAssets);
-        setFinalChangeRate(updatedAssets.totalReturnRate);
-      } catch (error) {
-        // 오류 시 처리할 내용 없음
-      }
-    }
-  };
-
-  // 자산 정보 업데이트 함수 추가
-  const updateAssetInfo = () => {
-    const prevAvailableAsset = assetInfo.availableOrderAsset;
-    const stockValue = ownedStockCount * latestPrice;
-    const newTotalAsset = prevAvailableAsset + stockValue;
-    const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-    const updatedAssetInfo = {
-      tradingDate: new Date().toISOString(),
-      availableOrderAsset: prevAvailableAsset,
-      currentTotalAsset: newTotalAsset,
-      totalReturnRate: newReturnRate,
-    };
-
-    setAssetInfo(updatedAssetInfo);
-    setFinalChangeRate(newReturnRate);
   };
 
   // 세션 업데이트 및 차트 데이터 로드
@@ -799,6 +987,12 @@ export const SimulatePage = () => {
       // 현재 턴의 데이터 저장
       setStockData(result);
 
+      // 턴별 차트 데이터 저장 - 동기적으로 업데이트하기 위해 함수형 업데이트 사용
+      setTurnChartData((prev) => {
+        const updated = { ...prev, [turn]: result };
+        return updated;
+      });
+
       // 튜토리얼 날짜 범위 업데이트
       if (result.data && result.data.length > 0) {
         const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
@@ -819,63 +1013,83 @@ export const SimulatePage = () => {
         }
       }
 
-      // 최신 가격 업데이트
-      updateLatestPrice(result);
+      // 최신 가격 업데이트 (요구사항에 맞게 각 턴별로 적절한 종가 설정)
+      const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
+      if (dayCandles.length > 0) {
+        const sortedCandles = [...dayCandles].sort(
+          (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+        );
 
-      // 가격 업데이트 후 자산 정보도 업데이트
-      updateAssetInfo();
+        let priceToShow = 0;
+
+        // 각 턴별로 요구사항에 맞는 가격 설정
+        if (turn === 1) {
+          // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        } else if (turn === 2) {
+          // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        } else if (turn === 3) {
+          // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        } else if (turn === 4) {
+          // 4턴: 끝점의 종가 (마지막 캔들)
+          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+        }
+
+        // 가격 설정
+        if (priceToShow > 0) {
+          setLatestPrice(priceToShow);
+          console.log(
+            `[loadChartData] ${turn}턴 현재가 설정: ${priceToShow}원 (${sortedCandles.length}개 데이터)`,
+          );
+        }
+      }
 
       // 뉴스 데이터 로드
       await loadNewsData(turn);
+
+      // 데이터 로드가 완료되었음을 나타내는 return
+      return result;
     } catch (error) {
       setHasChartError(true);
+      return null;
     } finally {
       setIsChartLoading(false);
     }
   };
 
-  // 최신 가격 업데이트
-  const updateLatestPrice = (data: TutorialStockResponse) => {
+  // 최신 가격 업데이트 함수 - 가격만 업데이트하고 자산 정보는 업데이트하지 않음
+  const updateLatestPrice = (data: TutorialStockResponse, turn: number = currentTurn) => {
     const dayCandles = data.data.filter((candle: StockCandle) => candle.periodType === 1);
     if (dayCandles.length > 0) {
-      const lastCandle = dayCandles[dayCandles.length - 1];
-      const newLatestPrice = lastCandle.closePrice;
+      // 날짜순 정렬
+      const sortedCandles = [...dayCandles].sort(
+        (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+      );
+
+      let priceToShow = 0;
+
+      // 각 턴별로 요구사항에 맞는 가격 설정
+      if (turn === 1) {
+        // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      } else if (turn === 2) {
+        // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      } else if (turn === 3) {
+        // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      } else if (turn === 4) {
+        // 4턴: 끝점의 종가 (마지막 캔들)
+        priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+      }
 
       // 가격이 변경된 경우에만 업데이트
-      if (newLatestPrice !== latestPrice) {
-        // 이전 값 저장 (변화율 계산 및 상태 복원용)
-        const prevAvailableAsset = assetInfo.availableOrderAsset;
-        const prevOwnedStockCount = ownedStockCount;
-
-        // 최신 가격 업데이트
-        setLatestPrice(newLatestPrice);
-
-        // 가격이 변경되었을 때 자산 정보도 업데이트 (첫 로드 이후)
-        if (isTutorialStarted && currentTurn > 0) {
-          // 비동기 타이밍 문제 해결을 위해 약간 지연
-          setTimeout(() => {
-            // 현재 보유 주식 가치 (새 가격 기준)
-            const newStockValue = prevOwnedStockCount * newLatestPrice;
-
-            // 현재 총자산 = 주문 가능 자산 + 보유 주식 가치
-            const newTotalAsset = prevAvailableAsset + newStockValue;
-
-            // 수익률 계산: (현재 총자산 - 초기 자산) / 초기 자산 * 100
-            const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-            // 자산 정보 업데이트
-            const updatedAssetInfo = {
-              tradingDate: new Date().toISOString(),
-              availableOrderAsset: prevAvailableAsset, // 주문 가능 자산은 변동 없음
-              currentTotalAsset: newTotalAsset,
-              totalReturnRate: newReturnRate,
-            };
-
-            // 자산 정보 및 수익률 업데이트
-            setAssetInfo(updatedAssetInfo);
-            setFinalChangeRate(newReturnRate);
-          }, 100);
-        }
+      if (priceToShow > 0 && priceToShow !== latestPrice) {
+        // 최신 가격만 업데이트
+        setLatestPrice(priceToShow);
+        console.log(`[updateLatestPrice] ${turn}턴 현재가 업데이트: ${priceToShow}원`);
       }
     }
   };
@@ -890,30 +1104,28 @@ export const SimulatePage = () => {
 
     // 턴별 stockCandleId 설정
     if (turn === 1) {
-      // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지
+      // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지 (변곡점 - 1 기준)
       startStockCandleId = 1; // 최소값 1로 설정 (0은 유효하지 않을 수 있음)
       // 첫 번째 턴에서는 더 넓은 범위의 ID를 사용하여 데이터를 보장함
-      endStockCandleId = pointStockCandleIds[0] || 500; // 첫 번째 변곡점 ID, 없으면 충분히 큰 값 사용
+      // 첫 번째 변곡점 ID에서 약간의 여유를 둠 (데이터 누락 방지)
+      endStockCandleId = pointStockCandleIds[0] > 1 ? pointStockCandleIds[0] - 1 : 500;
     } else if (turn > 1 && turn <= 4) {
-      // 2~4턴: 이전 변곡점부터 현재 변곡점까지
+      // 2~4턴: 이전 변곡점부터 현재 변곡점-1까지
       startStockCandleId = pointStockCandleIds[turn - 2] || 1;
 
       if (turn < 4) {
-        // 2~3턴은 다음 변곡점까지
-        endStockCandleId = pointStockCandleIds[turn - 1] || startStockCandleId + 200; // 범위 확장
+        // 2~3턴은 다음 변곡점-1까지
+        endStockCandleId =
+          pointStockCandleIds[turn - 1] > 1
+            ? pointStockCandleIds[turn - 1] - 1
+            : startStockCandleId + 200; // 범위 확장
       } else {
-        // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지
+        // 4턴(마지막 턴)은 마지막 변곡점부터 끝까지 (여기는 변경 없음)
         endStockCandleId =
           pointStockCandleIds.length >= 3
             ? pointStockCandleIds[2] + 1000
             : startStockCandleId + 1000; // 충분히 큰 값
       }
-    }
-
-    // ID 범위가 유효하지 않은 경우 기본값 설정
-    if (startStockCandleId <= 0 || endStockCandleId <= 0) {
-      startStockCandleId = turn * 100;
-      endStockCandleId = (turn + 1) * 100;
     }
 
     // =============================================================
@@ -985,36 +1197,7 @@ export const SimulatePage = () => {
           setPastNewsList(sortedNews);
         }
       } else {
-        // 데이터가 없는 경우 첫 번째 턴이면 샘플 데이터 사용
-        if (turn === 1) {
-          const sampleNews: NewsResponse[] = [
-            {
-              newsId: 1001,
-              newsTitle: '종목 분석 보고서: 앞으로의 성장 가능성 주목',
-              newsDate: new Date().toISOString(),
-              changeRate: 0.5,
-              stockCandleId: 101,
-            },
-            {
-              newsId: 1002,
-              newsTitle: '시장 동향: 업계 전반적인 흐름 살펴보기',
-              newsDate: new Date(Date.now() - 86400000).toISOString(), // 하루 전
-              changeRate: -0.3,
-              stockCandleId: 102,
-            },
-          ];
-
-          setTurnNewsList((prev) => ({
-            ...prev,
-            [turn]: sampleNews,
-          }));
-
-          if (turn === currentTurn) {
-            setPastNewsList(sampleNews);
-          }
-        } else if (turn === currentTurn) {
-          setPastNewsList([]);
-        }
+        //
       }
     } catch {
       // 과거 뉴스 로드 실패 시, 샘플 데이터로 대체하거나 빈 배열 설정
@@ -1154,7 +1337,7 @@ export const SimulatePage = () => {
     setHasChartError(false);
 
     // 초기화 API 호출
-    initSession
+    initSessionMutation
       .mutateAsync({ memberId, companyId })
       .then(async () => {
         // 튜토리얼 시작 상태로 설정
@@ -1210,7 +1393,28 @@ export const SimulatePage = () => {
     setIsModalOpen(false);
   }, [navigate]);
 
-  // 튜토리얼 버튼 텍스트 생성
+  // 4단계 완료 상태 자동 설정 (별도 useEffect로 분리하고 더 엄격한 조건 설정)
+  const isInitialMount = useRef(true); // useRef를 컴포넌트 최상위 레벨로 이동
+
+  useEffect(() => {
+    // 컴포넌트 마운트 시에만 실행되는 초기화 로직
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // 정확한 조건 - 4단계이고 아직 완료되지 않았을 때만 상태 업데이트
+    if (currentTurn === 4 && !isCurrentTurnCompleted) {
+      // 약간의 딜레이를 두고 설정하여 다른 상태 업데이트와 충돌 방지
+      const timer = setTimeout(() => {
+        setIsCurrentTurnCompleted(true);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentTurn, isCurrentTurnCompleted]);
+
+  // 튜토리얼 버튼 텍스트 생성 - useMemo 내부에서 상태 업데이트 하지 않도록 수정
   const getTutorialButtonText = useMemo(() => {
     if (!isTutorialStarted) {
       return '튜토리얼 시작하기';
@@ -1220,10 +1424,68 @@ export const SimulatePage = () => {
       return currentTurn < 4 ? '다음 턴으로' : '결과 확인하기';
     }
 
+    // 현재 턴이 4단계이면 항상 '결과 확인하기' 표시 (상태와 무관하게)
+    if (currentTurn === 4) {
+      return '결과 확인하기';
+    }
+
     return '현재 턴 진행 중...';
   }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn]);
 
-  // 튜토리얼 버튼 클릭 핸들러 추가
+  // 초기 데이터 로드 함수 - 상태 업데이트 로직 단순화
+  const loadInitialData = useCallback(async () => {
+    if (!isTutorialStarted || currentTurn <= 0) return;
+
+    // 변곡점 데이터가 없으면 먼저 로드
+    if (pointStockCandleIds.length === 0) {
+      try {
+        await loadPointsData();
+      } catch (error) {
+        // 오류 무시하고 계속 진행
+      }
+    }
+
+    // 현재 턴의 세션 계산
+    const session = calculateSession(currentTurn);
+    if (!session) {
+      return;
+    }
+
+    try {
+      // 보유 주식 수량 초기화 (서버 API 호출 없이 거래 내역 기반으로 계산)
+      await initOwnedStockCount();
+
+      // 차트 데이터 로드
+      await loadChartData(session.startDate, session.endDate, currentTurn);
+
+      // 차트 데이터 로드 성공 후 뉴스 데이터 로드
+      await loadNewsData(currentTurn);
+    } catch (error) {
+      // 오류 무시하고 계속 진행
+    }
+  }, [isTutorialStarted, currentTurn, pointStockCandleIds.length]);
+
+  // 컴포넌트 마운트 시 초기 데이터 로드
+  useEffect(() => {
+    if (isTutorialStarted && currentTurn > 0) {
+      // 이전 자산 상태 저장
+      const prevAssetInfo = { ...assetInfo };
+      const prevTurnReturnRate = turnReturnRates[currentTurn] || prevAssetInfo.totalReturnRate;
+
+      loadInitialData().then(() => {
+        // 자산 정보가 초기화되지 않도록 이전 상태 유지
+        if (currentTurn > 1) {
+          setAssetInfo((prev) => ({
+            ...prev,
+            totalReturnRate: prevTurnReturnRate,
+            currentTotalAsset: prevAssetInfo.currentTotalAsset,
+          }));
+        }
+      });
+    }
+  }, [loadInitialData, isTutorialStarted, currentTurn]);
+
+  // 튜토리얼 버튼 클릭 핸들러 - useCallback으로 최적화
   const handleTutorialButtonClick = useCallback(() => {
     if (!isTutorialStarted) {
       // 튜토리얼 시작
@@ -1237,69 +1499,59 @@ export const SimulatePage = () => {
         completeTutorial();
       }
     }
-  }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn, handleTutorialStart, moveToNextTurn]);
+  }, [
+    isTutorialStarted,
+    isCurrentTurnCompleted,
+    currentTurn,
+    handleTutorialStart,
+    moveToNextTurn,
+    completeTutorial,
+  ]);
 
   // 첫 렌더링 이후 변곡점 데이터 로드
-  if (!initialized.current) {
-    initialized.current = true;
-    // setTimeout으로 마이크로태스크 큐에 넣어 렌더링 중 상태 업데이트 방지
-    setTimeout(() => {
-      if (pointDates.length < 3) {
-        loadPointsData();
-      }
-    }, 0);
-  }
-
-  // 초기 데이터 로드 함수
-  const loadInitialData = useCallback(async () => {
-    if (!isTutorialStarted || currentTurn <= 0) return;
-
-    // 변곡점 데이터가 없으면 먼저 로드
-    if (pointStockCandleIds.length === 0) {
-      await loadPointsData().catch(() => {
-        // 오류 무시하고 계속 진행
-      });
-    }
-
-    // 현재 턴의 세션 계산
-    const session = calculateSession(currentTurn);
-    if (!session) {
-      return;
-    }
-
-    // 보유 주식 수량 초기화 (서버 API 호출 없이 거래 내역 기반으로 계산)
-    await initOwnedStockCount();
-
-    // 차트 데이터 로드 - 비동기 작업 동시 실행
-    loadChartData(session.startDate, session.endDate, currentTurn)
-      .then(() => {
-        // 차트 데이터 로드 성공 후 뉴스 데이터 로드
-        return loadNewsData(currentTurn);
-      })
-      .catch(() => {
-        // 오류 무시하고 계속 진행
-      });
-  }, [currentTurn, isTutorialStarted, pointStockCandleIds.length]);
-
-  // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    if (isTutorialStarted && currentTurn > 0) {
-      loadInitialData();
-      // 컴포넌트 마운트 시 자산 정보 초기화
-      updateAssetInfo();
+    // 최초 마운트 시에만 실행
+    if (initialized.current === false) {
+      initialized.current = true;
+
+      // 마운트 시 변곡점 데이터가 부족하면 로드
+      if (pointDates.length < 3) {
+        loadPointsData().catch(() => {
+          // 오류 무시
+        });
+      }
     }
-  }, [loadInitialData, isTutorialStarted, currentTurn]);
+  }, []); // 빈 의존성 배열로 마운트 시에만 실행
 
   // 거래 내역 변경 시 자산 정보 업데이트
   useEffect(() => {
     if (trades.length > 0 && isTutorialStarted) {
-      updateAssetInfo();
+      // 수익률 업데이트를 방지하기 위해 updateAssetInfo() 호출 제거
+      // 대신 주문 가능 금액만 업데이트
+      let totalStock = 0;
+      trades.forEach((trade) => {
+        if (trade.action === 'buy') {
+          totalStock += trade.quantity;
+        } else if (trade.action === 'sell') {
+          totalStock -= trade.quantity;
+        }
+      });
+      // 음수가 되지 않도록 보정
+      totalStock = Math.max(0, totalStock);
+      setOwnedStockCount(totalStock);
     }
-  }, [trades, latestPrice]);
+  }, [trades]);
+
+  // 현재가와 턴 변경 감지를 위한 useEffect
+  useEffect(() => {
+    console.log(`[SimulatePage] 현재가 변경: ${latestPrice}원, 현재 턴: ${currentTurn}`);
+  }, [latestPrice, currentTurn]);
+
+  // 컴포넌트가 처음 마운트될 때 초기 데이터 로드
 
   return (
     <div className="flex h-full w-full flex-col px-6">
-      <div>
+      <div className="flex items-center justify-between">
         <StockTutorialInfo
           companyId={companyId}
           isTutorialStarted={isTutorialStarted}
@@ -1309,51 +1561,40 @@ export const SimulatePage = () => {
           isCurrentTurnCompleted={isCurrentTurnCompleted}
           buttonText={getTutorialButtonText}
           latestPrice={latestPrice}
+          showButtonInInfoSection={false}
         />
-        <div className="my-[25px]">
-          <StockProgress progress={progress} />
-        </div>
-        <div className="mb-[25px] flex justify-between">
-          <StockTutorialMoneyInfo
-            initialAsset={10000000}
-            availableOrderAsset={assetInfo.availableOrderAsset}
-            currentTotalAsset={assetInfo.currentTotalAsset}
-            totalReturnRate={assetInfo.totalReturnRate}
-          />
-          <div className="flex items-center gap-2">
-            {currentTurn > 0 && (
-              <div className="mr-14 flex items-center gap-2">
-                <span className="text-white">현재 단계:</span>
-                <span className="rounded-lg bg-[#2A2A3C] px-3 py-1 font-medium text-white">
-                  {currentTurn}/4 단계
-                </span>
-              </div>
-            )}
-            <p className="text-border-color">진행 기간 : </p>
-            <div className="flex gap-3 rounded-xl bg-modal-background-color px-[20px] py-[15px]">
-              <p>{formatYYMMDDToYYYYMMDD(tutorialDateRange.startDate)}</p>
-              <span className="font-bold text-border-color"> - </span>
-              <p>{formatYYMMDDToYYYYMMDD(tutorialDateRange.endDate)}</p>
-            </div>
-          </div>
-        </div>
       </div>
-      <div className="grid grid-cols-10 gap-3">
-        <div className="col-span-8">
+      <div className="mb-[25px] flex justify-between">
+        <StockTutorialMoneyInfo
+          initialAsset={10000000}
+          availableOrderAsset={assetInfo.availableOrderAsset}
+          currentTotalAsset={assetInfo.currentTotalAsset}
+          totalReturnRate={assetInfo.totalReturnRate}
+        />
+        <StockProgress
+          progress={progress}
+          currentTurn={currentTurn}
+          startDate={tutorialDateRange.startDate}
+          endDate={tutorialDateRange.endDate}
+          formatDateFn={formatYYMMDDToYYYYMMDD}
+        />
+      </div>
+      <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
+        <div className="col-span-1 h-full lg:col-span-9">
           {!isTutorialStarted ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
-              <div className="max-w-[400px]">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+              <div className="max-w-[300px]">
                 <Lottie animationData={ChartAnimation} loop={true} />
               </div>
               <p className="mt-4 text-center text-xl font-medium">
-                튜토리얼을 시작하여 주식 투자를 연습해보세요!
+                튜토리얼을 시작하여 주식 차트를 확인해보세요.
               </p>
               <p className="mt-2 text-center text-sm text-gray-400">
                 4단계로 구성된 주식 튜토리얼에서 실전과 같은 투자 경험을 해볼 수 있습니다.
               </p>
             </div>
           ) : isChartLoading ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터를 불러오는 중입니다...</p>
                 <p className="text-sm text-gray-400">
@@ -1362,14 +1603,14 @@ export const SimulatePage = () => {
               </div>
             </div>
           ) : hasChartError ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터를 불러오는데 문제가 발생했습니다.</p>
                 <p className="text-sm text-gray-400">잠시 후 다시 시도해 주세요.</p>
               </div>
             </div>
           ) : !stockData?.data?.length ? (
-            <div className="flex h-[600px] flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
               <div className="text-center">
                 <p className="mb-3 text-xl">차트 데이터가 없습니다.</p>
                 <p className="text-sm text-gray-400">
@@ -1391,80 +1632,46 @@ export const SimulatePage = () => {
               </div>
             </div>
           ) : (
-            <ChartComponent periodData={stockData || undefined} height={600} />
+            <div className="relative h-full">
+              <ChartComponent periodData={stockData || undefined} />
+            </div>
           )}
         </div>
-        <div className="col-span-2">
-          <TutorialOrderStatus
-            onTrade={handleTrade}
-            isSessionActive={isTutorialStarted && currentTurn > 0 && currentTurn <= 4}
-            companyId={companyId}
-            latestPrice={latestPrice}
-            ownedStockCount={ownedStockCount}
-            currentTurn={currentTurn}
-            isCurrentTurnCompleted={isCurrentTurnCompleted}
+        <div className="col-span-1 h-full lg:col-span-3">
+          <div className="h-full">
+            <TutorialOrderStatus
+              onTrade={handleTrade}
+              isSessionActive={isTutorialStarted && !isCurrentTurnCompleted && currentTurn < 4}
+              companyId={companyId}
+              latestPrice={latestPrice}
+              ownedStockCount={ownedStockCount}
+              currentTurn={currentTurn}
+              isCurrentTurnCompleted={isCurrentTurnCompleted}
+              availableOrderAsset={assetInfo.availableOrderAsset}
+              isTutorialStarted={isTutorialStarted}
+              onTutorialStart={handleTutorialStart}
+              onMoveToNextTurn={handleTutorialButtonClick}
+              initSessionPending={initSessionMutation.isPending}
+              companyInfoExists={!!companyInfo}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-[44px] grid grid-cols-6 gap-3">
+        <div className="col-span-3" ref={commentRef}>
+          <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
+        </div>
+        <div className="col-span-3">
+          <DayHistory
+            news={pastNewsList}
+            height={commentHeight}
+            isTutorialStarted={isTutorialStarted}
           />
         </div>
       </div>
-      <div>
-        <div className="my-[30px]">
-          <div className="mb-[15px] flex items-center justify-between">
-            <h3 className={h3Style}>일간 히스토리</h3>
-          </div>
-
-          {/* 
-            일간 히스토리는 /api/tutorial/news/past API 호출 결과를 사용합니다.
-            각 턴별로 변곡점에 해당하는 뉴스 데이터를 가져와 DayHistory 컴포넌트에 전달합니다.
-            pastNewsList 데이터는 loadNewsData 함수에서 setPastNewsList을 통해 설정됩니다.
-          */}
-
-          {/* 디버깅을 위한 정보 추가 */}
-          {pastNewsList.length === 0 && currentTurn > 0 && !isNewsLoading && (
-            <p className="mb-4 text-sm text-gray-400">
-              {currentTurn === 1
-                ? '첫 번째 단계의 뉴스 데이터를 불러오는 중입니다. 잠시만 기다려주세요.'
-                : `${currentTurn}단계 뉴스 데이터를 불러오는 중입니다.`}
-            </p>
-          )}
-
-          {isNewsLoading && (
-            <div className="flex items-center justify-center p-4">
-              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
-              <p className="text-sm text-gray-400">뉴스 데이터를 불러오는 중입니다...</p>
-            </div>
-          )}
-
-          {pastNewsList.length > 0 && (
-            <div className="mb-3">
-              <p className="mb-3 text-sm text-gray-400">
-                {currentTurn === 1 && '첫 번째 구간의 뉴스 히스토리입니다.'}
-                {currentTurn === 2 &&
-                  '첫 번째 변곡점부터 두 번째 변곡점까지의 뉴스 히스토리입니다.'}
-                {currentTurn === 3 &&
-                  '두 번째 변곡점부터 세 번째 변곡점까지의 뉴스 히스토리입니다.'}
-                {currentTurn === 4 && '세 번째 변곡점 이후의 뉴스 히스토리입니다.'}
-              </p>
-            </div>
-          )}
-
-          <DayHistory news={pastNewsList} />
-        </div>
-      </div>
-      <div>
-        {/* 
-          뉴스 코멘트는 /api/tutorial/news/comment API 호출 결과를 사용합니다.
-          각 턴별로 변곡점에 해당하는 코멘트 데이터를 가져와 StockTutorialComment 컴포넌트에 전달합니다.
-          newsComment 데이터는 loadNewsData 함수에서 setNewsComment를 통해 설정됩니다.
-        */}
-        <StockTutorialComment comment={newsComment} />
-      </div>
-      <div className="mt-[25px] grid grid-cols-6 gap-3 ">
+      <div className="mt-[25px] grid grid-cols-6 gap-3">
         <div className="col-span-4">
-          {/* 
-            현재 뉴스는 /api/tutorial/news/current API 호출 결과를 사용합니다.
-            각 턴별로 변곡점에 해당하는 현재 뉴스 데이터를 가져와 StockTutorialNews 컴포넌트에 전달합니다.
-            currentNews 데이터는 loadNewsData 함수에서 setCurrentNews를 통해 설정됩니다.
-          */}
           <StockTutorialNews currentNews={currentNews} companyId={companyId} />
         </div>
         <div className="col-span-2">
