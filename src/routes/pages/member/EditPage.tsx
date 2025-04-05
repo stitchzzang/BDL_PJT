@@ -37,6 +37,7 @@ export const EditPage = () => {
   const [useDefaultProfile, setUseDefaultProfile] = useState(false);
   const [profileChanged, setProfileChanged] = useState(false);
   const [originalTempProfile, setOriginalTempProfile] = useState(userData.profile || '');
+  const [isDefaultImage, setIsDefaultImage] = useState(false);
   // form 관련 설정
   const form = useForm<EditProfileFormValues>({
     resolver: zodResolver(editProfileSchema),
@@ -58,6 +59,16 @@ export const EditPage = () => {
   useEffect(() => {
     form.trigger();
   }, [form]);
+
+  // 컴포넌트 마운트 시 기본 이미지 여부 확인
+  useEffect(() => {
+    // 프로필이 없거나 기본 이미지 경로를 포함하는 경우
+    const isDefault = !userData.profile || userData.profile.includes('none_profile_img');
+    setIsDefaultImage(isDefault);
+    if (isDefault) {
+      setUseDefaultProfile(true);
+    }
+  }, [userData.profile]);
 
   // 이미지 리사이징 함수
 
@@ -178,8 +189,14 @@ export const EditPage = () => {
               onChange={handleImageChange}
             />
             <div className="flex items-center justify-center gap-2">
-              <Switch checked={useDefaultProfile} onCheckedChange={handleSwitchChange} />
-              <p className="text-text-border-color text-sm">기본 프로필 사용</p>
+              <Switch
+                checked={useDefaultProfile}
+                onCheckedChange={handleSwitchChange}
+                disabled={isDefaultImage}
+              />
+              <p className="text-text-border-color text-sm">
+                {isDefaultImage ? '이미 기본 프로필 사용 중' : '기본 프로필 사용'}
+              </p>
             </div>
             <Button
               className="w-full"
