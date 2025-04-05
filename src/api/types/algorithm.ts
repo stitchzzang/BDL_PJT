@@ -1,3 +1,5 @@
+import { CategoryName } from '@/utils/categoryMapper';
+
 export interface RunningCompany {
   companyId: number;
   companyName: string;
@@ -72,7 +74,7 @@ export interface CompanyProfile {
   companyImage: string;
   companyCode: string;
   companyName: string;
-  categories: string[];
+  categories: CategoryName[];
 }
 
 // 백테스트 stockDaily 정보
