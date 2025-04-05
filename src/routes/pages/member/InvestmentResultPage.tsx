@@ -839,8 +839,10 @@ export const InvestmentResultPage = () => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={10} className="text-center">
-                보유 종목이 없습니다.
+              <TableCell colSpan={10} className="py-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <p className="text-lg">보유 종목이 없습니다.</p>
+                </div>
               </TableCell>
             </TableRow>
           )}
@@ -861,6 +863,16 @@ export const InvestmentResultPage = () => {
             </span>
           </div>
         </div>
+        <div className="flex">
+          <SearchBarComponent
+            onSearch={handleSearch}
+            mainTab={mainTab}
+            transactionSubTab={transactionSubTab}
+          />
+        </div>
+      </div>
+
+      <div className="mb-4 flex justify-end">
         <div className="flex gap-4">
           <div className="flex flex-col">
             <span className="text-border-color">총 구매 대기액</span>
@@ -875,14 +887,6 @@ export const InvestmentResultPage = () => {
             </span>
           </div>
         </div>
-      </div>
-
-      <div className="mb-4 flex justify-end">
-        <SearchBarComponent
-          onSearch={handleSearch}
-          mainTab={mainTab}
-          transactionSubTab={transactionSubTab}
-        />
       </div>
 
       <div className="rounded-lg bg-modal-background-color">
