@@ -111,12 +111,11 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ periodData }
       );
 
       if (filteredData.length > 0) {
-        // 날짜 기준으로 정렬
+        // 데이터 날짜 기준으로 정렬
         const sortedData = [...filteredData].sort((a, b) => {
-          if (!a.tradingDate || !b.tradingDate) return 0;
-          const dateA = new Date(a.tradingDate);
-          const dateB = new Date(b.tradingDate);
-          return dateA.getTime() - dateB.getTime();
+          const dateA = new Date(a.tradingDate).getTime();
+          const dateB = new Date(b.tradingDate).getTime();
+          return dateA - dateB;
         });
 
         // 필터링 및 정렬된 데이터만 변환
@@ -312,8 +311,48 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ periodData }
         // periodType이 1인 데이터만 필터링
         const filteredData = periodData.data.filter((d) => d.periodType === 1);
 
-        if (realIndex < filteredData.length) {
-          originalData = filteredData[realIndex];
+        // 데이터 날짜 기준으로 정렬
+        const sortedData = [...filteredData].sort((a, b) => {
+          const dateA = new Date(a.tradingDate).getTime();
+          const dateB = new Date(b.tradingDate).getTime();
+          return dateA - dateB;
+        });
+
+        // 인덱스로 먼저 시도
+        if (realIndex < sortedData.length) {
+          originalData = sortedData[realIndex];
+        }
+
+        // 날짜 비교를 통해 정확한 데이터 찾기
+        if (item.rawDate && item.rawDate instanceof Date) {
+          const itemDateStr = formatDate(item.rawDate);
+          const matchedData = sortedData.find((d) => {
+            const dDate = new Date(d.tradingDate);
+            const dDateStr = formatDate(dDate);
+            return dDateStr === itemDateStr;
+          });
+
+          // 날짜로 찾은 데이터가 있으면 업데이트
+          if (matchedData) {
+            originalData = matchedData;
+          }
+        }
+
+        // 마지막 일봉 데이터 특별 처리
+        if (item.date && item.rawDate instanceof Date) {
+          const lastCandle = sortedData[sortedData.length - 1];
+          if (lastCandle) {
+            const lastDate = new Date(lastCandle.tradingDate);
+            const itemDate = item.rawDate;
+
+            // 날짜 형식 문자열로 비교
+            const lastDateStr = formatDate(lastDate);
+            const itemDateStr = formatDate(itemDate);
+
+            if (itemDateStr === lastDateStr) {
+              originalData = lastCandle;
+            }
+          }
         }
       }
 
@@ -335,16 +374,58 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ periodData }
       let ma5 = 0;
       let ma20 = 0;
 
+      // 원본 데이터에서 변동률 가져오기
       if (originalData) {
-        openPercent = originalData.openPricePercent;
-        closePercent = originalData.closePricePercent;
-        lowPercent = originalData.lowPricePercent;
-        highPercent = originalData.highPricePercent;
-        ma5 = originalData.fiveAverage;
-        ma20 = originalData.twentyAverage;
+        openPercent = originalData.openPricePercent || 0;
+        closePercent = originalData.closePricePercent || 0;
+        lowPercent = originalData.lowPricePercent || 0;
+        highPercent = originalData.highPricePercent || 0;
+        ma5 = originalData.fiveAverage || 0;
+        ma20 = originalData.twentyAverage || 0;
+
+        // 모든 변동률이 0인 경우 이전 캔들과 비교하여 직접 계산
+        if (openPercent === 0 && closePercent === 0 && lowPercent === 0 && highPercent === 0) {
+          if (periodData?.data && periodData.data.length > 0) {
+            const dayCandles = periodData.data.filter((d) => d.periodType === 1);
+            const sortedCandles = [...dayCandles].sort((a, b) => {
+              return new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime();
+            });
+
+            // 현재 일봉의 인덱스 찾기
+            const currentIndex = sortedCandles.findIndex(
+              (c) => c.stockCandleId === originalData.stockCandleId,
+            );
+
+            // 이전 일봉이 있으면 이전 종가와 비교하여 변동률 계산
+            if (currentIndex > 0) {
+              const prevCandle = sortedCandles[currentIndex - 1];
+              const prevClose = prevCandle.closePrice;
+
+              if (prevClose > 0) {
+                openPercent = ((originalData.openPrice - prevClose) / prevClose) * 100;
+                closePercent = ((originalData.closePrice - prevClose) / prevClose) * 100;
+                lowPercent = ((originalData.lowPrice - prevClose) / prevClose) * 100;
+                highPercent = ((originalData.highPrice - prevClose) / prevClose) * 100;
+              }
+            }
+          }
+        }
       } else {
         ma5 = item.fiveAverage;
         ma20 = item.twentyAverage;
+
+        // 변동률이 없는 경우 이전 캔들과 비교하여 직접 계산
+        if (dataIndex > EMPTY_DATA_COUNT && dataIndex < chartData.length) {
+          const prevDataIdx = dataIndex - 1;
+          const prevItem = chartData[prevDataIdx];
+
+          if (prevItem && prevItem.close > 0) {
+            openPercent = ((open - prevItem.close) / prevItem.close) * 100;
+            closePercent = ((close - prevItem.close) / prevItem.close) * 100;
+            lowPercent = ((low - prevItem.close) / prevItem.close) * 100;
+            highPercent = ((high - prevItem.close) / prevItem.close) * 100;
+          }
+        }
       }
 
       // 색상 설정
