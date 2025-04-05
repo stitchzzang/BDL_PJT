@@ -474,14 +474,6 @@ export const InvestmentResultPage = () => {
     } else if (tab === 'pendingOrders') {
       setPendingPage(0);
     }
-
-    // 탭 변경 후 tab-content로 스크롤 이동
-    setTimeout(() => {
-      const tabContent = document.getElementById('tab-content');
-      if (tabContent) {
-        tabContent.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100); // 약간의 지연을 두어 DOM이 업데이트된 후 스크롤
   };
 
   // 거래 내역 서브탭 변경 함수 업데이트
@@ -496,14 +488,6 @@ export const InvestmentResultPage = () => {
     } else {
       setAutoPage(0);
     }
-
-    // 서브탭 변경 후 tab-content로 스크롤 이동
-    setTimeout(() => {
-      const tabContent = document.getElementById('tab-content');
-      if (tabContent) {
-        tabContent.scrollIntoView({ behavior: 'smooth' });
-      }
-    }, 100); // 약간의 지연을 두어 DOM이 업데이트된 후 스크롤
   };
 
   if (isAccountLoading) {
@@ -644,32 +628,18 @@ export const InvestmentResultPage = () => {
       if (currentPage > 0) {
         onPageChange(currentPage - 1);
         // 페이지 변경 시 tab-content로 스크롤 이동
-        const tabContent = document.getElementById('tab-content');
-        if (tabContent) {
-          tabContent.scrollIntoView({ behavior: 'smooth' });
-        }
       }
     };
 
     const handleNextPage = () => {
       if (currentPage < totalPages - 1) {
         onPageChange(currentPage + 1);
-        // 페이지 변경 시 tab-content로 스크롤 이동
-        const tabContent = document.getElementById('tab-content');
-        if (tabContent) {
-          tabContent.scrollIntoView({ behavior: 'smooth' });
-        }
       }
     };
 
     // 페이지 번호 변경 시 스크롤 이동 함수 추가
     const handlePageNumberClick = (page: number) => {
       onPageChange(page);
-      // 페이지 변경 시 tab-content로 스크롤 이동
-      const tabContent = document.getElementById('tab-content');
-      if (tabContent) {
-        tabContent.scrollIntoView({ behavior: 'smooth' });
-      }
     };
 
     // 페이지 번호 계산 (최대 5개 표시)
