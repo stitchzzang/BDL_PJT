@@ -52,7 +52,7 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
                 <TooltipTrigger asChild>
                   <div className="flex cursor-help items-center gap-1 rounded-full bg-btn-red-color px-3 py-1">
                     <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                    <span className="text-sm text-white">실행 중</span>
+                    <span className="text-sm text-white underline">실행 중</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={5}>
