@@ -135,7 +135,7 @@ export interface BackTestResult {
   companyProfile: CompanyProfile;
   stockDaily: StockDaily;
   summary: Summary;
-  dailyData: DailyData;
+  dailyData: DailyData[];
 }
 //companyProfile
 //stockDaily
