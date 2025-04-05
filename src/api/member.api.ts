@@ -73,6 +73,17 @@ export const memberApi = {
       })
       .json(),
 
+  getManualOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/manual/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
+
   getAutoOrders: (memberId: string, page: number, size: number, search: string) =>
     _kyAuth
       .get<ApiResponse<OrderResponse>>(`simulated/auto/${memberId}`, {
@@ -200,6 +211,7 @@ export const useResetAccount = (memberId: string, onSuccess?: () => void, onErro
   });
 };
 
+// 미체결 주문 조회
 export const useGetPendingOrders = (memberId: string, page: number, size: 10, search: string) => {
   return useQuery({
     queryKey: ['pendingOrders'],
@@ -208,6 +220,7 @@ export const useGetPendingOrders = (memberId: string, page: number, size: 10, se
   });
 };
 
+// 체결 주문 조회(전체)
 export const useGetConfirmedOrders = (memberId: string, page: number, size: 10, search: string) => {
   return useQuery({
     queryKey: ['confirmedOrders'],
@@ -216,6 +229,16 @@ export const useGetConfirmedOrders = (memberId: string, page: number, size: 10, 
   });
 };
 
+// 수동 주문 조회
+export const useGetManualOrders = (memberId: string, page: number, size: 10, search: string) => {
+  return useQuery({
+    queryKey: ['manualOrders'],
+    queryFn: () =>
+      memberApi.getManualOrders(memberId, page, size, search).then((res) => res.result),
+  });
+};
+
+// 자동 주문 조회
 export const useGetAutoOrders = (memberId: string, page: number, size: 10, search: string) => {
   return useQuery({
     queryKey: ['autoOrders'],
