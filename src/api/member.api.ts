@@ -222,6 +222,7 @@ export const useGetPendingOrders = (
     queryKey: ['pendingOrders', page, size, search],
     queryFn: () =>
       memberApi.getPendingOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -236,6 +237,7 @@ export const useGetConfirmedOrders = (
     queryKey: ['confirmedOrders', page, size, search],
     queryFn: () =>
       memberApi.getConfirmedOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -250,6 +252,7 @@ export const useGetManualOrders = (
     queryKey: ['manualOrders', page, size, search],
     queryFn: () =>
       memberApi.getManualOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
   });
 };
 
@@ -258,5 +261,6 @@ export const useGetAutoOrders = (memberId: string, page: number, size: number, s
   return useQuery({
     queryKey: ['autoOrders', page, size, search],
     queryFn: () => memberApi.getAutoOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
   });
 };
