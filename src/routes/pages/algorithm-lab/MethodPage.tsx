@@ -183,18 +183,17 @@ export const MethodPage = () => {
         title="투자는 어떤 방식으로 설정할까요?"
         description={
           <>
-            <TermTooltip term="진입">진입</TermTooltip> <TermTooltip term="청산">청산</TermTooltip>{' '}
-            방식을 설정해주세요.
+            구매 판매 방식을 설정해주세요.
             <br />
             선택하신 방법에 따라 알고리즘이 투자를 진행합니다.
           </>
         }
       />
 
-      {/* 진입 방식 설정 */}
+      {/* 구매 방식 설정 */}
       <div className="w-full space-y-4">
         <p className="text-lg font-bold">
-          <TermTooltip term="진입">진입</TermTooltip> 방식 설정
+          <TermTooltip term="구매 방식 설정">구매 방식 설정</TermTooltip>
         </p>
 
         <div className="space-y-4">
@@ -325,10 +324,10 @@ export const MethodPage = () => {
         </div>
       </div>
 
-      {/* 청산 방식 설정 */}
+      {/* 판매 방식 설정 */}
       <div className="w-full space-y-4">
         <p className="text-lg font-bold">
-          <TermTooltip term="청산">청산</TermTooltip> 방식 설정
+          <TermTooltip term="판매 방식 설정">판매 방식 설정</TermTooltip>
         </p>
 
         <div className="space-y-4">
