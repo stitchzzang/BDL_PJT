@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // 공통 Props 인터페이스 정의
 interface CommonProgressProps {
@@ -127,14 +127,14 @@ export const ProgressInfo = ({
     }
 
     return { displayStartDate: startDate, displayEndDate: endDate };
-  }, [currentTurn, startDate, endDate, pointDates, defaultStartDate, defaultEndDate]);
+  }, [currentTurn, startDate, endDate, pointDates, defaultStartDate, defaultEndDate, formatDateFn]);
 
   if (!((displayStartDate && displayEndDate && formatDateFn) || currentTurn !== undefined)) {
     return null;
   }
 
   return (
-    <div className="flex gap-2 rounded-xl bg-modal-background-color px-[16px] py-[12px]">
+    <div className="flex gap-2 rounded-xl bg-modal-background-color px-[20px] py-[12px]">
       <p className="text-[14px] text-border-color">진행 정보 :</p>
       <div className="flex gap-1">
         {displayStartDate && displayEndDate && formatDateFn && (

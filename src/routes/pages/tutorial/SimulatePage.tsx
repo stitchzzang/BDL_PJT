@@ -285,6 +285,82 @@ export const SimulatePage = () => {
     endDate: defaultEndDate,
   });
 
+  // 날짜에서 하루를 빼는 유틸리티 함수
+  const subtractOneDay = (dateStr: string): string => {
+    try {
+      // 날짜 형식이 'YYMMDD'라고 가정
+      const year = parseInt('20' + dateStr.substring(0, 2));
+      const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
+      const day = parseInt(dateStr.substring(4, 6));
+
+      const date = new Date(year, month, day);
+      date.setDate(date.getDate() - 1);
+
+      // 다시 'YYMMDD' 형식으로 변환
+      const adjustedYear = date.getFullYear().toString().substring(2);
+      const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+      const adjustedDay = date.getDate().toString().padStart(2, '0');
+
+      return adjustedYear + adjustedMonth + adjustedDay;
+    } catch (e) {
+      console.error('날짜 조정 중 오류 발생:', e);
+      return dateStr; // 오류 시 원본 날짜 반환
+    }
+  };
+
+  // 턴별 날짜 표시를 위한 함수
+  const getTurnDateRange = useCallback(
+    (turn: number) => {
+      if (turn <= 0 || pointDates.length < 3) {
+        return { start: defaultStartDate, end: defaultEndDate };
+      }
+
+      switch (turn) {
+        case 1:
+          return {
+            start: defaultStartDate,
+            end: subtractOneDay(pointDates[0]),
+          };
+        case 2:
+          return {
+            start: pointDates[0],
+            end: subtractOneDay(pointDates[1]),
+          };
+        case 3:
+          return {
+            start: pointDates[1],
+            end: subtractOneDay(pointDates[2]),
+          };
+        case 4:
+          return {
+            start: pointDates[2],
+            end: defaultEndDate,
+          };
+        default:
+          return { start: defaultStartDate, end: defaultEndDate };
+      }
+    },
+    [pointDates, defaultStartDate, defaultEndDate],
+  );
+
+  // 날짜 범위에 따른 세션 설정
+  const calculateSession = useCallback(
+    (turn: number) => {
+      if (turn <= 0 || pointDates.length < 3) return null;
+
+      // getTurnDateRange 함수 활용
+      const { start, end } = getTurnDateRange(turn);
+
+      // 차트는 누적 방식으로 표시하기 위해 항상 시작점은 defaultStartDate로 설정
+      return {
+        startDate: defaultStartDate, // 항상 처음부터 시작 (누적 차트용)
+        endDate: end, // 종료일은 각 턴에 맞는 날짜
+        currentPointIndex: turn - 1,
+      };
+    },
+    [getTurnDateRange, pointDates.length, defaultStartDate],
+  );
+
   // 피드백 API는 수동으로 제어
   const { data: tutorialFeedbackResponse, refetch: refetchFeedback } = useGetTutorialFeedback(
     memberId,
@@ -348,67 +424,6 @@ export const SimulatePage = () => {
       }
     }
   }, [currentTurn, turnNewsList, isTutorialStarted]);
-
-  // 날짜에서 하루를 빼는 유틸리티 함수
-  const subtractOneDay = (dateStr: string): string => {
-    try {
-      // 날짜 형식이 'YYMMDD'라고 가정
-      const year = parseInt('20' + dateStr.substring(0, 2));
-      const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
-      const day = parseInt(dateStr.substring(4, 6));
-
-      const date = new Date(year, month, day);
-      date.setDate(date.getDate() - 1);
-
-      // 다시 'YYMMDD' 형식으로 변환
-      const adjustedYear = date.getFullYear().toString().substring(2);
-      const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
-      const adjustedDay = date.getDate().toString().padStart(2, '0');
-
-      return adjustedYear + adjustedMonth + adjustedDay;
-    } catch (e) {
-      console.error('날짜 조정 중 오류 발생:', e);
-      return dateStr; // 오류 시 원본 날짜 반환
-    }
-  };
-
-  // 날짜 범위에 따른 세션 설정
-  const calculateSession = (turn: number) => {
-    if (turn <= 0 || pointDates.length < 3) return null;
-
-    // 누적 차트를 위한 턴별 세션 설정 (시작 날짜는 항상 defaultStartDate로 고정)
-    const turnToSessionMap: Record<
-      number,
-      {
-        startDate: string;
-        endDate: string;
-        currentPointIndex: number;
-      }
-    > = {
-      1: {
-        startDate: defaultStartDate,
-        endDate: subtractOneDay(pointDates[0]), // 변곡점1 - 1일
-        currentPointIndex: 0,
-      },
-      2: {
-        startDate: defaultStartDate, // 1단계부터 누적
-        endDate: subtractOneDay(pointDates[1]), // 변곡점2 - 1일
-        currentPointIndex: 1,
-      },
-      3: {
-        startDate: defaultStartDate, // 1단계부터 누적
-        endDate: subtractOneDay(pointDates[2]), // 변곡점3 - 1일
-        currentPointIndex: 2,
-      },
-      4: {
-        startDate: defaultStartDate, // 1단계부터 누적
-        endDate: defaultEndDate, // 끝점까지
-        currentPointIndex: 3,
-      },
-    };
-
-    return turnToSessionMap[turn];
-  };
 
   // 보유 주식 수량 초기화
   const initOwnedStockCount = async () => {
@@ -1454,8 +1469,10 @@ export const SimulatePage = () => {
         <StockProgress
           progress={progress}
           currentTurn={currentTurn}
-          startDate={tutorialDateRange.startDate}
-          endDate={tutorialDateRange.endDate}
+          startDate={
+            currentTurn > 0 ? getTurnDateRange(currentTurn).start : tutorialDateRange.startDate
+          }
+          endDate={currentTurn > 0 ? getTurnDateRange(currentTurn).end : tutorialDateRange.endDate}
           formatDateFn={formatYYMMDDToYYYYMMDD}
           pointDates={pointDates}
           defaultStartDate={defaultStartDate}
@@ -1541,7 +1558,7 @@ export const SimulatePage = () => {
         </div>
       </div>
 
-      <div className="mt-[44px] grid grid-cols-6 gap-3">
+      <div className="mt-[24px] grid grid-cols-6 gap-3">
         <div className="col-span-3" ref={commentRef}>
           <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
         </div>
