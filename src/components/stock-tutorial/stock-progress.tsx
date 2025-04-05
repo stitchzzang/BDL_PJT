@@ -35,7 +35,7 @@ export const ProgressBar = ({ progress: externalProgress }: ProgressBarProps) =>
     <div className="flex gap-3">
       <div className="flex flex-col gap-3 rounded-xl bg-modal-background-color px-[16px] py-[12px]">
         <div className="flex items-center justify-between">
-          <p className="text-[14px] text-border-color">진행률 :</p>
+          <p className="mr-2 text-[14px] text-border-color">진행률 :</p>
           <span className="text-[14px] font-medium">{internalProgress}%</span>
         </div>
       </div>
