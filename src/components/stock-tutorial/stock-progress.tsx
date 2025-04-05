@@ -27,15 +27,8 @@ export const StockProgress = ({
   }, [externalProgress]);
 
   return (
-    <div className="flex items-center gap-3">
-      {currentTurn !== undefined && currentTurn > 0 && (
-        <div className="flex items-center gap-2">
-          <span className="text-[14px] text-white">현재 단계:</span>
-          <span className="rounded-lg bg-[#2A2A3C] px-2 py-1 text-[14px] font-medium text-white">
-            {currentTurn}/4 단계
-          </span>
-        </div>
-      )}
+    <div className="flex flex-col gap-3">
+      {/* 첫 번째 줄: 진행률 */}
       <div className="flex gap-3">
         <div className="flex flex-col gap-3 rounded-xl bg-modal-background-color px-[16px] py-[12px]">
           <div className="flex items-center justify-between">
@@ -55,16 +48,32 @@ export const StockProgress = ({
           </div>
         </div>
       </div>
-      {startDate && endDate && formatDateFn && (
+
+      {/* 두 번째 줄: 진행 정보 */}
+      {(startDate && endDate && formatDateFn) || currentTurn !== undefined ? (
         <div className="flex items-center gap-2">
-          <p className="text-[14px] text-border-color">진행 기간 : </p>
+          <p className="text-[14px] text-border-color">진행 정보 :</p>
           <div className="flex gap-3 rounded-xl bg-modal-background-color px-[16px] py-[12px]">
-            <p className="text-[14px]">{formatDateFn(startDate)}</p>
-            <span className="text-[14px] font-bold text-border-color"> - </span>
-            <p className="text-[14px]">{formatDateFn(endDate)}</p>
+            {startDate && endDate && formatDateFn && (
+              <>
+                <p className="text-[14px]">{formatDateFn(startDate)}</p>
+                <span className="text-[14px] font-bold text-border-color"> - </span>
+                <p className="text-[14px]">{formatDateFn(endDate)}</p>
+              </>
+            )}
+            {currentTurn !== undefined &&
+              currentTurn > 0 &&
+              startDate &&
+              endDate &&
+              formatDateFn && (
+                <span className="mx-2 text-[14px] font-bold text-border-color">|</span>
+              )}
+            {currentTurn !== undefined && currentTurn > 0 && (
+              <span className="text-[14px] font-medium">{currentTurn}/4 단계</span>
+            )}
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
