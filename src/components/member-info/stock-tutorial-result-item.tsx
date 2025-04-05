@@ -1,4 +1,5 @@
 import { TutorialResultResponse } from '@/api/types/tutorial';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   addCommasToThousand,
   addStockValueColorClass,
@@ -27,10 +28,18 @@ export const StockTutorialResultItem = ({
         />
         <div className="flex flex-col gap-1">
           <p className="text-base">{result.companyName}</p>
-          <div className="flex flex-row gap-2 text-sm text-text-inactive-2-color">
-            {new Date(result.startDate).toLocaleDateString()} ~{' '}
-            {new Date(result.endDate).toLocaleDateString()}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex cursor-help flex-row text-sm text-text-inactive-2-color underline">
+                  {new Date(result.endDate).toLocaleDateString()}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>진행일로부터 과거 1년 간의 데이터로 튜토리얼이 진행됩니다.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
       <div className="flex flex-row items-center gap-4 text-base">
