@@ -1,8 +1,7 @@
-import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
-import walkMove from '@/assets/lottie/walk-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
+import { RocketBgAnimation } from '@/components/common/rocket-bg-animation';
 import { Button } from '@/components/ui/button';
 
 export const StartPage = () => {
@@ -18,15 +17,7 @@ export const StartPage = () => {
       </div>
       <div className="flex w-full flex-col items-center gap-1">
         <div>
-          <Lottie
-            animationData={walkMove}
-            loop={true}
-            autoplay={true}
-            style={{ height: 170, width: 170 }}
-            rendererSettings={{
-              preserveAspectRatio: 'xMidYMid slice',
-            }}
-          />
+          <RocketBgAnimation height={200} width={200} />
         </div>
         <HelpBadge
           title="주식에 익숙하지 않은 당신"
