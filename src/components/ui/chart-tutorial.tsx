@@ -93,7 +93,7 @@ const convertPeriodCandleToChartData = (data: StockCandle): ChartDataPoint => {
   };
 };
 
-const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700, periodData }) => {
+const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ periodData }) => {
   const chartRef = useRef<ReactECharts>(null);
   const [dataZoomRange] = useState({
     start: DEFAULT_DATA_ZOOM_START,
@@ -354,17 +354,53 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
       const highColor = getChangeColor(highPercent);
 
       return `
-        📆 ${formattedDate}<br />
-        <br />
-        시가: ${formatKoreanNumber(open)}원 (<span style="color: ${openColor};">${openPercent.toFixed(2)}%</span>)<br />
-        종가: ${formatKoreanNumber(close)}원 (<span style="color: ${closeColor};">${closePercent.toFixed(2)}%</span>)<br />
-        저가: ${formatKoreanNumber(low)}원 (<span style="color: ${lowColor};">${lowPercent.toFixed(2)}%</span>)<br />
-        고가: ${formatKoreanNumber(high)}원 (<span style="color: ${highColor};">${highPercent.toFixed(2)}%</span>)<br />
-        <br />
-        5이평선: ${formatKoreanNumber(ma5)}원<br />
-        20이평선: ${formatKoreanNumber(ma20)}원<br />
-        <br />
-        거래량: ${formatVolumeNumber(volume)}<br />
+        <div style="font-size: 12px; max-width: 250px; padding-left: 10px; padding-right: 10px; padding-top: 10px; padding-bottom: 10px;">
+          <div style="margin-bottom: 5px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 3px;">
+            <div style="font-weight: bold; font-size: 14px;">📈 주식 정보</div>
+            <div style="color: #aaa;">${formattedDate}</div>
+          </div>
+
+          <div style="margin-bottom: 5px;">
+            <div style="display: grid; grid-template-columns: 40px 1fr 60px; margin-bottom: 2px; align-items: center;">
+              <span style="color: #ccc;">시가</span>
+              <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(open)}원</span>
+              <span style="color: ${openColor}; text-align: right; font-size: 12px;">${openPercent > 0 ? '+' : ''}${openPercent.toFixed(2)}%</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 60px; margin-bottom: 2px; align-items: center;">
+              <span style="color: #ccc;">종가</span>
+              <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(close)}원</span>
+              <span style="color: ${closeColor}; text-align: right; font-size: 12px;">${closePercent > 0 ? '+' : ''}${closePercent.toFixed(2)}%</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 60px; margin-bottom: 2px; align-items: center;">
+              <span style="color: #ccc;">저가</span>
+              <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(low)}원</span>
+              <span style="color: ${lowColor}; text-align: right; font-size: 12px;">${lowPercent > 0 ? '+' : ''}${lowPercent.toFixed(2)}%</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 40px 1fr 60px; align-items: center;">
+              <span style="color: #ccc;">고가</span>
+              <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(high)}원</span>
+              <span style="color: ${highColor}; text-align: right; font-size: 12px;">${highPercent > 0 ? '+' : ''}${highPercent.toFixed(2)}%</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 5px; padding-top: 3px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div style="display: grid; grid-template-columns: 60px 1fr; margin-bottom: 2px; align-items: center;">
+              <span style="color: #ccc;">5이평선</span>
+              <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(ma5)}원</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 60px 1fr; align-items: center;">
+              <span style="color: #ccc;">20이평선</span>
+              <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(ma20)}원</span>
+            </div>
+          </div>
+
+          <div style="padding-top: 3px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <div style="display: grid; grid-template-columns: 60px 1fr; align-items: center;">
+              <span style="color: #ccc;">거래량</span>
+              <span style="font-weight: 500; text-align: right;">${formatVolumeNumber(volume)}</span>
+            </div>
+          </div>
+        </div>
       `;
     },
     [chartData, formatKoreanNumber, formatVolumeNumber, periodData],
@@ -380,6 +416,19 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
       },
       tooltip: {
         trigger: 'axis',
+        confine: true,
+        position: function (point, params, dom, rect, size) {
+          const chartWidth = size.viewSize[0];
+          const tooltipWidth = size.contentSize[0];
+          const tooltipHeight = size.contentSize[1];
+          const posX = point[0];
+
+          if (posX + tooltipWidth > chartWidth - 20) {
+            return [posX - tooltipWidth - 10, point[1] + 8];
+          }
+
+          return [posX + 10, point[1] + 8];
+        },
         axisPointer: {
           type: 'cross',
           crossStyle: {
@@ -396,6 +445,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
           fontFamily:
             'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
         },
+        extraCssText: 'max-width: 280px; white-space: normal; word-wrap: break-word;',
       },
       axisPointer: {
         link: [{ xAxisIndex: 'all' }],
@@ -682,8 +732,9 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
         style={{ backgroundColor: '#0D192B' }}
       >
         <div className="flex items-center p-4 text-sm text-white"></div>
-        {!hasValidData && (
-          <div className="flex h-full items-center justify-center p-4 text-white opacity-50">
+
+        {!hasValidData ? (
+          <div className="flex h-[400px] items-center justify-center text-white">
             <div className="text-center">
               <p className="mb-2 text-xl">차트 데이터가 없습니다.</p>
               <p className="text-sm">
@@ -692,13 +743,12 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(({ height = 700
               <p className="text-sm">잠시 후 다시 시도해 주세요.</p>
             </div>
           </div>
-        )}
-        {hasValidData && (
-          <div className="h-full">
+        ) : (
+          <div className="h-full w-full">
             <ReactECharts
               ref={chartRef}
               option={option}
-              style={{ height: '100%', minHeight: '400px' }}
+              style={{ height: '100%', minHeight: '400px', width: '100%' }}
             />
           </div>
         )}
