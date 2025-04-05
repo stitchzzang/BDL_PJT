@@ -49,7 +49,7 @@ export const LoginPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            maxLength={15}
+            maxLength={20}
           />
           <Input
             placeholder="비밀번호"
