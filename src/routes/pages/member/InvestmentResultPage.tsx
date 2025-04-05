@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -460,8 +461,166 @@ export const InvestmentResultPage = () => {
     };
   }, []);
 
+  // 탭 변경 함수 업데이트
+  const handleMainTabChange = (tab: string) => {
+    setMainTab(tab);
+    setSearch('');
+
+    // 탭 변경 시 페이지를 초기화
+    if (tab === 'transactions') {
+      setConfirmedPage(0);
+      setManualPage(0);
+      setAutoPage(0);
+    } else if (tab === 'pendingOrders') {
+      setPendingPage(0);
+    }
+
+    // 탭 변경 후 tab-content로 스크롤 이동
+    setTimeout(() => {
+      const tabContent = document.getElementById('tab-content');
+      if (tabContent) {
+        tabContent.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100); // 약간의 지연을 두어 DOM이 업데이트된 후 스크롤
+  };
+
+  // 거래 내역 서브탭 변경 함수 업데이트
+  const handleTransactionSubTabChange = (subTab: string) => {
+    setTransactionSubTab(subTab);
+
+    // 서브탭 변경 시 페이지 초기화
+    if (subTab === 'all') {
+      setConfirmedPage(0);
+    } else if (subTab === 'manual') {
+      setManualPage(0);
+    } else {
+      setAutoPage(0);
+    }
+
+    // 서브탭 변경 후 tab-content로 스크롤 이동
+    setTimeout(() => {
+      const tabContent = document.getElementById('tab-content');
+      if (tabContent) {
+        tabContent.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100); // 약간의 지연을 두어 DOM이 업데이트된 후 스크롤
+  };
+
   if (isAccountLoading) {
-    return <LoadingAnimation />;
+    return (
+      <div className="flex w-full flex-col gap-4 px-6">
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-col items-start">
+            <Skeleton className="h-7 w-24" />
+            <Skeleton className="mt-2 h-10 w-48" />
+          </div>
+          <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
+            <div className="flex flex-col items-start">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="mt-2 h-8 w-32" />
+            </div>
+            <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+            <div className="flex flex-col items-start">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="mt-2 h-8 w-32" />
+            </div>
+            <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+            <div className="flex flex-col items-start">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="mt-2 h-8 w-32" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-row gap-3">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-40" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <hr className="mt-5 w-full border-btn-primary-inactive-color" />
+
+        <div className="mb-4 rounded-2xl bg-modal-background-color">
+          <div className="flex w-fit gap-2 rounded-xl p-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        <div id="tab-content" className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
+          <div className="flex flex-row justify-between">
+            <Skeleton className="h-12 w-40" />
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">
+                  <Skeleton className="h-6 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-24" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-24" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-16" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-16" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-20" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <div className="h-5"></div>
+              {Array(5)
+                .fill(0)
+                .map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="w-[200px]">
+                      <div className="flex flex-row items-center gap-2">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-12" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
   }
 
   if (isAccountError) {
@@ -484,12 +643,32 @@ export const InvestmentResultPage = () => {
     const handlePrevPage = () => {
       if (currentPage > 0) {
         onPageChange(currentPage - 1);
+        // 페이지 변경 시 tab-content로 스크롤 이동
+        const tabContent = document.getElementById('tab-content');
+        if (tabContent) {
+          tabContent.scrollIntoView({ behavior: 'smooth' });
+        }
       }
     };
 
     const handleNextPage = () => {
       if (currentPage < totalPages - 1) {
         onPageChange(currentPage + 1);
+        // 페이지 변경 시 tab-content로 스크롤 이동
+        const tabContent = document.getElementById('tab-content');
+        if (tabContent) {
+          tabContent.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    };
+
+    // 페이지 번호 변경 시 스크롤 이동 함수 추가
+    const handlePageNumberClick = (page: number) => {
+      onPageChange(page);
+      // 페이지 변경 시 tab-content로 스크롤 이동
+      const tabContent = document.getElementById('tab-content');
+      if (tabContent) {
+        tabContent.scrollIntoView({ behavior: 'smooth' });
       }
     };
 
@@ -529,7 +708,7 @@ export const InvestmentResultPage = () => {
             key={page}
             variant={page === currentPage ? 'blue' : 'gray'}
             size="icon"
-            onClick={() => onPageChange(page)}
+            onClick={() => handlePageNumberClick(page)}
             className={'h-8 w-8'}
           >
             {page + 1}
@@ -731,11 +910,36 @@ export const InvestmentResultPage = () => {
           </TableHeader>
           <TableBody>
             {isPendingOrdersLoading ? (
-              <TableRow>
-                <TableCell colSpan={7} className="py-10 text-center">
-                  <LoadingAnimation />
-                </TableCell>
-              </TableRow>
+              Array(5)
+                .fill(0)
+                .map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="w-[200px]">
+                      <div className="flex flex-row items-center gap-2">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="mx-auto h-6 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-8 w-16" />
+                    </TableCell>
+                  </TableRow>
+                ))
             ) : pendingOrdersData?.orders && pendingOrdersData.orders.length > 0 ? (
               pendingOrdersData.orders.map((order) => (
                 <TableRow key={order.orderId}>
@@ -847,11 +1051,36 @@ export const InvestmentResultPage = () => {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={8} className="py-10 text-center">
-                <LoadingAnimation />
-              </TableCell>
-            </TableRow>
+            Array(5)
+              .fill(0)
+              .map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell className="w-[200px]">
+                    <div className="flex flex-row items-center gap-2">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-6 w-24" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="mx-auto h-6 w-16" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="mx-auto h-6 w-20" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-6 w-16" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-6 w-20" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-6 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-40" />
+                  </TableCell>
+                </TableRow>
+              ))
           ) : data?.orders && data.orders.length > 0 ? (
             data.orders.map((order: any) => (
               <TableRow key={order.orderId}>
@@ -939,10 +1168,7 @@ export const InvestmentResultPage = () => {
         <Button
           variant="blue"
           className={transactionSubTab === 'all' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'}
-          onClick={() => {
-            setTransactionSubTab('all');
-            setConfirmedPage(0);
-          }}
+          onClick={() => handleTransactionSubTabChange('all')}
         >
           전체
         </Button>
@@ -951,20 +1177,14 @@ export const InvestmentResultPage = () => {
           className={
             transactionSubTab === 'manual' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'
           }
-          onClick={() => {
-            setTransactionSubTab('manual');
-            setManualPage(0);
-          }}
+          onClick={() => handleTransactionSubTabChange('manual')}
         >
           수동
         </Button>
         <Button
           variant="blue"
           className={transactionSubTab === 'auto' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'}
-          onClick={() => {
-            setTransactionSubTab('auto');
-            setAutoPage(0);
-          }}
+          onClick={() => handleTransactionSubTabChange('auto')}
         >
           자동
         </Button>
@@ -1161,10 +1381,7 @@ export const InvestmentResultPage = () => {
       <div className="mb-4 rounded-2xl bg-modal-background-color">
         <div className="flex w-fit gap-2 rounded-xl p-2">
           <button
-            onClick={() => {
-              setMainTab('holdings');
-              setSearch('');
-            }}
+            onClick={() => handleMainTabChange('holdings')}
             className={`rounded-lg px-4 py-2 transition-all duration-300 ${
               mainTab === 'holdings'
                 ? 'bg-btn-blue-color font-medium text-white'
@@ -1174,13 +1391,7 @@ export const InvestmentResultPage = () => {
             보유 종목
           </button>
           <button
-            onClick={() => {
-              setMainTab('transactions');
-              setSearch('');
-              setConfirmedPage(0);
-              setManualPage(0);
-              setAutoPage(0);
-            }}
+            onClick={() => handleMainTabChange('transactions')}
             className={`rounded-lg px-4 py-2 transition-all duration-300 ${
               mainTab === 'transactions'
                 ? 'bg-btn-blue-color font-medium text-white'
@@ -1190,11 +1401,7 @@ export const InvestmentResultPage = () => {
             거래 내역
           </button>
           <button
-            onClick={() => {
-              setMainTab('pendingOrders');
-              setSearch('');
-              setPendingPage(0);
-            }}
+            onClick={() => handleMainTabChange('pendingOrders')}
             className={`rounded-lg px-4 py-2 transition-all duration-300 ${
               mainTab === 'pendingOrders'
                 ? 'bg-btn-blue-color font-medium text-white'
@@ -1207,7 +1414,7 @@ export const InvestmentResultPage = () => {
       </div>
 
       {/* 탭 내용 */}
-      <div className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
+      <div id="tab-content" className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
         {mainTab === 'holdings' && holdingsTabContent}
         {mainTab === 'transactions' && transactionsTabContent}
         {mainTab === 'pendingOrders' && pendingOrdersTabContent}
