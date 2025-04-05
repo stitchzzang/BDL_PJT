@@ -1,6 +1,8 @@
+import Lottie from 'lottie-react';
 import React, { useEffect, useRef } from 'react';
 
 import { NewsResponse } from '@/api/types/tutorial';
+import historyAnimation from '@/assets/lottie/history-animation.json';
 import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
 
 export interface DayHistoryProps {
@@ -39,7 +41,12 @@ export const DayHistory = ({ news, height }: DayHistoryProps) => {
       className="flex w-full flex-col rounded-xl bg-modal-background-color p-5"
       style={{ height: `${finalHeight}px` }} // 최소 높이 또는 AI 코멘트 높이 중 큰 값 사용
     >
-      <h1 className="mb-2 text-[20px] font-bold">뉴스 히스토리</h1>
+      <div className="mb-2 flex items-center">
+        <div className="mr-2 h-8 w-8">
+          <Lottie animationData={historyAnimation} loop={true} />
+        </div>
+        <h1 className="text-[20px] font-bold">뉴스 히스토리</h1>
+      </div>
       {news.length === 0 ? (
         <p className="text-border-color">각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.</p>
       ) : (
