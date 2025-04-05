@@ -1,5 +1,5 @@
 import Lottie from 'lottie-react';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { NewsResponse } from '@/api/types/tutorial';
 import historyAnimation from '@/assets/lottie/history-animation.json';
@@ -13,6 +13,7 @@ export interface DayHistoryProps {
 
 export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHistoryProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [prevNewsLength, setPrevNewsLength] = useState(0);
   // 뉴스 카드 3개 정도 표시할 수 있는 기본 높이 (카드 하나당 약 90px + 간격 + 패딩 고려)
   const MIN_HEIGHT = 320;
 
@@ -33,6 +34,18 @@ export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHisto
       scrollContainer.removeEventListener('wheel', handleWheel);
     };
   }, []);
+
+  // 새로운 뉴스가 추가되면 스크롤을 맨 위로 이동
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    // 뉴스 항목이 새로 추가된 경우에만 스크롤 맨 위로 이동
+    if (news.length > prevNewsLength) {
+      scrollContainer.scrollTop = 0;
+      setPrevNewsLength(news.length);
+    }
+  }, [news, prevNewsLength]);
 
   // AI 코멘트 높이와 최소 높이 중 더 큰 값을 사용
   const finalHeight = height && height > MIN_HEIGHT ? height : MIN_HEIGHT;
