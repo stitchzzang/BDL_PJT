@@ -75,25 +75,25 @@ export const StylePage = () => {
         description="3가지 선택지 중 가장 선호하는 투자 스타일을 선택하거나 바를 드래그하여 원하는 값을 선택해주세요."
       />
 
-      <div className="w-full rounded-2xl bg-gray-50 p-4 shadow-sm">
+      <div className="w-full rounded-2xl border border-btn-primary-inactive-color  bg-modal-background-color p-4 shadow-sm">
         <div>
           <p className="flex items-center text-lg font-bold text-primary-color">
             <ArrowTrendingUpIcon className="mr-1 h-5 w-5" />
             이익률이란?
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm">
             주식 가격이 <b className="text-primary-color">얼마나 올라갔을 때 팔지</b>를 결정하는
             비율입니다.
           </p>
-          <div className="my-2 rounded-lg bg-white p-2">
-            <p className="text-sm text-gray-700">
+          <div className="my-2 rounded-lg p-2">
+            <p className="text-sm">
               예를 들어, 이익률이 10%라면 주식을 산 가격보다
               <br />
               <b className="text-primary-color">10% 더 올라갔을 때 자동으로 팔게</b> 됩니다.
             </p>
           </div>
-          <div className="rounded-lg bg-white p-2">
-            <p className="text-sm text-gray-700">
+          <div className="rounded-lg p-2">
+            <p className="text-sm">
               이익률이 높을수록 <b className="text-primary-color">더 큰 수익을 기대</b>할 수 있지만,
               <br />
               <b className="text-primary-color">가격이 떨어질 위험</b>도 있습니다.
@@ -101,27 +101,27 @@ export const StylePage = () => {
           </div>
         </div>
 
-        <hr className="my-4 border-t border-gray-300" />
+        <hr className="my-4 border-t border-btn-primary-inactive-color" />
 
         <div>
           <p className="flex items-center text-lg font-bold text-primary-color">
             <ArrowTrendingDownIcon className="mr-1 h-5 w-5" />
             손절매란?
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm">
             주식 가격이{' '}
             <b className="text-primary-color">얼마나 내려갔을 때 손해를 감수하고 팔지</b>를<br />
             결정하는 비율입니다.
           </p>
-          <div className="my-2 rounded-lg bg-white p-2">
-            <p className="text-sm text-gray-700">
+          <div className="my-2 rounded-lg p-2">
+            <p className="text-sm">
               예를 들어, 손절매가 5%라면 주식을 산 가격보다
               <br />
               <b className="text-primary-color">5% 더 내려갔을 때 자동으로 팔게</b> 됩니다.
             </p>
           </div>
-          <div className="rounded-lg bg-white p-2">
-            <p className="text-sm text-gray-700">
+          <div className="rounded-lg p-2">
+            <p className="text-sm">
               이는 <b className="text-primary-color">더 큰 손실을 방지하기 위한 안전장치</b>입니다.
             </p>
           </div>
