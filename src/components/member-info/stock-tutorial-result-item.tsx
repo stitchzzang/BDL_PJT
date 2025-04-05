@@ -35,11 +35,6 @@ export const StockTutorialResultItem = ({
       </div>
       <div className="flex flex-row items-center gap-4 text-base">
         <div className="flex flex-row items-center gap-1">
-          <span className="text-border-color">시작 금액</span>
-          <p className="text-text-main-color">{addCommasToThousand(result.startMoney)}</p>
-          <span className="text-border-color">원</span>
-        </div>
-        <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 금액</span>
           <p className="text-text-main-color">{addCommasToThousand(result.endMoney)}</p>
           <span className="text-border-color">원</span>
@@ -47,7 +42,7 @@ export const StockTutorialResultItem = ({
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 수익률</span>
           <p
-            className={`rounded-lg border px-2 py-1 ${addStockValueColorClass(
+            className={`min-w-[80px] rounded-lg border px-2 py-1 text-center ${addStockValueColorClass(
               ((result.endMoney - result.startMoney) / result.startMoney) * 100,
             )}`}
           >
