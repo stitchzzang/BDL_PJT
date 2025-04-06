@@ -93,8 +93,7 @@ export const ProgressInfo = ({
           const adjustedDay = date.getDate().toString().padStart(2, '0');
 
           return adjustedYear + adjustedMonth + adjustedDay;
-        } catch (e) {
-          console.error('날짜 조정 중 오류 발생:', e);
+        } catch {
           return dateStr; // 오류 시 원본 날짜 반환
         }
       };

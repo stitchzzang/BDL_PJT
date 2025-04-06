@@ -1533,7 +1533,14 @@ export const SimulatePage = () => {
             </div>
           ) : (
             <div className="relative h-full">
-              <ChartComponent periodData={stockData || undefined} />
+              <ChartComponent
+                periodData={stockData || undefined}
+                inflectionPoints={pointDates.map((date, index) => ({
+                  date: date,
+                  label: `변곡점${index + 1}`,
+                  index: pointStockCandleIds[index] ? pointStockCandleIds[index] - 1 : 0,
+                }))}
+              />
             </div>
           )}
         </div>
