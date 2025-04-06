@@ -38,7 +38,7 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                 <div className="flex justify-between gap-2">
                   {dailyDatacard.trade.type === 'BUY' ? (
                     <>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
                         <div className="h-4 w-4">
                           <ChevronDoubleRightIcon />
                         </div>
@@ -47,11 +47,24 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                     </>
                   ) : (
                     <>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
                         <div className="h-4 w-4">
                           <ChevronDoubleLeftIcon />
                         </div>
                         <p className="font-bold text-btn-blue-color">판매</p>
+                        <div className="flex gap-2 rounded-md border border-border-color border-opacity-40 p-1 px-2">
+                          <p className="text-border-color">
+                            거래가격:
+                            <span className="text-white">
+                              {' '}
+                              {formatKoreanMoney(dailyDatacard.trade.price)}원
+                            </span>
+                          </p>
+                          <p className="text-border-color">
+                            거래개수:
+                            <span className="text-white"> {dailyDatacard.trade.quantity}개</span>
+                          </p>
+                        </div>
                       </div>
                     </>
                   )}
@@ -81,8 +94,8 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                     </p>
                   </div>
                 </div>
-                <div>
-                  <p>
+                <div className="m-1 flex items-center gap-3 rounded-md border border-border-color border-opacity-20 p-2">
+                  <p className="text-border-color">
                     일간 수익:{' '}
                     <span
                       className={`${dailyDatacard.dailyReturn < 0 ? 'text-btn-blue-color' : 'text-btn-red-color'}`}
@@ -90,7 +103,7 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                       {dailyDatacard.dailyReturn}%
                     </span>
                   </p>
-                  <p>
+                  <p className="text-border-color">
                     누적 수익:{' '}
                     <span
                       className={`${dailyDatacard.cumulativeReturn < 0 ? 'text-btn-blue-color' : 'text-btn-red-color'}`}
@@ -99,7 +112,8 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                     </span>
                   </p>
                 </div>
-                <div>
+                <div className="m-1 flex items-center gap-2 rounded-md border border-border-color border-opacity-20 p-2">
+                  <p className="text-border-color">응답:</p>
                   <p>{dailyDatacard.trade.reason}</p>
                 </div>
               </div>
