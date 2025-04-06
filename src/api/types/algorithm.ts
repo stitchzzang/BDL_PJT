@@ -130,7 +130,7 @@ export interface DailyData {
   equity: number;
   dailyReturn: number;
   cumulativeReturn: number;
-  trade: boolean | Trade;
+  trade: null | Trade;
 }
 
 export interface BackTestResult {
