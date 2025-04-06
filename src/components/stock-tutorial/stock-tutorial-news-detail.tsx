@@ -6,10 +6,6 @@ export interface StockTutorialNewsDetailProps {
 }
 
 export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) => {
-  // companyId 활용 (아래 주석 코드는 실제 API 호출 또는 추가 기능이 필요할 때 사용)
-  // 참고: 현재는 UI에 표시하지 않고 있지만, 필요시 활용할 수 있음
-  // const companyInfo = { id: companyId };
-
   return (
     <div className="rounded-xl bg-modal-background-color py-2">
       <div className="flex items-center justify-between">

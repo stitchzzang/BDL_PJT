@@ -50,9 +50,6 @@ export const DayHistory = ({ news = [], height, isTutorialStarted = false }: Day
   // AI 코멘트 높이와 최소 높이 중 더 큰 값을 사용
   const finalHeight = height && height > MIN_HEIGHT ? height : MIN_HEIGHT;
 
-  // 디버깅용 콘솔 로그 추가
-  console.log('[DayHistory] 뉴스 데이터:', news?.length, Array.isArray(news), news);
-
   return (
     <div
       className="flex w-full flex-col rounded-xl bg-modal-background-color p-5"
@@ -67,7 +64,9 @@ export const DayHistory = ({ news = [], height, isTutorialStarted = false }: Day
 
       {!isTutorialStarted ? (
         <p className="text-[16px] text-border-color">
-          각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.
+          각 변곡점 구간의 뉴스 리스트를 단계별로 누적 제공해드립니다.
+          <br />
+          뉴스 타이틀과 변동률을 확인하여 투자 결정을 내려보세요.
         </p>
       ) : !Array.isArray(news) || news.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center">
