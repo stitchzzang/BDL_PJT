@@ -1,4 +1,7 @@
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/24/solid';
+
 import { DailyData } from '@/api/types/algorithm';
+import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 interface BackTestResultListProps {
   dailyData: DailyData[] | null;
@@ -29,10 +32,76 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
             return (
               <div
                 key={`item-${dailyData.length - 1 - index}`}
-                className="animate-fadeIn cursor-pointer rounded-xl border border-border-color border-opacity-40 p-2 transition-colors duration-300 hover:bg-background-color"
+                className="animate-fadeIn cursor-pointer rounded-lg bg-border-color bg-opacity-10 p-2 transition-colors duration-300 hover:bg-background-color hover:bg-opacity-100"
                 onClick={() => setClickNumber(dailyDatacard.index)}
               >
-                <p>{dailyDatacard.trade.reason}</p>
+                <div className="flex justify-between gap-2">
+                  {dailyDatacard.trade.type === 'BUY' ? (
+                    <>
+                      <div className="flex gap-2">
+                        <div className="h-4 w-4">
+                          <ChevronDoubleRightIcon />
+                        </div>
+                        <p className="font-bold text-btn-red-color">구매</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex gap-2">
+                        <div className="h-4 w-4">
+                          <ChevronDoubleLeftIcon />
+                        </div>
+                        <p className="font-bold text-btn-blue-color">판매</p>
+                      </div>
+                    </>
+                  )}
+                  <p className="opacity-30">{dailyDatacard.date}</p>
+                </div>
+                <div className="m-1 flex items-center justify-between rounded-md border border-border-color border-opacity-20 p-2">
+                  <p className="text-border-color">
+                    총 자산:{' '}
+                    <span
+                      className={`${dailyDatacard.portfolioValue > 10000000 ? 'text-btn-red-color' : 'text-btn-blue-color'} text-[15px]`}
+                    >
+                      {formatKoreanMoney(dailyDatacard.portfolioValue)}원
+                    </span>
+                  </p>
+                  <div className="text-border-color">
+                    <p>
+                      현금:{' '}
+                      <span className="text-btn-green-color">
+                        {formatKoreanMoney(dailyDatacard.cash)}원
+                      </span>
+                    </p>
+                    <p>
+                      주식:{' '}
+                      <span className="text-white">
+                        {formatKoreanMoney(dailyDatacard.equity)}원
+                      </span>
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p>
+                    일간 수익:{' '}
+                    <span
+                      className={`${dailyDatacard.dailyReturn < 0 ? 'text-btn-blue-color' : 'text-btn-red-color'}`}
+                    >
+                      {dailyDatacard.dailyReturn}%
+                    </span>
+                  </p>
+                  <p>
+                    누적 수익:{' '}
+                    <span
+                      className={`${dailyDatacard.cumulativeReturn < 0 ? 'text-btn-blue-color' : 'text-btn-red-color'}`}
+                    >
+                      {dailyDatacard.cumulativeReturn}%
+                    </span>
+                  </p>
+                </div>
+                <div>
+                  <p>{dailyDatacard.trade.reason}</p>
+                </div>
               </div>
             );
           }
