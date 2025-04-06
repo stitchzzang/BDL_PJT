@@ -5,6 +5,7 @@ import { CompanyProfile, DailyData, StockDailyData } from '@/api/types/algorithm
 import { CandlestickAlgorithmChart } from '@/components/algorithm/algorithm-chart';
 import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-info';
 import { BackTestResultList } from '@/components/algorithm/backtest-result-list';
+import AssetComparisonChart from '@/components/algorithm/userCostChangeChart';
 
 export const BackTesting = () => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
@@ -174,10 +175,17 @@ export const BackTesting = () => {
           <CandlestickAlgorithmChart data={dailyData} />
         </div>
 
-        {/* 결과창 */}
+        {/* 일자 히스토리 */}
         <div className="col-span-5">
           <BackTestResultList dailyData={day} setClickNumber={setClickNumber} />
         </div>
+      </div>
+      <div className="mt-1">
+        {day ? (
+          <AssetComparisonChart initialAsset={10000000} changingAssets={day} />
+        ) : (
+          <div>no data</div>
+        )}
       </div>
     </div>
   );

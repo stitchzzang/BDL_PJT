@@ -7,7 +7,7 @@ interface AlgorithmCompanyInfoProps {
 
 export const AlgorithmCompanyInfo = ({ companyProfile }: AlgorithmCompanyInfoProps) => {
   return (
-    <div className="flex animate-fadeIn items-center">
+    <div className="flex animate-fadeIn items-center duration-300 ease-in-out ">
       <div className="flex w-full items-start gap-[20px] sm:items-center">
         <div className="flex w-full items-center gap-3">
           <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
