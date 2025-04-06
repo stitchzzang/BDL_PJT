@@ -7,12 +7,8 @@ export interface DayHistoryCardProps {
 export const DayHistoryCard = ({ newsItem }: DayHistoryCardProps) => {
   // 뉴스 아이템 유효성 검사
   if (!newsItem) {
-    console.log('[DayHistoryCard] 뉴스 아이템이 null 또는 undefined입니다.');
     return null;
   }
-
-  // 뉴스 데이터 디버깅
-  console.log('[DayHistoryCard] 렌더링 중:', newsItem);
 
   // 변동률에 따른 스타일 결정
   const hasChangeRate = typeof newsItem.changeRate === 'number';
@@ -32,15 +28,12 @@ export const DayHistoryCard = ({ newsItem }: DayHistoryCardProps) => {
         formattedDate = `${year}-${month}-${day}`;
       } else {
         formattedDate = '날짜 형식 오류';
-        console.warn('[DayHistoryCard] 날짜 파싱 실패:', newsItem.newsDate);
       }
     } else {
       formattedDate = '날짜 없음';
-      console.warn('[DayHistoryCard] 날짜 필드 없음:', newsItem);
     }
   } catch (error) {
     formattedDate = '날짜 없음';
-    console.error('[DayHistoryCard] 날짜 처리 중 오류:', error);
   }
 
   // 뉴스 제목이 없는 경우 기본값 사용
