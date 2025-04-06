@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useBackTestAlgorithm } from '@/api/algorithm.api';
-import { CompanyProfile, StockDailyData } from '@/api/types/algorithm';
+import { CompanyProfile, DailyData, StockDailyData } from '@/api/types/algorithm';
 import { CandlestickAlgorithmChart } from '@/components/algorithm/algorithm-chart';
 import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-info';
+import { BackTestResultList } from '@/components/algorithm/backtest-result-list';
 
 export const BackTesting = () => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
@@ -13,6 +14,9 @@ export const BackTesting = () => {
   const [saveDailyData, setSaveDailyData] = useState<StockDailyData[] | null>(null);
   // 전체 봉 개수
   const [dailyCount, setDailyCount] = useState<number>(0);
+  // 하루 정보
+  const [saveDay, setSaveDay] = useState<DailyData[] | null>(null);
+  const [day, setDay] = useState<DailyData[] | null>(null);
 
   // 시간 관련 변수
   const [currentNumber, setCurrentNumber] = useState<number>(0); // 현재 표시되는 숫자
@@ -36,6 +40,9 @@ export const BackTesting = () => {
       },
       {
         onSuccess: (res) => {
+          // 하루 정보
+          setDay(res.dailyData);
+          setSaveDay(res.dailyData);
           setCompanyProfile(res.companyProfile);
           // 초기에는 전체 데이터 표시
           setDailyData(res.stockDaily.data);
@@ -56,9 +63,10 @@ export const BackTesting = () => {
     const newValue = parseInt(event.target.value, 10);
     setMaxNumber(newValue);
 
-    if (saveDailyData) {
+    if (saveDailyData && saveDay) {
       // 항상 원본 데이터(saveDailyData)에서 슬라이싱
       setDailyData(saveDailyData.slice(0, newValue));
+      setDay(saveDay.slice(0, newValue));
     }
   };
 
@@ -153,6 +161,10 @@ export const BackTesting = () => {
             />
             <span className="ml-2">{saveDailyData ? saveDailyData.length : 0}</span>
           </div>
+        </div>
+        {/* 결과창 */}
+        <div>
+          <BackTestResultList dailyData={day} />
         </div>
       </div>
     </div>
