@@ -134,7 +134,7 @@ export const BackTesting = () => {
       <div className="">
         <AlgorithmCompanyInfo companyProfile={companyProfile} />
       </div>
-      <div>
+      <div className="border">
         <div className="mb-4 flex items-center justify-between">
           <p>
             현재 표시: {currentNumber}일 / {maxNumber}일
@@ -145,10 +145,6 @@ export const BackTesting = () => {
             </button>
           )}
         </div>
-
-        {/* 차트 영역 */}
-        <CandlestickAlgorithmChart data={dailyData} />
-
         {/* 슬라이더 영역 */}
         <div className="mt-4">
           <div className="flex items-center">
@@ -164,8 +160,15 @@ export const BackTesting = () => {
             <span className="ml-2">{saveDailyData ? saveDailyData.length : 0}</span>
           </div>
         </div>
+      </div>
+      {/* 차트 영역 */}
+      <div className="grid grid-cols-12 gap-1">
+        <div className="col-span-10">
+          <CandlestickAlgorithmChart data={dailyData} />
+        </div>
+
         {/* 결과창 */}
-        <div>
+        <div className="col-span-2">
           <BackTestResultList dailyData={day} />
         </div>
       </div>
