@@ -1191,11 +1191,51 @@ export const SimulatePage = () => {
           endStockCandleId,
         });
 
-        if (pastNewsResponse?.result?.NewsResponse) {
+        console.log(`[API 디버깅] 과거 뉴스 로드 요청 (턴 ${turn}):`, {
+          companyId,
+          startStockCandleId,
+          endStockCandleId,
+        });
+        console.log(`[API 디버깅] 과거 뉴스 응답 (턴 ${turn}):`, pastNewsResponse);
+
+        // 응답 구조 확인 (API 변경 가능성 대비)
+        let newsData: NewsResponse[] = [];
+
+        if (
+          pastNewsResponse?.result?.NewsResponse &&
+          Array.isArray(pastNewsResponse.result.NewsResponse)
+        ) {
+          // 기존 예상 구조: result.NewsResponse 배열
+          newsData = pastNewsResponse.result.NewsResponse;
+          console.log(`[API 디버깅] NewsResponse 배열 구조 감지됨:`, newsData.length);
+        } else if (pastNewsResponse?.result && Array.isArray(pastNewsResponse.result)) {
+          // 대체 구조 1: result 자체가 배열인 경우
+          newsData = pastNewsResponse.result;
+          console.log(`[API 디버깅] result 배열 구조 감지됨:`, newsData.length);
+        } else if (pastNewsResponse?.result && typeof pastNewsResponse.result === 'object') {
+          // 대체 구조 2: result가 객체인 경우 내부 배열 찾기
+          const resultObj = pastNewsResponse.result as Record<string, any>;
+          console.log(`[API 디버깅] result 객체 구조 감지됨:`, Object.keys(resultObj));
+
+          // 배열을 포함할 수 있는 모든 키 확인
+          for (const key of Object.keys(resultObj)) {
+            if (Array.isArray(resultObj[key])) {
+              newsData = resultObj[key];
+              console.log(`[API 디버깅] 배열 필드 발견: ${key}, 길이: ${newsData.length}`);
+              break;
+            }
+          }
+        }
+
+        console.log(`[API 디버깅] 최종 추출된 뉴스 데이터:`, newsData);
+
+        if (newsData.length > 0) {
           // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
-          const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
+          const sortedNews = [...newsData].sort(
             (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
           );
+
+          console.log(`[API 디버깅] 정렬된 뉴스:`, sortedNews);
 
           // 턴별 뉴스 목록 상태 업데이트
           setTurnNewsList((prev) => ({
@@ -1203,14 +1243,47 @@ export const SimulatePage = () => {
             [turn]: sortedNews,
           }));
 
-          // 현재 턴이면 화면에 표시할 뉴스도 업데이트 (DayHistory, DayHistoryCard로 전달됨)
+          // 현재 턴이면 화면에 표시할 뉴스도 업데이트
           if (turn === currentTurn) {
             setPastNewsList(sortedNews);
           }
+        } else {
+          console.log(`[API 디버깅] 턴 ${turn}에 대한 뉴스 데이터가 없습니다.`);
+
+          // 빈 배열로 설정
+          setTurnNewsList((prev) => ({
+            ...prev,
+            [turn]: [],
+          }));
+
+          if (turn === currentTurn) {
+            setPastNewsList([]);
+          }
         }
       } catch (error) {
-        console.error('과거 뉴스 로드 실패:', error);
-        // 기본 빈 배열로 설정
+        console.error(`[API 에러] 과거 뉴스 로드 실패 (턴 ${turn}):`, error);
+
+        // API 에러 상세 정보 로깅
+        if (error instanceof Error) {
+          console.error('[API 에러 상세]:', error.message);
+
+          if ('response' in error) {
+            try {
+              // @ts-expect-error: response 객체에 text 메서드 접근
+              const responseText = await error.response?.text();
+              console.error('[API 에러 응답]:', responseText);
+            } catch (textError) {
+              console.error('[API 응답 파싱 실패]');
+            }
+          }
+        }
+
+        // 에러 시 빈 배열로 설정
+        setTurnNewsList((prev) => ({
+          ...prev,
+          [turn]: [],
+        }));
+
         if (turn === currentTurn) {
           setPastNewsList([]);
         }
