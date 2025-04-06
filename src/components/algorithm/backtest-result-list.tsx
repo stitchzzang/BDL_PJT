@@ -13,21 +13,32 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
   // 배열을 복사하고 순서를 뒤집어서 첫번째 요소가 마지막에 오도록 함
   const reversedData = [...dailyData].reverse();
   return (
-    <div className="flex flex-col gap-1 rounded-xl bg-modal-background-color p-2">
-      {reversedData.map((dailyDatacard, index) => {
-        if (dailyDatacard.trade !== null) {
-          return (
-            <div
-              key={`item-${dailyData.length - 1 - index}`}
-              className="animate-fadeIn cursor-pointer rounded-xl border border-border-color border-opacity-40 p-2 transition-colors duration-300 hover:bg-background-color"
-              onClick={() => setClickNumber(dailyDatacard.index)}
-            >
-              <p>{dailyDatacard.trade.reason}</p>
-            </div>
-          );
-        }
-        return null;
-      })}
+    <div className=" rounded-xl bg-modal-background-color p-2">
+      <div className="my-2">
+        <h1 className="text-[14px] font-bold">거래 내역</h1>
+      </div>
+      <div
+        className="rounded-x flex max-h-[440px] min-h-[440px] flex-col gap-1 overflow-y-auto text-[12px]"
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#718096 #1a202c',
+        }}
+      >
+        {reversedData.map((dailyDatacard, index) => {
+          if (dailyDatacard.trade !== null) {
+            return (
+              <div
+                key={`item-${dailyData.length - 1 - index}`}
+                className="animate-fadeIn cursor-pointer rounded-xl border border-border-color border-opacity-40 p-2 transition-colors duration-300 hover:bg-background-color"
+                onClick={() => setClickNumber(dailyDatacard.index)}
+              >
+                <p>{dailyDatacard.trade.reason}</p>
+              </div>
+            );
+          }
+          return null;
+        })}
+      </div>
     </div>
   );
 };

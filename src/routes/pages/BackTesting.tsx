@@ -169,13 +169,13 @@ export const BackTesting = () => {
         </div>
       </div>
       {/* 차트 영역 */}
-      <div className="grid grid-cols-12 gap-1">
-        <div className="col-span-10">
+      <div className="grid grid-cols-14 gap-1">
+        <div className="col-span-9">
           <CandlestickAlgorithmChart data={dailyData} />
         </div>
 
         {/* 결과창 */}
-        <div className="col-span-2">
+        <div className="col-span-5">
           <BackTestResultList dailyData={day} setClickNumber={setClickNumber} />
         </div>
       </div>
