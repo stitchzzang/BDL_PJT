@@ -300,20 +300,20 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
 
     const tooltipFormatter = useCallback(
       (params: CallbackDataParams | CallbackDataParams[]): string => {
-        if (!params) return 'No data';
+        if (!params) return '';
 
         // 배열인지 확인하고 항상 배열로 처리
         const paramsArray = Array.isArray(params) ? params : [params];
-        if (paramsArray.length === 0) return 'No data';
+        if (paramsArray.length === 0) return '';
 
         const { dataIndex } = paramsArray[0];
         const item = chartData[dataIndex] as ChartDataPoint;
 
-        if (!item) return 'No data';
+        if (!item) return '';
 
         // 빈 데이터 구간은 제외
         if (dataIndex < EMPTY_DATA_COUNT || !item.date) {
-          return 'No data';
+          return '';
         }
 
         // 차트데이터와 원본 데이터 매핑
