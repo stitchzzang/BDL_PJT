@@ -347,7 +347,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
 
   return (
     <div
-      className="bg-modal-background-color"
+      className="h-full bg-modal-background-color"
       style={{
         width: '100%',
         borderRadius: '8px',
@@ -368,94 +368,10 @@ export const AssetChangeChart: FC = () => {
   // 예시 데이터
   const initialAsset = 10000000; // 1천만원 초기 자산
 
-  // 변화가 작은 예시 데이터 (초기 자산의 ±5% 이내)
-  const exampleData: DailyData[] = [
-    {
-      index: 0,
-      date: '2023-01-01',
-      portfolioValue: 10000000, // 초기값
-      cash: 5000000,
-      equity: 5000000,
-      dailyReturn: 0,
-      cumulativeReturn: 0,
-      trade: null,
-    },
-    {
-      index: 1,
-      date: '2023-01-02',
-      portfolioValue: 10120000, // +1.2%
-      cash: 5000000,
-      equity: 5120000,
-      dailyReturn: 1.2,
-      cumulativeReturn: 1.2,
-      trade: null,
-    },
-    {
-      index: 2,
-      date: '2023-01-03',
-      portfolioValue: 10350000, // +3.5%
-      cash: 4000000,
-      equity: 6350000,
-      dailyReturn: 2.27,
-      cumulativeReturn: 3.5,
-      trade: {
-        type: 'BUY',
-        price: 50000,
-        quantity: 20,
-        reason: '매수 신호 발생',
-      },
-    },
-    {
-      index: 3,
-      date: '2023-01-04',
-      portfolioValue: 10230000, // +2.3%
-      cash: 4000000,
-      equity: 6230000,
-      dailyReturn: -1.16,
-      cumulativeReturn: 2.3,
-      trade: null,
-    },
-    {
-      index: 4,
-      date: '2023-01-05',
-      portfolioValue: 9850000, // -1.5%
-      cash: 6000000,
-      equity: 3850000,
-      dailyReturn: -3.71,
-      cumulativeReturn: -1.5,
-      trade: {
-        type: 'SELL',
-        price: 48000,
-        quantity: 50,
-        reason: '매도 신호 발생',
-      },
-    },
-    {
-      index: 5,
-      date: '2023-01-06',
-      portfolioValue: 9950000, // -0.5%
-      cash: 6000000,
-      equity: 3950000,
-      dailyReturn: 1.02,
-      cumulativeReturn: -0.5,
-      trade: null,
-    },
-    {
-      index: 6,
-      date: '2023-01-07',
-      portfolioValue: 10080000, // +0.8%
-      cash: 6000000,
-      equity: 4080000,
-      dailyReturn: 1.31,
-      cumulativeReturn: 0.8,
-      trade: null,
-    },
-  ];
-
   return (
-    <div>
+    <div className="h-full">
       <h1>백테스팅 결과 대시보드</h1>
-      <AssetComparisonChart initialAsset={initialAsset} changingAssets={exampleData} />
+      <AssetComparisonChart initialAsset={initialAsset} />
     </div>
   );
 };
