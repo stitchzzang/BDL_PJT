@@ -7,6 +7,8 @@ import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-i
 import { AlgorithmSummary } from '@/components/algorithm/algorithm-summary';
 import { BackTestResultList } from '@/components/algorithm/backtest-result-list';
 import AssetComparisonChart from '@/components/algorithm/userCostChangeChart';
+import { LoadingAnimation } from '@/components/common/loading-animation';
+import { Lanyard } from '@/components/ui/lanyard';
 
 export const BackTesting = () => {
   // 스크롤 기능 랜더링 유무 변수
@@ -197,7 +199,7 @@ export const BackTesting = () => {
       </div>
       {/* 차트 영역 */}
       {showInfo ? (
-        <>
+        <div className="animate-fadeIn duration-1000 ease-in-out">
           <div className="grid grid-cols-14 gap-1">
             <div className="col-span-9">
               <CandlestickAlgorithmChart data={dailyData} />
@@ -219,20 +221,24 @@ export const BackTesting = () => {
             <div className="col-span-5">
               {showSummary ? (
                 <>
-                  <div>no data</div>
+                  <div className="flex flex-col items-center justify-center">
+                    <LoadingAnimation />
+                    <p className="animate-pulse text-btn-blue-color">결과를 기다리고 있습니다.</p>
+                  </div>
                 </>
               ) : (
-                <>
+                <div className="animate-fadeIn duration-1000 ease-in-out">
                   <AlgorithmSummary summary={summary} />
-                </>
+                </div>
               )}
             </div>
           </div>
-        </>
+        </div>
       ) : (
         <>
-          <div>
-            <p>no Data</p>
+          <div className="flex flex-col items-center justify-center">
+            <Lanyard />
+            <p className="animate-pulse text-btn-blue-color">테스트를 기다리고 있습니다.</p>
           </div>
         </>
       )}
