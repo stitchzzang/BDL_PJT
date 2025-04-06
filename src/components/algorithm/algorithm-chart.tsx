@@ -545,7 +545,10 @@ export const CandlestickAlgorithmChart: React.FC<CandlestickChartProps> = ({
   height = 440,
 }) => {
   return (
-    <div className="w-full">
+    <div className="h-full w-full rounded-xl bg-modal-background-color p-2">
+      <div className="my-2">
+        <h1 className="text-[14px] font-bold">주식 차트</h1>
+      </div>
       <CandlestickChart data={data} height={height} />
     </div>
   );
