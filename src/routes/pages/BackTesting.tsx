@@ -73,7 +73,7 @@ export const BackTesting = () => {
   useEffect(() => {
     if (saveDailyData && saveDay) {
       setDailyData(saveDailyData.slice(0, clickNumber));
-      setDay(saveDay.slice(0, clickNumber));
+      // setDay(saveDay.slice(0, clickNumber));
     }
   }, [clickNumber]);
 
