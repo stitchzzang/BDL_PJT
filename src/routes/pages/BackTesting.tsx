@@ -94,8 +94,9 @@ export const BackTesting = () => {
         setCurrentNumber(newValue);
 
         // 데이터 업데이트
-        if (saveDailyData) {
+        if (saveDailyData && saveDay) {
           setDailyData(saveDailyData.slice(0, newValue));
+          setDay(saveDay.slice(0, newValue));
         }
 
         // 다음 프레임 요청
@@ -103,8 +104,9 @@ export const BackTesting = () => {
       } else {
         // 애니메이션 완료
         setCurrentNumber(maxNumber);
-        if (saveDailyData) {
+        if (saveDailyData && saveDay) {
           setDailyData(saveDailyData.slice(0, maxNumber));
+          setDay(saveDay.slice(0, maxNumber));
         }
         setProgress(100);
         setIsRunning(false);
