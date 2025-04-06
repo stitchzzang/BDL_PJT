@@ -21,6 +21,7 @@ export const BackTesting = () => {
   // 시간 관련 변수
   const [currentNumber, setCurrentNumber] = useState<number>(0); // 현재 표시되는 숫자
   const [maxNumber, setMaxNumber] = useState<number>(0); // 전체 길이
+  const [clickNumber, setClickNumber] = useState<number>(0);
   const [isRunning, setIsRunning] = useState<boolean>(false); // 애니메이션 실행 상태
   const [progress, setProgress] = useState<number>(0); // 진행률 (0-100%)
 
@@ -69,6 +70,12 @@ export const BackTesting = () => {
       setDay(saveDay.slice(0, newValue));
     }
   };
+  useEffect(() => {
+    if (saveDailyData && saveDay) {
+      setDailyData(saveDailyData.slice(0, clickNumber));
+      setDay(saveDay.slice(0, clickNumber));
+    }
+  }, [clickNumber]);
 
   // 애니메이션 시작 함수 - 간단한 버전
   const startAnimation = () => {
@@ -169,7 +176,7 @@ export const BackTesting = () => {
 
         {/* 결과창 */}
         <div className="col-span-2">
-          <BackTestResultList dailyData={day} />
+          <BackTestResultList dailyData={day} setClickNumber={setClickNumber} />
         </div>
       </div>
     </div>
