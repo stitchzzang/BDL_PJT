@@ -220,6 +220,16 @@ export const SimulatePage = () => {
   // 현재 뉴스 상태
   const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);
 
+  // 턴별 현재 뉴스 상태 추가
+  const [turnCurrentNews, setTurnCurrentNews] = useState<Record<number, NewsResponseWithThumbnail>>(
+    {
+      1: {} as NewsResponseWithThumbnail,
+      2: {} as NewsResponseWithThumbnail,
+      3: {} as NewsResponseWithThumbnail,
+      4: {} as NewsResponseWithThumbnail,
+    },
+  );
+
   // 과거 뉴스 목록 상태 (턴별로 관리)
   const [turnNewsList, setTurnNewsList] = useState<Record<number, NewsResponse[]>>({
     1: [],
@@ -283,6 +293,14 @@ export const SimulatePage = () => {
   const [tutorialDateRange, setTutorialDateRange] = useState({
     startDate: defaultStartDate,
     endDate: defaultEndDate,
+  });
+
+  // 이미 API 요청이 완료된 턴을 추적하는 ref 추가
+  const loadedTurnsRef = useRef<Record<number, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+    4: false,
   });
 
   // 날짜에서 하루를 빼는 유틸리티 함수
@@ -389,41 +407,100 @@ export const SimulatePage = () => {
 
   // 현재 턴이 변경될 때마다 해당 턴의 뉴스 목록으로 업데이트
   useEffect(() => {
-    if (currentTurn > 0 && currentTurn <= 4) {
-      // 이전 턴을 포함한 모든 턴의 뉴스를 누적하여 표시
-      const accumulatedNews: NewsResponse[] = [];
+    // 튜토리얼이 시작되지 않았거나 현재 턴이 유효하지 않으면 실행하지 않음
+    if (!isTutorialStarted || currentTurn <= 0 || currentTurn > 4) {
+      return;
+    }
 
-      // 현재 턴까지의 모든 뉴스를 수집
-      for (let t = 1; t <= currentTurn; t++) {
-        const turnNews = turnNewsList[t] || [];
-        accumulatedNews.push(...turnNews);
-      }
+    // 이미 로드된 턴인 경우 재로드하지 않음
+    if (loadedTurnsRef.current[currentTurn]) {
+      return;
+    }
 
-      // 날짜 기준으로 정렬 (최신순)
+    // API 요청 중인 경우 중복 요청 방지
+    if (newsRequestRef.current[currentTurn]) {
+      return;
+    }
+
+    // 변곡점 데이터가 필요한 경우만 로드
+    if (pointStockCandleIds.length === 0) {
+      loadPointsData().then(() => {
+        // 변곡점 데이터 로드 후 뉴스 데이터 로드
+        if (!newsRequestRef.current[currentTurn] && !loadedTurnsRef.current[currentTurn]) {
+          loadNewsData(currentTurn);
+        }
+      });
+    } else {
+      // 변곡점 데이터가 이미 있는 경우 바로 뉴스 데이터 로드
+      loadNewsData(currentTurn);
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTurn, isTutorialStarted]); // 의존성 배열 최소화
+
+  // 뉴스 데이터가 로드된 후 화면 업데이트
+  useEffect(() => {
+    if (!isTutorialStarted || currentTurn <= 0 || currentTurn > 4) {
+      return;
+    }
+
+    // 1. 현재 턴의 코멘트로 업데이트
+    const turnComment = turnComments[currentTurn];
+    if (turnComment) {
+      setNewsComment(turnComment);
+    }
+
+    // 2. 현재 턴의 교육용 뉴스로 업데이트
+    const currentTurnNews = turnCurrentNews[currentTurn];
+    if (currentTurnNews && Object.keys(currentTurnNews).length > 0) {
+      setCurrentNews(currentTurnNews);
+    } else if (currentTurn === 1 || currentTurn === 2 || currentTurn === 3 || currentTurn === 4) {
+      // 데이터가 없을 경우 null로 설정하여 기본 메시지 표시 (특정 턴에서만)
+      setCurrentNews(null);
+    }
+
+    // 3. 현재 턴까지의 모든 뉴스 누적 (구간별)
+    const accumulatedNews: NewsResponse[] = [];
+    const uniqueNewsMap = new Map();
+
+    // 현재 턴까지의 모든 뉴스를 누적
+    for (let t = 1; t <= currentTurn; t++) {
+      const turnNews = turnNewsList[t] || [];
+
+      // 현재 턴의 뉴스 중 중복되지 않은 것만 추가
+      turnNews.forEach((newsItem) => {
+        if (newsItem.newsId && !uniqueNewsMap.has(newsItem.newsId)) {
+          uniqueNewsMap.set(newsItem.newsId, newsItem);
+          accumulatedNews.push(newsItem);
+        } else if (!newsItem.newsId) {
+          accumulatedNews.push(newsItem);
+        }
+      });
+    }
+
+    // 날짜 기준으로 정렬 (최신순)
+    if (accumulatedNews.length > 0) {
       const sortedNews = [...accumulatedNews].sort(
         (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
       );
-
       setPastNewsList(sortedNews);
-
-      // 이미 API가 호출되었지만 데이터가 없는 경우 다시 로드
-      // 이미 요청 중인 경우 중복 요청하지 않음
-      if (
-        turnNewsList[currentTurn]?.length === 0 &&
-        isTutorialStarted &&
-        !newsRequestRef.current[currentTurn]
-      ) {
-        // 변곡점 데이터가 있는지 확인하고 필요시 로드
-        if (pointStockCandleIds.length === 0) {
-          loadPointsData().then(() => {
-            loadNewsData(currentTurn);
-          });
-        } else {
-          loadNewsData(currentTurn);
-        }
-      }
+    } else if (currentTurn > 0) {
+      // 뉴스가 없을 경우 빈 배열로 설정 (턴이 진행 중인 경우만)
+      setPastNewsList([]);
     }
-  }, [currentTurn, turnNewsList, isTutorialStarted]);
+
+    // 데이터가 있으면 로드 완료 표시
+    const hasTurnNewsData = turnNewsList[currentTurn]?.length > 0;
+    const hasTurnCurrentNews = currentTurnNews && Object.keys(currentTurnNews).length > 0;
+    const hasTurnComment = turnComment && turnComment.length > 0;
+
+    if (hasTurnNewsData || hasTurnCurrentNews || hasTurnComment) {
+      loadedTurnsRef.current = {
+        ...loadedTurnsRef.current,
+        [currentTurn]: true,
+      };
+    }
+  }, [turnNewsList, turnCurrentNews, turnComments, currentTurn, isTutorialStarted]);
 
   // 보유 주식 수량 초기화
   const initOwnedStockCount = async () => {
@@ -684,20 +761,8 @@ export const SimulatePage = () => {
 
   // 일시적으로 moveToNextTurn을 일반 함수로 선언 (loadChartData 의존성 제거)
   const moveToNextTurnTemp = async () => {
-    // 내용은 비워두고 나중에 올바른 구현으로 교체할 예정
-  };
-
-  // 이제 loadChartData가 선언되었으므로 moveToNextTurn 함수를 올바르게 재정의합니다
-  const moveToNextTurn = useCallback(async () => {
     if (currentTurn < 4) {
       try {
-        // 현재 턴의 마지막 가격과 상태 저장 (비동기 작업 전에 값을 보존)
-        const prevTurnLastPrice = latestPrice;
-        const prevAvailableOrderAsset = assetInfo.availableOrderAsset;
-        const prevOwnedStock = ownedStockCount;
-        const prevTotalAsset = assetInfo.currentTotalAsset;
-        const prevReturnRate = assetInfo.totalReturnRate;
-
         // 다음 턴 번호 계산
         const nextTurn = currentTurn + 1;
 
@@ -720,173 +785,191 @@ export const SimulatePage = () => {
         setProgress(turnToProgressMap[nextTurn]);
 
         // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate, 종료일만 변경)
-        const chartResult = await loadChartData(
+        await loadChartData(
           defaultStartDate, // 항상 처음부터 시작 (누적)
           newSession.endDate,
           nextTurn,
         );
 
-        // 데이터 로드 완료 후 자산 정보 업데이트 (일정 시간 후)
-        setTimeout(() => {
-          try {
-            // 로드된 차트 데이터 또는 상태에 저장된 차트 데이터 사용
-            const nextTurnData = chartResult || turnChartData[nextTurn];
+        // 뉴스 데이터 로드 (이미 로드된 경우 또는 요청 중인 경우 스킵)
+        if (!newsRequestRef.current[nextTurn] && !loadedTurnsRef.current[nextTurn]) {
+          await loadNewsData(nextTurn);
+        }
 
-            // 차트 데이터가 없는 경우 - 자산 계산 기본값 설정
-            if (!nextTurnData?.data || nextTurnData.data.length === 0) {
-              // 변화율 0%로 가정하여 자산 계산 (실제 주가는 그대로 유지)
-              const stockValue = prevOwnedStock * prevTurnLastPrice;
-              const newTotalAsset = prevAvailableOrderAsset + stockValue;
-              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+        // 다른 턴에 저장된 뉴스 데이터가 있는지 확인하고 복원
+        if (turnNewsList[nextTurn]?.length > 0) {
+          setPastNewsList(turnNewsList[nextTurn]);
+          // 데이터 로드 완료 표시
+          loadedTurnsRef.current[nextTurn] = true;
+        }
 
-              // 현재 턴의 수익률 저장
-              setTurnReturnRates((prev) => ({
-                ...prev,
-                [nextTurn]: newReturnRate,
-              }));
+        if (turnCurrentNews[nextTurn] && Object.keys(turnCurrentNews[nextTurn]).length > 0) {
+          setCurrentNews(turnCurrentNews[nextTurn]);
+          // 데이터 로드 완료 표시
+          loadedTurnsRef.current[nextTurn] = true;
+        }
 
-              // 자산 정보 업데이트
-              setAssetInfo({
-                tradingDate: new Date().toISOString(),
-                availableOrderAsset: prevAvailableOrderAsset,
-                currentTotalAsset: newTotalAsset,
-                totalReturnRate: newReturnRate,
-              });
-              setFinalChangeRate(newReturnRate);
-              return;
-            }
+        if (turnComments[nextTurn]) {
+          setNewsComment(turnComments[nextTurn]);
+        }
 
-            // 다음 턴의 일봉 데이터 추출
-            const dayCandles = nextTurnData.data.filter(
-              (candle: StockCandle) => candle.periodType === 1,
-            );
-
-            // 일봉 데이터 없는 경우 - 자산 계산 기본값 설정
-            if (dayCandles.length === 0) {
-              // 변화율 0%로 가정하여 자산 계산
-              const stockValue = prevOwnedStock * prevTurnLastPrice;
-              const newTotalAsset = prevAvailableOrderAsset + stockValue;
-              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-              // 현재 턴의 수익률 저장
-              setTurnReturnRates((prev) => ({
-                ...prev,
-                [nextTurn]: newReturnRate,
-              }));
-
-              // 자산 정보 업데이트
-              setAssetInfo({
-                tradingDate: new Date().toISOString(),
-                availableOrderAsset: prevAvailableOrderAsset,
-                currentTotalAsset: newTotalAsset,
-                totalReturnRate: newReturnRate,
-              });
-              setFinalChangeRate(newReturnRate);
-              return;
-            }
-
-            // 날짜순 정렬
-            const sortedCandles = [...dayCandles].sort(
-              (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-            );
-
-            // 요구사항에 맞는 가격 설정
-            let nextTurnPrice = 0;
-
-            // 각 턴별로 적절한 가격 설정
-            if (nextTurn === 1) {
-              // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
-              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
-            } else if (nextTurn === 2) {
-              // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
-              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
-            } else if (nextTurn === 3) {
-              // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
-              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
-            } else if (nextTurn === 4) {
-              // 4턴: 끝점의 종가 (마지막 캔들)
-              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
-            }
-
-            // 가격 변경
-            if (nextTurnPrice > 0) {
-              setLatestPrice(nextTurnPrice);
-            } else {
-              // 기본값으로 마지막 캔들 사용
-              nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
-              setLatestPrice(nextTurnPrice);
-            }
-
-            // 턴 변경에 따른 자산 정보 명시적 업데이트 (수익률 변동 포함)
-            const stockValue = prevOwnedStock * nextTurnPrice;
-            const newTotalAsset = prevAvailableOrderAsset + stockValue;
-            const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-            // 현재 턴의 수익률 저장
-            setTurnReturnRates((prev) => ({
-              ...prev,
-              [nextTurn]: newReturnRate,
-            }));
-
-            // 자산 정보 수동 업데이트
-            setAssetInfo({
-              tradingDate: new Date().toISOString(),
-              availableOrderAsset: prevAvailableOrderAsset,
-              currentTotalAsset: newTotalAsset,
-              totalReturnRate: newReturnRate,
-            });
-            setFinalChangeRate(newReturnRate);
-          } catch (error) {
-            // 오류 발생 시 이전 상태 유지하면서 기본 계산 시도
-            try {
-              // 변화율 0%로 가정하여 자산 계산
-              const stockValue = prevOwnedStock * prevTurnLastPrice;
-              const newTotalAsset = prevAvailableOrderAsset + stockValue;
-              const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
-
-              // 현재 턴의 수익률 저장
-              setTurnReturnRates((prev) => ({
-                ...prev,
-                [nextTurn]: newReturnRate,
-              }));
-
-              // 자산 정보 업데이트
-              setAssetInfo({
-                tradingDate: new Date().toISOString(),
-                availableOrderAsset: prevAvailableOrderAsset,
-                currentTotalAsset: newTotalAsset,
-                totalReturnRate: newReturnRate,
-              });
-              setFinalChangeRate(newReturnRate);
-            } catch (fallbackError) {
-              // 최종 예외 처리 - 이전 상태 그대로 유지
-              setAssetInfo({
-                tradingDate: new Date().toISOString(),
-                availableOrderAsset: prevAvailableOrderAsset,
-                currentTotalAsset: prevTotalAsset,
-                totalReturnRate: prevReturnRate,
-              });
-            }
-          }
-        }, 800);
+        // 자산 정보 업데이트
+        updateAssetInfo();
       } catch (error) {
-        // 오류 발생 시 처리
+        console.error('다음 턴으로 이동 중 오류 발생:', error);
       }
     }
-  }, [
-    currentTurn,
-    assetInfo.availableOrderAsset,
-    assetInfo.currentTotalAsset,
-    assetInfo.totalReturnRate,
-    calculateSession,
-    latestPrice,
-    ownedStockCount,
-    turnChartData,
-    defaultStartDate,
-  ]);
+  };
+
+  // 이제 loadChartData가 선언되었으므로 moveToNextTurn 함수를 올바르게 재정의합니다
+  const moveToNextTurn = async () => {
+    if (currentTurn < 4) {
+      try {
+        // 다음 턴 번호 계산
+        const nextTurn = currentTurn + 1;
+
+        // 세션 업데이트 및 데이터 로드 (누적 방식)
+        const newSession = calculateSession(nextTurn);
+        if (!newSession) return;
+
+        // 시각적인 업데이트를 위해 먼저 턴과 세션 정보 업데이트
+        setCurrentTurn(nextTurn);
+        setIsCurrentTurnCompleted(false);
+        setCurrentSession(newSession);
+
+        // 진행률 업데이트
+        const turnToProgressMap: Record<number, number> = {
+          1: 25,
+          2: 50,
+          3: 75,
+          4: 100,
+        };
+        setProgress(turnToProgressMap[nextTurn]);
+
+        // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate, 종료일만 변경)
+        await loadChartData(
+          defaultStartDate, // 항상 처음부터 시작 (누적)
+          newSession.endDate,
+          nextTurn,
+        );
+
+        // 뉴스 데이터 로드 (이미 로드된 경우 또는 요청 중인 경우 스킵)
+        if (!newsRequestRef.current[nextTurn] && !loadedTurnsRef.current[nextTurn]) {
+          await loadNewsData(nextTurn);
+        }
+
+        // 현재 턴의 교육용 뉴스가 있으면 설정
+        if (turnCurrentNews[nextTurn] && Object.keys(turnCurrentNews[nextTurn]).length > 0) {
+          setCurrentNews(turnCurrentNews[nextTurn]);
+        }
+
+        // 현재 턴의 코멘트가 있으면 설정
+        if (turnComments[nextTurn]) {
+          setNewsComment(turnComments[nextTurn]);
+        }
+
+        // 현재 턴까지의 모든 뉴스 누적 (구간별)
+        const accumulatedNews: NewsResponse[] = [];
+        const uniqueNewsMap = new Map();
+
+        // 현재 턴까지의 모든 뉴스를 누적
+        for (let t = 1; t <= nextTurn; t++) {
+          const turnNews = turnNewsList[t] || [];
+
+          // 현재 턴의 뉴스 중 중복되지 않은 것만 추가
+          turnNews.forEach((newsItem) => {
+            if (newsItem.newsId && !uniqueNewsMap.has(newsItem.newsId)) {
+              uniqueNewsMap.set(newsItem.newsId, newsItem);
+              accumulatedNews.push(newsItem);
+            } else if (!newsItem.newsId) {
+              accumulatedNews.push(newsItem);
+            }
+          });
+        }
+
+        // 날짜 기준으로 정렬 (최신순)
+        if (accumulatedNews.length > 0) {
+          const sortedNews = [...accumulatedNews].sort(
+            (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+          );
+          setPastNewsList(sortedNews);
+        } else {
+          setPastNewsList([]);
+        }
+
+        // 자산 정보 업데이트
+        updateAssetInfo();
+      } catch (error) {
+        console.error('다음 턴으로 이동 중 오류 발생:', error);
+      }
+    }
+  };
+
+  // 튜토리얼 시작 함수 추가
+  const handleTutorialStart = async () => {
+    if (!isUserLoggedIn()) {
+      alert('로그인이 필요한 기능입니다.');
+      return;
+    }
+
+    setIsChartLoading(true);
+    setHasChartError(false);
+
+    // 초기화 API 호출
+    initSessionMutation
+      .mutateAsync({ memberId, companyId })
+      .then(async () => {
+        // 튜토리얼 시작 상태로 설정
+        setIsTutorialStarted(true);
+
+        // 변곡점 데이터 로드 (필요한 경우)
+        let pointDatesLoaded = pointDates;
+
+        // 항상 새로 로드
+        pointDatesLoaded = await loadPointsData();
+
+        if (pointDatesLoaded.length < 3) {
+          // 변곡점 날짜가 없으면 하드코딩된 날짜 사용
+          pointDatesLoaded = ['240701', '240801', '240901'];
+          // 하드코딩된 날짜로 설정
+          setPointDates(pointDatesLoaded);
+        }
+
+        // 튜토리얼 1단계(1턴)로 설정
+        setCurrentTurn(1);
+
+        // 첫 번째 턴에 맞는 세션 설정 - 누적 차트 방식
+        const firstSession = {
+          startDate: defaultStartDate, // 항상 시작점부터
+          endDate: subtractOneDay(pointDatesLoaded[0]), // 변곡점1 - 1일
+          currentPointIndex: 0,
+        };
+
+        setCurrentSession(firstSession);
+        setProgress(25);
+
+        // 이전 API 요청 상태 초기화
+        newsRequestRef.current = {};
+        loadedTurnsRef.current = {
+          1: false,
+          2: false,
+          3: false,
+          4: false,
+        };
+
+        // 첫 번째 턴 차트 데이터 로드
+        return loadChartData(firstSession.startDate, firstSession.endDate, 1);
+      })
+      .catch(() => {
+        setHasChartError(true);
+        toast.error('튜토리얼 초기화 중 오류가 발생했습니다.');
+      })
+      .finally(() => {
+        setIsChartLoading(false);
+      });
+  };
 
   // 튜토리얼 완료 처리 함수
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const completeTutorial = async () => {
     if (!isUserLoggedIn()) return;
 
@@ -965,6 +1048,236 @@ export const SimulatePage = () => {
 
     // 종료 모달 표시
     setIsModalOpen(true);
+  };
+
+  // 변곡점 데이터 로드
+  const loadPointsData = async () => {
+    // 변곡점 직접 가져오기
+    const pointsUrl = `tutorial/points/top3?companyId=${companyId}`;
+
+    try {
+      const response = await _ky.get(pointsUrl).json();
+      const pointsResponse = response as ApiResponse<any>;
+
+      if (!pointsResponse?.result || pointsResponse.result.length === 0) {
+        console.error('변곡점 데이터가 없습니다.');
+        return [];
+      }
+
+      // API 응답에서 변곡점 배열을 직접 사용
+      const points = pointsResponse.result;
+
+      // 변곡점 ID 저장
+      const pointIds = points.map((point: any) => point.stockCandleId);
+      setPointStockCandleIds(pointIds);
+
+      // 각 변곡점에 대한 날짜 가져오기
+      const datePromises = points
+        .filter((point: any) => point.stockCandleId)
+        .map((point: any) => {
+          const dateUrl = `tutorial/points/date?stockCandleId=${point.stockCandleId}`;
+
+          return _ky
+            .get(dateUrl)
+            .json()
+            .then((dateResponseRaw) => {
+              const dateResponse = dateResponseRaw as ApiResponse<string>;
+              return dateResponse?.result || null;
+            })
+            .catch(() => null);
+        });
+
+      const dateResults = await Promise.all(datePromises);
+      // null 결과 필터링
+      const dates = dateResults.filter((date) => date !== null) as string[];
+
+      if (dates.length > 0) {
+        setPointDates(dates);
+        return dates;
+      }
+
+      // 변곡점 날짜가 없으면 하드코딩된 날짜 사용 (최후의 대안)
+      const fallbackDates = ['240701', '240801', '240901'];
+      setPointDates(fallbackDates);
+      return fallbackDates;
+    } catch (error) {
+      console.error('변곡점 데이터 로드 실패:', error);
+      // 오류 시 하드코딩된 날짜 사용
+      const fallbackDates = ['240701', '240801', '240901'];
+      setPointDates(fallbackDates);
+      return fallbackDates;
+    }
+  };
+
+  // 뉴스 데이터 로드
+  const loadNewsData = async (turn: number) => {
+    // 이미 요청 중인 턴에 대해서는 중복 요청하지 않음
+    if (newsRequestRef.current[turn]) {
+      return;
+    }
+
+    // 해당 턴의 API 요청 상태를 true로 설정
+    newsRequestRef.current = {
+      ...newsRequestRef.current,
+      [turn]: true,
+    };
+
+    // 변곡점 ID가 없으면 먼저 로드
+    if (pointStockCandleIds.length === 0) {
+      await loadPointsData();
+    }
+
+    // 구간별 시작/종료 ID 계산
+    let startStockCandleId = 1; // 기본값
+    let endStockCandleId = 0; // 기본값
+
+    // 히스토리와 코멘트용 ID 범위: 구간별 설정
+    if (turn === 1) {
+      // 첫 번째 턴: 시작점 ~ 변곡점1 - 1
+      startStockCandleId = 1; // 시작점
+      endStockCandleId = pointStockCandleIds[0] > 1 ? pointStockCandleIds[0] - 1 : 500;
+    } else if (turn === 2) {
+      // 두 번째 턴: 변곡점1 ~ 변곡점2 - 1
+      startStockCandleId = pointStockCandleIds[0] > 0 ? pointStockCandleIds[0] : 500;
+      endStockCandleId = pointStockCandleIds[1] > 1 ? pointStockCandleIds[1] - 1 : 1000;
+    } else if (turn === 3) {
+      // 세 번째 턴: 변곡점2 ~ 변곡점3 - 1
+      startStockCandleId = pointStockCandleIds[1] > 0 ? pointStockCandleIds[1] : 1000;
+      endStockCandleId = pointStockCandleIds[2] > 1 ? pointStockCandleIds[2] - 1 : 1500;
+    } else if (turn === 4) {
+      // 네 번째 턴: 변곡점3 ~ 끝점
+      startStockCandleId = pointStockCandleIds[2] > 0 ? pointStockCandleIds[2] : 1500;
+      endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 2000;
+    }
+
+    console.log(
+      `뉴스 히스토리/코멘트 로드 턴 ${turn}: ${startStockCandleId} ~ ${endStockCandleId}`,
+    );
+
+    try {
+      // =============================================================
+      // 1. 뉴스 코멘트(요약) API 호출 -> StockTutorialComment 컴포넌트
+      // =============================================================
+      try {
+        const commentResponse = await getNewsComment.mutateAsync({
+          companyId,
+          startStockCandleId,
+          endStockCandleId,
+        });
+
+        if (commentResponse?.result) {
+          // 턴별 코멘트 상태 업데이트
+          setTurnComments((prev) => ({
+            ...prev,
+            [turn]: commentResponse.result,
+          }));
+
+          // 현재 표시할 코멘트도 업데이트 (StockTutorialComment로 전달됨)
+          if (turn === currentTurn) {
+            setNewsComment(commentResponse.result);
+          }
+        }
+      } catch (error) {
+        console.error('뉴스 코멘트 로드 실패:', error);
+      }
+
+      // =================================================================
+      // 2. 과거 뉴스 리스트(변곡점) API 호출 -> DayHistory, DayHistoryCard 컴포넌트
+      // =================================================================
+      try {
+        const pastNewsResponse = await getPastNews.mutateAsync({
+          companyId,
+          startStockCandleId,
+          endStockCandleId,
+        });
+
+        if (pastNewsResponse?.result?.NewsResponse) {
+          // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
+          const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
+            (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
+          );
+
+          // 턴별 뉴스 목록 상태 업데이트
+          setTurnNewsList((prev) => ({
+            ...prev,
+            [turn]: sortedNews,
+          }));
+
+          // 현재 턴이면 화면에 표시할 뉴스도 업데이트 (DayHistory, DayHistoryCard로 전달됨)
+          if (turn === currentTurn) {
+            setPastNewsList(sortedNews);
+          }
+        }
+      } catch (error) {
+        console.error('과거 뉴스 로드 실패:', error);
+        // 기본 빈 배열로 설정
+        if (turn === currentTurn) {
+          setPastNewsList([]);
+        }
+      }
+
+      // =================================================================
+      // 3. 교육용 현재 뉴스 조회 API 호출 -> StockTutorialNews 컴포넌트
+      // =================================================================
+      try {
+        // 교육용 뉴스는 해당 턴의 변곡점 ID 사용 (4단계는 없음)
+        let educationalNewsId = 0;
+        if (turn === 1 && pointStockCandleIds.length >= 1) {
+          educationalNewsId = pointStockCandleIds[0]; // 변곡점 1
+        } else if (turn === 2 && pointStockCandleIds.length >= 2) {
+          educationalNewsId = pointStockCandleIds[1]; // 변곡점 2
+        } else if (turn === 3 && pointStockCandleIds.length >= 3) {
+          educationalNewsId = pointStockCandleIds[2]; // 변곡점 3
+        } else if (turn === 4) {
+          // 4단계는 교육용 뉴스 없음
+          if (turn === currentTurn) {
+            setCurrentNews(null);
+          }
+          // 데이터 로드 완료 처리
+          handleNewsDataLoaded(turn);
+          return;
+        }
+
+        // 교육용 뉴스 ID가 없으면 요청하지 않음
+        if (educationalNewsId <= 0) {
+          if (turn === currentTurn) {
+            setCurrentNews(null);
+          }
+          handleNewsDataLoaded(turn);
+          return;
+        }
+
+        const currentNewsResponse = await getCurrentNews.mutateAsync({
+          companyId,
+          stockCandleId: educationalNewsId,
+        });
+
+        if (currentNewsResponse?.result) {
+          // 턴별 현재 뉴스 상태 업데이트
+          setTurnCurrentNews((prev) => ({
+            ...prev,
+            [turn]: currentNewsResponse.result,
+          }));
+
+          // 현재 턴이면 화면에 표시할 뉴스도 업데이트 (StockTutorialNews로 전달됨)
+          if (turn === currentTurn) {
+            setCurrentNews(currentNewsResponse.result);
+          }
+        } else if (turn === currentTurn) {
+          // 응답이 없으면 null로 설정
+          setCurrentNews(null);
+        }
+      } catch (error) {
+        console.error('현재 뉴스 로드 실패:', error);
+        // 기본값으로 설정
+        if (turn === currentTurn) {
+          setCurrentNews(null);
+        }
+      }
+    } finally {
+      // API 요청 완료 처리
+      handleNewsDataLoaded(turn);
+    }
   };
 
   // 차트 데이터 로드
@@ -1051,14 +1364,14 @@ export const SimulatePage = () => {
           priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
         }
 
-        // 가격 설정
+        // 가격 변경
         if (priceToShow > 0) {
           setLatestPrice(priceToShow);
         }
       }
 
       // 뉴스 데이터 로드 (API 요청이 중복되지 않도록 조건 체크)
-      if (!newsRequestRef.current[turn]) {
+      if (!newsRequestRef.current[turn] && !loadedTurnsRef.current[turn]) {
         await loadNewsData(turn);
       }
 
@@ -1079,209 +1392,13 @@ export const SimulatePage = () => {
       ...newsRequestRef.current,
       [turn]: false,
     };
-  }, []);
 
-  // 뉴스 데이터 로드
-  const loadNewsData = async (turn: number) => {
-    // 이미 요청 중인 턴에 대해서는 중복 요청하지 않음
-    if (newsRequestRef.current[turn]) {
-      return;
-    }
-
-    // 해당 턴의 API 요청 상태를 true로 설정
-    newsRequestRef.current = {
-      ...newsRequestRef.current,
+    // 데이터 로드 완료 표시
+    loadedTurnsRef.current = {
+      ...loadedTurnsRef.current,
       [turn]: true,
     };
-
-    // 각 턴별 시작/종료 ID 계산 - 누적 방식으로 변경
-    const startStockCandleId = 1; // 항상 처음부터 시작 (누적)
-    let endStockCandleId = 0;
-
-    // 턴별 stockCandleId 설정 (종료 ID만 변경)
-    if (turn === 1) {
-      // 첫 번째 턴: 시작점부터 첫 번째 변곡점까지 (변곡점 - 1 기준)
-      endStockCandleId = pointStockCandleIds[0] > 1 ? pointStockCandleIds[0] - 1 : 500;
-    } else if (turn === 2) {
-      // 두 번째 턴: 시작점부터 두 번째 변곡점까지 (누적)
-      endStockCandleId = pointStockCandleIds[1] > 1 ? pointStockCandleIds[1] - 1 : 1000;
-    } else if (turn === 3) {
-      // 세 번째 턴: 시작점부터 세 번째 변곡점까지 (누적)
-      endStockCandleId = pointStockCandleIds[2] > 1 ? pointStockCandleIds[2] - 1 : 1500;
-    } else if (turn === 4) {
-      // 네 번째 턴: 시작점부터 마지막까지 (누적)
-      endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 2000;
-    }
-
-    // =============================================================
-    // 1. 뉴스 코멘트(요약) API 호출 -> StockTutorialComment 컴포넌트
-    // =============================================================
-    try {
-      const commentResponse = await getNewsComment.mutateAsync({
-        companyId,
-        startStockCandleId,
-        endStockCandleId,
-      });
-
-      if (commentResponse?.result) {
-        // 턴별 코멘트 상태 업데이트
-        setTurnComments((prev) => ({
-          ...prev,
-          [turn]: commentResponse.result,
-        }));
-
-        // 현재 표시할 코멘트도 업데이트 (StockTutorialComment로 전달됨)
-        if (turn === currentTurn) {
-          setNewsComment(commentResponse.result);
-        }
-      }
-    } catch {
-      // 코멘트 로드 실패 시 무시
-    }
-
-    // =================================================================
-    // 2. 과거 뉴스 리스트(변곡점) API 호출 -> DayHistory, DayHistoryCard 컴포넌트
-    // =================================================================
-    try {
-      const pastNewsResponse = await getPastNews.mutateAsync({
-        companyId,
-        startStockCandleId,
-        endStockCandleId,
-      });
-
-      if (pastNewsResponse?.result?.NewsResponse) {
-        // 날짜 기준으로 정렬하여 최신 뉴스가 먼저 표시되도록 함
-        const sortedNews = [...pastNewsResponse.result.NewsResponse].sort(
-          (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
-        );
-
-        // 턴별 뉴스 목록 상태 업데이트
-        setTurnNewsList((prev) => ({
-          ...prev,
-          [turn]: sortedNews,
-        }));
-
-        // 현재 턴이면 화면에 표시할 뉴스도 업데이트 (DayHistory, DayHistoryCard로 전달됨)
-        if (turn === currentTurn) {
-          setPastNewsList(sortedNews);
-        }
-      }
-    } catch {
-      // 뉴스 로드 실패 시 무시
-    }
-
-    // API 요청 완료 처리
-    handleNewsDataLoaded(turn);
-  };
-
-  // 변곡점 데이터 로드
-  const loadPointsData = async () => {
-    // 변곡점 직접 가져오기
-    const pointsUrl = `tutorial/points/top3?companyId=${companyId}`;
-
-    return _ky
-      .get(pointsUrl)
-      .json()
-      .then((response) => {
-        const pointsResponse = response as ApiResponse<any>;
-
-        if (!pointsResponse?.result || pointsResponse.result.length === 0) {
-          return [];
-        }
-
-        // API 응답에서 변곡점 배열을 직접 사용 (PointResponseList가 아님)
-        const points = pointsResponse.result;
-
-        // 변곡점 ID 저장
-        const pointIds = points.map((point: any) => point.stockCandleId);
-        setPointStockCandleIds(pointIds);
-
-        // 각 변곡점에 대한 날짜 가져오기
-        const datePromises = points
-          .filter((point: any) => point.stockCandleId)
-          .map((point: any) => {
-            const dateUrl = `tutorial/points/date?stockCandleId=${point.stockCandleId}`;
-
-            return _ky
-              .get(dateUrl)
-              .json()
-              .then((dateResponseRaw) => {
-                const dateResponse = dateResponseRaw as ApiResponse<string>;
-                return dateResponse?.result || null;
-              })
-              .catch(() => null);
-          });
-
-        return Promise.all(datePromises).then((dateResults) => {
-          // null 결과 필터링
-          const dates = dateResults.filter((date) => date !== null) as string[];
-
-          if (dates.length > 0) {
-            setPointDates(dates);
-            return dates;
-          }
-          return [];
-        });
-      })
-      .catch(() => {
-        return [];
-      });
-  };
-
-  // 튜토리얼 시작 함수
-  const handleTutorialStart = async () => {
-    if (!isUserLoggedIn()) {
-      alert('로그인이 필요한 기능입니다.');
-      return;
-    }
-
-    setIsChartLoading(true);
-    setHasChartError(false);
-
-    // 초기화 API 호출
-    initSessionMutation
-      .mutateAsync({ memberId, companyId })
-      .then(async () => {
-        // 튜토리얼 시작 상태로 설정
-        setIsTutorialStarted(true);
-
-        // 변곡점 데이터 로드 (필요한 경우)
-        let pointDatesLoaded = pointDates;
-
-        // 항상 새로 로드
-        pointDatesLoaded = await loadPointsData();
-
-        if (pointDatesLoaded.length < 3) {
-          // 변곡점 날짜가 없으면 하드코딩된 날짜 사용
-          pointDatesLoaded = ['240701', '240801', '240901'];
-          // 하드코딩된 날짜로 설정
-          setPointDates(pointDatesLoaded);
-        }
-
-        // 튜토리얼 1단계(1턴)로 설정
-        setCurrentTurn(1);
-
-        // 첫 번째 턴에 맞는 세션 설정 - 누적 차트 방식
-        const firstSession = {
-          startDate: defaultStartDate, // 항상 시작점부터
-          endDate: subtractOneDay(pointDatesLoaded[0]), // 변곡점1 - 1일
-          currentPointIndex: 0,
-        };
-
-        setCurrentSession(firstSession);
-        setProgress(25);
-
-        // 첫 번째 턴 차트 데이터 로드
-        return loadChartData(firstSession.startDate, firstSession.endDate, 1);
-      })
-      .catch(() => {
-        setHasChartError(true);
-        toast.error('튜토리얼 초기화 중 오류가 발생했습니다.');
-      })
-      .finally(() => {
-        setIsChartLoading(false);
-      });
-  };
+  }, []);
 
   // 결과 확인 페이지로 이동
   const handleNavigateToResult = useCallback(() => {

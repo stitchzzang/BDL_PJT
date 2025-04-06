@@ -11,7 +11,7 @@ export interface DayHistoryProps {
   isTutorialStarted?: boolean; // 튜토리얼 시작 여부 프로퍼티 추가
 }
 
-export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHistoryProps) => {
+export const DayHistory = ({ news = [], height, isTutorialStarted = false }: DayHistoryProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [prevNewsLength, setPrevNewsLength] = useState(0);
   // 뉴스 카드 3개 정도 표시할 수 있는 기본 높이 (카드 하나당 약 90px + 간격 + 패딩 고려)
@@ -61,6 +61,7 @@ export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHisto
         </div>
         <h1 className="text-[20px] font-bold">뉴스 히스토리</h1>
       </div>
+
       {!isTutorialStarted ? (
         <p className="text-[16px] text-border-color">
           각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.
@@ -77,7 +78,7 @@ export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHisto
         >
           <div className="flex flex-col gap-4">
             {news.map((newsItem, index) => (
-              <div key={`${newsItem.newsId}-${index}`}>
+              <div key={`${newsItem.newsId || index}-${index}`}>
                 <DayHistoryCard newsItem={newsItem} />
               </div>
             ))}

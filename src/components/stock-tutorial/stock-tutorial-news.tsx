@@ -12,7 +12,11 @@ export const StockTutorialNews = ({ currentNews, companyId }: StockTutorialNewsP
       <div>
         <div className="rounded-xl bg-modal-background-color p-[20px]">
           <h1 className="mb-[15px] text-[20px] font-bold">교육용 뉴스</h1>
-          <p className="text-border-color">튜토리얼을 진행하면 이 곳에 교육용 뉴스가 표시됩니다.</p>
+          <p className="text-border-color">
+            현재 구간의, 중요한 교육용 뉴스가 이 곳에 표시됩니다.
+            <br />
+            다음 턴으로 진행하시면 새로운 뉴스를 볼 수 있습니다.
+          </p>
         </div>
       </div>
     );
