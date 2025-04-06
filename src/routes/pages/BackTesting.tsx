@@ -1,13 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useBackTestAlgorithm } from '@/api/algorithm.api';
-import { CompanyProfile, DailyData, StockDailyData } from '@/api/types/algorithm';
+import { CompanyProfile, DailyData, StockDailyData, Summary } from '@/api/types/algorithm';
 import { CandlestickAlgorithmChart } from '@/components/algorithm/algorithm-chart';
 import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-info';
+import { AlgorithmSummary } from '@/components/algorithm/algorithm-summary';
 import { BackTestResultList } from '@/components/algorithm/backtest-result-list';
 import AssetComparisonChart from '@/components/algorithm/userCostChangeChart';
 
 export const BackTesting = () => {
+  // 스크롤 기능 랜더링 유무 변수
+  const [showInfo, setShowInfo] = useState<boolean>(false);
+  // 결과 렌더링 유무
+  const [showSummary, setShowSummary] = useState<boolean>(true);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   // 출력 봉
   const [dailyData, setDailyData] = useState<StockDailyData[] | null>(null);
@@ -18,6 +23,8 @@ export const BackTesting = () => {
   // 하루 정보
   const [saveDay, setSaveDay] = useState<DailyData[] | null>(null);
   const [day, setDay] = useState<DailyData[] | null>(null);
+  // 결과 정보
+  const [summary, setSummary] = useState<Summary | null>(null);
 
   // 시간 관련 변수
   const [currentNumber, setCurrentNumber] = useState<number>(0); // 현재 표시되는 숫자
@@ -46,6 +53,8 @@ export const BackTesting = () => {
           setDay(res.dailyData);
           setSaveDay(res.dailyData);
           setCompanyProfile(res.companyProfile);
+          // 결과 정보
+          setSummary(res.summary);
           // 초기에는 전체 데이터 표시
           setDailyData(res.stockDaily.data);
           setSaveDailyData(res.stockDaily.data);
@@ -91,6 +100,7 @@ export const BackTesting = () => {
     // 애니메이션 프레임 함수
     const animate = () => {
       const elapsedTime = Date.now() - startTime;
+      setShowInfo(true);
 
       if (elapsedTime < totalDuration) {
         // 진행률 계산 (0-100%)
@@ -118,6 +128,7 @@ export const BackTesting = () => {
         }
         setProgress(100);
         setIsRunning(false);
+        setShowSummary(false);
       }
     };
 
@@ -142,51 +153,89 @@ export const BackTesting = () => {
       <div className="">
         <AlgorithmCompanyInfo companyProfile={companyProfile} />
       </div>
-      <div className="border">
-        <div className="mb-4 flex items-center justify-between">
-          <p>
-            현재 표시: {currentNumber}일 / {maxNumber}일
-          </p>
-          {!isRunning && (
-            <button onClick={startAnimation} className="rounded bg-blue-500 px-4 py-2 text-white">
-              10초 재생
-            </button>
-          )}
-        </div>
-        {/* 슬라이더 영역 */}
-        <div className="mt-4">
-          <div className="flex items-center">
-            <span className="mr-2">0</span>
-            <input
-              type="range"
-              min={1}
-              max={saveDailyData ? saveDailyData.length : 100}
-              value={maxNumber}
-              onChange={handleSliderChange}
-              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
-            />
-            <span className="ml-2">{saveDailyData ? saveDailyData.length : 0}</span>
+      <div className="">
+        <div className="mb-4 flex items-center justify-center">
+          <div className="mt-2 w-full">
+            {!isRunning && !showInfo ? (
+              <>
+                <div className="mt-2 flex w-full flex-col items-center gap-2 rounded-xl border border-border-color border-opacity-40 p-2 px-4">
+                  <button
+                    onClick={startAnimation}
+                    className="rounded bg-blue-500 px-4 py-2 text-white"
+                  >
+                    테스트 시작
+                  </button>
+                  <p className="text-[14px] text-border-color">
+                    테스트 시작 버튼을 클릭하여 알고리즘을 테스트 해보세요!
+                  </p>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
           </div>
         </div>
-      </div>
-      {/* 차트 영역 */}
-      <div className="grid grid-cols-14 gap-1">
-        <div className="col-span-9">
-          <CandlestickAlgorithmChart data={dailyData} />
-        </div>
-
-        {/* 일자 히스토리 */}
-        <div className="col-span-5">
-          <BackTestResultList dailyData={day} setClickNumber={setClickNumber} />
-        </div>
-      </div>
-      <div className="mt-1">
-        {day ? (
-          <AssetComparisonChart initialAsset={10000000} changingAssets={day} />
+        {/* 슬라이더 영역 */}
+        {showSummary ? (
+          <></>
         ) : (
-          <div>no data</div>
+          <div className="mt-4">
+            <div className="flex items-center">
+              <span className="mr-2">0</span>
+              <input
+                type="range"
+                min={1}
+                max={saveDailyData ? saveDailyData.length : 100}
+                value={maxNumber}
+                onChange={handleSliderChange}
+                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+              />
+              <span className="ml-2">{saveDailyData ? saveDailyData.length : 0}</span>
+            </div>
+          </div>
         )}
       </div>
+      {/* 차트 영역 */}
+      {showInfo ? (
+        <>
+          <div className="grid grid-cols-14 gap-1">
+            <div className="col-span-9">
+              <CandlestickAlgorithmChart data={dailyData} />
+            </div>
+
+            {/* 일자 히스토리 */}
+            <div className="col-span-5">
+              <BackTestResultList dailyData={day} setClickNumber={setClickNumber} />
+            </div>
+          </div>
+          <div className="mt-1 grid grid-cols-14 gap-1">
+            <div className="col-span-9">
+              {day ? (
+                <AssetComparisonChart initialAsset={10000000} changingAssets={day} />
+              ) : (
+                <div>no data</div>
+              )}
+            </div>
+            <div className="col-span-5">
+              {showSummary ? (
+                <>
+                  <div>no data</div>
+                </>
+              ) : (
+                <>
+                  <AlgorithmSummary summary={summary} />
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div>
+            <p>no Data</p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
