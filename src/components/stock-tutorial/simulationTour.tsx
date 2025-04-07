@@ -23,11 +23,18 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         target: 'body',
         content: (
           <div className="p-4">
-            <h2 className="mb-8 text-[25px] font-bold">주식 튜토리얼에 오신 것을 환영합니다!</h2>
-            <p className="text-[18px]">실제 주식 차트와 데이터를 기반으로</p>
-            <p className="text-[18px]">주식 투자를 안전하게 경험해 볼 수 있습니다.</p>
+            <h2 className="mb-8 text-[25px] font-bold">
+              안녕하세요! <br />
+              주식 튜토리얼에 오신 것을 환영합니다.
+            </h2>
+            <p className="animate-fadeIn text-[18px]">실제 주식 차트와 데이터를 기반으로</p>
+            <p className="animate-fadeIn text-[18px]">
+              주식 투자를 안전하게 경험해 볼 수 있습니다.
+            </p>
             <br />
-            <p className="text-[18px]">해당 도움말을 통해 주요 기능을 소개해 드리겠습니다.</p>
+            <p className="animate-fadeIn text-[18px]">
+              해당 도움말을 통해 주요 기능을 소개해 드리겠습니다.
+            </p>
           </div>
         ),
         placement: 'center',
@@ -222,7 +229,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'top',
+        placement: 'bottom',
         spotlightClicks: true,
       },
       {
@@ -244,7 +251,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         target: 'body',
         content: (
           <div className="p-4">
-            <h2 className="mb-7 text-[25px] font-bold">도움말을 마칩니다!</h2>
+            <h2 className="mb-7 animate-bounce text-[25px] font-bold">도움말을 마칩니다!</h2>
             <p className="text-[18px]">이제 실제 튜토리얼을 진행해보세요.</p>
             <p className="mt-2 text-[18px]">
               도움말 버튼을 클릭하면 언제든지 이 투어를 다시 볼 수 있습니다.
@@ -312,8 +319,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         back: '이전',
         close: '닫기',
         last: '완료',
-        next: '다음',
-        skip: '건너뛰기',
+        next: '다음 ({{step}} / {{count}})',
+        skip: '종료',
       }}
     />
   );
