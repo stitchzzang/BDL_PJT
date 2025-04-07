@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
 import { useAuthStore } from '@/store/useAuthStore';
+import { updateAssetsByTurn, updateAssetsByTurnChange } from '@/utils/asset-calculator';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
 // 거래 기록을 위한 타입 정의 (외부 컴포넌트와 호환되는 타입)
@@ -77,9 +78,10 @@ const TutorialEndModal = memo(
     onConfirmResultClick,
     onEndTutorialClick,
   }: TutorialEndModalProps) => {
-    const isPositive = changeRate >= 0;
-    const rateColor = isPositive ? 'text-[#E5404A]' : 'text-blue-500';
-    const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(1)}%`;
+    const isPositive = changeRate > 0;
+    const isZero = changeRate === 0;
+    const rateColor = isZero ? 'text-gray-400' : isPositive ? 'text-[#E5404A]' : 'text-blue-500';
+    const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(2)}%`;
 
     if (!isOpen) return null;
 
@@ -503,6 +505,7 @@ export const SimulatePage = () => {
   }, [turnNewsList, turnCurrentNews, turnComments, currentTurn, isTutorialStarted]);
 
   // 보유 주식 수량 초기화
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const initOwnedStockCount = async () => {
     // ownedStocks로부터 보유 주식 수량 계산
     if (trades && trades.length > 0) {
@@ -741,22 +744,34 @@ export const SimulatePage = () => {
 
   // 자산 정보 업데이트 함수 추가
   const updateAssetInfo = () => {
-    // 현재 자산 계산
-    const prevAvailableAsset = assetInfo.availableOrderAsset;
-    const stockValue = ownedStockCount * latestPrice;
-    const newTotalAsset = prevAvailableAsset + stockValue;
-    const newReturnRate = ((newTotalAsset - 10000000) / 10000000) * 100;
+    // 종가 기준으로 자산 정보 계산
+    // 수익률 = ((현재 자산 - 초기 자산) / 초기 자산) * 100
+    // 현재 자산 = 주문 가능 금액 + 보유 주식 * 현재 종가
+
+    // asset-calculator.ts의 updateAssetsByTurn 함수 사용
+    const { availableOrderAsset, currentTotalAsset, totalReturnRate } = updateAssetsByTurn(
+      10000000, // 초기 자산 (시드머니)
+      assetInfo.availableOrderAsset, // 주문 가능 금액
+      ownedStockCount, // 보유 주식 수량
+      latestPrice, // 현재 주가 (종가)
+    );
 
     const updatedAssetInfo = {
       tradingDate: new Date().toISOString(),
-      availableOrderAsset: prevAvailableAsset,
-      currentTotalAsset: newTotalAsset,
-      totalReturnRate: newReturnRate,
+      availableOrderAsset,
+      currentTotalAsset,
+      totalReturnRate,
     };
 
     // 자산 정보 및 수익률 설정
     setAssetInfo(updatedAssetInfo);
-    setFinalChangeRate(newReturnRate);
+    setFinalChangeRate(totalReturnRate);
+
+    // 현재 턴의 수익률 저장 (초기화 방지)
+    setTurnReturnRates((prev) => ({
+      ...prev,
+      [currentTurn]: totalReturnRate,
+    }));
   };
 
   // 일시적으로 moveToNextTurn을 일반 함수로 선언 (loadChartData 의존성 제거)
@@ -822,9 +837,15 @@ export const SimulatePage = () => {
   };
 
   // 이제 loadChartData가 선언되었으므로 moveToNextTurn 함수를 올바르게 재정의합니다
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveToNextTurn = async () => {
     if (currentTurn < 4) {
       try {
+        // 현재 턴의 마지막 가격과 상태 저장 (비동기 작업 전에 값을 보존)
+        const prevTurnLastPrice = latestPrice;
+        const prevAvailableOrderAsset = assetInfo.availableOrderAsset;
+        const prevOwnedStock = ownedStockCount;
+
         // 다음 턴 번호 계산
         const nextTurn = currentTurn + 1;
 
@@ -847,7 +868,7 @@ export const SimulatePage = () => {
         setProgress(turnToProgressMap[nextTurn]);
 
         // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate, 종료일만 변경)
-        await loadChartData(
+        const chartResult = await loadChartData(
           defaultStartDate, // 항상 처음부터 시작 (누적)
           newSession.endDate,
           nextTurn,
@@ -897,8 +918,69 @@ export const SimulatePage = () => {
           setPastNewsList([]);
         }
 
-        // 자산 정보 업데이트
-        updateAssetInfo();
+        // 차트 데이터 로드 후 현재 주가 확인
+        const dayCandles =
+          chartResult?.data?.filter((candle: StockCandle) => candle.periodType === 1) || [];
+        let nextTurnPrice = latestPrice;
+
+        if (dayCandles.length > 0) {
+          // 날짜순 정렬
+          const sortedCandles = [...dayCandles].sort(
+            (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+          );
+
+          // 턴에 맞는 종가 설정
+          if (nextTurn === 1) {
+            // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
+            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+          } else if (nextTurn === 2) {
+            // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
+            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+          } else if (nextTurn === 3) {
+            // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
+            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+          } else if (nextTurn === 4) {
+            // 4턴: 끝점의 종가 (마지막 캔들)
+            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+          }
+
+          // 현재 가격 업데이트
+          setLatestPrice(nextTurnPrice);
+        }
+
+        // 턴 변경에 따른 자산 정보 업데이트 (updateAssetsByTurnChange 함수 사용)
+        const { availableOrderAsset, currentTotalAsset, totalReturnRate } =
+          updateAssetsByTurnChange(
+            10000000, // 초기 자산 (시드머니)
+            prevTurnLastPrice, // 이전 턴 종가
+            nextTurnPrice, // 현재 턴 종가
+            prevAvailableOrderAsset, // 주문 가능 금액
+            prevOwnedStock, // 보유 주식 수량
+          );
+
+        // 현재 턴의 수익률 저장
+        setTurnReturnRates((prev) => ({
+          ...prev,
+          [nextTurn]: totalReturnRate,
+        }));
+
+        // 자산 정보 수동 업데이트
+        setAssetInfo({
+          tradingDate: new Date().toISOString(),
+          availableOrderAsset,
+          currentTotalAsset,
+          totalReturnRate,
+        });
+        setFinalChangeRate(totalReturnRate);
+
+        console.log(`턴 ${nextTurn} 자산 정보 업데이트:
+          이전 종가: ${prevTurnLastPrice}원
+          현재 종가: ${nextTurnPrice}원
+          주문 가능 금액: ${availableOrderAsset.toLocaleString()}원
+          보유 주식: ${prevOwnedStock}주
+          총 자산: ${currentTotalAsset.toLocaleString()}원
+          수익률: ${totalReturnRate.toFixed(2)}%
+        `);
       } catch (error) {
         console.error('다음 턴으로 이동 중 오류 발생:', error);
       }
@@ -906,6 +988,7 @@ export const SimulatePage = () => {
   };
 
   // 튜토리얼 시작 함수 추가
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleTutorialStart = async () => {
     if (!isUserLoggedIn()) {
       alert('로그인이 필요한 기능입니다.');
@@ -970,6 +1053,7 @@ export const SimulatePage = () => {
   };
 
   // 튜토리얼 완료 처리 함수
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const completeTutorial = async () => {
     if (!isUserLoggedIn()) return;
 
@@ -1002,6 +1086,9 @@ export const SimulatePage = () => {
     const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
     oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
+    // 4턴의 정확한 수익률 가져오기
+    const finalRate = turnReturnRates[4] || assetInfo.totalReturnRate;
+
     let saveSuccess = false;
     try {
       // 튜토리얼 결과 저장
@@ -1009,7 +1096,7 @@ export const SimulatePage = () => {
         companyId,
         startMoney: 10000000,
         endMoney: assetInfo.currentTotalAsset,
-        changeRate: assetInfo.totalReturnRate,
+        changeRate: finalRate, // 4턴 수익률 사용
         startDate: oneYearAgo.toISOString(),
         endDate: currentDate.toISOString(),
         memberId: memberId,
@@ -1043,8 +1130,10 @@ export const SimulatePage = () => {
       }
     }
 
-    // 최종 수익률 설정
-    setFinalChangeRate(assetInfo.totalReturnRate);
+    // 최종 수익률 설정 - 4턴의 정확한 수익률 사용
+    setFinalChangeRate(finalRate);
+
+    console.log(`튜토리얼 최종 수익률(4턴): ${finalRate.toFixed(2)}%`);
 
     // 종료 모달 표시
     setIsModalOpen(true);
