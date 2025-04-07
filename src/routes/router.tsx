@@ -10,6 +10,7 @@ import { MethodPage } from '@/routes/pages/algorithm-lab/MethodPage';
 import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
 import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
+import { BackTesting } from '@/routes/pages/BackTesting';
 import { BadGatewayPage } from '@/routes/pages/BadGatewayPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
@@ -140,6 +141,10 @@ export const router = createBrowserRouter([
       {
         path: '/test',
         element: <ChartContainer />,
+      },
+      {
+        path: 'backtest/:algorithmId/:companyId',
+        element: <BackTesting />,
       },
     ],
   },
