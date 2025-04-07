@@ -159,7 +159,7 @@ export const ProgressInfo = ({
 // 기존 StockProgress 컴포넌트는 이제 두 컴포넌트를 결합
 export const StockProgress = (props: StockProgressProps) => {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="mt-3 flex items-center justify-between gap-3">
       <ProgressBar progress={props.progress} />
       <ProgressInfo
         currentTurn={props.currentTurn}
