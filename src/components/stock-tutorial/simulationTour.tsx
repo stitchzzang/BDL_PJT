@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 
 // 필요한 이미지들 임포트
@@ -15,6 +15,62 @@ interface SimulationTourProps {
 
 export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   const [steps, setSteps] = useState<Step[]>([]);
+  const [stepIndex, setStepIndex] = useState(0);
+
+  // CSS 오버라이드를 위한 스타일 태그 추가
+  useLayoutEffect(() => {
+    // 기존 스타일 태그가 있으면 제거
+    const existingStyle = document.getElementById('joyride-custom-styles');
+    if (existingStyle) existingStyle.remove();
+
+    // 새로운 스타일 태그 생성 및 추가
+    const styleTag = document.createElement('style');
+    styleTag.id = 'joyride-custom-styles';
+    const isLastStep = stepIndex === steps.length - 1;
+
+    styleTag.innerHTML = `
+      /* 다음 버튼 스타일 오버라이드 */
+      .react-joyride__tooltip button[data-action="primary"] {
+        position: relative;
+        background-color: transparent !important;
+        color: transparent !important;
+      }
+      
+      .react-joyride__tooltip button[data-action="primary"]::after {
+        content: "${isLastStep ? `완료 (${steps.length}/${steps.length})` : `다음 (${stepIndex + 1} / ${steps.length})`}";
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #5676F5;
+        border-radius: 6px;
+        color: white;
+        font-size: 16px;
+      }
+      
+      /* Step 텍스트 제거 */
+      .react-joyride__tooltip div[class*="__step-count"] {
+        display: none !important;
+      }
+      
+      /* 버튼 텍스트 숨기기 */
+      .react-joyride__tooltip button span {
+        opacity: 0 !important;
+        visibility: hidden !important;
+      }
+    `;
+    document.head.appendChild(styleTag);
+
+    return () => {
+      // 컴포넌트 언마운트 시 스타일 태그 제거
+      const styleToRemove = document.getElementById('joyride-custom-styles');
+      if (styleToRemove) styleToRemove.remove();
+    };
+  }, [stepIndex, steps.length]);
 
   useEffect(() => {
     // 투어 스텝 정의
@@ -270,8 +326,13 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status } = data;
+    const { status, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+    // 단계 변경 시에만 인덱스 업데이트
+    if (type === 'step:after' || type === 'tour:start') {
+      setStepIndex(index);
+    }
 
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
@@ -319,7 +380,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         back: '이전',
         close: '닫기',
         last: '완료',
-        next: '다음 ({{step}} / {{count}})',
+        next: '다음',
         skip: '종료',
       }}
     />
