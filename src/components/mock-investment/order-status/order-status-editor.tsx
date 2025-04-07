@@ -58,6 +58,7 @@ export const OrderStatusEditor = ({
           setEditor(!editor);
           toast.success('주문이 성공적으로 수정되었습니다.');
           queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
         },
         onError: () => {
           alert('주문 수정에 실패했습니다.');

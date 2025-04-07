@@ -5,6 +5,7 @@ import { _kyAuth } from '@/api/instance';
 import {
   Algorithm,
   AlgorithmResponse,
+  BackTestResult,
   CheckAlgorithm,
   CreateAlgorithmRequest,
 } from '@/api/types/algorithm';
@@ -41,6 +42,17 @@ export const algorithmAPI = {
         },
       })
       .json<ApiSuccess<string>>(),
+  backTestAlgorithm: (algorithmId: number, companyId: number, startDate: string, endDate: string) =>
+    _kyAuth
+      .post(`algorithm/backtest/execute`, {
+        json: {
+          algorithmId,
+          companyId,
+          startDate,
+          endDate,
+        },
+      })
+      .json<ApiResponse<BackTestResult>>(),
 };
 
 export const useCreateAlgorithm = () => {
@@ -102,5 +114,25 @@ export const useStopAlgorithm = () => {
   return useMutation({
     mutationFn: ({ algorithmId, companyId }: { algorithmId: number; companyId: number }) =>
       algorithmAPI.stopAlgorithm(algorithmId, companyId).then((res) => res),
+  });
+};
+
+// 백테스팅
+export const useBackTestAlgorithm = () => {
+  return useMutation({
+    mutationFn: ({
+      algorithmId,
+      companyId,
+      startDate,
+      endDate,
+    }: {
+      algorithmId: number;
+      companyId: number;
+      startDate: string;
+      endDate: string;
+    }) =>
+      algorithmAPI
+        .backTestAlgorithm(algorithmId, companyId, startDate, endDate)
+        .then((res) => res.result),
   });
 };
