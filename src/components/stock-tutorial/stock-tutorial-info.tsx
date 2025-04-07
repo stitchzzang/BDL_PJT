@@ -39,14 +39,6 @@ const CATEGORY_MAPPING: Record<string, CategoryName> = {
   바이오: '바이오',
 };
 
-// YYMMDD 형식의 날짜 생성 함수
-const formatDateToYYMMDD = (date: Date): string => {
-  const yy = date.getFullYear().toString().slice(2);
-  const mm = (date.getMonth() + 1).toString().padStart(2, '0');
-  const dd = date.getDate().toString().padStart(2, '0');
-  return `${yy}${mm}${dd}`;
-};
-
 export const StockTutorialInfo = ({
   companyId,
   isTutorialStarted = false,
@@ -67,9 +59,6 @@ export const StockTutorialInfo = ({
   const today = new Date();
   const oneYearAgo = new Date();
   oneYearAgo.setFullYear(today.getFullYear() - 1);
-
-  const startDate = formatDateToYYMMDD(oneYearAgo);
-  const endDate = formatDateToYYMMDD(today);
 
   // 변경: useGetCompanyProfile 훅 사용
   const { data: companyInfo } = useGetCompanyProfile(String(companyId));

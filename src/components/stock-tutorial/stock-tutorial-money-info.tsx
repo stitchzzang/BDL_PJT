@@ -1,5 +1,5 @@
-import { addCommasToThousand } from '@/utils/numberFormatter';
 import { Skeleton } from '@/components/ui/skeleton';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 export interface StockTutorialMoneyInfoProps {
   initialAsset: number;
