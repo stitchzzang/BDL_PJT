@@ -10,7 +10,6 @@ export interface StockTutorialMoneyInfoProps {
 }
 
 export const StockTutorialMoneyInfo = ({
-  initialAsset,
   availableOrderAsset,
   currentTotalAsset,
   totalReturnRate,
@@ -30,7 +29,6 @@ export const StockTutorialMoneyInfo = ({
   const displayPercentage = `${totalReturnRate > 0 ? '+ ' : ''}${totalReturnRate.toFixed(2)}%`;
 
   // 거래 가능 금액 및 현재 자산 표시 (원 단위로 정확하게 표시)
-  const formattedInitialAsset = addCommasToThousand(Math.round(initialAsset));
   const formattedAvailableAsset = addCommasToThousand(Math.round(availableOrderAsset));
   const formattedCurrentAsset = addCommasToThousand(Math.round(currentTotalAsset));
 
@@ -40,17 +38,12 @@ export const StockTutorialMoneyInfo = ({
         <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
         <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
         <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
-        <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
       </div>
     );
   }
 
   return (
     <div className="mt-3 flex gap-3">
-      <div className="flex gap-2 rounded-xl bg-modal-background-color px-[13px] py-[12px]">
-        <p className="text-[14px] text-border-color">시드머니 :</p>
-        <span className="text-[14px] font-bold">{formattedInitialAsset}원</span>
-      </div>
       <div className="flex gap-2 rounded-xl bg-modal-background-color px-[13px] py-[12px]">
         <p className="text-[14px] text-border-color">주문가능 :</p>
         <span className="text-[14px] font-bold">{formattedAvailableAsset}원</span>

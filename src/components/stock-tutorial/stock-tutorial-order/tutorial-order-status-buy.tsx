@@ -73,6 +73,9 @@ export const TutorialOrderStatusBuy = ({
     return Math.floor(availableOrderAsset / buyCost);
   };
 
+  // 최대 수량 초과 여부 확인
+  const isExceedingMaxStocks = stockCount > maxPurchasableStocks();
+
   // 퍼센트 기준 수량 설정
   const setPercentageStockCount = (percentage: number) => {
     const maxCount = maxPurchasableStocks();
@@ -152,6 +155,13 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
+
+          {/* 수량 초과 경고 메시지 */}
+          {isExceedingMaxStocks && (
+            <div className="mt-1 text-center text-[14px] font-medium text-orange-500">
+              최대 수량을 초과하였습니다. (최대: {maxPurchasableStocks()}주)
+            </div>
+          )}
 
           {/* 퍼센트 선택 버튼 영역 */}
           <div className="flex items-center justify-between gap-2">
