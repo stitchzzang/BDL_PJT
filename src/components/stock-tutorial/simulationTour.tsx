@@ -32,6 +32,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         placement: 'center',
         disableBeacon: true,
+        spotlightClicks: true,
       },
       {
         target: 'body',
@@ -50,6 +51,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         placement: 'center',
         disableBeacon: true,
+        spotlightClicks: true,
       },
       {
         target: 'body',
@@ -67,6 +69,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         placement: 'center',
         disableBeacon: true,
+        spotlightClicks: true,
       },
       {
         target: 'body',
@@ -85,6 +88,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         placement: 'center',
         disableBeacon: true,
+        spotlightClicks: true,
       },
       {
         target: 'body',
@@ -103,6 +107,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         placement: 'center',
         disableBeacon: true,
+        spotlightClicks: true,
       },
       {
         target: '.stock-tutorial-info',
@@ -117,8 +122,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'left-start',
-        offset: 20,
+        spotlightClicks: true,
+        placement: 'bottom',
       },
       {
         target: '.stock-tutorial-money-info',
@@ -136,8 +141,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'top-start',
-        offset: 15,
+        placement: 'bottom',
+        spotlightClicks: true,
       },
       {
         target: '.stock-progress',
@@ -152,8 +157,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'top-end',
-        offset: 15,
+        placement: 'bottom',
+        spotlightClicks: true,
       },
       {
         target: '.chart-tutorial',
@@ -168,8 +173,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'right',
-        offset: 20,
+        spotlightClicks: true,
+        placement: 'center',
       },
       {
         target: '.stock-tutorial-order',
@@ -184,7 +189,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         placement: 'left',
-        offset: 20,
+        spotlightClicks: true,
       },
       {
         target: '.stock-tutorial-comment',
@@ -199,8 +204,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
+        spotlightClicks: true,
         placement: 'top',
-        offset: 15,
       },
       {
         target: '.day-history',
@@ -215,8 +220,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'top',
-        offset: 15,
+        spotlightClicks: true,
+        placement: 'right',
       },
       {
         target: '.stock-tutorial-news',
@@ -231,8 +236,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'top-start',
-        offset: 15,
+        placement: 'top',
+        spotlightClicks: true,
       },
       {
         target: '.stock-tutorial-conclusion',
@@ -246,8 +251,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           </div>
         ),
         disableBeacon: true,
-        placement: 'left',
-        offset: 15,
+        spotlightClicks: true,
+        placement: 'bottom',
       },
       {
         target: 'body',
@@ -265,6 +270,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         placement: 'center',
         disableBeacon: true,
+        spotlightClicks: true,
       },
     ]);
   }, []);
@@ -272,9 +278,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;
-    const finishedStatuses = [STATUS.FINISHED, STATUS.SKIPPED];
+    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    if (finishedStatuses.includes(status)) {
+    if (finishedStatuses.includes(status as string)) {
       setRun(false);
     }
   };
@@ -289,24 +295,20 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       showProgress
       showSkipButton
       steps={steps}
+      spotlightClicks
+      disableOverlayClose
+      spotlightPadding={10}
       styles={{
         options: {
           zIndex: 10000,
           primaryColor: '#5676F5',
-          textColor: '#ffffff',
           backgroundColor: '#121729',
           arrowColor: '#121729',
-          overlayColor: 'rgba(0, 0, 0, 0.7)',
-        },
-        spotlight: {
-          backgroundColor: 'transparent',
-        },
-        tooltip: {
-          borderRadius: '8px',
+          textColor: '#ffffff',
+          overlayColor: 'rgba(0, 0, 0, 0.85)',
         },
         buttonNext: {
           backgroundColor: '#5676F5',
-          borderRadius: '4px',
           color: '#ffffff',
         },
         buttonBack: {
