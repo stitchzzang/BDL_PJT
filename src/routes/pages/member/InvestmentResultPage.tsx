@@ -66,7 +66,7 @@ const SearchBarComponent = React.memo(
     const handleLocalSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       if (value.length > 15) {
-        toast.info('검색 가능한 종목명은 15자 이하입니다.');
+        alert('검색 가능한 종목명은 15자 이하입니다.');
         return;
       }
       setLocalSearch(value);
