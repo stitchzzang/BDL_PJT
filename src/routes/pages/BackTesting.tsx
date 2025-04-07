@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { useBackTestAlgorithm } from '@/api/algorithm.api';
 import { CompanyProfile, DailyData, StockDailyData, Summary } from '@/api/types/algorithm';
@@ -11,6 +12,10 @@ import { AirplaneAnimation } from '@/components/common/airplane-animation';
 import { Lanyard } from '@/components/ui/lanyard';
 
 export const BackTesting = () => {
+  // url 파라미터 값 가져오기
+  const { algorithmId, companyId } = useParams();
+  const algorithmIdNum = parseInt(algorithmId ?? '0', 10);
+  const companyIdNum = parseInt(companyId ?? '0', 10);
   // 스크롤 기능 랜더링 유무 변수
   const [showInfo, setShowInfo] = useState<boolean>(false);
   // 결과 렌더링 유무
@@ -42,12 +47,31 @@ export const BackTesting = () => {
 
   // 백테스팅 자료 요청
   const handleBackTest = () => {
+    // 현재 날짜 가져오기
+    const today = new Date();
+
+    // 끝 날짜를 어제로 설정
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() - 1);
+
+    // 시작 날짜를 끝 날짜의 1년 전으로 설정
+    const startDate = new Date(endDate);
+    startDate.setFullYear(endDate.getFullYear() - 1);
+
+    // 날짜를 'YYYY-MM-DD' 형식으로 변환
+    const formatDate = (date: Date): string => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     backTestAlgorithm.mutate(
       {
-        algorithmId: 20, // 파라미터로 전달
-        companyId: 1, // 파라미터로 전달
-        startDate: '2024-01-01',
-        endDate: '2025-01-01',
+        algorithmId: algorithmIdNum, // 파라미터로 전달
+        companyId: companyIdNum, // 파라미터로 전달
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate),
       },
       {
         onSuccess: (res) => {
