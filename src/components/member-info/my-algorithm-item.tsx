@@ -2,6 +2,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
 import { useDeleteAlgorithm } from '@/api/algorithm.api';
+import { useGetCompaniesByCategory } from '@/api/category.api';
 import { Algorithm } from '@/api/types/algorithm';
 import { AlgorithmOption } from '@/components/member-info/algorithm-option';
 import {
@@ -15,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -27,6 +29,9 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
   const memberId = userData.memberId ?? undefined;
   const [isOpen, setIsOpen] = useState(false);
   const { mutate: deleteAlgorithm } = useDeleteAlgorithm();
+
+  // 기업 목록 가져오기
+  const { data: companies } = useGetCompaniesByCategory('0');
 
   const handleDelete = () => {
     if (userData?.memberId) {
@@ -86,6 +91,48 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
             <AlertDialogAction variant="red" onClick={handleDelete}>
               삭제
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button className="max-h-[45px] max-w-[225px]" variant={'gray'} size={'lg'}>
+            백 테스트
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>테스트 종목을 선택하세요.</AlertDialogTitle>
+            <AlertDialogDescription>
+              <>
+                {companies?.length !== 0 && companies ? (
+                  <div className="max-h-[400px] animate-fadeIn overflow-y-auto">
+                    {companies.map((companie, index) => (
+                      <div
+                        // onClick={() => handleStartAlgorithm(companie.algorithmId)}
+                        className="mb-2 flex cursor-pointer items-center gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-3 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
+                      >
+                        <p className="opacity-40">{index + 1}</p>
+                        <div className="h-10 w-10 overflow-hidden rounded-xl">
+                          <img src={companie.companyImage} alt="none-logo" />
+                        </div>
+                        <p className="font-bold= text-[16px]">{companie.companyName}</p>
+                        <p className="font-bold= text-[12px] opacity-40">
+                          종목코드: {companie.companyCode.slice(0, 10)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div>
+                    <p>종목 종류 불러오기 실패.</p>
+                  </div>
+                )}
+              </>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
