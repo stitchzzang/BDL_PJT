@@ -176,7 +176,6 @@ export const TutorialOrderStatusSell = ({
                 <button
                   className="text-[22px]"
                   onClick={() => {
-                    const newCount = stockCount + 1;
                     priceButtonHandler('+', stockCount, setStockCount, 1);
                   }}
                   disabled={!canSell}

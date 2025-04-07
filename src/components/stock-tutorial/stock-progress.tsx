@@ -103,7 +103,7 @@ export const ProgressInfo = ({
   // 변곡점에서 하루를 빼고, 그 결과가 평일이 될 때까지 추가로 날짜 조정
   const findPreviousBusinessDay = (dateStr: string): string => {
     try {
-      let date = parseYYMMDDToDate(dateStr);
+      const date = parseYYMMDDToDate(dateStr);
 
       // 하루 이전으로 설정
       date.setDate(date.getDate() - 1);
@@ -123,7 +123,7 @@ export const ProgressInfo = ({
   // 주어진 날짜가 평일이 아니면 다음 평일로 조정
   const findNextBusinessDay = (dateStr: string): string => {
     try {
-      let date = parseYYMMDDToDate(dateStr);
+      const date = parseYYMMDDToDate(dateStr);
 
       // 현재 날짜가 평일이 아니면 다음 평일로 이동
       while (!isBusinessDay(date)) {
@@ -140,7 +140,7 @@ export const ProgressInfo = ({
   // 주어진 날짜가 평일이 아니면 이전 평일로 조정
   const findLatestBusinessDay = (dateStr: string): string => {
     try {
-      let date = parseYYMMDDToDate(dateStr);
+      const date = parseYYMMDDToDate(dateStr);
 
       // 현재 날짜가 평일이 아니면 이전 평일로 이동
       while (!isBusinessDay(date)) {
