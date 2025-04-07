@@ -150,7 +150,6 @@ export const OrderStatusBuy = ({
   };
   return (
     <div className="h-full animate-fadeIn">
-      <h3 className={h3Style}>구매하기</h3>
       <div className="flex h-full flex-col justify-between">
         <div className="mb-[25px] flex w-full flex-col gap-2">
           <div className="flex items-center justify-between gap-4">
@@ -173,8 +172,12 @@ export const OrderStatusBuy = ({
                   <p className="text-[14px]">시장가</p>
                 </div>
               </div>
-              <p className="text-[11px] opacity-40">시장가는 거래시간에 가능합니다.</p>
             </div>
+          </div>
+          <div className="flex justify-end">
+            <p className="text-[12px] text-btn-yellow-color opacity-80">
+              시장가는 거래시간에 가능합니다.
+            </p>
           </div>
           <div className="flex items-center justify-between gap-4">
             {/* 값 입력 구역 */}
@@ -206,11 +209,7 @@ export const OrderStatusBuy = ({
               <h3 className={h3Style}>수량</h3>
             </div>
             <div className=" flex w-full max-w-[80%] gap-2">
-              <NumberInput
-                value={stockCount}
-                setValue={setStockCount}
-                placeholder="수량을 입력하세요."
-              />
+              <NumberInput value={stockCount} setValue={setStockCount} placeholder="수량 입력" />
               <div className="pointer-events-none inset-0 flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
