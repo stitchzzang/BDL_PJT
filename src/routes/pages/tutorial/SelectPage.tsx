@@ -70,7 +70,7 @@ export const SelectPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3">
+    <div className="flex animate-fadeIn flex-col items-center justify-center gap-3 duration-1000 ease-in-out">
       <div className="group flex flex-col items-center justify-center gap-3">
         <div className="flex w-full flex-col items-center justify-center">
           <h1 className="mb-[10px] text-[28px] font-bold">주식 튜토리얼</h1>

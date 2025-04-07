@@ -87,7 +87,7 @@ export const SearchPage = () => {
   };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-3">
+    <div className="flex w-full animate-fadeIn flex-col items-center justify-center gap-3 duration-1000 ease-in-out">
       <div className="mx-5 flex max-w-xl flex-col items-center justify-center gap-4">
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="group flex flex-col items-center justify-center gap-[10px]">
