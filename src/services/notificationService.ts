@@ -225,7 +225,7 @@ function showTradeNotification(data: TradeSignal, isAuto: boolean) {
   const prefix = isAuto ? '[자동매매]' : '[수동매매]';
   const toastMessage = `${prefix} ${signalType === 'BUY' ? '💰구매' : '💸판매'} ${companyName}\n가격: ${price.toLocaleString()}원 / 수량: ${quantity}주`;
 
-  const backgroundColor = isAuto ? '#00AC4F' : '#FFB800'; // 자동매매는 초록색, 일반매매는 노란색
+  const backgroundColor = isAuto ? '#009966' : '#e17100'; // 자동매매는 초록색, 일반매매는 노란색
   const textColor = signalType === 'BUY' ? '#076BFD' : '#F23636'; // 매수는 파란색, 매도는 빨간색
 
   toast(toastMessage, {
