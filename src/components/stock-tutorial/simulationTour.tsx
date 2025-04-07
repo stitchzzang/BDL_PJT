@@ -36,6 +36,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         color: transparent !important;
         width: 225px !important;
         height: 45px !important;
+        margin-left: 5px !important;
       }
       
       .react-joyride__tooltip button[data-action="primary"]::after {
@@ -52,6 +53,11 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         border-radius: 6px;
         color: white;
         font-size: 16px;
+      }
+      
+      /* 이전 버튼에 여백 추가 */
+      .react-joyride__tooltip button[data-action="back"] {
+        margin-right: 30px !important;
       }
       
       /* Step 텍스트 제거 */
