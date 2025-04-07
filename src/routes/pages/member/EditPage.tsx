@@ -233,7 +233,13 @@ export const EditPage = () => {
                   <FormItem className="w-full">
                     <div className="relative">
                       <FormControl>
-                        <Input type="text" className="h-14 pr-10" placeholder="이름" {...field} />
+                        <Input
+                          type="text"
+                          className="h-14 pr-10"
+                          placeholder="이름"
+                          maxLength={10}
+                          {...field}
+                        />
                       </FormControl>
                       {isValid && (
                         <CheckCircleIcon className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-btn-green-color" />
