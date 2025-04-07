@@ -19,7 +19,6 @@ export const TutorialOrderStatusSell = ({
   ownedStockCount = 0, // 기본값 0
 }: TutorialOrderStatusSellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
-  const [isActive, setIsActive] = useState<string>('지정가');
 
   // 판매가격
   const [sellPrice, setSellPrice] = useState<number>(0);
@@ -70,10 +69,6 @@ export const TutorialOrderStatusSell = ({
   // 총 주문 금액
   const totalPrice = () => {
     return sellPrice * stockCount;
-  };
-
-  const isActiveHandler = (active: string) => {
-    setIsActive(active);
   };
 
   // 퍼센트 기준 수량 설정

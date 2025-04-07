@@ -1,35 +1,13 @@
 import { Squares2X2Icon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
 
-import { useGetCompanyProfile } from '@/api/company.api';
-import { _ky } from '@/api/instance';
+import { useGetCompanyBasicInfo, useGetCompanyProfile } from '@/api/company.api';
 import { useInitSession } from '@/api/tutorial.api';
-import { ApiResponse } from '@/api/types/common';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
-
-// 주가 데이터 타입 정의
-interface StockCandleData {
-  stockCandleId: number;
-  companyId: string;
-  openPrice: number;
-  openPricePercent: number;
-  highPrice: number;
-  highPricePercent: number;
-  lowPrice: number;
-  lowPricePercent: number;
-  closePrice: number;
-  closePricePercent: number;
-  accumulatedVolume: number;
-  accumulatedTradeAmount: number;
-  tradingDate: string;
-  periodType: number;
-  fiveAverage: number;
-  twentyAverage: number;
-}
 
 export interface StockInfoProps {
   companyId: number;
@@ -95,42 +73,25 @@ export const StockTutorialInfo = ({
 
   // 변경: useGetCompanyProfile 훅 사용
   const { data: companyInfo } = useGetCompanyProfile(String(companyId));
+  // 추가: useGetCompanyBasicInfo 훅을 사용하여 전일종가 정보 가져오기
+  const { data: companyBasicInfo } = useGetCompanyBasicInfo(String(companyId));
 
   // 현재 가격 정보를 가져오기 위한 API 호출 - 튜토리얼 시작 전에만 사용됨
   useEffect(() => {
-    // 튜토리얼이 시작된 경우 API를 호출하지 않음
-    if (isTutorialStarted) return;
-
-    const fetchPrice = async () => {
-      try {
-        // 전체 기간에 대한 가격 데이터 조회
-        const response = await _ky
-          .get(`stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`)
-          .json<ApiResponse<{ data: StockCandleData[] }>>();
-
-        // 데이터 배열에서 가장 최신 값(마지막 값)의 closePrice 가져오기
-        if (response.result.data && response.result.data.length > 0) {
-          const latestData = response.result.data[response.result.data.length - 1];
-          setInitialPrice(latestData.closePrice);
-        }
-      } catch {
-        // 오류 처리
-      }
-    };
-
-    if (companyId) {
-      fetchPrice();
+    // 기존 API 호출이 필요 없는 경우 초기 가격을 전일종가로 설정
+    if (companyBasicInfo && companyBasicInfo.previousClosePrice) {
+      setInitialPrice(companyBasicInfo.previousClosePrice);
     }
-  }, [companyId, startDate, endDate, isTutorialStarted]);
+  }, [companyBasicInfo]);
 
   // 렌더링에 사용할 현재 가격 결정
-  // 튜토리얼 시작 전: API에서 가져온 초기 가격
+  // 튜토리얼 시작 전: 전일종가 사용
   // 튜토리얼 시작 후: props로 전달받은 턴별 최신 가격
   const displayPrice = isTutorialStarted
     ? latestPrice !== undefined && latestPrice !== null && latestPrice > 0
       ? latestPrice
       : initialPrice
-    : initialPrice;
+    : companyBasicInfo?.previousClosePrice || initialPrice;
 
   // 회사 카테고리 정규화 처리
   useEffect(() => {
@@ -292,6 +253,11 @@ export const StockTutorialInfo = ({
                   <h3 className="text-[22px] font-medium text-white">
                     {addCommasToThousand(displayPrice || 0)}원
                   </h3>
+                  {!isTutorialStarted && (
+                    <div className="ml-2 flex justify-center gap-2 rounded-lg bg-[#2A2A3C] px-2 py-1">
+                      <p className="text-border-color">전일종가</p>
+                    </div>
+                  )}
                   {isTutorialStarted && currentTurn > 0 && (
                     <div className="ml-2 flex justify-center gap-2 rounded-lg bg-[#2A2A3C] px-2 py-1">
                       <p className="text-border-color">{currentTurn}단계 현재가</p>

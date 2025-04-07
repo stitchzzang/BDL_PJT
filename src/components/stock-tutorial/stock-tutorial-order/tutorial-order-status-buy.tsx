@@ -22,7 +22,6 @@ export const TutorialOrderStatusBuy = ({
 }: TutorialOrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
-  const [isActive, setIsActive] = useState<string>('지정가');
 
   // 구매가격
   const [buyCost, setBuyCost] = useState<number>(0);
@@ -83,10 +82,6 @@ export const TutorialOrderStatusBuy = ({
   // 전체 수량 설정 - 최대 구매 가능 수량으로 설정
   const setMaxStockCount = () => {
     setStockCount(maxPurchasableStocks());
-  };
-
-  const isActiveHandler = (active: string) => {
-    setIsActive(active);
   };
 
   // 구매 처리
