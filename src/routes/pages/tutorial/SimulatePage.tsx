@@ -1816,7 +1816,7 @@ export const SimulatePage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="chart-tutorial relative h-full">
+                <div className="chart-tutorial relative h-full" id="chart-tutorial">
                   <ChartComponent
                     periodData={stockData || undefined}
                     inflectionPoints={pointDates.map((date, index) => ({

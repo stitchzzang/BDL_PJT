@@ -227,7 +227,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks: true,
       },
       {
-        target: 'div.chart-tutorial',
+        target: '#chart-tutorial',
         content: (
           <div className="p-4">
             <h2 className="mb-3 text-[20px] font-bold">주식 차트</h2>
