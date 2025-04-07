@@ -108,6 +108,11 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>테스트 종목을 선택하세요.</AlertDialogTitle>
+            <AlertDialogHeader>
+              <p className="text-[14px] text-border-color">
+                테스트 일자는 전날부터 1년전 기준으로 진행됩니다.
+              </p>
+            </AlertDialogHeader>
             <AlertDialogDescription>
               <>
                 {companies?.length !== 0 && companies ? (
