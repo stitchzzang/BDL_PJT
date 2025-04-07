@@ -4,14 +4,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NewsResponse } from '@/api/types/tutorial';
 import historyAnimation from '@/assets/lottie/history-animation.json';
 import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface DayHistoryProps {
   news: NewsResponse[];
   height?: number; // AI 코멘트 높이와 동기화하기 위한 prop
   isTutorialStarted?: boolean; // 튜토리얼 시작 여부 프로퍼티 추가
+  isLoading?: boolean;
 }
 
-export const DayHistory = ({ news = [], height, isTutorialStarted = false }: DayHistoryProps) => {
+export const DayHistory = ({
+  news = [],
+  height,
+  isTutorialStarted = false,
+  isLoading = false,
+}: DayHistoryProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [prevNewsLength, setPrevNewsLength] = useState(0);
   // 뉴스 카드 3개 정도 표시할 수 있는 기본 높이 (카드 하나당 약 90px + 간격 + 패딩 고려)
@@ -49,6 +56,31 @@ export const DayHistory = ({ news = [], height, isTutorialStarted = false }: Day
 
   // AI 코멘트 높이와 최소 높이 중 더 큰 값을 사용
   const finalHeight = height && height > MIN_HEIGHT ? height : MIN_HEIGHT;
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex w-full flex-col rounded-xl bg-modal-background-color p-5"
+        style={{ height: `${finalHeight}px` }}
+      >
+        <div className="mb-2 flex items-center">
+          <Skeleton className="mr-2 h-8 w-8" style={{ backgroundColor: '#0D192B' }} />
+          <Skeleton className="h-7 w-[150px]" style={{ backgroundColor: '#0D192B' }} />
+        </div>
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3, 4].map((index) => (
+              <Skeleton
+                key={index}
+                className="h-[60px] w-full rounded-xl"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

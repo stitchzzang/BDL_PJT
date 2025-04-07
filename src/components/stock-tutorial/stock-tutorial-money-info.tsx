@@ -1,10 +1,12 @@
 import { addCommasToThousand } from '@/utils/numberFormatter';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface StockTutorialMoneyInfoProps {
   initialAsset: number;
   availableOrderAsset: number;
   currentTotalAsset: number;
   totalReturnRate: number;
+  isLoading?: boolean;
 }
 
 export const StockTutorialMoneyInfo = ({
@@ -12,6 +14,7 @@ export const StockTutorialMoneyInfo = ({
   availableOrderAsset,
   currentTotalAsset,
   totalReturnRate,
+  isLoading = false,
 }: StockTutorialMoneyInfoProps) => {
   // 값에 따른 배경색 변경
   const profitColor =
@@ -30,6 +33,17 @@ export const StockTutorialMoneyInfo = ({
   const formattedInitialAsset = addCommasToThousand(Math.round(initialAsset));
   const formattedAvailableAsset = addCommasToThousand(Math.round(availableOrderAsset));
   const formattedCurrentAsset = addCommasToThousand(Math.round(currentTotalAsset));
+
+  if (isLoading) {
+    return (
+      <div className="mt-3 flex gap-3">
+        <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
+        <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
+        <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
+        <Skeleton className="h-[42px] w-1/4 rounded-xl" style={{ backgroundColor: '#0D192B' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="mt-3 flex gap-3">

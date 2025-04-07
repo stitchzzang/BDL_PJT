@@ -1,4 +1,5 @@
 import { addCommasToThousand } from '@/utils/numberFormatter';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // TradeRecord 인터페이스 정의
 interface TradeRecord {
@@ -14,9 +15,32 @@ export interface StockTutorialConclusionCardProps {
   trades: TradeRecord[];
   feedback?: string;
   isCompleted: boolean;
+  isLoading?: boolean;
 }
 
-export const StockTutorialConclusionCard = ({ trades }: StockTutorialConclusionCardProps) => {
+export const StockTutorialConclusionCard = ({
+  trades,
+  isLoading = false,
+}: StockTutorialConclusionCardProps) => {
+  if (isLoading) {
+    return (
+      <div>
+        {[1, 2, 3].map((turnNumber) => (
+          <div key={turnNumber} className="mb-5">
+            <Skeleton className="mb-2 h-6 w-[80px]" style={{ backgroundColor: '#0D192B' }} />
+            {[1, 2].map((index) => (
+              <Skeleton
+                key={`${turnNumber}-${index}`}
+                className="mb-2 h-[52px] w-full rounded-xl"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div>
       {trades.length === 0 ? (

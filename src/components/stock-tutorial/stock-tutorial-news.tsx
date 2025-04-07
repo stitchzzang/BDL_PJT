@@ -1,18 +1,44 @@
 import { NewsResponseWithThumbnail } from '@/api/types/tutorial';
 import { StockTutorialNewsDetail } from '@/components/stock-tutorial/stock-tutorial-news-detail';
 import { SparklesCore } from '@/components/ui/sparkles';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface StockTutorialNewsProps {
   currentNews: NewsResponseWithThumbnail | null;
   companyId: number;
   currentTurn?: number;
+  isLoading?: boolean;
 }
 
 export const StockTutorialNews = ({
   currentNews,
   companyId,
   currentTurn,
+  isLoading = false,
 }: StockTutorialNewsProps) => {
+  if (isLoading) {
+    return (
+      <div className="h-full">
+        <div className="h-full rounded-xl bg-modal-background-color p-5">
+          <Skeleton className="mb-[15px] h-7 w-[140px]" style={{ backgroundColor: '#0D192B' }} />
+          <Skeleton className="mb-[20px] h-6 w-full" style={{ backgroundColor: '#0D192B' }} />
+          <div className="mt-4 flex flex-col gap-5 md:flex-row">
+            <Skeleton
+              className="h-[240px] w-full md:w-2/5"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+            <div className="mt-4 w-full md:mt-0 md:w-3/5">
+              <Skeleton className="h-[20px] w-full" style={{ backgroundColor: '#0D192B' }} />
+              <Skeleton className="mt-2 h-[20px] w-full" style={{ backgroundColor: '#0D192B' }} />
+              <Skeleton className="mt-2 h-[20px] w-full" style={{ backgroundColor: '#0D192B' }} />
+              <Skeleton className="mt-2 h-[20px] w-3/4" style={{ backgroundColor: '#0D192B' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 4턴이고 뉴스가 없는 경우 특별한 메시지 표시
   if (!currentNews && currentTurn === 4) {
     return (

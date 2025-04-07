@@ -1,10 +1,22 @@
 import { NewsResponse } from '@/api/types/tutorial';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface DayHistoryCardProps {
   newsItem: NewsResponse;
+  isLoading?: boolean;
 }
 
-export const DayHistoryCard = ({ newsItem }: DayHistoryCardProps) => {
+export const DayHistoryCard = ({ newsItem, isLoading = false }: DayHistoryCardProps) => {
+  // 로딩 상태일 때 Skeleton UI 표시
+  if (isLoading) {
+    return (
+      <Skeleton
+        className="flex w-full items-center justify-between rounded-xl border border-btn-green-color px-6 py-3 shadow-sm"
+        style={{ backgroundColor: '#0D192B', height: '60px' }}
+      />
+    );
+  }
+
   // 뉴스 아이템 유효성 검사
   if (!newsItem) {
     return null;

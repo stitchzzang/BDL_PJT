@@ -8,6 +8,7 @@ import { ApiResponse } from '@/api/types/common';
 import TestImage from '@/assets/test/stock-test.png';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { CategoryName, getCategoryIcon } from '@/utils/categoryMapper';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
@@ -41,6 +42,7 @@ export interface StockInfoProps {
   buttonText?: string;
   latestPrice?: number;
   showButtonInInfoSection?: boolean;
+  isLoading?: boolean;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -78,6 +80,7 @@ export const StockTutorialInfo = ({
   buttonText = '튜토리얼 시작하기',
   latestPrice,
   showButtonInInfoSection = false,
+  isLoading = false,
 }: StockInfoProps) => {
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -220,6 +223,45 @@ export const StockTutorialInfo = ({
       : initSessionMutation.isPending
         ? '초기화 중...'
         : '튜토리얼 시작하기');
+
+  if (isLoading) {
+    return (
+      <div className="flex animate-fadeIn items-center">
+        <div className="flex w-full items-start gap-[20px] sm:items-center">
+          <div className="flex w-full items-center gap-3">
+            <Skeleton
+              className="h-[50px] w-[50px] rounded-xl"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+            <div className="flex w-full flex-col">
+              <div className="mb-1 flex items-center gap-2">
+                <Skeleton className="h-6 w-[120px]" style={{ backgroundColor: '#0D192B' }} />
+                <Skeleton className="h-5 w-[80px]" style={{ backgroundColor: '#0D192B' }} />
+              </div>
+              <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
+                <div className="ite flex flex-col gap-1 sm:flex-row">
+                  <div className="flex flex-col items-center gap-2 text-[14px] sm:flex-row">
+                    <Skeleton className="h-8 w-[150px]" style={{ backgroundColor: '#0D192B' }} />
+                  </div>
+                  <div className="ml-4 flex flex-wrap items-center justify-center gap-[15px] rounded-lg border border-border-color border-opacity-20 bg-modal-background-color px-3 py-1">
+                    <Skeleton className="h-7 w-[120px]" style={{ backgroundColor: '#0D192B' }} />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  {showButtonInInfoSection && (
+                    <Skeleton
+                      className="h-[45px] w-[225px]"
+                      style={{ backgroundColor: '#0D192B' }}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex animate-fadeIn items-center">
