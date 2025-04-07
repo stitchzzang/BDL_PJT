@@ -32,7 +32,7 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
 
   return (
     <>
-      <div className="flex h-16 w-full items-center justify-between border-b border-border-color px-4 hover:bg-modal-background-color">
+      <div className="flex w-full items-center justify-between rounded-xl border border-border-color border-opacity-20 bg-modal-background-color p-5 hover:bg-background-color">
         <div className="flex items-center gap-4">
           <img
             src={company.companyImage || 'https://placehold.co/40x40'}
@@ -41,7 +41,7 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
           />
           <div className="flex flex-col">
             <p className="text-base font-medium">{company.companyName}</p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-border-color">
               <span className="text-text-sub-color text-xs">종목코드</span>
               <p className="text-text-sub-color text-xs">{company.companyCode}</p>
             </div>
@@ -49,8 +49,10 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
         </div>
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-end">
-            <span className="text-text-sub-color text-xs">현재가</span>
-            <p className="text-base font-medium">{company.closePrice.toLocaleString()}원</p>
+            <span className="text-text-sub-color text-xs text-border-color">현재가</span>
+            <p className="text-base font-medium text-btn-green-color">
+              {company.closePrice.toLocaleString()}원
+            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="blue" size="sm" onClick={handleMockInvestment} className="text-xs">

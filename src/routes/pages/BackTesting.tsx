@@ -115,7 +115,7 @@ export const BackTesting = () => {
     }
   }, [clickNumber]);
 
-  // 애니메이션 시작 함수 - 간단한 버전
+  // 애니메이션 시작 함수(마운트시 -> 10초동안 시뮬레이션 시작)
   const startAnimation = () => {
     if (isRunning) return; // 이미 실행 중이면 중복 실행 방지
 
@@ -191,7 +191,35 @@ export const BackTesting = () => {
           <div className="mt-2 w-full">
             {!isRunning && !showInfo ? (
               <>
-                <div className="mt-2 flex w-full flex-col items-center gap-2 rounded-xl border border-border-color border-opacity-40 p-2 px-4">
+                <div className="mt-2 flex w-full flex-col items-center gap-2 border-b border-border-color border-opacity-40 p-2 px-4">
+                  <div className="mb-3 mt-3 flex flex-col rounded-xl bg-btn-yellow-color bg-opacity-20 p-6">
+                    <div className="mb-2">
+                      <h1 className="text-[22px] font-bold text-btn-yellow-color">제한 사항</h1>
+                    </div>
+                    <div>
+                      <p>
+                        <span className="opacity-60">1. 단순화된 가정: </span>
+                        실제 거래와 달리 거래{' '}
+                        <span className="text-btn-yellow-color">
+                          {' '}
+                          수수류, 세금, 슬리피지 등이 고려되지 않았습니다.
+                        </span>
+                      </p>
+                      <p>
+                        <span className="opacity-60">2. 이상적인 거래 환경: </span>
+                        모든 거래가 원하는 가격에{' '}
+                        <span className="text-btn-yellow-color">즉시 체결된다고</span> 가정합니다.
+                      </p>
+                      <p>
+                        <span className="opacity-60">3. 제한된 매매 조건: </span>
+                        실제 알고리즘 트레이딩에서 사용되는{' '}
+                        <span className="text-btn-yellow-color">
+                          복잡한 매매 조건(기술적 지표 등)이 포함되지 않았
+                        </span>
+                        습니다.
+                      </p>
+                    </div>
+                  </div>
                   <button
                     onClick={startAnimation}
                     className="rounded bg-blue-500 px-4 py-2 text-white"

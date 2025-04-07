@@ -7,6 +7,7 @@ import { ChartLoadingAnimation } from '@/components/common/chart-loading-animati
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { useRankTradeDataConnection } from '@/services/SocketHomeRankTradeData';
 import { useRankVolumeConnection } from '@/services/SocketHomeRankVolume';
+import { useRankVolumeConnectionRealTime } from '@/services/SocketHomeRankVolumeRealTime';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 type HomeCompanyRankDataList = HomeCompanyRankData[];
@@ -47,6 +48,9 @@ export const RealTimeChartTransaction = () => {
 
   const { IsConnected, connectRankVolume, disconnectRankVolume } = useRankVolumeConnection();
   const { connectionRankTradeData, disconnectRankTradeData } = useRankTradeDataConnection();
+  // 순위 랭킹 소켓
+  const { connectRankVolumeRealTime, disconnectRankVolumeRealTime } =
+    useRankVolumeConnectionRealTime();
 
   // 틱데이터가 업데이트될 때마다 해당 종목의 데이터를 stockTickDataMap에 저장
   useEffect(() => {
@@ -114,11 +118,20 @@ export const RealTimeChartTransaction = () => {
     // 소켓 연결
     connectRankVolume(setRankVolume);
     connectionRankTradeData(setTickData);
+    connectRankVolumeRealTime(setRankVolume);
     return () => {
       disconnectRankVolume();
       disconnectRankTradeData();
+      disconnectRankVolumeRealTime();
     };
-  }, [connectRankVolume, disconnectRankVolume, connectionRankTradeData, disconnectRankTradeData]);
+  }, [
+    connectRankVolume,
+    disconnectRankVolume,
+    connectionRankTradeData,
+    disconnectRankTradeData,
+    connectRankVolumeRealTime,
+    disconnectRankVolumeRealTime,
+  ]);
 
   if (isLoading) {
     return (
@@ -130,7 +143,7 @@ export const RealTimeChartTransaction = () => {
 
   return (
     <div>
-      <div className="w-full animate-fadeIn">
+      <div className="w-full animate-fadeIn duration-1000 ease-in-out">
         <div className="!mt-0 flex flex-col">
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">

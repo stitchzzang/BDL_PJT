@@ -5,6 +5,7 @@ import { useRankingChangeRate } from '@/api/home.api';
 import { HomeCompanyRankData, HomeCompanyRankTradeData } from '@/api/types/home';
 import { ChartLoadingAnimation } from '@/components/common/chart-loading-animation';
 import { useRankRiseFallConnection } from '@/services/SocketHomeRankRiseFall';
+import { useRankRiseFallConnectionRealTime } from '@/services/SocketHomeRankRiseFallRealTime';
 import { useRankRiseTradeDataConnection } from '@/services/SocketHomeRankRiseTradeData';
 
 type HomeCompanyRankDataList = HomeCompanyRankData[];
@@ -39,6 +40,9 @@ export const RealTimeChartFall = () => {
     useRankRiseFallConnection('low');
   const { connectionRankRiseTradeData, disconnectRankRiseTradeData } =
     useRankRiseTradeDataConnection('low');
+  // 실시간 순위 변동
+  const { connectRankRiseFallRealTime, disconnectRankRiseFallRealTime } =
+    useRankRiseFallConnectionRealTime('low');
 
   // 틱데이터가 업데이트될 때마다 해당 종목의 데이터를 stockTickDataMap에 저장
   useEffect(() => {
@@ -56,13 +60,17 @@ export const RealTimeChartFall = () => {
 
   useEffect(() => {
     // 소켓 연결
+    connectRankRiseFallRealTime(setRankVolume);
     connectRankRiseFall(setRankVolume);
     connectionRankRiseTradeData(setTickData);
     return () => {
+      disconnectRankRiseFallRealTime();
       disconnectRankRiseFall();
       disconnectRankRiseTradeData();
     };
   }, [
+    connectRankRiseFallRealTime,
+    disconnectRankRiseFallRealTime,
     connectRankRiseFall,
     disconnectRankRiseFall,
     connectionRankRiseTradeData,
@@ -71,7 +79,7 @@ export const RealTimeChartFall = () => {
 
   return (
     <div>
-      <div className="w-full animate-fadeIn">
+      <div className="w-full animate-fadeIn duration-1000 ease-in-out">
         <div className="!mt-0 flex flex-col">
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">
