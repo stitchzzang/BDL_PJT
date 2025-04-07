@@ -479,11 +479,11 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
 
           <div style="margin-bottom: 5px; padding-top: 3px; border-top: 1px solid rgba(255,255,255,0.2);">
             <div style="display: grid; grid-template-columns: 60px 1fr; margin-bottom: 2px; align-items: center;">
-              <span style="color: #ccc;">5이평선</span>
+              <span style="color: #FFA500;">5이평선</span>
               <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(ma5)}원</span>
             </div>
             <div style="display: grid; grid-template-columns: 60px 1fr; align-items: center;">
-              <span style="color: #ccc;">20이평선</span>
+              <span style="color: #9D4CCC;">20이평선</span>
               <span style="font-weight: 500; text-align: right;">${formatKoreanNumber(ma20)}원</span>
             </div>
           </div>
@@ -859,7 +859,7 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
             smooth: true,
             lineStyle: {
               opacity: 0.5,
-              color: '#4169E1',
+              color: ' #9D4CCC',
               width: 1,
             },
             symbol: 'none',
