@@ -152,6 +152,14 @@ export const SimulatePage = () => {
   // 뉴스 모달 관련 상태 추가
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
 
+  // 각 턴별로 모달이 이미 표시되었는지 여부를 기록하는 상태 추가
+  const [turnModalShown, setTurnModalShown] = useState<Record<number, boolean>>({
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+  });
+
   // 첫 렌더링 여부를 추적하는 ref
   const initialized = useRef(false);
   // 세션 캐싱을 위한 ref
@@ -448,17 +456,22 @@ export const SimulatePage = () => {
   useEffect(() => {
     // 1, 2, 3턴 시작 시에만 모달 표시
     if (isTutorialStarted && (currentTurn === 1 || currentTurn === 2 || currentTurn === 3)) {
-      // 약간의 지연 후 모달 표시 (차트 데이터 로드 후)
+      // 이미 해당 턴에 모달을 표시한 적이 있으면 표시하지 않음
+      if (turnModalShown[currentTurn]) {
+        return;
+      }
+
+      // 지연 시간 단축 (1000ms → 200ms)
       const timer = setTimeout(() => {
         // 해당 턴의 교육용 뉴스가 있을 때만 모달 표시
         if (turnCurrentNews[currentTurn] && Object.keys(turnCurrentNews[currentTurn]).length > 0) {
           setIsNewsModalOpen(true);
         }
-      }, 1000);
+      }, 200);
 
       return () => clearTimeout(timer);
     }
-  }, [currentTurn, isTutorialStarted, turnCurrentNews]);
+  }, [currentTurn, isTutorialStarted, turnCurrentNews, turnModalShown]);
 
   // 뉴스 데이터가 로드된 후 화면 업데이트
   useEffect(() => {
@@ -478,11 +491,15 @@ export const SimulatePage = () => {
       setCurrentNews(currentTurnNews);
 
       // 교육용 뉴스가 로드되면 모달 표시 (중복 표시 방지)
-      if ((currentTurn === 1 || currentTurn === 2 || currentTurn === 3) && !isNewsModalOpen) {
-        // 약간의 지연 후 모달 표시
+      if (
+        (currentTurn === 1 || currentTurn === 2 || currentTurn === 3) &&
+        !isNewsModalOpen &&
+        !turnModalShown[currentTurn]
+      ) {
+        // 지연 시간 단축 (500ms → 200ms)
         setTimeout(() => {
           setIsNewsModalOpen(true);
-        }, 500);
+        }, 200);
       }
     } else if (currentTurn === 1 || currentTurn === 2 || currentTurn === 3 || currentTurn === 4) {
       // 데이터가 없을 경우 null로 설정하여 기본 메시지 표시 (특정 턴에서만)
@@ -537,6 +554,7 @@ export const SimulatePage = () => {
     currentTurn,
     isTutorialStarted,
     isNewsModalOpen,
+    turnModalShown,
   ]);
 
   // 보유 주식 수량 초기화
@@ -1726,6 +1744,16 @@ export const SimulatePage = () => {
     }
   }, [trades]);
 
+  // 모달 닫기 핸들러 추가
+  const handleCloseNewsModal = useCallback(() => {
+    setIsNewsModalOpen(false);
+    // 현재 턴의 모달 표시 상태를 true로 설정하여 다시 표시되지 않도록 함
+    setTurnModalShown((prev) => ({
+      ...prev,
+      [currentTurn]: true,
+    }));
+  }, [currentTurn]);
+
   return (
     <div className="flex h-full w-full flex-col px-6">
       <div className="flex items-center justify-between">
@@ -1879,10 +1907,10 @@ export const SimulatePage = () => {
         onEndTutorialClick={handleNavigateToSelect}
       />
 
-      {/* 교육용 뉴스 모달 추가 */}
+      {/* 교육용 뉴스 모달 추가 - onClose 핸들러 교체 */}
       <TutorialNewsModal
         isOpen={isNewsModalOpen}
-        onClose={() => setIsNewsModalOpen(false)}
+        onClose={handleCloseNewsModal}
         news={currentNews}
         companyId={companyId}
         currentTurn={currentTurn}
