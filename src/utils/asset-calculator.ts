@@ -72,19 +72,14 @@ export const updateAssetsByTurnChange = (
   availableOrderAsset: number,
   ownedStockCount: number,
 ) => {
-  // 이전 턴과 현재 턴의 주가 변화율 계산
-  const priceChangeRate = (currentStockPrice - prevStockPrice) / prevStockPrice;
+  // 종가 기준으로 계산하도록 수정
+  // 이전 턴 종가 대비 현재 턴 종가 기준으로 수익률 계산
 
-  // 보유 주식 가치 변화 계산 (보유 주식 수 * 주가 변화율 * 이전 주가)
-  const stockValueChange = ownedStockCount * priceChangeRate * prevStockPrice;
-
-  // 이전 총 자산 계산
-  const prevTotalAsset = availableOrderAsset + ownedStockCount * prevStockPrice;
-
-  // 현재 총 자산 계산 (이전 총 자산 + 주식 가치 변화)
-  const currentTotalAsset = prevTotalAsset + stockValueChange;
+  // 현재 총 자산 계산 (주문 가능 금액 + 보유 주식 * 현재 종가)
+  const currentTotalAsset = availableOrderAsset + ownedStockCount * currentStockPrice;
 
   // 수익률 계산 ((현재 총 자산 - 초기 자산) / 초기 자산 * 100)
+  // 변곡점 전일 종가 기준으로 변곡점 종가 기준 수익률 계산
   const totalReturnRate = ((currentTotalAsset - initialAsset) / initialAsset) * 100;
 
   // 주문 가능 자산은 변경되지 않음 (매수/매도가 없으므로)

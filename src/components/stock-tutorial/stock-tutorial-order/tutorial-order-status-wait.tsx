@@ -8,7 +8,6 @@ export interface TutorialOrderStatusWaitProps {
 export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatusWaitProps) => {
   return (
     <div className="flex h-full animate-fadeIn flex-col">
-      <h3 className="text-[16px] font-bold text-btn-green-color">관망하기</h3>
       <div className="flex h-full flex-col justify-between">
         <div className="mb-3 flex w-full flex-col gap-3">
           <div className="rounded-lg bg-[#1A1D2D] p-3">

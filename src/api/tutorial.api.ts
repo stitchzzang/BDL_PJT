@@ -1,6 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { HTTPError } from 'ky';
 
 import { _ky, _kyAuth } from '@/api/instance';
+import { handleKyError } from '@/api/instance/errorHandler';
 import {
   ApiResponse,
   AssetResponse,
@@ -25,6 +27,8 @@ export const useInitSession = () => {
       const response = await _kyAuth.post('tutorial/init', { json: data });
       return response.json() as Promise<ApiResponse<Record<string, never>>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '세션 초기화 중 오류가 발생했습니다.'),
   });
 };
 
@@ -37,6 +41,8 @@ export const useDetectPoints = () => {
       const response = await _ky.post(`tutorial/points/detect?companyId=${companyId}`);
       return response.json() as Promise<ApiResponse<Record<string, never>>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '변곡점 탐색 중 오류가 발생했습니다.'),
   });
 };
 
@@ -44,14 +50,21 @@ export const useDetectPoints = () => {
  * 변곡점 TOP3 조회 API
  */
 export const useGetTop3Points = (companyId: number) => {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['tutorial', 'points', 'top3', companyId],
     queryFn: async () => {
-      const response = await _ky.get(`tutorial/points/top3?companyId=${companyId}`);
-      const responseData = (await response.json()) as ApiResponse<{ PointResponseList: Point[] }>;
-      return responseData;
+      try {
+        const response = await _ky.get(`tutorial/points/top3?companyId=${companyId}`);
+        const responseData = (await response.json()) as ApiResponse<{ PointResponseList: Point[] }>;
+        return responseData;
+      } catch (error) {
+        handleKyError(error as HTTPError, '변곡점 정보를 불러오는 중 오류가 발생했습니다.');
+        throw error;
+      }
     },
   });
+
+  return result;
 };
 
 /**
@@ -60,18 +73,25 @@ export const useGetTop3Points = (companyId: number) => {
  * @param stockCandleId 일봉 ID
  */
 export const useGetPointDate = (stockCandleId: number) => {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['tutorial', 'points', 'date', stockCandleId],
     queryFn: async () => {
-      if (!stockCandleId) {
-        throw new Error('유효하지 않은 파라미터입니다.');
+      try {
+        if (!stockCandleId) {
+          throw new Error('유효하지 않은 파라미터입니다.');
+        }
+        const response = await _ky.get(`tutorial/points/date?stockCandleId=${stockCandleId}`);
+        return response.json() as Promise<ApiResponse<string>>;
+      } catch (error) {
+        handleKyError(error as HTTPError, '변곡점 날짜 정보를 불러오는 중 오류가 발생했습니다.');
+        throw error;
       }
-      const response = await _ky.get(`tutorial/points/date?stockCandleId=${stockCandleId}`);
-      return response.json() as Promise<ApiResponse<string>>;
     },
     enabled: !!stockCandleId && stockCandleId > 0,
     retry: 3,
   });
+
+  return result;
 };
 
 /**
@@ -82,23 +102,30 @@ export const useGetPointDate = (stockCandleId: number) => {
  * @param endDate 종료 날짜 (YYMMDD)
  */
 export const useGetTutorialStockData = (companyId: number, startDate: string, endDate: string) => {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['tutorial', 'stocks', companyId, startDate, endDate],
     queryFn: async () => {
-      if (!companyId || !startDate || !endDate) {
-        throw new Error('유효하지 않은 파라미터입니다.');
+      try {
+        if (!companyId || !startDate || !endDate) {
+          throw new Error('유효하지 않은 파라미터입니다.');
+        }
+
+        const apiUrl = `stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`;
+
+        const response = await _ky.get(apiUrl);
+        return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
+      } catch (error) {
+        handleKyError(error as HTTPError, '주식 데이터를 불러오는 중 오류가 발생했습니다.');
+        throw error;
       }
-
-      const apiUrl = `stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`;
-
-      const response = await _ky.get(apiUrl);
-      return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
     enabled: !!companyId && !!startDate && !!endDate,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     staleTime: 60 * 1000,
   });
+
+  return result;
 };
 
 /**
@@ -161,7 +188,7 @@ export const useGetSectionTutorialStockData = (
 
   const range = getStartAndEndDate();
 
-  return useQuery({
+  const result = useQuery({
     queryKey: [
       'tutorial',
       'stocks',
@@ -173,16 +200,23 @@ export const useGetSectionTutorialStockData = (
       ...pointDates,
     ],
     queryFn: async () => {
-      if (!range) {
-        throw new Error('날짜 범위를 계산할 수 없습니다.');
+      try {
+        if (!range) {
+          throw new Error('날짜 범위를 계산할 수 없습니다.');
+        }
+        const response = await _ky.get(
+          `stocks/${companyId}/tutorial?startDate=${range.startDate}&endDate=${range.endDate}`,
+        );
+        return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
+      } catch (error) {
+        handleKyError(error as HTTPError, '구간별 주식 데이터를 불러오는 중 오류가 발생했습니다.');
+        throw error;
       }
-      const response = await _ky.get(
-        `stocks/${companyId}/tutorial?startDate=${range.startDate}&endDate=${range.endDate}`,
-      );
-      return response.json() as Promise<ApiResponse<TutorialStockResponse>>;
     },
     enabled: !!companyId && !!range && !!startDate && !!endDate,
   });
+
+  return result;
 };
 
 /**
@@ -231,6 +265,8 @@ export const useGetPastNews = () => {
       const response = await _kyAuth.post('tutorial/news/past', { json: data });
       return response.json() as Promise<ApiResponse<{ NewsResponse: NewsResponse[] }>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '과거 뉴스를 불러오는 중 오류가 발생했습니다.'),
   });
 };
 
@@ -250,6 +286,8 @@ export const useGetNewsComment = () => {
       return responseData;
     },
     retry: 1, // 1번만 재시도
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '뉴스 분석 코멘트를 불러오는 중 오류가 발생했습니다.'),
   });
 };
 
@@ -262,6 +300,8 @@ export const useGetCurrentNews = () => {
       const response = await _kyAuth.post('tutorial/news/current', { json: data });
       return response.json() as Promise<ApiResponse<NewsResponseWithThumbnail>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '현재 뉴스를 불러오는 중 오류가 발생했습니다.'),
   });
 };
 
@@ -274,6 +314,8 @@ export const useProcessUserAction = () => {
       const response = await _kyAuth.post(`tutorial/${memberId}/action`, { json: data });
       return response.json() as Promise<ApiResponse<{ AssetResponse: AssetResponse[] }>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '거래 처리 중 오류가 발생했습니다.'),
   });
 };
 
@@ -281,13 +323,14 @@ export const useProcessUserAction = () => {
  * 튜토리얼 피드백 조회 API
  */
 export const useGetTutorialFeedback = (memberId: number, options?: { enabled?: boolean }) => {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['tutorial', 'result', 'feedback', memberId],
     queryFn: async () => {
       try {
         const response = await _kyAuth.get(`tutorial/result/feedback/${memberId}`);
         return response.json() as Promise<ApiResponse<string>>;
-      } catch {
+      } catch (error) {
+        handleKyError(error as HTTPError, '튜토리얼 피드백을 불러오는 중 오류가 발생했습니다.');
         return {
           isSuccess: true,
           code: 200,
@@ -299,6 +342,8 @@ export const useGetTutorialFeedback = (memberId: number, options?: { enabled?: b
     enabled: options?.enabled !== undefined ? options.enabled : !!memberId,
     retry: 3,
   });
+
+  return result;
 };
 
 /**
@@ -310,6 +355,8 @@ export const useSaveTutorialResult = () => {
       const response = await _kyAuth.post('tutorial/result/save', { json: data });
       return response.json() as Promise<ApiResponse<Record<string, never>>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '튜토리얼 결과 저장 중 오류가 발생했습니다.'),
   });
 };
 
@@ -322,6 +369,8 @@ export const useDeleteTutorialSession = () => {
       const response = await _kyAuth.get(`tutorial/session/delete/${memberId}`);
       return response.json() as Promise<ApiResponse<Record<string, never>>>;
     },
+    onError: (error: unknown) =>
+      handleKyError(error as HTTPError, '튜토리얼 세션 삭제 중 오류가 발생했습니다.'),
   });
 };
 
@@ -355,8 +404,9 @@ export const useTutorialResults = ({ memberId }: { memberId: string }) => {
 
         // 빈 배열 반환
         return [];
-      } catch {
-        //
+      } catch (error) {
+        handleKyError(error as HTTPError, '튜토리얼 결과를 불러오는 중 오류가 발생했습니다.');
+        return [];
       }
     },
     enabled: !!memberId,

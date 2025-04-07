@@ -1,14 +1,39 @@
 import { NewsResponseWithThumbnail } from '@/api/types/tutorial';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface StockTutorialNewsDetailProps {
   news: NewsResponseWithThumbnail;
   companyId: number;
+  isLoading?: boolean;
 }
 
-export const StockTutorialNewsDetail = ({ news }: StockTutorialNewsDetailProps) => {
-  // companyId 활용 (아래 주석 코드는 실제 API 호출 또는 추가 기능이 필요할 때 사용)
-  // 참고: 현재는 UI에 표시하지 않고 있지만, 필요시 활용할 수 있음
-  // const companyInfo = { id: companyId };
+export const StockTutorialNewsDetail = ({
+  news,
+  isLoading = false,
+}: StockTutorialNewsDetailProps) => {
+  if (isLoading) {
+    return (
+      <div className="rounded-xl bg-modal-background-color py-2">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-8 w-2/3" style={{ backgroundColor: '#0D192B' }} />
+          <Skeleton className="h-6 w-[100px]" style={{ backgroundColor: '#0D192B' }} />
+        </div>
+
+        <div className="mt-4 flex flex-col gap-5 md:flex-row">
+          <Skeleton
+            className="h-[100px] w-[100px] md:h-[240px] md:w-2/5"
+            style={{ backgroundColor: '#0D192B' }}
+          />
+          <div className="mt-4 w-full md:mt-0 md:w-3/5">
+            <Skeleton className="h-6 w-full" style={{ backgroundColor: '#0D192B' }} />
+            <Skeleton className="mt-2 h-6 w-full" style={{ backgroundColor: '#0D192B' }} />
+            <Skeleton className="mt-2 h-6 w-full" style={{ backgroundColor: '#0D192B' }} />
+            <Skeleton className="mt-2 h-6 w-2/3" style={{ backgroundColor: '#0D192B' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl bg-modal-background-color py-2">

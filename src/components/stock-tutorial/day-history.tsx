@@ -4,14 +4,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NewsResponse } from '@/api/types/tutorial';
 import historyAnimation from '@/assets/lottie/history-animation.json';
 import { DayHistoryCard } from '@/components/stock-tutorial/day-history-card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface DayHistoryProps {
   news: NewsResponse[];
   height?: number; // AI 코멘트 높이와 동기화하기 위한 prop
   isTutorialStarted?: boolean; // 튜토리얼 시작 여부 프로퍼티 추가
+  isLoading?: boolean;
 }
 
-export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHistoryProps) => {
+export const DayHistory = ({
+  news = [],
+  height,
+  isTutorialStarted = false,
+  isLoading = false,
+}: DayHistoryProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [prevNewsLength, setPrevNewsLength] = useState(0);
   // 뉴스 카드 3개 정도 표시할 수 있는 기본 높이 (카드 하나당 약 90px + 간격 + 패딩 고려)
@@ -50,6 +57,31 @@ export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHisto
   // AI 코멘트 높이와 최소 높이 중 더 큰 값을 사용
   const finalHeight = height && height > MIN_HEIGHT ? height : MIN_HEIGHT;
 
+  if (isLoading) {
+    return (
+      <div
+        className="flex w-full flex-col rounded-xl bg-modal-background-color p-5"
+        style={{ height: `${finalHeight}px` }}
+      >
+        <div className="mb-2 flex items-center">
+          <Skeleton className="mr-2 h-8 w-8" style={{ backgroundColor: '#0D192B' }} />
+          <Skeleton className="h-7 w-[150px]" style={{ backgroundColor: '#0D192B' }} />
+        </div>
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="flex flex-col gap-4">
+            {[1, 2, 3, 4].map((index) => (
+              <Skeleton
+                key={index}
+                className="h-[60px] w-full rounded-xl"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex w-full flex-col rounded-xl bg-modal-background-color p-5"
@@ -61,14 +93,22 @@ export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHisto
         </div>
         <h1 className="text-[20px] font-bold">뉴스 히스토리</h1>
       </div>
+
       {!isTutorialStarted ? (
         <p className="text-[16px] text-border-color">
-          각 변곡점 구간의 뉴스 리스트를 누적 제공해드립니다.
+          각 변곡점 구간의 뉴스 리스트를 단계별로 누적 제공해드립니다.
+          <br />
+          뉴스 타이틀과 변동률을 확인하여 투자 결정을 내려보세요.
         </p>
-      ) : news.length === 0 ? (
-        <p className="text-[16px] text-border-color">
-          이 구간에서는 눈에 띄는 뉴스 데이터가 없네요😂. 교육용 뉴스를 참고해주세요!
-        </p>
+      ) : !Array.isArray(news) || news.length === 0 ? (
+        <div className="flex h-full flex-col items-center justify-center">
+          <p className="text-center text-[16px] text-border-color">
+            이 구간에는 수집된 뉴스 데이터가 없습니다.
+          </p>
+          <p className="mt-2 text-center text-[14px] text-border-color">
+            교육용 뉴스와 AI 분석 코멘트를 참고해 투자 결정을 내려보세요.
+          </p>
+        </div>
       ) : (
         <div
           ref={scrollContainerRef}
@@ -77,7 +117,7 @@ export const DayHistory = ({ news, height, isTutorialStarted = false }: DayHisto
         >
           <div className="flex flex-col gap-4">
             {news.map((newsItem, index) => (
-              <div key={`${newsItem.newsId}-${index}`}>
+              <div key={`${newsItem.newsId || index}-${index}`}>
                 <DayHistoryCard newsItem={newsItem} />
               </div>
             ))}

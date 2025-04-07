@@ -124,73 +124,64 @@ export const TutorialOrderStatusSell = ({
     <div className="flex h-full animate-fadeIn flex-col">
       <div className="flex h-full flex-col justify-between">
         <div className="mb-3 flex w-full flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-[74px]">
-              <h3 className={h3Style}>주문 유형</h3>
-            </div>
-            <div className="flex w-full max-w-[80%] flex-col gap-2">
-              {/* 지정가 */}
-              <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-1 py-1">
-                <div
-                  className={`${
-                    isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''
-                  } w-full cursor-pointer rounded-md py-2 text-center text-[16px] text-border-color transition-all duration-300`}
-                  onClick={() => isActiveHandler('지정가')}
-                >
-                  <p>지정가</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* 판매가격 입력 */}
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-[74px]" />
-            <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <div className="pointer-events-none">
+            <div className="relative flex w-full flex-col gap-2">
+              <div className="relative">
                 <NumberInput
                   value={sellPrice}
                   setValue={setSellPrice}
                   placeholder={isSessionActive ? '시장가 원' : '턴 시작 후 자동 설정됩니다'}
                   formatAsCurrency={true}
+                  className="text-right text-[18px]"
                 />
+                <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
+                  <span className="text-[16px] font-bold text-white">현재 주식 가격</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* 수량 입력 */}
           <div className="flex items-center justify-between gap-3">
-            <div className="min-w-[74px]">
-              <h3 className={h3Style}>수량</h3>
-            </div>
-            <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput value={stockCount} setValue={handleSetStockCount} placeholder="" />
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
-                  >
-                    -
-                  </button>
+            <div className="relative flex w-full flex-col gap-2">
+              <div className="relative">
+                <NumberInput
+                  value={stockCount}
+                  setValue={handleSetStockCount}
+                  placeholder=""
+                  className="text-center text-[18px]"
+                />
+                <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
+                  <span className="text-[16px] font-bold text-white">수량</span>
                 </div>
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => {
-                      const newCount = stockCount + 1;
-                      if (newCount <= ownedStockCount) {
-                        priceButtonHandler('+', stockCount, setStockCount, 1);
-                      }
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
-                  <button className="text-[14px]" onClick={setMaxStockCount}>
-                    전체
-                  </button>
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
+                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                    <button
+                      className="text-[22px]"
+                      onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
+                    >
+                      -
+                    </button>
+                  </div>
+                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
+                    <button
+                      className="text-[22px]"
+                      onClick={() => {
+                        const newCount = stockCount + 1;
+                        if (newCount <= ownedStockCount) {
+                          priceButtonHandler('+', stockCount, setStockCount, 1);
+                        }
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
+                    <button className="text-[14px]" onClick={setMaxStockCount}>
+                      전체
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -198,11 +189,11 @@ export const TutorialOrderStatusSell = ({
 
           {/* 보유 수량 표시 */}
           <div className="flex items-center justify-between">
-            <div className="min-w-[74px]">
+            <div className="min-w-[100px]">
               <h3 className="text-[14px] text-border-color">보유 수량</h3>
             </div>
-            <div className="flex w-full max-w-[80%] flex-col">
-              <p className="text-right text-[14px] text-border-color">{ownedStockCount}주</p>
+            <div className="flex w-full flex-col">
+              <p className="text-right text-[16px] text-border-color">{ownedStockCount}주</p>
             </div>
           </div>
 
