@@ -181,18 +181,16 @@ export const BackTesting = () => {
         {showSummary ? (
           <></>
         ) : (
-          <div className="mt-4">
+          <div className="mb-2 mt-4 animate-fadeIn rounded-xl bg-modal-background-color p-2 duration-300">
             <div className="flex items-center">
-              <span className="mr-2">0</span>
               <input
                 type="range"
                 min={1}
                 max={saveDailyData ? saveDailyData.length : 100}
                 value={maxNumber}
                 onChange={handleSliderChange}
-                className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
+                className="h-2 w-full cursor-pointer"
               />
-              <span className="ml-2">{saveDailyData ? saveDailyData.length : 0}</span>
             </div>
           </div>
         )}
@@ -242,6 +240,42 @@ export const BackTesting = () => {
           </div>
         </>
       )}
+      <style>
+        {`
+        /* 슬라이더 스타일 */
+        input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          height: 25px;
+          background: linear-gradient(to right, #3b82f6, #06b6d4);
+          border-radius: 5px;
+          outline: none;
+        }
+
+        /* 슬라이더 핸들(손잡이) 스타일 */
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: white;
+          border-radius: 50%;
+          border: 2px solid #3b82f6;
+          cursor: pointer;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: white;
+          border-radius: 50%;
+          border: 2px solid #3b82f6;
+          cursor: pointer;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        `}
+      </style>
     </div>
   );
 };

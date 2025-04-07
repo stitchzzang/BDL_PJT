@@ -371,6 +371,9 @@ export const AssetChangeChart: FC = () => {
   return (
     <div className="h-full">
       <h1>백테스팅 결과 대시보드</h1>
+      <div className="my-2">
+        <h1 className="text-[14px] font-bold">주식 차트</h1>
+      </div>
       <AssetComparisonChart initialAsset={initialAsset} />
     </div>
   );
