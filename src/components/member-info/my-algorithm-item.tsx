@@ -53,29 +53,33 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
 
   return (
     <div className="flex w-full flex-row items-center justify-between rounded-[10px] bg-modal-background-color p-5">
-      <div className="flex flex-col items-start gap-2">
-        <p className="mr-20 whitespace-nowrap text-text-main-color">{algorithm.algorithmName}</p>
-        {algorithm.isRunning && (
-          <div className="flex items-center gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex cursor-help items-center gap-1 rounded-full bg-btn-red-color px-3 py-1">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
-                    <span className="text-sm text-white">실행 중</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={5}>
-                  <p>
-                    {algorithm.runningCompanies.map((company) => company.companyName).join(', ')}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
+      <div className="grid grid-cols-5">
+        <div className="col-span-1 flex flex-col justify-center gap-2">
+          <p className="mr-20 whitespace-nowrap text-text-main-color">{algorithm.algorithmName}</p>
+          {algorithm.isRunning && (
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex cursor-help items-center gap-1 rounded-full bg-btn-red-color px-3 py-1">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                      <span className="text-sm text-white">실행 중</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={5}>
+                    <p>
+                      {algorithm.runningCompanies.map((company) => company.companyName).join(', ')}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
+        </div>
+        <div className="col-span-4 flex items-center justify-center">
+          <AlgorithmOption algorithm={algorithm} />
+        </div>
       </div>
-      <AlgorithmOption algorithm={algorithm} />
       <div className="flex gap-3">
         <AlertDialog>
           <AlertDialogTrigger asChild>
