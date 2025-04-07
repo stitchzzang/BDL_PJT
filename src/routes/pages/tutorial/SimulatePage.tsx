@@ -1816,7 +1816,7 @@ export const SimulatePage = () => {
                   </div>
                 </div>
               ) : (
-                <div className="relative h-full chart-tutorial">
+                <div className="chart-tutorial relative h-full">
                   <ChartComponent
                     periodData={stockData || undefined}
                     inflectionPoints={pointDates.map((date, index) => ({
@@ -1829,7 +1829,7 @@ export const SimulatePage = () => {
               )}
             </div>
             <div className="col-span-1 h-full lg:col-span-3">
-              <div className="h-full stock-tutorial-order">
+              <div className="stock-tutorial-order h-full">
                 <TutorialOrderStatus
                   onTrade={handleTrade}
                   isSessionActive={isTutorialStarted && !isCurrentTurnCompleted && currentTurn < 4}
@@ -1850,10 +1850,10 @@ export const SimulatePage = () => {
           </div>
 
           <div className="mt-[24px] grid grid-cols-6 gap-3">
-            <div className="col-span-3 stock-tutorial-comment" ref={commentRef}>
+            <div className="stock-tutorial-comment col-span-3" ref={commentRef}>
               <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
             </div>
-            <div className="col-span-3 day-history">
+            <div className="day-history col-span-3">
               <DayHistory
                 news={pastNewsList}
                 height={commentHeight}
@@ -1862,14 +1862,14 @@ export const SimulatePage = () => {
             </div>
           </div>
           <div className="mt-[25px] grid grid-cols-6 gap-3">
-            <div className="col-span-4 stock-tutorial-news">
+            <div className="stock-tutorial-news col-span-4">
               <StockTutorialNews
                 currentNews={currentNews}
                 companyId={companyId}
                 currentTurn={currentTurn}
               />
             </div>
-            <div className="col-span-2 stock-tutorial-conclusion">
+            <div className="stock-tutorial-conclusion col-span-2">
               <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
             </div>
           </div>
