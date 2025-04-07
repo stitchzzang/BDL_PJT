@@ -1,3 +1,4 @@
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import { ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TermTooltip } from '@/components/ui/term-tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
@@ -393,9 +395,35 @@ export const MarketPage = () => {
               title="주식의 장기적인 움직임을 분석할까요?"
               description={
                 <>
-                  주식의 장기적인 움직임을 분석할 수 있는 이동평균선 사용이 가능합니다. 해당 기능은
-                  주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수
-                  신호, 하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
+                  주식의
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="relative ml-1 mr-2 inline-block cursor-help">
+                        <span className="relative">
+                          장기적인 움직임
+                          <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-auto bg-white p-0" side="top">
+                        <img
+                          src="/stock/golden_death_cross.png"
+                          alt="골든크로스 이미지"
+                          className="w-96 rounded-md"
+                        />
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  을 분석할 수 있는 이동평균선 사용이 가능합니다. 해당 기능은 주가의 추세를
+                  파악하는데 도움이 됩니다.
+                  <br />
+                  <br />
+                  <span className="font-bold text-primary-color">골든크로스</span>(단기선이 장기선을
+                  상향 돌파할 때 매수 신호)
+                  <br />
+                  <span className="font-bold text-primary-color">데드크로스</span>(단기선이 장기선을
+                  하향 돌파할 때 매도 신호)
+                  <br />
+                  신호로 활용 할 수 있습니다.
                 </>
               }
             />
