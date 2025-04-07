@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -100,6 +100,116 @@ const SearchBarComponent = React.memo(
 );
 
 SearchBarComponent.displayName = 'SearchBarComponent';
+
+// 페이지네이션 컴포넌트 (외부로 분리하여 리렌더링 최소화)
+const PaginationComponent = React.memo(
+  ({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => {
+    const handlePrevPage = useCallback(() => {
+      if (currentPage > 0) {
+        onPageChange(currentPage - 1);
+      }
+    }, [currentPage, onPageChange]);
+
+    const handleNextPage = useCallback(() => {
+      if (currentPage < totalPages - 1) {
+        onPageChange(currentPage + 1);
+      }
+    }, [currentPage, totalPages, onPageChange]);
+
+    // 페이지 번호 변경 시 스크롤 이동 함수 추가
+    const handlePageNumberClick = useCallback(
+      (page: number) => {
+        onPageChange(page);
+      },
+      [onPageChange],
+    );
+
+    // 페이지 번호 계산 (최대 5개 표시)
+    const pageNumbers = useMemo(() => {
+      const pageNumbers = [];
+      const maxPagesToShow = 5;
+
+      let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
+      const endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+
+      if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(0, endPage - maxPagesToShow + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      return pageNumbers;
+    }, [currentPage, totalPages]);
+
+    return (
+      <div className="flex items-center justify-center space-x-2 py-4">
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={() => handlePageNumberClick(0)}
+          disabled={currentPage === 0}
+          className="h-8 w-8 border-border-color"
+          title="첫 페이지"
+        >
+          &lt;&lt;
+        </Button>
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={handlePrevPage}
+          disabled={currentPage === 0}
+          className="h-8 w-8 border-border-color"
+        >
+          &lt;
+        </Button>
+
+        {pageNumbers.map((page) => (
+          <Button
+            key={page}
+            variant={page === currentPage ? 'blue' : 'gray'}
+            size="icon"
+            onClick={() => handlePageNumberClick(page)}
+            className={'h-8 w-8'}
+          >
+            {page + 1}
+          </Button>
+        ))}
+
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages - 1 || totalPages === 0}
+          className="h-8 w-8 border-border-color"
+        >
+          &gt;
+        </Button>
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={() => handlePageNumberClick(totalPages - 1)}
+          disabled={currentPage === totalPages - 1 || totalPages === 0}
+          className="h-8 w-8 border-border-color"
+          title="마지막 페이지"
+        >
+          &gt;&gt;
+        </Button>
+      </div>
+    );
+  },
+);
+
+PaginationComponent.displayName = 'PaginationComponent';
 
 export const InvestmentResultPage = () => {
   const navigate = useNavigate();
@@ -225,21 +335,21 @@ export const InvestmentResultPage = () => {
   };
 
   // 페이지네이션 핸들러
-  const handlePendingPageChange = (page: number) => {
+  const handlePendingPageChange = useCallback((page: number) => {
     setPendingPage(page);
-  };
+  }, []);
 
-  const handleConfirmedPageChange = (page: number) => {
+  const handleConfirmedPageChange = useCallback((page: number) => {
     setConfirmedPage(page);
-  };
+  }, []);
 
-  const handleManualPageChange = (page: number) => {
+  const handleManualPageChange = useCallback((page: number) => {
     setManualPage(page);
-  };
+  }, []);
 
-  const handleAutoPageChange = (page: number) => {
+  const handleAutoPageChange = useCallback((page: number) => {
     setAutoPage(page);
-  };
+  }, []);
 
   // 검색 핸들러 (부모 컴포넌트에 정의)
   const handleSearch = useCallback(
@@ -313,7 +423,7 @@ export const InvestmentResultPage = () => {
             clearTimeout(highlightTimersRef.current['totalProfitRate']);
           }
 
-          // 새 타이머 설정 (1초 후 하이라이트 제거)
+          // 새 타이머 설정 (1초로 통일)
           highlightTimersRef.current['totalProfitRate'] = setTimeout(() => {
             setHighlightMap((prev) => ({
               ...prev,
@@ -337,7 +447,7 @@ export const InvestmentResultPage = () => {
             clearTimeout(highlightTimersRef.current['totalProfit']);
           }
 
-          // 새 타이머 설정 (1초 후 하이라이트 제거)
+          // 새 타이머 설정 (1초로 통일)
           highlightTimersRef.current['totalProfit'] = setTimeout(() => {
             setHighlightMap((prev) => ({
               ...prev,
@@ -364,7 +474,7 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
@@ -386,13 +496,13 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
                   [key]: { ...prev[key], isFlashing: false },
                 }));
-              }, 250);
+              }, 1000);
             }
 
             // 종목별 현재가 변화
@@ -408,13 +518,13 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
                   [key]: { ...prev[key], isFlashing: false },
                 }));
-              }, 250);
+              }, 1000);
             }
 
             // 종목별 평가금 변화
@@ -430,13 +540,13 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
                   [key]: { ...prev[key], isFlashing: false },
                 }));
-              }, 250);
+              }, 1000);
             }
           }
         });
@@ -614,110 +724,6 @@ export const InvestmentResultPage = () => {
 
   const displayData = realTimeData || accountSummary;
   if (!displayData) return <LoadingAnimation />;
-
-  // 페이지네이션 컴포넌트
-  const Pagination = ({
-    currentPage,
-    totalPages,
-    onPageChange,
-  }: {
-    currentPage: number;
-    totalPages: number;
-    onPageChange: (page: number) => void;
-  }) => {
-    const handlePrevPage = () => {
-      if (currentPage > 0) {
-        onPageChange(currentPage - 1);
-        // 페이지 변경 시 tab-content로 스크롤 이동
-      }
-    };
-
-    const handleNextPage = () => {
-      if (currentPage < totalPages - 1) {
-        onPageChange(currentPage + 1);
-      }
-    };
-
-    // 페이지 번호 변경 시 스크롤 이동 함수 추가
-    const handlePageNumberClick = (page: number) => {
-      onPageChange(page);
-    };
-
-    // 페이지 번호 계산 (최대 5개 표시)
-    const getPageNumbers = () => {
-      const pageNumbers = [];
-      const maxPagesToShow = 5;
-
-      let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
-      const endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
-
-      if (endPage - startPage + 1 < maxPagesToShow) {
-        startPage = Math.max(0, endPage - maxPagesToShow + 1);
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        pageNumbers.push(i);
-      }
-
-      return pageNumbers;
-    };
-
-    return (
-      <div className="flex items-center justify-center space-x-2 py-4">
-        <Button
-          variant="blue"
-          size="icon"
-          onClick={() => handlePageNumberClick(0)}
-          disabled={currentPage === 0}
-          className="h-8 w-8 border-border-color"
-          title="첫 페이지"
-        >
-          &lt;&lt;
-        </Button>
-        <Button
-          variant="blue"
-          size="icon"
-          onClick={handlePrevPage}
-          disabled={currentPage === 0}
-          className="h-8 w-8 border-border-color"
-        >
-          &lt;
-        </Button>
-
-        {getPageNumbers().map((page) => (
-          <Button
-            key={page}
-            variant={page === currentPage ? 'blue' : 'gray'}
-            size="icon"
-            onClick={() => handlePageNumberClick(page)}
-            className={'h-8 w-8'}
-          >
-            {page + 1}
-          </Button>
-        ))}
-
-        <Button
-          variant="blue"
-          size="icon"
-          onClick={handleNextPage}
-          disabled={currentPage === totalPages - 1 || totalPages === 0}
-          className="h-8 w-8 border-border-color"
-        >
-          &gt;
-        </Button>
-        <Button
-          variant="blue"
-          size="icon"
-          onClick={() => handlePageNumberClick(totalPages - 1)}
-          disabled={currentPage === totalPages - 1 || totalPages === 0}
-          className="h-8 w-8 border-border-color"
-          title="마지막 페이지"
-        >
-          &gt;&gt;
-        </Button>
-      </div>
-    );
-  };
 
   // 보유 종목 탭 콘텐츠
   const holdingsTabContent = (
@@ -1053,7 +1059,7 @@ export const InvestmentResultPage = () => {
           </TableBody>
         </Table>
         {pendingOrdersData && pendingOrdersData.totalPages > 0 && (
-          <Pagination
+          <PaginationComponent
             currentPage={pendingPage}
             totalPages={pendingOrdersData.totalPages}
             onPageChange={handlePendingPageChange}
@@ -1241,7 +1247,7 @@ export const InvestmentResultPage = () => {
           <>
             {renderTransactionTable(confirmedOrdersData, isConfirmedOrdersLoading)}
             {confirmedOrdersData && confirmedOrdersData.totalPages > 0 && (
-              <Pagination
+              <PaginationComponent
                 currentPage={confirmedPage}
                 totalPages={confirmedOrdersData.totalPages}
                 onPageChange={handleConfirmedPageChange}
@@ -1254,7 +1260,7 @@ export const InvestmentResultPage = () => {
           <>
             {renderTransactionTable(manualOrdersData, isManualOrdersLoading)}
             {manualOrdersData && manualOrdersData.totalPages > 0 && (
-              <Pagination
+              <PaginationComponent
                 currentPage={manualPage}
                 totalPages={manualOrdersData.totalPages}
                 onPageChange={handleManualPageChange}
@@ -1267,7 +1273,7 @@ export const InvestmentResultPage = () => {
           <>
             {renderTransactionTable(autoOrdersData, isAutoOrdersLoading)}
             {autoOrdersData && autoOrdersData.totalPages > 0 && (
-              <Pagination
+              <PaginationComponent
                 currentPage={autoPage}
                 totalPages={autoOrdersData.totalPages}
                 onPageChange={handleAutoPageChange}
