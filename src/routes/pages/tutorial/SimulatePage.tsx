@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
+import { TutorialNewsModal } from '@/components/ui/tutorial-news-modal';
 import { useAuthStore } from '@/store/useAuthStore';
 import { updateAssetsByTurn, updateAssetsByTurnChange } from '@/utils/asset-calculator';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
@@ -147,6 +148,9 @@ export const SimulatePage = () => {
   const [progress, setProgress] = useState(0);
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
   const companyId = Number(companyIdParam) || 1;
+
+  // 뉴스 모달 관련 상태 추가
+  const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
 
   // 첫 렌더링 여부를 추적하는 ref
   const initialized = useRef(false);
@@ -440,6 +444,22 @@ export const SimulatePage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTurn, isTutorialStarted]); // 의존성 배열 최소화
 
+  // 뉴스 모달 표시를 위한 useEffect 추가
+  useEffect(() => {
+    // 1, 2, 3턴 시작 시에만 모달 표시
+    if (isTutorialStarted && (currentTurn === 1 || currentTurn === 2 || currentTurn === 3)) {
+      // 약간의 지연 후 모달 표시 (차트 데이터 로드 후)
+      const timer = setTimeout(() => {
+        // 해당 턴의 교육용 뉴스가 있을 때만 모달 표시
+        if (turnCurrentNews[currentTurn] && Object.keys(turnCurrentNews[currentTurn]).length > 0) {
+          setIsNewsModalOpen(true);
+        }
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentTurn, isTutorialStarted, turnCurrentNews]);
+
   // 뉴스 데이터가 로드된 후 화면 업데이트
   useEffect(() => {
     if (!isTutorialStarted || currentTurn <= 0 || currentTurn > 4) {
@@ -456,6 +476,14 @@ export const SimulatePage = () => {
     const currentTurnNews = turnCurrentNews[currentTurn];
     if (currentTurnNews && Object.keys(currentTurnNews).length > 0) {
       setCurrentNews(currentTurnNews);
+
+      // 교육용 뉴스가 로드되면 모달 표시 (중복 표시 방지)
+      if ((currentTurn === 1 || currentTurn === 2 || currentTurn === 3) && !isNewsModalOpen) {
+        // 약간의 지연 후 모달 표시
+        setTimeout(() => {
+          setIsNewsModalOpen(true);
+        }, 500);
+      }
     } else if (currentTurn === 1 || currentTurn === 2 || currentTurn === 3 || currentTurn === 4) {
       // 데이터가 없을 경우 null로 설정하여 기본 메시지 표시 (특정 턴에서만)
       setCurrentNews(null);
@@ -502,7 +530,14 @@ export const SimulatePage = () => {
         [currentTurn]: true,
       };
     }
-  }, [turnNewsList, turnCurrentNews, turnComments, currentTurn, isTutorialStarted]);
+  }, [
+    turnNewsList,
+    turnCurrentNews,
+    turnComments,
+    currentTurn,
+    isTutorialStarted,
+    isNewsModalOpen,
+  ]);
 
   // 보유 주식 수량 초기화
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1842,6 +1877,15 @@ export const SimulatePage = () => {
         feedback={tutorialFeedback || ''}
         onConfirmResultClick={handleNavigateToResult}
         onEndTutorialClick={handleNavigateToSelect}
+      />
+
+      {/* 교육용 뉴스 모달 추가 */}
+      <TutorialNewsModal
+        isOpen={isNewsModalOpen}
+        onClose={() => setIsNewsModalOpen(false)}
+        news={currentNews}
+        companyId={companyId}
+        currentTurn={currentTurn}
       />
     </div>
   );
