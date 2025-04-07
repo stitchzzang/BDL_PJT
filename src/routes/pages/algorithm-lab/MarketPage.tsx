@@ -313,8 +313,10 @@ export const MarketPage = () => {
                     <Tooltip>
                       <TooltipTrigger className="flex cursor-help items-center">
                         <div className="mr-1 h-3 w-3 rounded-sm bg-[#9BD45E]"></div>
-                        <span>단기(5일)선</span>
-                        <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                        <span className="relative">
+                          단기(5일)선
+                          <QuestionMarkCircleIcon className="absolute -right-3.5 -top-2.5 h-4 w-4 text-white" />
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs p-2">
                         <p className="mb-1 text-xs font-medium">단기 이동평균선(5일)</p>
@@ -330,8 +332,10 @@ export const MarketPage = () => {
                     <Tooltip>
                       <TooltipTrigger className="flex cursor-help items-center">
                         <div className="mr-1 h-3 w-3 rounded-sm bg-[#FFC000]"></div>
-                        <span>장기(20일)선</span>
-                        <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                        <span className="relative">
+                          장기(20일)선
+                          <QuestionMarkCircleIcon className="absolute -right-3.5 -top-2.5 h-4 w-4 text-white" />
+                        </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs p-2">
                         <p className="mb-1 text-xs font-medium">장기 이동평균선(20일)</p>
