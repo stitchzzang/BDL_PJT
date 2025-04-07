@@ -61,7 +61,17 @@ export const subscribeToNotifications = () => {
 
   const connect = () => {
     try {
-      console.log('SSE 연결 시도');
+      // 최신 userData 가져오기
+      const { userData } = useAuthStore.getState();
+      const accessToken = localStorage.getItem('accessToken');
+
+      // 현재 로그인한 사용자 ID 체크
+      if (!userData.memberId) {
+        console.log('SSE 연결 실패: memberId가 없음');
+        return;
+      }
+
+      console.log(`SSE 연결 시도: 사용자 ID ${userData.memberId}`);
       const newEventSource = new EventSourcePolyfill(
         `/api/notification/subscribe/${userData.memberId}`,
         {
@@ -109,7 +119,8 @@ export const subscribeToNotifications = () => {
         NotificationEventSource.closeConnection();
 
         // 로그인 상태가 아니면 재연결하지 않음
-        if (!useAuthStore.getState().isLogin) {
+        const authState = useAuthStore.getState();
+        if (!authState.isLogin) {
           console.log('SSE 재연결 중단: 로그인 상태 아님');
           return;
         }
@@ -232,15 +243,8 @@ export const unsubscribeFromNotifications = () => {
   NotificationEventSource.closeConnection();
 };
 
-// 페이지 로드 시 연결 상태 확인
+// 페이지 언로드 시 연결 해제
 if (typeof window !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const { isLogin } = useAuthStore.getState();
-    if (isLogin) {
-      subscribeToNotifications();
-    }
-  });
-
   window.addEventListener('beforeunload', () => {
     unsubscribeFromNotifications();
   });
