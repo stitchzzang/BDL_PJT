@@ -76,78 +76,80 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
         )}
       </div>
       <AlgorithmOption algorithm={algorithm} />
-      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogTrigger asChild>
-          <button className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white">
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>알고리즘 삭제</AlertDialogTitle>
-            <AlertDialogDescription>
-              {algorithm.isRunning
-                ? '알고리즘을 삭제하면 실행 중인 알고리즘이 종료되고 삭제됩니다.\n  계속하시겠습니까?'
-                : '알고리즘을 삭제하면 되돌릴 수 없습니다.\n 계속하시겠습니까?'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction variant="red" onClick={handleDelete}>
-              삭제
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button className="max-h-[45px] max-w-[225px]" variant={'gray'} size={'lg'}>
-            백 테스트
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>테스트 종목을 선택하세요.</AlertDialogTitle>
+      <div className="flex gap-3">
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button className="max-h-[45px] max-w-[225px]" variant={'green'} size={'lg'}>
+              백 테스트
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
             <AlertDialogHeader>
-              <p className="text-[14px] text-border-color">
-                테스트 일자는 전날부터 1년전 기준으로 진행됩니다.
-              </p>
-            </AlertDialogHeader>
-            <AlertDialogDescription>
-              <>
-                {companies?.length !== 0 && companies ? (
-                  <div className="max-h-[400px] animate-fadeIn overflow-y-auto">
-                    {companies.map((companie, index) => (
-                      <div
-                        onClick={() =>
-                          handleRouterBackTest(algorithm.algorithmId, companie.companyId)
-                        }
-                        className="mb-2 flex cursor-pointer items-center gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-3 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
-                      >
-                        <p className="opacity-40">{index + 1}</p>
-                        <div className="h-10 w-10 overflow-hidden rounded-xl">
-                          <img src={companie.companyImage} alt="none-logo" />
+              <AlertDialogTitle>테스트 종목을 선택하세요.</AlertDialogTitle>
+              <AlertDialogHeader>
+                <p className="text-[14px] text-border-color">
+                  테스트 일자는 전날부터 1년전 기준으로 진행됩니다.
+                </p>
+              </AlertDialogHeader>
+              <AlertDialogDescription>
+                <>
+                  {companies?.length !== 0 && companies ? (
+                    <div className="max-h-[400px] animate-fadeIn overflow-y-auto">
+                      {companies.map((companie, index) => (
+                        <div
+                          onClick={() =>
+                            handleRouterBackTest(algorithm.algorithmId, companie.companyId)
+                          }
+                          className="mb-2 flex cursor-pointer items-center gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-3 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
+                        >
+                          <p className="opacity-40">{index + 1}</p>
+                          <div className="h-10 w-10 overflow-hidden rounded-xl">
+                            <img src={companie.companyImage} alt="none-logo" />
+                          </div>
+                          <p className="font-bold= text-[16px]">{companie.companyName}</p>
+                          <p className="font-bold= text-[12px] opacity-40">
+                            종목코드: {companie.companyCode.slice(0, 10)}
+                          </p>
                         </div>
-                        <p className="font-bold= text-[16px]">{companie.companyName}</p>
-                        <p className="font-bold= text-[12px] opacity-40">
-                          종목코드: {companie.companyCode.slice(0, 10)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div>
-                    <p>종목 종류 불러오기 실패.</p>
-                  </div>
-                )}
-              </>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <p>종목 종류 불러오기 실패.</p>
+                    </div>
+                  )}
+                </>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+          <AlertDialogTrigger asChild>
+            <button className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white">
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>알고리즘 삭제</AlertDialogTitle>
+              <AlertDialogDescription>
+                {algorithm.isRunning
+                  ? '알고리즘을 삭제하면 실행 중인 알고리즘이 종료되고 삭제됩니다.\n  계속하시겠습니까?'
+                  : '알고리즘을 삭제하면 되돌릴 수 없습니다.\n 계속하시겠습니까?'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction variant="red" onClick={handleDelete}>
+                삭제
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 };
