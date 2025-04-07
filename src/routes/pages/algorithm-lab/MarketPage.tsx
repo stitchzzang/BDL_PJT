@@ -1,5 +1,7 @@
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
-import { ChangeEvent, useState } from 'react';
+import { EChartsOption } from 'echarts';
+import ReactECharts from 'echarts-for-react';
+import { ChangeEvent, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
@@ -9,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
+import { DUMMY_DAILY_CHART_DATA, DUMMY_MINUTE_CHART_DATA } from '@/mocks/dummy-data';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 
@@ -218,7 +221,23 @@ export const MarketPage = () => {
               <p className="text-lg font-bold">
                 단기 변화에 반응{' '}
                 <span className="text-sm font-normal">
-                  (5<TermTooltip term="분봉">분봉</TermTooltip>)
+                  (5
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="relative ml-1 mr-1 inline-block cursor-help">
+                        <span className="relative">
+                          분봉
+                          <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-auto p-2" side="top">
+                        <p className="mb-1 font-semibold">5분봉 차트</p>
+                        <p className="text-xs">5분 단위로 변화하는 주가 데이터를 표시합니다.</p>
+                        <p className="text-xs">단기적인 가격 변동을 분석하는데 유용합니다.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  )
                 </span>
               </p>
               <p className="whitespace-normal break-keep text-sm">
@@ -235,7 +254,23 @@ export const MarketPage = () => {
               <p className="text-lg font-bold">
                 일간 추세에 반응{' '}
                 <span className="text-sm font-normal">
-                  (<TermTooltip term="일봉">일봉</TermTooltip>)
+                  (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="relative mr-1 inline-block cursor-help">
+                        <span className="relative">
+                          일봉
+                          <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-auto p-2" side="top">
+                        <p className="mb-1 font-semibold">일봉 차트</p>
+                        <p className="text-xs">하루 단위로 변화하는 주가 데이터를 표시합니다.</p>
+                        <p className="text-xs">장기적인 추세 분석에 유용합니다.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  )
                 </span>
               </p>
               <p className="whitespace-normal break-keep text-sm">
@@ -245,6 +280,41 @@ export const MarketPage = () => {
           </div>
         </div>
       </div>
+
+      {/* 선택된 시간대에 따른 차트 미리보기 */}
+      {selectedTimeframe && (
+        <div className="w-full animate-fadeIn rounded-lg border border-gray-200 shadow-md">
+          <h3 className="mb-1 p-2 text-center text-lg font-semibold">
+            {selectedTimeframe === 'oneMinute' ? '5분봉' : '일봉'} 차트 예시
+          </h3>
+
+          <div className="flex w-full flex-col items-center justify-center p-2">
+            {selectedTimeframe === 'oneMinute' ? (
+              <SimpleMinuteChart data={DUMMY_MINUTE_CHART_DATA.data} />
+            ) : (
+              <SimpleDailyChart data={DUMMY_DAILY_CHART_DATA.data} />
+            )}
+          </div>
+
+          <div className="mb-3 px-4">
+            <div className="flex items-center justify-center gap-4 text-xs">
+              <div className="flex items-center">
+                <div className="mr-1 h-3 w-3 rounded-sm bg-red-500"></div>
+                <span>상승</span>
+              </div>
+              <div className="flex items-center">
+                <div className="mr-1 h-3 w-3 rounded-sm bg-blue-600"></div>
+                <span>하락</span>
+              </div>
+              <div className="flex items-center">
+                <div className="mr-1 h-3 w-3 rounded-sm bg-green-500"></div>
+                <span>이동평균선</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col gap-2">
           <div className="mb-2 flex items-center justify-between">
@@ -469,5 +539,212 @@ export const MarketPage = () => {
         </Button>
       </div>
     </div>
+  );
+};
+
+// 간단한 5분봉 차트 컴포넌트
+interface SimpleMinuteChartProps {
+  data: any[];
+}
+
+const SimpleMinuteChart: React.FC<SimpleMinuteChartProps> = ({ data }) => {
+  // 차트 옵션 생성
+  const option = useMemo<EChartsOption>(() => {
+    // 날짜와 시간 포맷팅
+    const formatTime = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    };
+
+    // 데이터 변환
+    const categories = data.map((item) => formatTime(item.tradingTime));
+    const values = data.map((item) => [
+      item.openPrice,
+      item.closePrice,
+      item.lowPrice,
+      item.highPrice,
+    ]);
+
+    // 5분 이동평균선
+    const ma5 = data.map((item) => item.fiveAverage);
+
+    return {
+      grid: {
+        left: '10%',
+        right: '5%',
+        top: '10%',
+        bottom: '15%',
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: {
+          fontSize: 10,
+          interval: 0,
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#ccc',
+          },
+        },
+      },
+      yAxis: {
+        type: 'value',
+        scale: true,
+        axisLabel: {
+          fontSize: 10,
+          formatter: (value: number) => value.toLocaleString(),
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#eee',
+          },
+        },
+      },
+      series: [
+        {
+          type: 'candlestick',
+          data: values,
+          itemStyle: {
+            color: '#ef5350', // 양봉(상승) 색상
+            color0: '#1976d2', // 음봉(하락) 색상
+            borderColor: '#ef5350',
+            borderColor0: '#1976d2',
+          },
+        },
+        {
+          name: '5분 이동평균선',
+          type: 'line',
+          data: ma5,
+          smooth: true,
+          lineStyle: {
+            width: 2,
+            color: '#4caf50',
+          },
+        },
+      ],
+      tooltip: {
+        show: false,
+      },
+      animation: false,
+    };
+  }, [data]);
+
+  return (
+    <ReactECharts
+      option={option}
+      style={{ height: '160px', width: '330px' }}
+      notMerge={true}
+      lazyUpdate={false}
+    />
+  );
+};
+
+// 간단한 일봉 차트 컴포넌트
+interface SimpleDailyChartProps {
+  data: any[];
+}
+
+const SimpleDailyChart: React.FC<SimpleDailyChartProps> = ({ data }) => {
+  // 차트 옵션 생성
+  const option = useMemo<EChartsOption>(() => {
+    // 날짜 포맷팅
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    };
+
+    // 데이터 변환
+    const categories = data.map((item) => formatDate(item.tradingDate));
+    const values = data.map((item) => [
+      item.openPrice,
+      item.closePrice,
+      item.lowPrice,
+      item.highPrice,
+    ]);
+
+    // 이동평균선
+    const ma5 = data.map((item) => item.fiveAverage);
+    const ma20 = data.map((item) => item.twentyAverage);
+
+    return {
+      grid: {
+        left: '10%',
+        right: '5%',
+        top: '10%',
+        bottom: '15%',
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: {
+          fontSize: 10,
+          interval: 0,
+        },
+        axisLine: {
+          lineStyle: {
+            color: '#ccc',
+          },
+        },
+      },
+      yAxis: {
+        type: 'value',
+        scale: true,
+        axisLabel: {
+          fontSize: 10,
+          formatter: (value: number) => value.toLocaleString(),
+        },
+        splitLine: {
+          lineStyle: {
+            color: '#eee',
+          },
+        },
+      },
+      series: [
+        {
+          type: 'candlestick',
+          data: values,
+          itemStyle: {
+            color: '#ef5350', // 양봉(상승) 색상
+            color0: '#1976d2', // 음봉(하락) 색상
+            borderColor: '#ef5350',
+            borderColor0: '#1976d2',
+          },
+        },
+        {
+          name: '단기 이동평균선',
+          type: 'line',
+          data: ma5,
+          smooth: true,
+          lineStyle: {
+            width: 2,
+            color: '#4caf50',
+          },
+        },
+        {
+          name: '장기 이동평균선',
+          type: 'line',
+          data: ma20,
+          smooth: true,
+          lineStyle: {
+            width: 2,
+            color: '#ff9800',
+          },
+        },
+      ],
+      tooltip: {
+        show: false,
+      },
+      animation: false,
+    };
+  }, [data]);
+
+  return (
+    <ReactECharts
+      option={option}
+      style={{ height: '160px', width: '330px' }}
+      notMerge={true}
+      lazyUpdate={false}
+    />
   );
 };
