@@ -74,6 +74,12 @@ export const TutorialOrderStatusBuy = ({
     return Math.floor(availableOrderAsset / buyCost);
   };
 
+  // 퍼센트 기준 수량 설정
+  const setPercentageStockCount = (percentage: number) => {
+    const maxCount = maxPurchasableStocks();
+    setStockCount(Math.floor((maxCount * percentage) / 100));
+  };
+
   // 전체 수량 설정 - 최대 구매 가능 수량으로 설정
   const setMaxStockCount = () => {
     setStockCount(maxPurchasableStocks());
@@ -118,44 +124,68 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
+
+          {/* 수량 입력 영역 */}
           <div className="flex items-center justify-between gap-3">
-            <div className="relative flex w-full flex-col gap-2">
-              <div className="relative">
-                <NumberInput
-                  value={stockCount}
-                  setValue={setStockCount}
-                  placeholder=""
-                  className="text-center text-[18px]"
-                />
-                <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
-                  <span className="text-[16px] font-bold text-white">수량</span>
-                </div>
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
-                    >
-                      -
-                    </button>
-                  </div>
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
-                    <button className="text-[14px]" onClick={setMaxStockCount}>
-                      전체
-                    </button>
-                  </div>
-                </div>
+            <div className="relative flex-1">
+              <NumberInput
+                value={stockCount}
+                setValue={setStockCount}
+                placeholder="수량"
+                className="text-right text-[18px]"
+              />
+              <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
+                <span className="text-[16px] font-bold text-white">수량</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex h-[48px] w-10 items-center justify-center rounded-xl border border-border-color hover:bg-background-color">
+                <button
+                  className="text-[22px]"
+                  onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                >
+                  -
+                </button>
+              </div>
+              <div className="flex h-[48px] w-10 items-center justify-center rounded-xl border border-border-color hover:bg-background-color">
+                <button
+                  className="text-[22px]"
+                  onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
+
+          {/* 퍼센트 선택 버튼 영역 */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => setPercentageStockCount(10)}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              10%
+            </button>
+            <button
+              onClick={() => setPercentageStockCount(20)}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              20%
+            </button>
+            <button
+              onClick={() => setPercentageStockCount(50)}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              50%
+            </button>
+            <button
+              onClick={setMaxStockCount}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              전체
+            </button>
+          </div>
+
           {/* 구매 가능 수량 표시 */}
           <div className="flex items-center justify-between">
             <div className="min-w-[100px]">

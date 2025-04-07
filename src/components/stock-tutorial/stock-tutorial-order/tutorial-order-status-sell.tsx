@@ -76,6 +76,11 @@ export const TutorialOrderStatusSell = ({
     setIsActive(active);
   };
 
+  // 퍼센트 기준 수량 설정
+  const setPercentageStockCount = (percentage: number) => {
+    setStockCount(Math.floor((ownedStockCount * percentage) / 100));
+  };
+
   // 수량 변경 핸들러 - 보유 주식 수량 내로 제한
   const handleStockCountChange = (newCount: number) => {
     if (newCount > ownedStockCount) {
@@ -144,47 +149,68 @@ export const TutorialOrderStatusSell = ({
 
           {/* 수량 입력 */}
           <div className="flex items-center justify-between gap-3">
-            <div className="relative flex w-full flex-col gap-2">
-              <div className="relative">
-                <NumberInput
-                  value={stockCount}
-                  setValue={handleSetStockCount}
-                  placeholder=""
-                  className="text-center text-[18px]"
-                />
-                <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
-                  <span className="text-[16px] font-bold text-white">수량</span>
-                </div>
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
-                    >
-                      -
-                    </button>
-                  </div>
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => {
-                        const newCount = stockCount + 1;
-                        if (newCount <= ownedStockCount) {
-                          priceButtonHandler('+', stockCount, setStockCount, 1);
-                        }
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
-                    <button className="text-[14px]" onClick={setMaxStockCount}>
-                      전체
-                    </button>
-                  </div>
-                </div>
+            <div className="relative flex-1">
+              <NumberInput
+                value={stockCount}
+                setValue={handleSetStockCount}
+                placeholder="수량"
+                className="text-right text-[18px]"
+              />
+              <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
+                <span className="text-[16px] font-bold text-white">수량</span>
               </div>
             </div>
+            <div className="flex items-center gap-1">
+              <div className="flex h-[48px] w-10 items-center justify-center rounded-xl border border-border-color hover:bg-background-color">
+                <button
+                  className="text-[22px]"
+                  onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
+                >
+                  -
+                </button>
+              </div>
+              <div className="flex h-[48px] w-10 items-center justify-center rounded-xl border border-border-color hover:bg-background-color">
+                <button
+                  className="text-[22px]"
+                  onClick={() => {
+                    const newCount = stockCount + 1;
+                    if (newCount <= ownedStockCount) {
+                      priceButtonHandler('+', stockCount, setStockCount, 1);
+                    }
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 퍼센트 선택 버튼 영역 */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => setPercentageStockCount(10)}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              10%
+            </button>
+            <button
+              onClick={() => setPercentageStockCount(20)}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              20%
+            </button>
+            <button
+              onClick={() => setPercentageStockCount(50)}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              50%
+            </button>
+            <button
+              onClick={setMaxStockCount}
+              className="flex-1 rounded-md border border-border-color py-1 text-[14px] text-white hover:bg-background-color"
+            >
+              전체
+            </button>
           </div>
 
           {/* 보유 수량 표시 */}
