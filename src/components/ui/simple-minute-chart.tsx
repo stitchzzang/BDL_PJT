@@ -57,8 +57,8 @@ export interface SimpleChartProps<T> {
 }
 
 /**
- * 간단한 5분봉 차트 컴포넌트
- * 캔들스틱 차트로 5분 단위의 주가 데이터를 표시합니다.
+ * 간단한 분봉 차트 컴포넌트
+ * 캔들스틱 차트로 1분 단위의 주가 데이터를 표시합니다.
  */
 export const SimpleMinuteChart: React.FC<SimpleChartProps<MinuteChartDataItem>> = ({
   data,

@@ -221,7 +221,7 @@ export const MarketPage = () => {
               <p className="text-lg font-bold">
                 단기 변화에 반응{' '}
                 <span className="text-sm font-normal">
-                  (5
+                  (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger className="relative ml-1 mr-1 inline-block cursor-help">
@@ -231,8 +231,8 @@ export const MarketPage = () => {
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="w-auto p-2" side="top">
-                        <p className="mb-1 font-semibold">5분봉 차트</p>
-                        <p className="text-xs">5분 단위로 변화하는 주가 데이터를 표시합니다.</p>
+                        <p className="mb-1 font-semibold">분봉 차트</p>
+                        <p className="text-xs">1분 단위로 변화하는 주가 데이터를 표시합니다.</p>
                         <p className="text-xs">단기적인 가격 변동을 분석하는데 유용합니다.</p>
                       </TooltipContent>
                     </Tooltip>
@@ -257,7 +257,7 @@ export const MarketPage = () => {
                   (
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="relative mr-1 inline-block cursor-help">
+                      <TooltipTrigger className="relative ml-1 mr-1 inline-block cursor-help">
                         <span className="relative">
                           일봉
                           <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
@@ -285,7 +285,7 @@ export const MarketPage = () => {
       {selectedTimeframe && (
         <div className="w-full animate-fadeIn rounded-lg border border-gray-200 shadow-md">
           <h3 className="mb-1 p-2 text-center text-lg font-semibold">
-            {selectedTimeframe === 'oneMinute' ? '5분봉' : '일봉'} 차트 예시
+            {selectedTimeframe === 'oneMinute' ? '분봉' : '일봉'} 차트 예시
           </h3>
 
           <div className="flex w-full flex-col items-center justify-center p-2">
