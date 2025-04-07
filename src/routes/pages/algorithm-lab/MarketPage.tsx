@@ -1,13 +1,13 @@
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
-import { EChartsOption } from 'echarts';
-import ReactECharts from 'echarts-for-react';
-import { ChangeEvent, useMemo, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SimpleDailyChart } from '@/components/ui/simple-daily-chart';
+import { SimpleMinuteChart } from '@/components/ui/simple-minute-chart';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
@@ -297,7 +297,7 @@ export const MarketPage = () => {
           </div>
 
           <div className="mb-3 px-4">
-            <div className="flex items-center justify-center gap-4 text-xs">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
               <div className="flex items-center">
                 <div className="mr-1 h-3 w-3 rounded-sm bg-red-500"></div>
                 <span>상승</span>
@@ -306,10 +306,52 @@ export const MarketPage = () => {
                 <div className="mr-1 h-3 w-3 rounded-sm bg-blue-600"></div>
                 <span>하락</span>
               </div>
-              <div className="flex items-center">
-                <div className="mr-1 h-3 w-3 rounded-sm bg-green-500"></div>
-                <span>이동평균선</span>
-              </div>
+
+              {selectedTimeframe === 'daily' && (
+                <>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="flex cursor-help items-center">
+                        <div className="mr-1 h-3 w-3 rounded-sm bg-green-500"></div>
+                        <span>단기(5일)선</span>
+                        <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs p-2">
+                        <p className="mb-1 text-xs font-medium">단기 이동평균선(5일)</p>
+                        <p className="text-xs">
+                          5일 동안의 주가 평균을 연결한 선입니다. 짧은 기간의 추세를 보여주며, 주가
+                          변동에 민감하게 반응합니다.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="flex cursor-help items-center">
+                        <div className="mr-1 h-3 w-3 rounded-sm bg-orange-500"></div>
+                        <span>장기(20일)선</span>
+                        <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs p-2">
+                        <p className="mb-1 text-xs font-medium">장기 이동평균선(20일)</p>
+                        <p className="text-xs">
+                          20일 동안의 주가 평균을 연결한 선입니다. 장기적인 추세를 보여주며, 주가의
+                          전체적인 방향성을 파악하는 데 도움이 됩니다.
+                        </p>
+                        <p className="mt-1 text-xs">
+                          <span className="font-medium">골든크로스:</span> 단기선이 장기선을 상향
+                          돌파할 때 매수 신호
+                        </p>
+                        <p className="text-xs">
+                          <span className="font-medium">데드크로스:</span> 단기선이 장기선을 하향
+                          돌파할 때 매도 신호
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -539,212 +581,5 @@ export const MarketPage = () => {
         </Button>
       </div>
     </div>
-  );
-};
-
-// 간단한 5분봉 차트 컴포넌트
-interface SimpleMinuteChartProps {
-  data: any[];
-}
-
-const SimpleMinuteChart: React.FC<SimpleMinuteChartProps> = ({ data }) => {
-  // 차트 옵션 생성
-  const option = useMemo<EChartsOption>(() => {
-    // 날짜와 시간 포맷팅
-    const formatTime = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-    };
-
-    // 데이터 변환
-    const categories = data.map((item) => formatTime(item.tradingTime));
-    const values = data.map((item) => [
-      item.openPrice,
-      item.closePrice,
-      item.lowPrice,
-      item.highPrice,
-    ]);
-
-    // 5분 이동평균선
-    const ma5 = data.map((item) => item.fiveAverage);
-
-    return {
-      grid: {
-        left: '10%',
-        right: '5%',
-        top: '10%',
-        bottom: '15%',
-      },
-      xAxis: {
-        type: 'category',
-        data: categories,
-        axisLabel: {
-          fontSize: 10,
-          interval: 0,
-        },
-        axisLine: {
-          lineStyle: {
-            color: '#ccc',
-          },
-        },
-      },
-      yAxis: {
-        type: 'value',
-        scale: true,
-        axisLabel: {
-          fontSize: 10,
-          formatter: (value: number) => value.toLocaleString(),
-        },
-        splitLine: {
-          lineStyle: {
-            color: '#eee',
-          },
-        },
-      },
-      series: [
-        {
-          type: 'candlestick',
-          data: values,
-          itemStyle: {
-            color: '#ef5350', // 양봉(상승) 색상
-            color0: '#1976d2', // 음봉(하락) 색상
-            borderColor: '#ef5350',
-            borderColor0: '#1976d2',
-          },
-        },
-        {
-          name: '5분 이동평균선',
-          type: 'line',
-          data: ma5,
-          smooth: true,
-          lineStyle: {
-            width: 2,
-            color: '#4caf50',
-          },
-        },
-      ],
-      tooltip: {
-        show: false,
-      },
-      animation: false,
-    };
-  }, [data]);
-
-  return (
-    <ReactECharts
-      option={option}
-      style={{ height: '160px', width: '330px' }}
-      notMerge={true}
-      lazyUpdate={false}
-    />
-  );
-};
-
-// 간단한 일봉 차트 컴포넌트
-interface SimpleDailyChartProps {
-  data: any[];
-}
-
-const SimpleDailyChart: React.FC<SimpleDailyChartProps> = ({ data }) => {
-  // 차트 옵션 생성
-  const option = useMemo<EChartsOption>(() => {
-    // 날짜 포맷팅
-    const formatDate = (dateStr: string) => {
-      const date = new Date(dateStr);
-      return `${date.getMonth() + 1}/${date.getDate()}`;
-    };
-
-    // 데이터 변환
-    const categories = data.map((item) => formatDate(item.tradingDate));
-    const values = data.map((item) => [
-      item.openPrice,
-      item.closePrice,
-      item.lowPrice,
-      item.highPrice,
-    ]);
-
-    // 이동평균선
-    const ma5 = data.map((item) => item.fiveAverage);
-    const ma20 = data.map((item) => item.twentyAverage);
-
-    return {
-      grid: {
-        left: '10%',
-        right: '5%',
-        top: '10%',
-        bottom: '15%',
-      },
-      xAxis: {
-        type: 'category',
-        data: categories,
-        axisLabel: {
-          fontSize: 10,
-          interval: 0,
-        },
-        axisLine: {
-          lineStyle: {
-            color: '#ccc',
-          },
-        },
-      },
-      yAxis: {
-        type: 'value',
-        scale: true,
-        axisLabel: {
-          fontSize: 10,
-          formatter: (value: number) => value.toLocaleString(),
-        },
-        splitLine: {
-          lineStyle: {
-            color: '#eee',
-          },
-        },
-      },
-      series: [
-        {
-          type: 'candlestick',
-          data: values,
-          itemStyle: {
-            color: '#ef5350', // 양봉(상승) 색상
-            color0: '#1976d2', // 음봉(하락) 색상
-            borderColor: '#ef5350',
-            borderColor0: '#1976d2',
-          },
-        },
-        {
-          name: '단기 이동평균선',
-          type: 'line',
-          data: ma5,
-          smooth: true,
-          lineStyle: {
-            width: 2,
-            color: '#4caf50',
-          },
-        },
-        {
-          name: '장기 이동평균선',
-          type: 'line',
-          data: ma20,
-          smooth: true,
-          lineStyle: {
-            width: 2,
-            color: '#ff9800',
-          },
-        },
-      ],
-      tooltip: {
-        show: false,
-      },
-      animation: false,
-    };
-  }, [data]);
-
-  return (
-    <ReactECharts
-      option={option}
-      style={{ height: '160px', width: '330px' }}
-      notMerge={true}
-      lazyUpdate={false}
-    />
   );
 };
