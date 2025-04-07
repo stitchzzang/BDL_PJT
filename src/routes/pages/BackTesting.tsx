@@ -9,7 +9,9 @@ import { AlgorithmSummary } from '@/components/algorithm/algorithm-summary';
 import { BackTestResultList } from '@/components/algorithm/backtest-result-list';
 import AssetComparisonChart from '@/components/algorithm/userCostChangeChart';
 import { AirplaneAnimation } from '@/components/common/airplane-animation';
+import { Button } from '@/components/ui/button';
 import { Lanyard } from '@/components/ui/lanyard';
+import { navigate } from '@/lib/navigation';
 
 export const BackTesting = () => {
   // url 파라미터 값 가져오기
@@ -174,6 +176,11 @@ export const BackTesting = () => {
     handleBackTest();
   }, []);
 
+  // 마이페이지 이동
+  const handleMoveMypage = () => {
+    navigate(`/member/algorithm`);
+  };
+
   return (
     <div className="w-full px-6">
       <div className="">
@@ -205,8 +212,8 @@ export const BackTesting = () => {
         {showSummary ? (
           <></>
         ) : (
-          <div className="mb-2 mt-4 animate-fadeIn rounded-xl bg-modal-background-color p-2 duration-300">
-            <div className="flex items-center">
+          <div className="mb-2 mt-4 flex animate-fadeIn justify-between gap-2 rounded-xl bg-modal-background-color p-2 duration-300">
+            <div className="flex w-[100%] items-center">
               <input
                 type="range"
                 min={1}
@@ -215,6 +222,11 @@ export const BackTesting = () => {
                 onChange={handleSliderChange}
                 className="h-2 w-full cursor-pointer"
               />
+            </div>
+            <div>
+              <Button variant={'green'} size={'sm'} onClick={() => handleMoveMypage()}>
+                테스트 확인
+              </Button>
             </div>
           </div>
         )}
