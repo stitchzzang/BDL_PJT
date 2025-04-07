@@ -836,7 +836,6 @@ export const SimulatePage = () => {
     }
   };
 
-  // 이제 loadChartData가 선언되었으므로 moveToNextTurn 함수를 올바르게 재정의합니다
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveToNextTurn = async () => {
     if (currentTurn < 4) {
@@ -972,15 +971,6 @@ export const SimulatePage = () => {
           totalReturnRate,
         });
         setFinalChangeRate(totalReturnRate);
-
-        console.log(`턴 ${nextTurn} 자산 정보 업데이트:
-          이전 종가: ${prevTurnLastPrice}원
-          현재 종가: ${nextTurnPrice}원
-          주문 가능 금액: ${availableOrderAsset.toLocaleString()}원
-          보유 주식: ${prevOwnedStock}주
-          총 자산: ${currentTotalAsset.toLocaleString()}원
-          수익률: ${totalReturnRate.toFixed(2)}%
-        `);
       } catch (error) {
         console.error('다음 턴으로 이동 중 오류 발생:', error);
       }
@@ -1132,8 +1122,6 @@ export const SimulatePage = () => {
 
     // 최종 수익률 설정 - 4턴의 정확한 수익률 사용
     setFinalChangeRate(finalRate);
-
-    console.log(`튜토리얼 최종 수익률(4턴): ${finalRate.toFixed(2)}%`);
 
     // 종료 모달 표시
     setIsModalOpen(true);
