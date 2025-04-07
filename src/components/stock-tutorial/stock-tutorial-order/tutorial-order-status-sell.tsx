@@ -19,7 +19,6 @@ export const TutorialOrderStatusSell = ({
   ownedStockCount = 0, // 기본값 0
 }: TutorialOrderStatusSellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
-  const [isActive, setIsActive] = useState<string>('지정가');
 
   // 판매가격
   const [sellPrice, setSellPrice] = useState<number>(0);
@@ -60,27 +59,32 @@ export const TutorialOrderStatusSell = ({
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
 
-  // ownedStockCount가 변경될 때마다 stockCount가 유효한지 확인
+  // 최대 수량 초과 여부 확인
+  const isExceedingMaxStocks = ownedStockCount > 0 && stockCount > ownedStockCount;
+
+  // 판매 가능 여부 확인
+  const canSell = isSessionActive && ownedStockCount > 0;
+
+  // 보유 수량이 0이면 stockCount도 0으로 설정
   useEffect(() => {
-    if (stockCount > ownedStockCount) {
-      setStockCount(Math.min(ownedStockCount, stockCount)); // 보유 수량을 초과하지 않도록 제한
+    if (ownedStockCount === 0) {
+      setStockCount(0);
     }
-  }, [ownedStockCount, stockCount]);
+  }, [ownedStockCount]);
 
   // 총 주문 금액
   const totalPrice = () => {
     return sellPrice * stockCount;
   };
 
-  const isActiveHandler = (active: string) => {
-    setIsActive(active);
+  // 퍼센트 기준 수량 설정
+  const setPercentageStockCount = (percentage: number) => {
+    setStockCount(Math.floor((ownedStockCount * percentage) / 100));
   };
 
-  // 수량 변경 핸들러 - 보유 주식 수량 내로 제한
+  // 수량 변경 핸들러 - 제한 없이 수량 설정
   const handleStockCountChange = (newCount: number) => {
-    if (newCount > ownedStockCount) {
-      setStockCount(ownedStockCount);
-    } else if (newCount < 0) {
+    if (newCount < 0) {
       setStockCount(0);
     } else {
       setStockCount(newCount);
@@ -101,7 +105,7 @@ export const TutorialOrderStatusSell = ({
 
   // 판매 처리
   const handleSellStock = () => {
-    if (!isSessionActive || stockCount <= 0 || sellPrice <= 0) {
+    if (!isSessionActive || stockCount <= 0 || sellPrice <= 0 || ownedStockCount <= 0) {
       return;
     }
 
@@ -110,9 +114,6 @@ export const TutorialOrderStatusSell = ({
       alert(
         `보유한 주식 수량(${ownedStockCount}주)보다 많은 수량(${stockCount}주)을 판매할 수 없습니다.`,
       );
-
-      // 안전하게 판매 수량 조정 (보유량 이하로)
-      setStockCount(Math.max(0, Math.min(ownedStockCount, stockCount)));
       return;
     }
 
@@ -134,6 +135,7 @@ export const TutorialOrderStatusSell = ({
                   placeholder={isSessionActive ? '시장가 원' : '턴 시작 후 자동 설정됩니다'}
                   formatAsCurrency={true}
                   className="text-right text-[18px]"
+                  disabled={!isSessionActive}
                 />
                 <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
                   <span className="text-[16px] font-bold text-white">현재 주식 가격</span>
@@ -144,47 +146,83 @@ export const TutorialOrderStatusSell = ({
 
           {/* 수량 입력 */}
           <div className="flex items-center justify-between gap-3">
-            <div className="relative flex w-full flex-col gap-2">
-              <div className="relative">
-                <NumberInput
-                  value={stockCount}
-                  setValue={handleSetStockCount}
-                  placeholder=""
-                  className="text-center text-[18px]"
-                />
-                <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
-                  <span className="text-[16px] font-bold text-white">수량</span>
-                </div>
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
-                    >
-                      -
-                    </button>
-                  </div>
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => {
-                        const newCount = stockCount + 1;
-                        if (newCount <= ownedStockCount) {
-                          priceButtonHandler('+', stockCount, setStockCount, 1);
-                        }
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
-                    <button className="text-[14px]" onClick={setMaxStockCount}>
-                      전체
-                    </button>
-                  </div>
-                </div>
+            <div className="relative flex-1">
+              <NumberInput
+                value={stockCount}
+                setValue={handleSetStockCount}
+                placeholder="수량"
+                className="text-right text-[18px]"
+                disabled={!canSell}
+              />
+              <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
+                <span className="text-[16px] font-bold text-white">수량</span>
               </div>
             </div>
+            <div className="flex items-center gap-1">
+              <div
+                className={`flex h-[48px] w-10 items-center justify-center rounded-xl border border-border-color ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
+              >
+                <button
+                  className="text-[22px]"
+                  onClick={() => priceButtonHandler('-', stockCount, setStockCount, 1)}
+                  disabled={!canSell}
+                >
+                  -
+                </button>
+              </div>
+              <div
+                className={`flex h-[48px] w-10 items-center justify-center rounded-xl border border-border-color ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
+              >
+                <button
+                  className="text-[22px]"
+                  onClick={() => {
+                    priceButtonHandler('+', stockCount, setStockCount, 1);
+                  }}
+                  disabled={!canSell}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 수량 초과 경고 메시지 */}
+          {isExceedingMaxStocks && (
+            <div className="mb-1 mt-1 text-center text-[14px] font-medium text-orange-500">
+              최대 수량을 초과하였습니다. (최대: {ownedStockCount}주)
+            </div>
+          )}
+
+          {/* 퍼센트 선택 버튼 영역 */}
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => setPercentageStockCount(10)}
+              className={`flex-1 rounded-md border border-border-color py-1 text-[14px] text-white ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
+              disabled={!canSell}
+            >
+              10%
+            </button>
+            <button
+              onClick={() => setPercentageStockCount(20)}
+              className={`flex-1 rounded-md border border-border-color py-1 text-[14px] text-white ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
+              disabled={!canSell}
+            >
+              20%
+            </button>
+            <button
+              onClick={() => setPercentageStockCount(50)}
+              className={`flex-1 rounded-md border border-border-color py-1 text-[14px] text-white ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
+              disabled={!canSell}
+            >
+              50%
+            </button>
+            <button
+              onClick={setMaxStockCount}
+              className={`flex-1 rounded-md border border-border-color py-1 text-[14px] text-white ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
+              disabled={!canSell}
+            >
+              전체
+            </button>
           </div>
 
           {/* 보유 수량 표시 */}
@@ -212,14 +250,15 @@ export const TutorialOrderStatusSell = ({
           <div className="mt-3">
             <Button
               variant="blue"
-              className="w-full"
+              className={`w-full ${!isSessionActive || ownedStockCount <= 0 ? 'opacity-50' : ''}`}
               size="lg"
               onClick={handleSellStock}
               disabled={
                 !isSessionActive ||
                 stockCount <= 0 ||
                 stockCount > ownedStockCount ||
-                sellPrice <= 0
+                sellPrice <= 0 ||
+                ownedStockCount <= 0
               }
             >
               <p className="text-[16px] font-medium text-white">판매하기</p>

@@ -7,6 +7,7 @@ interface InputProps {
   placeholder: string;
   className?: string;
   formatAsCurrency?: boolean;
+  disabled?: boolean;
 }
 
 export const NumberInput: React.FC<InputProps> = ({
@@ -15,6 +16,7 @@ export const NumberInput: React.FC<InputProps> = ({
   placeholder,
   className,
   formatAsCurrency = false,
+  disabled = false,
 }) => {
   // 최대 입력 가능 금액 (9999억원)
   const MAX_AMOUNT = 999999999999;
@@ -30,6 +32,7 @@ export const NumberInput: React.FC<InputProps> = ({
       type="text"
       placeholder={placeholder}
       value={displayValue()}
+      disabled={disabled}
       onChange={(e) => {
         const inputValue = e.target.value;
         const numericValue = inputValue.replace(/[^\d]/g, '');

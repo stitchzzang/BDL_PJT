@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // 허용된 탭 타입을 정의
 type TabType = '구매' | '판매' | '관망';
