@@ -345,11 +345,11 @@ export const MarketPage = () => {
                         </p>
                         <p className="mt-1 text-xs">
                           <span className="font-medium">골든크로스:</span> 단기선이 장기선을 상향
-                          돌파할 때 매수 신호
+                          돌파할 때 구매 신호
                         </p>
                         <p className="text-xs">
                           <span className="font-medium">데드크로스:</span> 단기선이 장기선을 하향
-                          돌파할 때 매도 신호
+                          돌파할 때 판매 신호
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -534,10 +534,10 @@ export const MarketPage = () => {
                   <br />
                   <br />
                   <span className="font-bold text-primary-color">골든크로스</span>(단기선이 장기선을
-                  상향 돌파할 때 매수 신호)
+                  상향 돌파할 때 구매 신호)
                   <br />
                   <span className="font-bold text-primary-color">데드크로스</span>(단기선이 장기선을
-                  하향 돌파할 때 매도 신호)
+                  하향 돌파할 때 판매 신호)
                   <br />
                   신호로 활용 할 수 있습니다.
                 </>
