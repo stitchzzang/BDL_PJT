@@ -70,17 +70,9 @@ export const EditPage = () => {
   }, [userData.profile]);
 
   // 이미지 리사이징 함수
-
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // 파일 확장자 검증
-    const validExtensions = ['image/jpeg', 'image/png'];
-    if (!validExtensions.includes(file.type)) {
-      alert('JPG 또는 PNG 파일만 업로드 가능합니다.');
-      return;
-    }
 
     try {
       // 이미지 리사이즈
@@ -100,7 +92,11 @@ export const EditPage = () => {
       // 기본 프로필 사용 해제
       setUseDefaultProfile(false);
     } catch (error) {
-      alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
