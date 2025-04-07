@@ -13,7 +13,7 @@ export const useRankVolumeConnectionRealTime = () => {
   const connectRankVolumeRealTime = useCallback(
     (setRankVolume: (data: HomeCompanyRankData[]) => void) => {
       //기존 연결일 경우 해제
-      disconnectRankVolume();
+      disconnectRankVolumeRealTime();
 
       //인스턴스 생성
       //https://j12d202.p.ssafy.io/ws
@@ -69,7 +69,7 @@ export const useRankVolumeConnectionRealTime = () => {
   );
 
   // 연결 해제 함수
-  const disconnectRankVolume = useCallback(() => {
+  const disconnectRankVolumeRealTime = useCallback(() => {
     // console.log('소켓 연결 해제(disconnect)');
     if (stompClientRef.current) {
       try {
@@ -85,13 +85,13 @@ export const useRankVolumeConnectionRealTime = () => {
   // 컴포넌트 언마운트 시 자동 연결 해제
   useEffect(() => {
     return () => {
-      disconnectRankVolume();
+      disconnectRankVolumeRealTime();
     };
-  }, [disconnectRankVolume]);
+  }, [disconnectRankVolumeRealTime]);
 
   return {
     IsConnected,
-    connectRankVolume: connectRankVolumeRealTime,
-    disconnectRankVolume,
+    connectRankVolumeRealTime,
+    disconnectRankVolumeRealTime,
   };
 };
