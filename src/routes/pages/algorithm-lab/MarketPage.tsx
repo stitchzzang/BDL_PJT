@@ -312,7 +312,7 @@ export const MarketPage = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger className="flex cursor-help items-center">
-                        <div className="mr-1 h-3 w-3 rounded-sm bg-[#9BD45E]"></div>
+                        <div className="mr-1 h-3 w-3 rounded-sm bg-[#FFC000]"></div>
                         <span className="relative">
                           단기(5일)선
                           <QuestionMarkCircleIcon className="absolute -right-3.5 -top-2.5 h-4 w-4 text-white" />
@@ -331,7 +331,7 @@ export const MarketPage = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger className="flex cursor-help items-center">
-                        <div className="mr-1 h-3 w-3 rounded-sm bg-[#FFC000]"></div>
+                        <div className="mr-1 h-3 w-3 rounded-sm bg-[#9BD45E]"></div>
                         <span className="relative">
                           장기(20일)선
                           <QuestionMarkCircleIcon className="absolute -right-3.5 -top-2.5 h-4 w-4 text-white" />
