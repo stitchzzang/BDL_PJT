@@ -113,8 +113,7 @@ export const ProgressInfo = ({
       }
 
       return formatDateToYYMMDD(date);
-    } catch (error) {
-      console.error('평일 계산 오류:', error);
+    } catch {
       return dateStr; // 오류 시 원본 날짜 반환
     }
   };
@@ -130,8 +129,7 @@ export const ProgressInfo = ({
       }
 
       return formatDateToYYMMDD(date);
-    } catch (error) {
-      console.error('평일 계산 오류:', error);
+    } catch {
       return dateStr; // 오류 시 원본 날짜 반환
     }
   };
@@ -147,8 +145,7 @@ export const ProgressInfo = ({
       }
 
       return formatDateToYYMMDD(date);
-    } catch (error) {
-      console.error('평일 계산 오류:', error);
+    } catch {
       return dateStr; // 오류 시 원본 날짜 반환
     }
   };
@@ -199,7 +196,18 @@ export const ProgressInfo = ({
     }
 
     return { displayStartDate: startDate, displayEndDate: endDate };
-  }, [currentTurn, startDate, endDate, pointDates, defaultStartDate, defaultEndDate, formatDateFn]);
+  }, [
+    currentTurn,
+    startDate,
+    endDate,
+    pointDates,
+    defaultStartDate,
+    defaultEndDate,
+    formatDateFn,
+    findLatestBusinessDay,
+    findNextBusinessDay,
+    findPreviousBusinessDay,
+  ]);
 
   if (!((displayStartDate && displayEndDate && formatDateFn) || currentTurn !== undefined)) {
     return null;

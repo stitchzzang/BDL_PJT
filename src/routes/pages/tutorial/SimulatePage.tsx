@@ -267,7 +267,7 @@ export const SimulatePage = () => {
   const [newsComment, setNewsComment] = useState('');
 
   // 턴별 차트 데이터를 저장할 상태 추가
-  const [turnChartData, setTurnChartData] = useState<Record<number, TutorialStockResponse | null>>({
+  const [, setTurnChartData] = useState<Record<number, TutorialStockResponse | null>>({
     1: null,
     2: null,
     3: null,
@@ -293,7 +293,7 @@ export const SimulatePage = () => {
   const [pointStockCandleIds, setPointStockCandleIds] = useState<number[]>([]);
 
   // 현재 세션 상태 (날짜 기반으로 변경)
-  const [currentSession, setCurrentSession] = useState<{
+  const [, setCurrentSession] = useState<{
     startDate: string;
     endDate: string;
     currentPointIndex: number;
@@ -335,7 +335,6 @@ export const SimulatePage = () => {
 
       return adjustedYear + adjustedMonth + adjustedDay;
     } catch (e) {
-      console.error('날짜 조정 중 오류 발생:', e);
       return dateStr; // 오류 시 원본 날짜 반환
     }
   };
@@ -381,7 +380,7 @@ export const SimulatePage = () => {
       if (turn <= 0 || pointDates.length < 3) return null;
 
       // getTurnDateRange 함수 활용
-      const { start, end } = getTurnDateRange(turn);
+      const { end } = getTurnDateRange(turn);
 
       // 차트는 누적 방식으로 표시하기 위해 항상 시작점은 defaultStartDate로 설정
       return {
@@ -828,66 +827,6 @@ export const SimulatePage = () => {
   };
 
   // 일시적으로 moveToNextTurn을 일반 함수로 선언 (loadChartData 의존성 제거)
-  const moveToNextTurnTemp = async () => {
-    if (currentTurn < 4) {
-      try {
-        // 다음 턴 번호 계산
-        const nextTurn = currentTurn + 1;
-
-        // 세션 업데이트 및 데이터 로드 (누적 방식)
-        const newSession = calculateSession(nextTurn);
-        if (!newSession) return;
-
-        // 시각적인 업데이트를 위해 먼저 턴과 세션 정보 업데이트
-        setCurrentTurn(nextTurn);
-        setIsCurrentTurnCompleted(false);
-        setCurrentSession(newSession);
-
-        // 진행률 업데이트
-        const turnToProgressMap: Record<number, number> = {
-          1: 25,
-          2: 50,
-          3: 75,
-          4: 100,
-        };
-        setProgress(turnToProgressMap[nextTurn]);
-
-        // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate, 종료일만 변경)
-        await loadChartData(
-          defaultStartDate, // 항상 처음부터 시작 (누적)
-          newSession.endDate,
-          nextTurn,
-        );
-
-        // 뉴스 데이터 로드 (이미 로드된 경우 또는 요청 중인 경우 스킵)
-        if (!newsRequestRef.current[nextTurn] && !loadedTurnsRef.current[nextTurn]) {
-          await loadNewsData(nextTurn);
-        }
-
-        // 다른 턴에 저장된 뉴스 데이터가 있는지 확인하고 복원
-        if (turnNewsList[nextTurn]?.length > 0) {
-          setPastNewsList(turnNewsList[nextTurn]);
-          // 데이터 로드 완료 표시
-          loadedTurnsRef.current[nextTurn] = true;
-        }
-
-        if (turnCurrentNews[nextTurn] && Object.keys(turnCurrentNews[nextTurn]).length > 0) {
-          setCurrentNews(turnCurrentNews[nextTurn]);
-          // 데이터 로드 완료 표시
-          loadedTurnsRef.current[nextTurn] = true;
-        }
-
-        if (turnComments[nextTurn]) {
-          setNewsComment(turnComments[nextTurn]);
-        }
-
-        // 자산 정보 업데이트
-        updateAssetInfo();
-      } catch (error) {
-        console.error('다음 턴으로 이동 중 오류 발생:', error);
-      }
-    }
-  };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveToNextTurn = async () => {
@@ -1024,8 +963,8 @@ export const SimulatePage = () => {
           totalReturnRate,
         });
         setFinalChangeRate(totalReturnRate);
-      } catch (error) {
-        console.error('다음 턴으로 이동 중 오류 발생:', error);
+      } catch {
+        //
       }
     }
   };
@@ -1190,7 +1129,6 @@ export const SimulatePage = () => {
       const pointsResponse = response as ApiResponse<any>;
 
       if (!pointsResponse?.result || pointsResponse.result.length === 0) {
-        console.error('변곡점 데이터가 없습니다.');
         return [];
       }
 
@@ -1231,7 +1169,6 @@ export const SimulatePage = () => {
       setPointDates(fallbackDates);
       return fallbackDates;
     } catch (error) {
-      console.error('변곡점 데이터 로드 실패:', error);
       // 오류 시 하드코딩된 날짜 사용
       const fallbackDates = ['240701', '240801', '240901'];
       setPointDates(fallbackDates);
@@ -1303,8 +1240,8 @@ export const SimulatePage = () => {
             setNewsComment(commentResponse.result);
           }
         }
-      } catch (error) {
-        console.error('뉴스 코멘트 로드 실패:', error);
+      } catch {
+        //
       }
 
       // =================================================================
@@ -1450,7 +1387,6 @@ export const SimulatePage = () => {
           setCurrentNews(null);
         }
       } catch (error) {
-        console.error('현재 뉴스 로드 실패:', error);
         // 기본값으로 설정
         if (turn === currentTurn) {
           setCurrentNews(null);
@@ -1742,7 +1678,7 @@ export const SimulatePage = () => {
       totalStock = Math.max(0, totalStock);
       setOwnedStockCount(totalStock);
     }
-  }, [trades]);
+  }, [isTutorialStarted, trades]);
 
   // 모달 닫기 핸들러 추가
   const handleCloseNewsModal = useCallback(() => {
