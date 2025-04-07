@@ -137,7 +137,10 @@ export const SimpleDailyChart: React.FC<SimpleChartProps<DailyChartDataItem>> = 
           smooth: true,
           lineStyle: {
             width: 2,
-            color: '#4caf50',
+            color: '#9BD45E',
+          },
+          itemStyle: {
+            color: '#9BD45E',
           },
         },
         {
@@ -147,7 +150,10 @@ export const SimpleDailyChart: React.FC<SimpleChartProps<DailyChartDataItem>> = 
           smooth: true,
           lineStyle: {
             width: 2,
-            color: '#ff9800',
+            color: '#FFC000',
+          },
+          itemStyle: {
+            color: '#FFC000',
           },
         },
       ],
