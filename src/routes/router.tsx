@@ -143,7 +143,7 @@ export const router = createBrowserRouter([
         element: <ChartContainer />,
       },
       {
-        path: 'backtest',
+        path: 'backtest/:algorithmId/:companyId',
         element: <BackTesting />,
       },
     ],

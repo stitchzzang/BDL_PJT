@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { navigate } from '@/lib/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 
 interface MyAlgorithmItemProps {
@@ -44,6 +45,10 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
         },
       );
     }
+  };
+
+  const handleRouterBackTest = (algorithmId: number, companyId: number) => {
+    navigate(`/backtest/${algorithmId}/${companyId}`);
   };
 
   return (
@@ -109,7 +114,9 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
                   <div className="max-h-[400px] animate-fadeIn overflow-y-auto">
                     {companies.map((companie, index) => (
                       <div
-                        // onClick={() => handleStartAlgorithm(companie.algorithmId)}
+                        onClick={() =>
+                          handleRouterBackTest(algorithm.algorithmId, companie.companyId)
+                        }
                         className="mb-2 flex cursor-pointer items-center gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-3 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
                       >
                         <p className="opacity-40">{index + 1}</p>
