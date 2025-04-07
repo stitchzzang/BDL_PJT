@@ -4,6 +4,20 @@ export const getResizeImage = (
   maxHeight: number = 400,
 ): Promise<File> => {
   return new Promise((resolve, reject) => {
+    // 파일 크기 체크 (10MB)
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSizeInBytes) {
+      reject(new Error('최대 파일 업로드 사이즈는 10MB입니다.'));
+      return;
+    }
+
+    // 파일 타입 체크
+    const validFileTypes = ['image/jpeg', 'image/png'];
+    if (!validFileTypes.includes(file.type)) {
+      reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+      return;
+    }
+
     const reader = new FileReader();
     reader.readAsDataURL(file);
 
@@ -12,6 +26,17 @@ export const getResizeImage = (
       img.src = event.target?.result as string;
 
       img.onload = () => {
+        // 이미지 크기 체크
+        if (img.width < 50 || img.height < 50) {
+          reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+          return;
+        }
+
+        if (img.width > 4000 || img.height > 4000) {
+          reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+          return;
+        }
+
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
@@ -60,7 +85,9 @@ export const getResizeImage = (
         );
       };
 
-      img.onerror = (error) => reject(error);
+      img.onerror = () => {
+        reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+      };
     };
 
     reader.onerror = (error) => reject(error);

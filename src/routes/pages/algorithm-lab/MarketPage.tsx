@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
@@ -38,6 +38,10 @@ export const MarketPage = () => {
 
   const [selectedTimeframe, setSelectedTimeframe] = useState<'oneMinute' | 'daily' | null>(null);
 
+  // 입력값 임시 저장을 위한 상태
+  const [increaseValue, setIncreaseValue] = useState<string>('1.00');
+  const [decreaseValue, setDecreaseValue] = useState<string>('1.00');
+
   if (!isValidAccess) {
     return <InvalidAccessPage />;
   }
@@ -55,6 +59,8 @@ export const MarketPage = () => {
       setDailyDecreaseAction(null);
       setShortTermMaPeriod(null);
       setLongTermMaPeriod(null);
+      setIncreaseValue('1.00');
+      setDecreaseValue('1.00');
     } else {
       setSelectedTimeframe(timeframe);
       if (timeframe === 'oneMinute') {
@@ -68,6 +74,8 @@ export const MarketPage = () => {
         setDailyDecreasePercent(null);
         setDailyIncreaseAction(null);
         setDailyDecreaseAction(null);
+        setIncreaseValue('1.00');
+        setDecreaseValue('1.00');
       } else {
         setDailyIncreasePercent(1);
         setDailyDecreasePercent(1);
@@ -77,6 +85,106 @@ export const MarketPage = () => {
         setOneMinuteDecreasePercent(null);
         setOneMinuteIncreaseAction(null);
         setOneMinuteDecreaseAction(null);
+        setIncreaseValue('1.00');
+        setDecreaseValue('1.00');
+      }
+    }
+  };
+
+  // 숫자 입력 유효성 검사 및 처리
+  const handlePercentChange = (e: ChangeEvent<HTMLInputElement>, type: 'increase' | 'decrease') => {
+    const value = e.target.value;
+
+    // 소수점 두 자리까지의 숫자만 허용
+    if (/^\d{1,2}(\.\d{0,2})?$/.test(value) || value === '') {
+      let validValue = value;
+      let numValue = value ? parseFloat(value) : 0;
+
+      // 값이 30보다 크면 자동으로 30으로 설정하고 소수점 형식은 유지
+      if (numValue > 30) {
+        numValue = 30;
+
+        // 소수점이 있는 경우 동일한 소수점 자릿수 유지
+        if (value.includes('.')) {
+          const decimalPart = value.split('.')[1] || '';
+          validValue = `30.${decimalPart.substring(0, 2)}`;
+        } else {
+          validValue = '30';
+        }
+      }
+      // 값이 0.1 미만이고 빈 문자열이 아닌 경우 자동으로 0.10으로 설정
+      else if (numValue < 0.1 && value !== '' && value !== '0' && value !== '0.') {
+        numValue = 0.1;
+        validValue = '0.10';
+      }
+
+      if (type === 'increase') {
+        setIncreaseValue(validValue);
+
+        // 빈 값이 아니고 유효 범위 내인 경우에만 저장
+        if (validValue && !isNaN(numValue) && numValue >= 0.1 && numValue <= 30) {
+          if (selectedTimeframe === 'oneMinute') {
+            setOneMinuteIncreasePercent(numValue);
+          } else {
+            setDailyIncreasePercent(numValue);
+          }
+        }
+      } else {
+        setDecreaseValue(validValue);
+
+        // 빈 값이 아니고 유효 범위 내인 경우에만 저장
+        if (validValue && !isNaN(numValue) && numValue >= 0.1 && numValue <= 30) {
+          if (selectedTimeframe === 'oneMinute') {
+            setOneMinuteDecreasePercent(numValue);
+          } else {
+            setDailyDecreasePercent(numValue);
+          }
+        }
+      }
+    }
+  };
+
+  // 포커스를 잃었을 때 값을 포맷하고 유효성 검사
+  const handleBlur = (type: 'increase' | 'decrease') => {
+    if (type === 'increase') {
+      const value = increaseValue;
+      let numValue = value ? parseFloat(value) : 0;
+
+      // 빈 값이거나 유효하지 않은 값인 경우 기본값 0.10 사용
+      if (value === '' || isNaN(numValue) || numValue < 0.1) {
+        numValue = 0.1;
+      } else if (numValue > 30) {
+        numValue = 30;
+      }
+
+      // 소수점 두 자리로 포맷팅
+      const formattedValue = numValue.toFixed(2);
+      setIncreaseValue(formattedValue);
+
+      if (selectedTimeframe === 'oneMinute') {
+        setOneMinuteIncreasePercent(numValue);
+      } else {
+        setDailyIncreasePercent(numValue);
+      }
+    } else {
+      const value = decreaseValue;
+      let numValue = value ? parseFloat(value) : 0;
+
+      // 빈 값이거나 유효하지 않은 값인 경우 기본값 0.10 사용
+      if (value === '' || isNaN(numValue) || numValue < 0.1) {
+        numValue = 0.1;
+      } else if (numValue > 30) {
+        numValue = 30;
+      }
+
+      // 소수점 두 자리로 포맷팅
+      const formattedValue = numValue.toFixed(2);
+      setDecreaseValue(formattedValue);
+
+      if (selectedTimeframe === 'oneMinute') {
+        setOneMinuteDecreasePercent(numValue);
+      } else {
+        setDailyDecreasePercent(numValue);
       }
     }
   };
@@ -90,62 +198,61 @@ export const MarketPage = () => {
           description="주식 가격 변화에 어떻게 반응할까요?
         여러분의 선택에 따라 다양한 방법으로 반응이 가능합니다."
         />
-        <Badge variant="default" className="w-full text-left font-medium">
+        <Badge variant="yellow" className="w-full text-left font-medium">
           💡 해당 옵션은 필수값이 아니므로, 건너뛰어도 괜찮습니다.
         </Badge>
       </div>
       <div className="flex w-full gap-4">
-        <Button
-          variant="blue"
-          onClick={() => handleTimeframeClick('oneMinute')}
-          className={`flex-1 flex-col items-center p-4 ${
-            selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
-          }`}
-        >
-          <p className="text-lg font-bold">
-            단기 변화에 반응{' '}
-            <span className="text-sm font-normal">
-              (5<TermTooltip term="분봉">분봉</TermTooltip>)
-            </span>
-          </p>
-          <p className="whitespace-normal break-keep text-sm">
-            짧은 시간 동안의 급격한 가격 변화에 빠르게 대응합니다.
-          </p>
-        </Button>
-        <Button
-          variant="blue"
-          onClick={() => handleTimeframeClick('daily')}
-          className={`flex-1 flex-col items-center p-4 ${
-            selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/20'
-          }`}
-        >
-          <p className="text-lg font-bold">
-            일간 추세에 반응{' '}
-            <span className="text-sm font-normal">
-              (<TermTooltip term="일봉">일봉</TermTooltip>)
-            </span>
-          </p>
-          <p className="whitespace-normal break-keep text-sm">
-            하루 동안의 전체적인 추세를 바탕으로 대응합니다.
-          </p>
-        </Button>
+        <div className="flex w-full flex-col gap-2">
+          <p className="text-lg font-bold">시장 변화에 대응하기</p>
+          <div className="flex w-full gap-2">
+            <Button
+              variant="blue"
+              onClick={() => handleTimeframeClick('oneMinute')}
+              className={`flex-1 flex-col items-center p-4 ${
+                selectedTimeframe === 'oneMinute' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
+              }`}
+            >
+              <p className="text-lg font-bold">
+                단기 변화에 반응{' '}
+                <span className="text-sm font-normal">
+                  (5<TermTooltip term="분봉">분봉</TermTooltip>)
+                </span>
+              </p>
+              <p className="whitespace-normal break-keep text-sm">
+                짧은 시간 동안의 급격한 가격 변화에 빠르게 대응합니다.
+              </p>
+            </Button>
+            <Button
+              variant="blue"
+              onClick={() => handleTimeframeClick('daily')}
+              className={`flex-1 flex-col items-center p-4 ${
+                selectedTimeframe === 'daily' ? 'bg-btn-blue-color' : 'bg-btn-blue-color/10'
+              }`}
+            >
+              <p className="text-lg font-bold">
+                일간 추세에 반응{' '}
+                <span className="text-sm font-normal">
+                  (<TermTooltip term="일봉">일봉</TermTooltip>)
+                </span>
+              </p>
+              <p className="whitespace-normal break-keep text-sm">
+                하루 동안의 전체적인 추세를 바탕으로 대응합니다.
+              </p>
+            </Button>
+          </div>
+        </div>
       </div>
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col gap-2">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm ">
                 상승 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip>
               </p>
-              {selectedTimeframe && (
-                <span className="text-sm font-bold text-primary-color">
-                  (
-                  {selectedTimeframe === 'oneMinute'
-                    ? (oneMinuteIncreasePercent ?? 1)
-                    : (dailyIncreasePercent ?? 1)}
-                  %)
-                </span>
-              )}
+              <span className="text-sm font-bold text-primary-color">
+                {selectedTimeframe ? `(${increaseValue}%)` : ''}
+              </span>
             </div>
             <div className="flex gap-2">
               <Button
@@ -161,7 +268,7 @@ export const MarketPage = () => {
                     ? oneMinuteIncreaseAction
                     : dailyIncreaseAction) === 'BUY'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -180,7 +287,7 @@ export const MarketPage = () => {
                     ? oneMinuteIncreaseAction
                     : dailyIncreaseAction) === 'SELL'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -188,41 +295,33 @@ export const MarketPage = () => {
               </Button>
             </div>
           </div>
-          <Slider
-            value={[
-              selectedTimeframe === 'oneMinute'
-                ? (oneMinuteIncreasePercent ?? 1)
-                : selectedTimeframe === 'daily'
-                  ? (dailyIncreasePercent ?? 1)
-                  : 1,
-            ]}
-            onValueChange={(value) =>
-              selectedTimeframe === 'oneMinute'
-                ? setOneMinuteIncreasePercent(value[0])
-                : setDailyIncreasePercent(value[0])
-            }
-            min={1}
-            max={30}
-            step={0.5}
-            disabled={!selectedTimeframe}
-            className={!selectedTimeframe ? 'cursor-not-allowed opacity-50' : ''}
-          />
+          <div className="relative">
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={increaseValue}
+              onChange={(e) => handlePercentChange(e, 'increase')}
+              onBlur={() => handleBlur('increase')}
+              disabled={!selectedTimeframe}
+              className={`h-10 ${!selectedTimeframe ? 'cursor-not-allowed opacity-50' : ''}`}
+              min={0.1}
+              max={30}
+              step={0.01}
+              placeholder="0.10 ~ 30.00 사이 값 입력"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</div>
+          </div>
+          <p className="text-xs text-gray-500">0.10 ~ 30.00 사이의 값만 입력 가능합니다.</p>
         </div>
-        <div>
+        <div className="flex flex-col gap-2">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm">
                 하락 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip>
               </p>
-              {selectedTimeframe && (
-                <span className="text-sm font-bold text-primary-color">
-                  (
-                  {selectedTimeframe === 'oneMinute'
-                    ? (oneMinuteDecreasePercent ?? 1)
-                    : (dailyDecreasePercent ?? 1)}
-                  %)
-                </span>
-              )}
+              <span className="text-sm font-bold text-primary-color">
+                {selectedTimeframe ? `(${decreaseValue}%)` : ''}
+              </span>
             </div>
             <div className="flex gap-2">
               <Button
@@ -238,7 +337,7 @@ export const MarketPage = () => {
                     ? oneMinuteDecreaseAction
                     : dailyDecreaseAction) === 'BUY'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -257,7 +356,7 @@ export const MarketPage = () => {
                     ? oneMinuteDecreaseAction
                     : dailyDecreaseAction) === 'SELL'
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
                 disabled={!selectedTimeframe}
               >
@@ -265,74 +364,69 @@ export const MarketPage = () => {
               </Button>
             </div>
           </div>
-          <Slider
-            value={[
-              selectedTimeframe === 'oneMinute'
-                ? (oneMinuteDecreasePercent ?? 1)
-                : selectedTimeframe === 'daily'
-                  ? (dailyDecreasePercent ?? 1)
-                  : 1,
-            ]}
-            onValueChange={(value) =>
-              selectedTimeframe === 'oneMinute'
-                ? setOneMinuteDecreasePercent(value[0])
-                : setDailyDecreasePercent(value[0])
-            }
-            min={1}
-            max={30}
-            step={0.5}
-            disabled={!selectedTimeframe}
-            className={!selectedTimeframe ? 'cursor-not-allowed opacity-50' : ''}
-          />
+          <div className="relative">
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={decreaseValue}
+              onChange={(e) => handlePercentChange(e, 'decrease')}
+              onBlur={() => handleBlur('decrease')}
+              disabled={!selectedTimeframe}
+              className={`h-10 ${!selectedTimeframe ? 'cursor-not-allowed opacity-50' : ''}`}
+              min={0.1}
+              max={30}
+              step={0.01}
+              placeholder="0.10 ~ 30.00 사이 값 입력"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">%</div>
+          </div>
+          <p className="text-xs text-gray-500">0.10 ~ 30.00 사이의 값만 입력 가능합니다.</p>
         </div>
       </div>
-      <div className="flex flex-col gap-4">
-        <HelpBadge
-          title="주식의 장기적인 움직임을 분석할까요?"
-          description={
-            <>
-              주식의 장기적인 움직임을 분석할 수 있는{' '}
-              <TermTooltip term="이동평균선">이동평균선</TermTooltip> 사용이 가능합니다. 해당 기능은
-              주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수 신호,
-              하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
-            </>
-          }
-        />
-        <div className="flex items-center gap-2">
-          <Button
-            variant="blue"
-            onClick={() => {
-              if (shortTermMaPeriod === 5 && longTermMaPeriod === 20) {
-                setShortTermMaPeriod(null);
-                setLongTermMaPeriod(null);
-              } else {
-                setShortTermMaPeriod(5);
-                setLongTermMaPeriod(20);
+      <div className="w-full overflow-hidden">
+        {selectedTimeframe === 'daily' && (
+          <div className="flex animate-fadeIn flex-col gap-4">
+            <p className="mt-5 text-lg font-bold">
+              <TermTooltip term="이동평균선">이동평균선</TermTooltip> 설정
+            </p>
+            <HelpBadge
+              title="주식의 장기적인 움직임을 분석할까요?"
+              description={
+                <>
+                  주식의 장기적인 움직임을 분석할 수 있는 이동평균선 사용이 가능합니다. 해당 기능은
+                  주가의 추세를 파악하는데 도움이 됩니다. 단기선이 장기선을 상향 돌파할 때 매수
+                  신호, 하향 돌파할 때 매도 신호로 활용 할 수 있습니다.
+                </>
               }
-            }}
-            className={
-              shortTermMaPeriod === 5 && longTermMaPeriod === 20
-                ? 'bg-btn-blue-color'
-                : 'bg-btn-blue-color/20'
-            }
-            disabled={!selectedTimeframe || selectedTimeframe === 'oneMinute'}
-          >
-            {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
-          </Button>
-          <p className="text-base text-btn-primary-active-color">
-            {!selectedTimeframe || selectedTimeframe === 'oneMinute' ? (
-              <>
-                옵션을
-                <span className="font-semibold text-primary-color"> 일간 추세에 반응</span>으로
-                선택해주세요.
-              </>
-            ) : shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? (
-              '이동평균선이 적용되었습니다.'
-            ) : (
-              '버튼 클릭시 이동평균선 사용이 가능합니다.'
-            )}
-          </p>
-        </div>
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="blue"
+                onClick={() => {
+                  if (shortTermMaPeriod === 5 && longTermMaPeriod === 20) {
+                    setShortTermMaPeriod(null);
+                    setLongTermMaPeriod(null);
+                  } else {
+                    setShortTermMaPeriod(5);
+                    setLongTermMaPeriod(20);
+                  }
+                }}
+                className={
+                  shortTermMaPeriod === 5 && longTermMaPeriod === 20
+                    ? 'bg-btn-blue-color'
+                    : 'bg-btn-blue-color/20'
+                }
+              >
+                {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
+              </Button>
+              <p className="text-base text-btn-primary-active-color">
+                {shortTermMaPeriod === 5 && longTermMaPeriod === 20
+                  ? '이동평균선이 적용되었습니다.'
+                  : '버튼 클릭시 이동평균선 사용이 가능합니다.'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="flex w-full gap-2">
         <Button variant="blue" onClick={() => navigate('/algorithm-lab/method')} className="flex-1">

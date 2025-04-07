@@ -55,6 +55,16 @@ export const financialTerms: Record<string, TermDefinition> = {
     definition: '보유한 주식을 모두 매도하여 포지션을 정리하는 행위',
     category: '알고리즘 LAB',
   },
+  '구매 방식 설정': {
+    term: '구매 방식 설정',
+    definition: '구매 시 해당 금액 및 비율로 구매합니다.',
+    category: '알고리즘 LAB',
+  },
+  '판매 방식 설정': {
+    term: '판매 방식 설정',
+    definition: '판매 시 해당 금액 및 비율로 판매합니다.',
+    category: '알고리즘 LAB',
+  },
   '수수료 포함': {
     term: '수수료 포함',
     definition: '(0.00004%)거래 시 발생하는 비용까지 고려한 금액',

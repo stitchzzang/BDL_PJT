@@ -1,7 +1,6 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
 
 import { useSearchedCompanies } from '@/api/home.api';
 import { CategoryList } from '@/components/common/category-list';
@@ -64,8 +63,7 @@ export const SearchPage = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (value.length > 15) {
-      setCompanyName('');
-      toast.info('검색 가능한 기업명은 15자 이하입니다.');
+      alert('검색 가능한 기업명은 15자 이하입니다.');
       return;
     }
     setCompanyName(value);
@@ -75,8 +73,7 @@ export const SearchPage = () => {
     const pastedText = e.clipboardData.getData('text');
     if (pastedText.length > 15) {
       e.preventDefault();
-      setCompanyName('');
-      toast.info('검색 가능한 기업명은 15자 이하입니다.');
+      alert('검색 가능한 기업명은 15자 이하입니다.');
     }
   };
 

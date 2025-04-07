@@ -97,15 +97,33 @@ const handleKyError = (error: HTTPError, defaultMessage = '요청 처리 중 오
       error.response
         .json()
         .then((errorData) => {
-          const data = errorData as { message?: string };
-          if (data?.message) {
-            toast.error(data.message);
+          const data = errorData as { message?: string; code?: number };
+          // 401 에러 (로그인 관련 에러)인 경우 alert 사용
+          if (
+            data?.code === ERROR_CODES.UNAUTHORIZED ||
+            error.response?.status === ERROR_CODES.UNAUTHORIZED
+          ) {
+            if (data?.message) {
+              alert(data.message);
+            } else {
+              alert(defaultMessage);
+            }
           } else {
-            toast.error(defaultMessage);
+            // 다른 에러는 기존처럼 toast 사용
+            if (data?.message) {
+              toast.error(data.message);
+            } else {
+              toast.error(defaultMessage);
+            }
           }
         })
         .catch(() => {
-          toast.error(defaultMessage);
+          // 응답 파싱 실패 시, 상태 코드 기반으로 처리
+          if (error.response?.status === ERROR_CODES.UNAUTHORIZED) {
+            alert(defaultMessage);
+          } else {
+            toast.error(defaultMessage);
+          }
         });
     } else {
       toast.error(defaultMessage);
@@ -119,9 +137,15 @@ const handleKyError = (error: HTTPError, defaultMessage = '요청 처리 중 오
  * API 에러 응답 처리 함수
  * @param {object} response - API 응답 객체
  */
-const handleApiError = (response: { data: { body: { message: string } } }) => {
-  const { message } = response.data.body;
-  toast.error(message);
+const handleApiError = (response: { data: { body: { message: string; code?: number } } }) => {
+  const { message, code } = response.data.body;
+
+  // 401 에러 (로그인 관련 에러)인 경우 alert 사용
+  if (code === ERROR_CODES.UNAUTHORIZED) {
+    alert(message);
+  } else {
+    toast.error(message);
+  }
 };
 
 export { ERROR_CODES, handleApiError, handleKyError };

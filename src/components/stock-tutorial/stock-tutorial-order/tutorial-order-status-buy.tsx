@@ -9,12 +9,16 @@ export interface TutorialOrderStatusBuyProps {
   companyId: number;
   latestPrice: number;
   isActive: boolean;
+  availableOrderAsset?: number; // 구매 가능한 자금 (옵션)
+  ownedStockCount?: number; // 보유 주식 수량 (옵션)
 }
 
 export const TutorialOrderStatusBuy = ({
   onBuy,
   latestPrice,
   isActive: isSessionActive,
+  availableOrderAsset = 0, // 기본값 0
+  ownedStockCount = 0, // 기본값 0
 }: TutorialOrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
@@ -64,6 +68,17 @@ export const TutorialOrderStatusBuy = ({
     return buyCost * stockCount;
   };
 
+  // 최대 구매 가능한 수량 계산
+  const maxPurchasableStocks = () => {
+    if (buyCost <= 0) return 0;
+    return Math.floor(availableOrderAsset / buyCost);
+  };
+
+  // 전체 수량 설정 - 최대 구매 가능 수량으로 설정
+  const setMaxStockCount = () => {
+    setStockCount(maxPurchasableStocks());
+  };
+
   const isActiveHandler = (active: string) => {
     setIsActive(active);
   };
@@ -71,16 +86,22 @@ export const TutorialOrderStatusBuy = ({
   // 구매 처리
   const handleBuyStock = () => {
     if (!isSessionActive || stockCount <= 0 || buyCost <= 0) return;
+
+    // 구매 가능 금액 체크
+    if (totalPrice() > availableOrderAsset) {
+      alert(`구매 가능 금액(${formatKoreanMoney(availableOrderAsset)}원)을 초과했습니다.`);
+      return;
+    }
+
     onBuy(buyCost, stockCount);
     setStockCount(0); // 구매 후 수량 초기화
   };
 
   return (
-    <div className="h-full animate-fadeIn">
-      <h3 className={h3Style}>구매하기</h3>
+    <div className="flex h-full animate-fadeIn flex-col">
       <div className="flex h-full flex-col justify-between">
-        <div className="mb-[25px] flex w-full flex-col gap-4">
-          <div className="flex items-center justify-between gap-4">
+        <div className="mb-3 flex w-full flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>주문 유형</h3>
             </div>
@@ -96,7 +117,7 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3">
             {/* 값 입력 구역 */}
             <div className="min-w-[74px]" />
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
@@ -110,16 +131,12 @@ export const TutorialOrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3">
             <div className="min-w-[74px]">
               <h3 className={h3Style}>수량</h3>
             </div>
             <div className="relative flex w-full max-w-[80%] flex-col gap-2">
-              <NumberInput
-                value={stockCount}
-                setValue={setStockCount}
-                placeholder="수량을 입력하세요."
-              />
+              <NumberInput value={stockCount} setValue={setStockCount} placeholder="" />
               <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
                 <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
                   <button
@@ -137,36 +154,60 @@ export const TutorialOrderStatusBuy = ({
                     +
                   </button>
                 </div>
+                <div className="pointer-events-auto flex min-h-10 items-center justify-center rounded-md px-2 hover:bg-background-color">
+                  <button className="text-[14px]" onClick={setMaxStockCount}>
+                    전체
+                  </button>
+                </div>
               </div>
+            </div>
+          </div>
+          {/* 구매 가능 수량 표시 */}
+          <div className="flex items-center justify-between">
+            <div className="min-w-[74px]">
+              <h3 className="text-[14px] text-border-color">구매 가능 수량</h3>
+            </div>
+            <div className="flex w-full max-w-[60%] flex-col">
+              <p className="text-right text-[14px] text-border-color">{maxPurchasableStocks()}주</p>
+            </div>
+          </div>
+          {/* 보유 수량 표시 */}
+          <div className="flex items-center justify-between">
+            <div className="min-w-[74px]">
+              <h3 className="text-[14px] text-border-color">보유 수량</h3>
+            </div>
+            <div className="flex w-full max-w-[80%] flex-col">
+              <p className="text-right text-[14px] text-border-color">{ownedStockCount}주</p>
             </div>
           </div>
           <hr className="border border-border-color border-opacity-20" />
         </div>
-        <div className="mt-[20px] flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h3 className={h3Style}>구매가능 금액</h3>
-            <h3 className={h3Style}>{isSessionActive ? formatKoreanMoney(buyCost) : '-'} 원</h3>
+        <div className="mt-auto">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>구매가능 금액</h3>
+              <h3 className={h3Style}>
+                {isSessionActive ? formatKoreanMoney(availableOrderAsset) : '-'} 원
+              </h3>
+            </div>
+            <div className="flex items-center justify-between">
+              <h3 className={h3Style}>총 주문 금액</h3>
+              <h3 className={h3Style}>
+                {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
+              </h3>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <h3 className={h3Style}>총 주문 금액</h3>
-            <h3 className={h3Style}>
-              {isSessionActive ? formatKoreanMoney(totalPrice()) : '-'} 원
-            </h3>
+          <div className="mt-3">
+            <Button
+              variant="red"
+              className="w-full"
+              size="lg"
+              onClick={handleBuyStock}
+              disabled={!isSessionActive || stockCount <= 0 || totalPrice() > availableOrderAsset}
+            >
+              <p className="text-[16px] font-medium text-white">구매하기</p>
+            </Button>
           </div>
-        </div>
-        <div className="mt-[25px] flex flex-col items-center gap-2">
-          <Button
-            variant="red"
-            className="w-full"
-            size="lg"
-            onClick={handleBuyStock}
-            disabled={!isSessionActive || stockCount <= 0}
-          >
-            <p className=" text-[18px] font-medium text-white">구매하기</p>
-          </Button>
-          <p className="text-[14px] font-light text-[#718096]">
-            결제 수수료는 결제 금액의 0.004% 입니다.
-          </p>
         </div>
       </div>
     </div>

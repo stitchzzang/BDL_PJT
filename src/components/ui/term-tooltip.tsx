@@ -1,3 +1,4 @@
+import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -36,8 +37,14 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild className={`cursor-help whitespace-nowrap ${className}`}>
-          <span className="border-b-[3px] border-dotted">{children || term}</span>
+        <TooltipTrigger
+          asChild
+          className={`relative inline-flex cursor-help items-center whitespace-nowrap ${className}`}
+        >
+          <span className="relative">
+            {children || term}
+            <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+          </span>
         </TooltipTrigger>
         <TooltipContent side={side} sideOffset={sideOffset}>
           <p className="whitespace-pre-line">{termDefinition.definition}</p>

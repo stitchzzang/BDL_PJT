@@ -1,13 +1,21 @@
 import { format } from 'date-fns';
-import { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-import { useGetAccountSummary, useResetAccount } from '@/api/member.api';
-import { useDeleteUserSimulated, useUserSimulatedData } from '@/api/stock.api';
+import {
+  useGetAccountSummary,
+  useGetAutoOrders,
+  useGetConfirmedOrders,
+  useGetManualOrders,
+  useGetPendingOrders,
+  useResetAccount,
+} from '@/api/member.api';
+import { useDeleteUserSimulated } from '@/api/stock.api';
 import { AccountSummaryResponse } from '@/api/types/member';
 import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
+import { RocketAnimation } from '@/components/common/rocket-animation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -31,7 +40,6 @@ import {
 } from '@/components/ui/table';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { queryClient } from '@/lib/queryClient';
 import { useAccountConnection } from '@/services/SocketAccountService';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
@@ -42,28 +50,221 @@ import {
   roundToTwoDecimalPlaces,
 } from '@/utils/numberFormatter';
 
+// 검색 컴포넌트 (별도 분리하여 리렌더링 최소화)
+const SearchBarComponent = React.memo(
+  ({
+    onSearch,
+    mainTab,
+    transactionSubTab,
+  }: {
+    onSearch: (query: string) => void;
+    mainTab: string;
+    transactionSubTab: string;
+  }) => {
+    const [localSearch, setLocalSearch] = useState('');
+
+    const handleLocalSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (value.length > 15) {
+        toast.info('검색 가능한 종목명은 15자 이하입니다.');
+        return;
+      }
+      setLocalSearch(value);
+    };
+
+    const handleLocalSearchSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      onSearch(localSearch);
+    };
+
+    // 탭 변경 시 local input 값 초기화
+    useEffect(() => {
+      setLocalSearch('');
+    }, [mainTab, transactionSubTab]);
+
+    return (
+      <form onSubmit={handleLocalSearchSubmit} className="flex items-center gap-2">
+        <input
+          type="text"
+          placeholder="종목명 검색"
+          value={localSearch}
+          onChange={handleLocalSearchChange}
+          className="rounded-md border border-border-color bg-background px-3 py-2 text-sm text-black"
+        />
+        <Button type="submit" variant="blue" className="border-border-color">
+          검색
+        </Button>
+      </form>
+    );
+  },
+);
+
+SearchBarComponent.displayName = 'SearchBarComponent';
+
+// 페이지네이션 컴포넌트 (외부로 분리하여 리렌더링 최소화)
+const PaginationComponent = React.memo(
+  ({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => {
+    const handlePrevPage = useCallback(() => {
+      if (currentPage > 0) {
+        onPageChange(currentPage - 1);
+      }
+    }, [currentPage, onPageChange]);
+
+    const handleNextPage = useCallback(() => {
+      if (currentPage < totalPages - 1) {
+        onPageChange(currentPage + 1);
+      }
+    }, [currentPage, totalPages, onPageChange]);
+
+    // 페이지 번호 변경 시 스크롤 이동 함수 추가
+    const handlePageNumberClick = useCallback(
+      (page: number) => {
+        onPageChange(page);
+      },
+      [onPageChange],
+    );
+
+    // 페이지 번호 계산 (최대 5개 표시)
+    const pageNumbers = useMemo(() => {
+      const pageNumbers = [];
+      const maxPagesToShow = 5;
+
+      let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
+      const endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+
+      if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(0, endPage - maxPagesToShow + 1);
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+
+      return pageNumbers;
+    }, [currentPage, totalPages]);
+
+    return (
+      <div className="flex items-center justify-center space-x-2 py-4">
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={() => handlePageNumberClick(0)}
+          disabled={currentPage === 0}
+          className="h-8 w-8 border-border-color"
+          title="첫 페이지"
+        >
+          &lt;&lt;
+        </Button>
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={handlePrevPage}
+          disabled={currentPage === 0}
+          className="h-8 w-8 border-border-color"
+        >
+          &lt;
+        </Button>
+
+        {pageNumbers.map((page) => (
+          <Button
+            key={page}
+            variant={page === currentPage ? 'blue' : 'gray'}
+            size="icon"
+            onClick={() => handlePageNumberClick(page)}
+            className={'h-8 w-8'}
+          >
+            {page + 1}
+          </Button>
+        ))}
+
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages - 1 || totalPages === 0}
+          className="h-8 w-8 border-border-color"
+        >
+          &gt;
+        </Button>
+        <Button
+          variant="blue"
+          size="icon"
+          onClick={() => handlePageNumberClick(totalPages - 1)}
+          disabled={currentPage === totalPages - 1 || totalPages === 0}
+          className="h-8 w-8 border-border-color"
+          title="마지막 페이지"
+        >
+          &gt;&gt;
+        </Button>
+      </div>
+    );
+  },
+);
+
+PaginationComponent.displayName = 'PaginationComponent';
+
 export const InvestmentResultPage = () => {
   const navigate = useNavigate();
   const { userData } = useAuthStore();
+  const memberId = userData.memberId?.toString() ?? '';
   const {
     data: accountSummary,
     isLoading: isAccountLoading,
     isError: isAccountError,
     refetch: refetchAccountSummary,
-  } = useGetAccountSummary(userData.memberId?.toString() ?? '');
+  } = useGetAccountSummary(memberId);
+
+  // 페이지네이션 및 검색을 위한 상태
+  const [search, setSearch] = useState('');
+  const [pendingPage, setPendingPage] = useState(0);
+  const [confirmedPage, setConfirmedPage] = useState(0);
+  const [manualPage, setManualPage] = useState(0);
+  const [autoPage, setAutoPage] = useState(0);
+  const pageSize = 10;
+
+  // 주문 데이터 쿼리
   const {
-    data: userSimulatedData,
-    isLoading: isSimulatedLoading,
-    isError: isSimulatedError,
-    refetch: refetchUserSimulated,
-  } = useUserSimulatedData(userData.memberId);
+    data: pendingOrdersData,
+    isLoading: isPendingOrdersLoading,
+    refetch: refetchPendingOrders,
+  } = useGetPendingOrders(memberId, pendingPage, pageSize, search);
+
+  const {
+    data: confirmedOrdersData,
+    isLoading: isConfirmedOrdersLoading,
+    refetch: refetchConfirmedOrders,
+  } = useGetConfirmedOrders(memberId, confirmedPage, pageSize, search);
+
+  const {
+    data: manualOrdersData,
+    isLoading: isManualOrdersLoading,
+    refetch: refetchManualOrders,
+  } = useGetManualOrders(memberId, manualPage, pageSize, search);
+
+  const {
+    data: autoOrdersData,
+    isLoading: isAutoOrdersLoading,
+    refetch: refetchAutoOrders,
+  } = useGetAutoOrders(memberId, autoPage, pageSize, search);
+
+  // UI 관련 상태
+  const [mainTab, setMainTab] = useState('holdings'); // 'holdings', 'transactions', 'pendingOrders'
+  const [transactionSubTab, setTransactionSubTab] = useState('all'); // 'all', 'manual', 'auto'
+
   const { IsConnected, connectAccount, disconnectAccount } = useAccountConnection();
 
   // 이전 데이터를 ref로 관리하여 렌더링 트리거 없이 값 보존
   const prevDataRef = useRef<AccountSummaryResponse | null>(null);
   const [accountData, setAccountData] = useState<AccountSummaryResponse | null>(null);
   const [realTimeData, setRealTimeData] = useState<AccountSummaryResponse | null>(null);
-  const [activeTab, setActiveTab] = useState('holdings');
 
   // 하이라이트 타이머를 저장할 ref
   const highlightTimersRef = useRef<{ [key: string]: NodeJS.Timeout }>({});
@@ -75,7 +276,7 @@ export const InvestmentResultPage = () => {
     };
   }>({});
 
-  const { mutate: resetAccount } = useResetAccount(userData.memberId?.toString() ?? '');
+  const { mutate: resetAccount } = useResetAccount(memberId);
 
   // 주문 취소 뮤테이션
   const deleteSimulatedMutation = useDeleteUserSimulated();
@@ -85,31 +286,40 @@ export const InvestmentResultPage = () => {
     deleteSimulatedMutation.mutate(orderId, {
       onSuccess: () => {
         toast.success('주문이 성공적으로 취소되었습니다.');
-        queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
-        refetchUserSimulated();
+        refetchPendingOrders();
       },
       onError: (error) => {
         console.error('주문 취소 실패:', error);
         toast.error('주문 취소에 실패했습니다.');
-        refetchUserSimulated();
+        refetchPendingOrders();
       },
     });
   };
 
   // 총 매수/매도 주문 금액 계산
   const buyTotalPrice =
-    userSimulatedData
+    pendingOrdersData?.orders
       ?.filter((item) => item.tradeType === 0)
       .reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
 
   const sellTotalPrice =
-    userSimulatedData
+    pendingOrdersData?.orders
       ?.filter((item) => item.tradeType === 1)
       .reduce((sum, item) => sum + item.price * item.quantity, 0) || 0;
 
   // 주문 유형 변환 함수
   const getTradeTypeText = (tradeType: number) => {
     return tradeType === 0 ? '구매' : '판매';
+  };
+
+  // 주문 방식 변환 함수
+  const getOrderModeText = (mode: boolean) => {
+    return mode ? '자동' : '수동';
+  };
+
+  // 주문 상태 변환 함수
+  const getOrderStatusText = (status: number) => {
+    return status === 0 ? '대기' : '체결';
   };
 
   // 날짜 포맷 변환 함수
@@ -124,6 +334,55 @@ export const InvestmentResultPage = () => {
     }
   };
 
+  // 페이지네이션 핸들러
+  const handlePendingPageChange = useCallback((page: number) => {
+    setPendingPage(page);
+  }, []);
+
+  const handleConfirmedPageChange = useCallback((page: number) => {
+    setConfirmedPage(page);
+  }, []);
+
+  const handleManualPageChange = useCallback((page: number) => {
+    setManualPage(page);
+  }, []);
+
+  const handleAutoPageChange = useCallback((page: number) => {
+    setAutoPage(page);
+  }, []);
+
+  // 검색 핸들러 (부모 컴포넌트에 정의)
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearch(query);
+
+      // 현재 활성화된 탭에 따라 적절한 API 호출
+      if (mainTab === 'pendingOrders') {
+        setPendingPage(0);
+        refetchPendingOrders();
+      } else if (mainTab === 'transactions') {
+        if (transactionSubTab === 'all') {
+          setConfirmedPage(0);
+          refetchConfirmedOrders();
+        } else if (transactionSubTab === 'manual') {
+          setManualPage(0);
+          refetchManualOrders();
+        } else {
+          setAutoPage(0);
+          refetchAutoOrders();
+        }
+      }
+    },
+    [
+      mainTab,
+      transactionSubTab,
+      refetchPendingOrders,
+      refetchConfirmedOrders,
+      refetchManualOrders,
+      refetchAutoOrders,
+    ],
+  );
+
   useEffect(() => {
     if (accountSummary) {
       // 초기값 설정
@@ -131,12 +390,12 @@ export const InvestmentResultPage = () => {
       prevDataRef.current = accountSummary;
 
       // 웹소켓 연결
-      connectAccount(userData.memberId?.toString() ?? '', setAccountData);
+      connectAccount(memberId, setAccountData);
       return () => {
         disconnectAccount();
       };
     }
-  }, [accountSummary, connectAccount, disconnectAccount, userData.memberId]);
+  }, [accountSummary, connectAccount, disconnectAccount, memberId]);
 
   useEffect(() => {
     if (accountData) {
@@ -164,7 +423,7 @@ export const InvestmentResultPage = () => {
             clearTimeout(highlightTimersRef.current['totalProfitRate']);
           }
 
-          // 새 타이머 설정 (1초 후 하이라이트 제거)
+          // 새 타이머 설정 (1초로 통일)
           highlightTimersRef.current['totalProfitRate'] = setTimeout(() => {
             setHighlightMap((prev) => ({
               ...prev,
@@ -188,7 +447,7 @@ export const InvestmentResultPage = () => {
             clearTimeout(highlightTimersRef.current['totalProfit']);
           }
 
-          // 새 타이머 설정 (1초 후 하이라이트 제거)
+          // 새 타이머 설정 (1초로 통일)
           highlightTimersRef.current['totalProfit'] = setTimeout(() => {
             setHighlightMap((prev) => ({
               ...prev,
@@ -215,7 +474,7 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
@@ -237,13 +496,13 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
                   [key]: { ...prev[key], isFlashing: false },
                 }));
-              }, 250);
+              }, 1000);
             }
 
             // 종목별 현재가 변화
@@ -259,13 +518,13 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
                   [key]: { ...prev[key], isFlashing: false },
                 }));
-              }, 250);
+              }, 1000);
             }
 
             // 종목별 평가금 변화
@@ -281,13 +540,13 @@ export const InvestmentResultPage = () => {
                 clearTimeout(highlightTimersRef.current[key]);
               }
 
-              // 새 타이머 설정
+              // 새 타이머 설정 (1초로 통일)
               highlightTimersRef.current[key] = setTimeout(() => {
                 setHighlightMap((prev) => ({
                   ...prev,
                   [key]: { ...prev[key], isFlashing: false },
                 }));
-              }, 250);
+              }, 1000);
             }
           }
         });
@@ -313,8 +572,150 @@ export const InvestmentResultPage = () => {
     };
   }, []);
 
+  // 탭 변경 함수 업데이트
+  const handleMainTabChange = (tab: string) => {
+    setMainTab(tab);
+    setSearch('');
+
+    // 탭 변경 시 페이지를 초기화
+    if (tab === 'transactions') {
+      setConfirmedPage(0);
+      setManualPage(0);
+      setAutoPage(0);
+    } else if (tab === 'pendingOrders') {
+      setPendingPage(0);
+    }
+  };
+
+  // 거래 내역 서브탭 변경 함수 업데이트
+  const handleTransactionSubTabChange = (subTab: string) => {
+    setTransactionSubTab(subTab);
+
+    // 서브탭 변경 시 페이지 초기화
+    if (subTab === 'all') {
+      setConfirmedPage(0);
+    } else if (subTab === 'manual') {
+      setManualPage(0);
+    } else {
+      setAutoPage(0);
+    }
+  };
+
   if (isAccountLoading) {
-    return <LoadingAnimation />;
+    return (
+      <div className="flex w-full flex-col gap-4 px-6">
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-col items-start">
+            <Skeleton className="h-7 w-24" />
+            <Skeleton className="mt-2 h-10 w-48" />
+          </div>
+          <div className="flex flex-row items-start rounded-lg bg-modal-background-color p-3">
+            <div className="flex flex-col items-start">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="mt-2 h-8 w-32" />
+            </div>
+            <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+            <div className="flex flex-col items-start">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="mt-2 h-8 w-32" />
+            </div>
+            <div className="mx-4 h-full w-[1px] bg-btn-primary-inactive-color" />
+            <div className="flex flex-col items-start">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="mt-2 h-8 w-32" />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-row gap-3">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-40" />
+          </div>
+          <Skeleton className="h-10 w-36" />
+        </div>
+        <hr className="mt-5 w-full border-btn-primary-inactive-color" />
+
+        <div className="mb-4 rounded-2xl bg-modal-background-color">
+          <div className="flex w-fit gap-2 rounded-xl p-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        <div id="tab-content" className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
+          <div className="flex flex-row justify-between">
+            <Skeleton className="h-12 w-40" />
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">
+                  <Skeleton className="h-6 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-24" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-24" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-16" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-16" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="ml-auto h-6 w-20" />
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <div className="h-5"></div>
+              {Array(5)
+                .fill(0)
+                .map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="w-[200px]">
+                      <div className="flex flex-row items-center gap-2">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-12" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
   }
 
   if (isAccountError) {
@@ -338,22 +739,22 @@ export const InvestmentResultPage = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>종목명</TableHead>
-            <TableHead>총 수익률</TableHead>
-            <TableHead>총 수익금(원)</TableHead>
-            <TableHead>
+            <TableHead className="w-[200px]">종목명</TableHead>
+            <TableHead className="text-right">총 수익률</TableHead>
+            <TableHead className="text-right">총 수익금(원)</TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="1주 평균 금액">1주 평균 금액</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
             </TableHead>
-            <TableHead>현재가(원)</TableHead>
-            <TableHead>
+            <TableHead className="text-right">현재가(원)</TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="보유수량">보유수량</TermTooltip>
             </TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="평가금">평가금</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
             </TableHead>
-            <TableHead>
+            <TableHead className="text-right">
               <TermTooltip term="구매금액">구매금액</TermTooltip>
               <span className="text-sm text-border-color">(원)</span>
             </TableHead>
@@ -364,7 +765,7 @@ export const InvestmentResultPage = () => {
           {displayData?.accounts.length && displayData?.accounts.length > 0 ? (
             displayData?.accounts.map((account) => (
               <TableRow key={account.companyId}>
-                <TableCell>
+                <TableCell className="w-[200px]">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -387,7 +788,7 @@ export const InvestmentResultPage = () => {
                   </TooltipProvider>
                 </TableCell>
                 <TableCell
-                  className={`${addStockValueColorClass(account.profitRate)} transition-all duration-300 ${
+                  className={`${addStockValueColorClass(account.profitRate)} text-right transition-all duration-300 ${
                     highlightMap[`profitRate_${account.companyId}`]?.isFlashing
                       ? highlightMap[`profitRate_${account.companyId}`]?.isIncreased
                         ? 'bg-btn-red-color/40'
@@ -402,7 +803,7 @@ export const InvestmentResultPage = () => {
                   {`${plusMinusSign(roundToTwoDecimalPlaces(account.profitRate))}${roundToTwoDecimalPlaces(account.profitRate)}%`}
                 </TableCell>
                 <TableCell
-                  className={`${addStockValueColorClass(account.profit)} transition-all duration-300 ${
+                  className={`${addStockValueColorClass(account.profit)} text-right transition-all duration-300 ${
                     highlightMap[`profit_${account.companyId}`]?.isFlashing
                       ? highlightMap[`profit_${account.companyId}`]?.isIncreased
                         ? 'bg-btn-red-color/40'
@@ -416,11 +817,15 @@ export const InvestmentResultPage = () => {
                 >
                   {`${plusMinusSign(account.profit)}${addCommasToThousand(account.profit)}`}
                 </TableCell>
-                <TableCell>{addCommasToThousand(account.avgPrice)}</TableCell>
-                <TableCell>{addCommasToThousand(account.currentPrice)}</TableCell>
-                <TableCell>{account.stockCnt}</TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(account.avgPrice)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(account.currentPrice)}
+                </TableCell>
+                <TableCell className="text-right">{account.stockCnt}</TableCell>
                 <TableCell
-                  className={`${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
+                  className={`text-right ${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
                     highlightMap[`evaluation_${account.companyId}`]?.isFlashing
                       ? highlightMap[`evaluation_${account.companyId}`]?.isIncreased
                         ? 'bg-btn-red-color/40'
@@ -434,13 +839,34 @@ export const InvestmentResultPage = () => {
                 >
                   {`${addCommasToThousand(account.evaluation)}`}
                 </TableCell>
-                <TableCell>{addCommasToThousand(account.investment)}</TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(account.investment)}
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={10} className="text-center">
-                보유 종목이 없습니다.
+              <TableCell colSpan={10} className="py-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="cursor-pointer text-lg underline"
+                          onClick={() => navigate('/search')}
+                        >
+                          보유 종목이 없습니다.
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-row items-center gap-1">
+                          <RocketAnimation />
+                          <p>투자를 시작해볼까요?</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </TableCell>
             </TableRow>
           )}
@@ -450,15 +876,27 @@ export const InvestmentResultPage = () => {
   );
 
   // 주문 대기 목록 탭 콘텐츠
-  const ordersTabContent = (
+  const pendingOrdersTabContent = (
     <>
-      <div className="flex flex-row items-center justify-between">
+      <div className="mb-4 flex flex-row items-center justify-between">
         <div className="flex flex-row gap-3">
           <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
             <p>주문 대기 목록:</p>
-            <span>{userSimulatedData ? userSimulatedData.length : '0'}개</span>
+            <span>
+              {pendingOrdersData?.totalElements ? pendingOrdersData.totalElements : '0'}개
+            </span>
           </div>
         </div>
+        <div className="flex">
+          <SearchBarComponent
+            onSearch={handleSearch}
+            mainTab={mainTab}
+            transactionSubTab={transactionSubTab}
+          />
+        </div>
+      </div>
+
+      <div className="mb-4 flex justify-end">
         <div className="flex gap-4">
           <div className="flex flex-col">
             <span className="text-border-color">총 구매 대기액</span>
@@ -479,20 +917,51 @@ export const InvestmentResultPage = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>종목명</TableHead>
-              <TableHead>거래 유형</TableHead>
-              <TableHead>주문 수량</TableHead>
-              <TableHead>주문 가격(원)</TableHead>
-              <TableHead>총 금액(원)</TableHead>
+              <TableHead className="w-[200px]">종목명</TableHead>
+              <TableHead className="text-center">거래 유형</TableHead>
+              <TableHead className="text-right">주문 수량</TableHead>
+              <TableHead className="text-right">주문 가격(원)</TableHead>
+              <TableHead className="text-right">총 금액(원)</TableHead>
               <TableHead>주문 시간</TableHead>
               <TableHead>주문 취소</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {userSimulatedData && userSimulatedData.length > 0 ? (
-              userSimulatedData.map((order) => (
+            {isPendingOrdersLoading ? (
+              Array(5)
+                .fill(0)
+                .map((_, index) => (
+                  <TableRow key={index}>
+                    <TableCell className="w-[200px]">
+                      <div className="flex flex-row items-center gap-2">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <Skeleton className="h-6 w-24" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Skeleton className="mx-auto h-6 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-20" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-6 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-8 w-16" />
+                    </TableCell>
+                  </TableRow>
+                ))
+            ) : pendingOrdersData?.orders && pendingOrdersData.orders.length > 0 ? (
+              pendingOrdersData.orders.map((order) => (
                 <TableRow key={order.orderId}>
-                  <TableCell>
+                  <TableCell className="w-[200px]">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -514,14 +983,16 @@ export const InvestmentResultPage = () => {
                       </Tooltip>
                     </TooltipProvider>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <Badge variant={order.tradeType === 0 ? 'increase' : 'decrease'}>
                       {getTradeTypeText(order.tradeType)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.quantity}주</TableCell>
-                  <TableCell>{addCommasToThousand(order.price)}</TableCell>
-                  <TableCell>{addCommasToThousand(order.price * order.quantity)}</TableCell>
+                  <TableCell className="text-right">{order.quantity}주</TableCell>
+                  <TableCell className="text-right">{addCommasToThousand(order.price)}</TableCell>
+                  <TableCell className="text-right">
+                    {addCommasToThousand(order.price * order.quantity)}
+                  </TableCell>
                   <TableCell>{formatTradeTime(order.tradingTime)}</TableCell>
                   <TableCell>
                     <AlertDialog>
@@ -560,9 +1031,26 @@ export const InvestmentResultPage = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="py-10 text-center">
+                <TableCell colSpan={7} className="py-10 text-center">
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <p className="text-lg">대기 중인 주문이 없습니다.</p>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <p
+                            className="cursor-pointer text-lg underline"
+                            onClick={() => navigate('/search')}
+                          >
+                            대기 중인 주문이 없습니다.
+                          </p>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="flex flex-row items-center gap-1">
+                            <RocketAnimation />
+                            <p>투자를 시작해볼까요?</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <p className="text-sm">주문을 하면 이곳에 표시됩니다.</p>
                   </div>
                 </TableCell>
@@ -570,6 +1058,229 @@ export const InvestmentResultPage = () => {
             )}
           </TableBody>
         </Table>
+        {pendingOrdersData && pendingOrdersData.totalPages > 0 && (
+          <PaginationComponent
+            currentPage={pendingPage}
+            totalPages={pendingOrdersData.totalPages}
+            onPageChange={handlePendingPageChange}
+          />
+        )}
+      </div>
+    </>
+  );
+
+  // 거래 내역 테이블 렌더링 함수
+  const renderTransactionTable = (data: any, isLoading: boolean) => {
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[200px]">종목명</TableHead>
+            <TableHead className="text-center">거래 유형</TableHead>
+            <TableHead className="text-center">주문 방식</TableHead>
+            <TableHead className="text-right">주문 수량</TableHead>
+            <TableHead className="text-right">주문 가격(원)</TableHead>
+            <TableHead className="text-right">총 금액(원)</TableHead>
+            <TableHead>주문 시간</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            Array(5)
+              .fill(0)
+              .map((_, index) => (
+                <TableRow key={index}>
+                  <TableCell className="w-[200px]">
+                    <div className="flex flex-row items-center gap-2">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <Skeleton className="h-6 w-24" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="mx-auto h-6 w-16" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Skeleton className="mx-auto h-6 w-20" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-6 w-16" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-6 w-20" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-6 w-24" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-6 w-40" />
+                  </TableCell>
+                </TableRow>
+              ))
+          ) : data?.orders && data.orders.length > 0 ? (
+            data.orders.map((order: any) => (
+              <TableRow key={order.orderId}>
+                <TableCell className="w-[200px]">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => navigate(`/investment/simulate/${order.companyId}`)}
+                          className="flex flex-row items-center gap-2"
+                        >
+                          <img
+                            src={order.companyImage}
+                            alt="companyIcon"
+                            className="h-10 w-10 rounded-full"
+                          />
+                          <span className="underline">{order.companyName}</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>종목 상세 페이지로 이동</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge variant={order.tradeType === 0 ? 'red' : 'blue'}>
+                    {getTradeTypeText(order.tradeType)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge variant={order.auto ? 'auto' : 'manual'}>
+                    {getOrderModeText(order.auto)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">{order.quantity}주</TableCell>
+                <TableCell className="text-right">{addCommasToThousand(order.price)}</TableCell>
+                <TableCell className="text-right">
+                  {addCommasToThousand(order.price * order.quantity)}
+                </TableCell>
+                <TableCell>{formatTradeTime(order.tradingTime)}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={8} className="py-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p
+                          className="cursor-pointer text-lg underline"
+                          onClick={() => navigate('/search')}
+                        >
+                          거래 내역이 없습니다.
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <div className="flex flex-row items-center gap-1">
+                          <RocketAnimation />
+                          <p>투자를 시작해볼까요?</p>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  // 거래 내역 탭 콘텐츠
+  const transactionsTabContent = (
+    <>
+      <div className="mb-4 flex flex-row items-center justify-between">
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-row gap-2 rounded-lg border border-border-color bg-modal-background-color p-3">
+            <p>거래 내역:</p>
+            <span>
+              {transactionSubTab === 'all'
+                ? confirmedOrdersData?.totalElements || '0'
+                : transactionSubTab === 'manual'
+                  ? manualOrdersData?.totalElements || '0'
+                  : autoOrdersData?.totalElements || '0'}
+              개
+            </span>
+          </div>
+        </div>
+        <div className="flex">
+          <SearchBarComponent
+            onSearch={handleSearch}
+            mainTab={mainTab}
+            transactionSubTab={transactionSubTab}
+          />
+        </div>
+      </div>
+
+      <div className="mb-4 flex gap-2">
+        <Button
+          variant="blue"
+          className={transactionSubTab === 'all' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'}
+          onClick={() => handleTransactionSubTabChange('all')}
+        >
+          전체
+        </Button>
+        <Button
+          variant="blue"
+          className={
+            transactionSubTab === 'manual' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'
+          }
+          onClick={() => handleTransactionSubTabChange('manual')}
+        >
+          수동
+        </Button>
+        <Button
+          variant="blue"
+          className={transactionSubTab === 'auto' ? '' : 'bg-btn-blue-color/20 text-btn-blue-color'}
+          onClick={() => handleTransactionSubTabChange('auto')}
+        >
+          자동
+        </Button>
+      </div>
+
+      <div className="rounded-lg bg-modal-background-color">
+        {transactionSubTab === 'all' && (
+          <>
+            {renderTransactionTable(confirmedOrdersData, isConfirmedOrdersLoading)}
+            {confirmedOrdersData && confirmedOrdersData.totalPages > 0 && (
+              <PaginationComponent
+                currentPage={confirmedPage}
+                totalPages={confirmedOrdersData.totalPages}
+                onPageChange={handleConfirmedPageChange}
+              />
+            )}
+          </>
+        )}
+
+        {transactionSubTab === 'manual' && (
+          <>
+            {renderTransactionTable(manualOrdersData, isManualOrdersLoading)}
+            {manualOrdersData && manualOrdersData.totalPages > 0 && (
+              <PaginationComponent
+                currentPage={manualPage}
+                totalPages={manualOrdersData.totalPages}
+                onPageChange={handleManualPageChange}
+              />
+            )}
+          </>
+        )}
+
+        {transactionSubTab === 'auto' && (
+          <>
+            {renderTransactionTable(autoOrdersData, isAutoOrdersLoading)}
+            {autoOrdersData && autoOrdersData.totalPages > 0 && (
+              <PaginationComponent
+                currentPage={autoPage}
+                totalPages={autoOrdersData.totalPages}
+                onPageChange={handleAutoPageChange}
+              />
+            )}
+          </>
+        )}
       </div>
     </>
   );
@@ -718,13 +1429,13 @@ export const InvestmentResultPage = () => {
       </div>
       <hr className="mt-5 w-full border-btn-primary-inactive-color" />
 
-      {/* 커스텀 탭 직접 구현 */}
+      {/* 메인 탭 네비게이션 */}
       <div className="mb-4 rounded-2xl bg-modal-background-color">
         <div className="flex w-fit gap-2 rounded-xl p-2">
           <button
-            onClick={() => setActiveTab('holdings')}
+            onClick={() => handleMainTabChange('holdings')}
             className={`rounded-lg px-4 py-2 transition-all duration-300 ${
-              activeTab === 'holdings'
+              mainTab === 'holdings'
                 ? 'bg-btn-blue-color font-medium text-white'
                 : 'text-border-color hover:bg-btn-blue-color/20'
             }`}
@@ -732,9 +1443,19 @@ export const InvestmentResultPage = () => {
             보유 종목
           </button>
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => handleMainTabChange('transactions')}
             className={`rounded-lg px-4 py-2 transition-all duration-300 ${
-              activeTab === 'orders'
+              mainTab === 'transactions'
+                ? 'bg-btn-blue-color font-medium text-white'
+                : 'text-border-color hover:bg-btn-blue-color/20'
+            }`}
+          >
+            거래 내역
+          </button>
+          <button
+            onClick={() => handleMainTabChange('pendingOrders')}
+            className={`rounded-lg px-4 py-2 transition-all duration-300 ${
+              mainTab === 'pendingOrders'
                 ? 'bg-btn-blue-color font-medium text-white'
                 : 'text-border-color hover:bg-btn-blue-color/20'
             }`}
@@ -745,8 +1466,10 @@ export const InvestmentResultPage = () => {
       </div>
 
       {/* 탭 내용 */}
-      <div className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
-        {activeTab === 'holdings' ? holdingsTabContent : ordersTabContent}
+      <div id="tab-content" className="mt-3 rounded-xl bg-modal-background-color p-[20px]">
+        {mainTab === 'holdings' && holdingsTabContent}
+        {mainTab === 'transactions' && transactionsTabContent}
+        {mainTab === 'pendingOrders' && pendingOrdersTabContent}
       </div>
     </div>
   );

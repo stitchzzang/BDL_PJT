@@ -33,21 +33,46 @@ export const NamePage = () => {
       return false;
     }
 
-    // 특수문자 검사 (한글, 영문, 숫자만 허용)
-    if (!/^[가-힣a-zA-Z0-9]+$/.test(name)) {
+    // 특수문자 검사 (한글, 영문, 숫자, 띄어쓰기만 허용)
+    if (!/^[가-힣a-zA-Z0-9\s]+$/.test(name)) {
       setErrorMessage('특수문자 및 자음/모음은 사용할 수 없습니다.');
       return false;
     }
 
     // 길이 검사
-    if (name.length > 10) {
-      setErrorMessage('알고리즘 이름은 10자 이하여야 합니다.');
+    if (name.length > 15) {
+      setErrorMessage('알고리즘 이름은 15자 이하여야 합니다.');
       return false;
     }
 
     // 모든 검사 통과
     setErrorMessage('');
     return true;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // 앞에 공백이 있는 경우 제거 (중간 공백은 유지)
+    const trimmedValue = value.trimStart();
+
+    // 15자 이상인 경우 토스트 메시지 출력
+    if (value.length > 15) {
+      alert('알고리즘 이름은 15자 이하여야 합니다.');
+      return;
+    }
+
+    setAlgorithmName(trimmedValue);
+    setNowName(trimmedValue);
+    validateName(trimmedValue);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (pastedText.length > 15) {
+      e.preventDefault();
+      alert('알고리즘 이름은 15자 이하여야 합니다.');
+    }
   };
 
   if (!isValidAccess) {
@@ -107,12 +132,9 @@ export const NamePage = () => {
             <Input
               type="text"
               value={algorithmName}
-              onChange={(e) => {
-                const newValue = e.target.value;
-                setAlgorithmName(newValue);
-                setNowName(newValue);
-                validateName(newValue);
-              }}
+              maxLength={15}
+              onChange={handleInputChange}
+              onPaste={handlePaste}
               placeholder="알고리즘 이름을 작성하세요."
               className={`h-12 transition-colors duration-200 focus:outline-none focus:ring-2 ${
                 errorMessage

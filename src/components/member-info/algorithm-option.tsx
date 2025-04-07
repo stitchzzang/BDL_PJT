@@ -55,10 +55,18 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
           },
         ]
       : []),
+    ...(algorithm.shortTermMaPeriod && algorithm.longTermMaPeriod
+      ? [
+          {
+            optionName: <TermTooltip term="이동평균선">이동평균선</TermTooltip>,
+            optionDescription: `사용`,
+          },
+        ]
+      : []),
     ...(algorithm.oneMinuteIncreasePercent || algorithm.oneMinuteDecreasePercent
       ? [
           {
-            optionName: '단기 변화 반응',
+            optionName: '단기 변화 반응(분봉)',
             optionDescription: (
               <>
                 {algorithm.oneMinuteIncreasePercent && (
@@ -88,7 +96,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.dailyIncreasePercent || algorithm.dailyDecreasePercent
       ? [
           {
-            optionName: '일간 추세 반응',
+            optionName: '일간 추세 반응(일봉)',
             optionDescription: (
               <>
                 {algorithm.dailyIncreasePercent && (
@@ -118,7 +126,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
   ];
 
   return (
-    <div className="flex flex-row flex-wrap gap-2">
+    <div className="flex w-full flex-row flex-wrap justify-start gap-2">
       {options.map((option, index) => (
         <p
           key={index}

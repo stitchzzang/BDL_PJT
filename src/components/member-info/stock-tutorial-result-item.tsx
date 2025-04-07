@@ -1,4 +1,5 @@
 import { TutorialResultResponse } from '@/api/types/tutorial';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   addCommasToThousand,
   addStockValueColorClass,
@@ -27,18 +28,21 @@ export const StockTutorialResultItem = ({
         />
         <div className="flex flex-col gap-1">
           <p className="text-base">{result.companyName}</p>
-          <div className="flex flex-row gap-2 text-sm text-text-inactive-2-color">
-            {new Date(result.startDate).toLocaleDateString()} ~{' '}
-            {new Date(result.endDate).toLocaleDateString()}
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex cursor-help flex-row text-sm text-text-inactive-2-color underline">
+                  {new Date(result.endDate).toLocaleDateString()}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>진행일로부터 과거 1년 간의 데이터로 튜토리얼이 진행됩니다.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
       <div className="flex flex-row items-center gap-4 text-base">
-        <div className="flex flex-row items-center gap-1">
-          <span className="text-border-color">시작 금액</span>
-          <p className="text-text-main-color">{addCommasToThousand(result.startMoney)}</p>
-          <span className="text-border-color">원</span>
-        </div>
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 금액</span>
           <p className="text-text-main-color">{addCommasToThousand(result.endMoney)}</p>
@@ -47,7 +51,7 @@ export const StockTutorialResultItem = ({
         <div className="flex flex-row items-center gap-1">
           <span className="text-border-color">최종 수익률</span>
           <p
-            className={`rounded-lg border px-2 py-1 ${addStockValueColorClass(
+            className={`min-w-[80px] rounded-lg border px-2 py-1 text-center ${addStockValueColorClass(
               ((result.endMoney - result.startMoney) / result.startMoney) * 100,
             )}`}
           >

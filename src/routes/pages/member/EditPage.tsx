@@ -10,7 +10,6 @@ import { useUpdateMemberInfo } from '@/api/member.api';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
 import { getResizeImage } from '@/utils/getResizeImage';
@@ -20,7 +19,7 @@ const editProfileSchema = z.object({
   nickname: z
     .string()
     .min(2, '닉네임은 최소 2자 이상이어야 합니다.')
-    .max(5, '닉네임은 최대 5자까지 가능합니다.')
+    .max(10, '닉네임은 최대 10자까지 가능합니다.')
     .refine((value) => /^[가-힣a-zA-Z0-9]+$/.test(value), {
       message: '특수문자 및 자음/모음은 사용할 수 없습니다.',
     }),
@@ -37,6 +36,7 @@ export const EditPage = () => {
   const [useDefaultProfile, setUseDefaultProfile] = useState(false);
   const [profileChanged, setProfileChanged] = useState(false);
   const [originalTempProfile, setOriginalTempProfile] = useState(userData.profile || '');
+  const [isDefaultImage, setIsDefaultImage] = useState(false);
   // form 관련 설정
   const form = useForm<EditProfileFormValues>({
     resolver: zodResolver(editProfileSchema),
@@ -59,18 +59,20 @@ export const EditPage = () => {
     form.trigger();
   }, [form]);
 
-  // 이미지 리사이징 함수
+  // 컴포넌트 마운트 시 기본 이미지 여부 확인
+  useEffect(() => {
+    // 프로필이 없거나 기본 이미지 경로를 포함하는 경우
+    const isDefault = !userData.profile || userData.profile.includes('none_profile_img');
+    setIsDefaultImage(isDefault);
+    if (isDefault) {
+      setUseDefaultProfile(true);
+    }
+  }, [userData.profile]);
 
+  // 이미지 리사이징 함수
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // 파일 확장자 검증
-    const validExtensions = ['image/jpeg', 'image/png'];
-    if (!validExtensions.includes(file.type)) {
-      alert('JPG 또는 PNG 파일만 업로드 가능합니다.');
-      return;
-    }
 
     try {
       // 이미지 리사이즈
@@ -83,14 +85,28 @@ export const EditPage = () => {
         const result = reader.result as string;
         setTempProfile(result);
         setProfileChanged(true);
+        setIsDefaultImage(false); // 이미지를 업로드했으므로 기본 이미지 상태 해제
       };
       reader.readAsDataURL(resizedFile);
 
       // 기본 프로필 사용 해제
       setUseDefaultProfile(false);
     } catch (error) {
-      alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('이미지 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     }
+  };
+
+  // 이미지 변경 버튼 클릭 핸들러
+  const handleImageChangeClick = () => {
+    // 파일 입력 초기화 (같은 파일 재선택 가능하도록)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    fileInputRef.current?.click();
   };
 
   const { mutate: updateMemberInfo } = useUpdateMemberInfo({
@@ -145,6 +161,21 @@ export const EditPage = () => {
     }
   };
 
+  // 기본 프로필 설정 함수
+  const handleUseDefaultProfile = () => {
+    if (useDefaultProfile) return; // 이미 기본 프로필 사용 중이면 아무것도 하지 않음
+
+    setUseDefaultProfile(true);
+    setProfileChanged(true);
+    setTempProfile('');
+    setSelectedFile(null);
+
+    // 파일 입력 요소 초기화 (같은 파일을 다시 선택할 수 있도록)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const { mutate: signout } = useSignout();
 
   const handleSignout = () => {
@@ -177,18 +208,19 @@ export const EditPage = () => {
               accept="image/jpeg,image/png"
               onChange={handleImageChange}
             />
-            <div className="flex items-center justify-center gap-2">
-              <Switch checked={useDefaultProfile} onCheckedChange={handleSwitchChange} />
-              <p className="text-text-border-color text-sm">기본 프로필 사용</p>
+            <div className="flex w-full justify-center gap-2">
+              <Button className="w-full" variant="black" onClick={handleImageChangeClick}>
+                이미지 변경
+              </Button>
+              <Button
+                className="w-full"
+                variant="black"
+                onClick={handleUseDefaultProfile}
+                disabled={useDefaultProfile}
+              >
+                프로필 삭제
+              </Button>
             </div>
-            <Button
-              className="w-full"
-              variant="black"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={useDefaultProfile}
-            >
-              이미지 변경
-            </Button>
           </div>
           <div className="flex w-full flex-col items-center gap-2">
             <FormField
@@ -218,7 +250,7 @@ export const EditPage = () => {
                     >
                       {hasError
                         ? errors.nickname?.message
-                        : '닉네임은 2-5자, 특수문자 및 자음/모음 사용 불가'}
+                        : '닉네임은 2-10자, 특수문자 및 자음/모음 사용 불가'}
                     </p>
                   </FormItem>
                 );
