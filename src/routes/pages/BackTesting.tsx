@@ -7,7 +7,7 @@ import { AlgorithmCompanyInfo } from '@/components/algorithm/algorithm-company-i
 import { AlgorithmSummary } from '@/components/algorithm/algorithm-summary';
 import { BackTestResultList } from '@/components/algorithm/backtest-result-list';
 import AssetComparisonChart from '@/components/algorithm/userCostChangeChart';
-import { LoadingAnimation } from '@/components/common/loading-animation';
+import { AirplaneAnimation } from '@/components/common/airplane-animation';
 import { Lanyard } from '@/components/ui/lanyard';
 
 export const BackTesting = () => {
@@ -221,8 +221,8 @@ export const BackTesting = () => {
             <div className="col-span-5">
               {showSummary ? (
                 <>
-                  <div className="flex flex-col items-center justify-center">
-                    <LoadingAnimation />
+                  <div className="flex h-full flex-col items-center justify-center rounded-xl bg-modal-background-color">
+                    <AirplaneAnimation />
                     <p className="animate-pulse text-btn-blue-color">결과를 기다리고 있습니다.</p>
                   </div>
                 </>
