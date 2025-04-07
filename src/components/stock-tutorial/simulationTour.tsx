@@ -34,6 +34,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         position: relative;
         background-color: transparent !important;
         color: transparent !important;
+        width: 225px !important;
+        height: 45px !important;
       }
       
       .react-joyride__tooltip button[data-action="primary"]::after {
@@ -46,7 +48,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #5676F5;
+        background-color: ${isLastStep ? '#1CAB55' : '#5676F5'};
         border-radius: 6px;
         color: white;
         font-size: 16px;
@@ -103,7 +105,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           <div className="p-2">
             <h2 className="mb-5 text-[25px] font-bold">변곡점 설명</h2>
             <div className="mb-8 flex justify-center">
-              <img src={PointExplainImg} alt="변곡점 설명" className="h-auto max-w-full" />
+              <img src={PointExplainImg} alt="변곡점 설명" className="w-[600px] max-w-[100%]" />
             </div>
             <p className="text-[18px]">
               주식 차트에서 중요한 변화가 발생하는 시점을 변곡점이라고 합니다.
@@ -219,7 +221,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks: true,
       },
       {
-        target: '.chart-tutorial',
+        target: 'div.chart-tutorial',
         content: (
           <div className="p-4">
             <h2 className="mb-3 text-[20px] font-bold">주식 차트</h2>
@@ -232,7 +234,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'center',
+        placement: 'bottom',
       },
       {
         target: '.stock-tutorial-order',
