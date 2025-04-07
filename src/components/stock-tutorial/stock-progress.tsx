@@ -48,7 +48,7 @@ export const ProgressBar = ({ progress: externalProgress }: ProgressBarProps) =>
           className="relative h-full w-full select-none rounded-xl bg-btn-green-color bg-opacity-20"
         >
           <div
-            className="transition-width absolute left-0 top-0 h-full rounded-xl bg-btn-green-color duration-75"
+            className="transition-width absolute left-0 top-0 h-full rounded-xl bg-btn-green-color duration-500"
             style={{ width: `${internalProgress}%` }}
           ></div>
         </div>
