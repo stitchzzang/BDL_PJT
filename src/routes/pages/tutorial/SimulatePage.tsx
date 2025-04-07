@@ -1705,7 +1705,7 @@ export const SimulatePage = () => {
           latestPrice={latestPrice}
         />
       </div>
-      <div className="mb-[25px] flex justify-between">
+      <div className="mb-[20px] flex justify-between">
         <StockTutorialMoneyInfo
           initialAsset={10000000}
           availableOrderAsset={assetInfo.availableOrderAsset}

@@ -5,7 +5,6 @@ import { useGetCompanyProfile } from '@/api/company.api';
 import { _ky } from '@/api/instance';
 import { useInitSession } from '@/api/tutorial.api';
 import { ApiResponse } from '@/api/types/common';
-import TestImage from '@/assets/test/stock-test.png';
 import { StockTutorialHelp } from '@/components/stock-tutorial/stock-tutorial-help';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -268,11 +267,15 @@ export const StockTutorialInfo = ({
       <div className="flex w-full items-start gap-[20px] sm:items-center">
         <div className="flex w-full items-center gap-3">
           <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
-            <img
-              src={companyInfo?.companyImage || TestImage}
-              alt={`${companyInfo?.companyName || '회사'}-로고`}
-              className="h-full w-full object-cover"
-            />
+            {companyInfo?.companyImage ? (
+              <img
+                src={companyInfo.companyImage}
+                alt={`${companyInfo.companyName || '회사'}-로고`}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Skeleton className="h-[50px] w-[50px]" style={{ backgroundColor: '#0D192B' }} />
+            )}
           </div>
           <div className="flex w-full flex-col">
             <div className="mb-1 flex items-center gap-2">
