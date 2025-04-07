@@ -79,8 +79,7 @@ export const ProgressInfo = ({
       const day = parseInt(dateStr.substring(4, 6));
 
       return new Date(year, month, day);
-    } catch (error) {
-      console.error('날짜 변환 오류:', error);
+    } catch {
       return new Date();
     }
   };
