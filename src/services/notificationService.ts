@@ -25,9 +25,14 @@ class NotificationEventSource {
 
   static closeConnection() {
     if (this.instance) {
+      console.log('SSE 연결 종료');
       this.instance.close();
       this.instance = null;
     }
+  }
+
+  static isConnected() {
+    return !!this.instance && this.instance.readyState === EventSource.OPEN;
   }
 }
 
@@ -36,8 +41,17 @@ export const subscribeToNotifications = () => {
   const { isLogin, userData } = useAuthStore.getState();
   const accessToken = localStorage.getItem('accessToken');
 
-  if (!isLogin || !accessToken || !userData.memberId || NotificationEventSource.getInstance())
+  // 이미 연결이 있거나, 로그인 상태가 아니거나, 토큰이 없거나, memberId가 없으면 구독하지 않음
+  if (!isLogin || !accessToken || !userData.memberId) {
+    console.log('SSE 연결 불가: 로그인 상태 또는 토큰 없음');
     return;
+  }
+
+  // 이미 연결된 경우 새로운 연결을 시도하지 않음
+  if (NotificationEventSource.getInstance()) {
+    console.log('SSE 이미 연결됨');
+    return;
+  }
 
   let reconnectAttempts = 0;
   const MAX_RECONNECT_ATTEMPTS = 999999;
@@ -47,6 +61,7 @@ export const subscribeToNotifications = () => {
 
   const connect = () => {
     try {
+      console.log('SSE 연결 시도');
       const newEventSource = new EventSourcePolyfill(
         `/api/notification/subscribe/${userData.memberId}`,
         {
@@ -84,6 +99,7 @@ export const subscribeToNotifications = () => {
       );
 
       newEventSource.onopen = (event) => {
+        console.log('SSE 연결 성공');
         clearTimeout(connectionTimeout);
         reconnectAttempts = 0;
         currentReconnectDelay = INITIAL_RECONNECT_DELAY;
@@ -91,12 +107,20 @@ export const subscribeToNotifications = () => {
 
       const reconnectSSE = () => {
         NotificationEventSource.closeConnection();
+
+        // 로그인 상태가 아니면 재연결하지 않음
+        if (!useAuthStore.getState().isLogin) {
+          console.log('SSE 재연결 중단: 로그인 상태 아님');
+          return;
+        }
+
         reconnectAttempts++;
+        console.log(`SSE 재연결 시도 ${reconnectAttempts}`);
 
         currentReconnectDelay = Math.min(currentReconnectDelay * 1.5, MAX_RECONNECT_DELAY);
 
         setTimeout(() => {
-          if (!NotificationEventSource.getInstance()) {
+          if (!NotificationEventSource.getInstance() && useAuthStore.getState().isLogin) {
             connect();
           }
         }, currentReconnectDelay);
@@ -105,7 +129,17 @@ export const subscribeToNotifications = () => {
       // 주기적으로 연결 상태 체크
       const connectionCheck = setInterval(() => {
         const state = getReadyState(newEventSource.readyState);
+
+        // 로그인 상태가 아니면 연결 종료
+        if (!useAuthStore.getState().isLogin) {
+          console.log('SSE 연결 체크: 로그인 상태 아님, 연결 종료');
+          clearInterval(connectionCheck);
+          NotificationEventSource.closeConnection();
+          return;
+        }
+
         if (newEventSource.readyState === EventSource.CLOSED) {
+          console.log('SSE 연결 체크: 연결 종료됨, 재연결 시도');
           clearInterval(connectionCheck);
           reconnectSSE();
         }
@@ -114,6 +148,7 @@ export const subscribeToNotifications = () => {
       // @ts-expect-error EventSource type mismatch
       newEventSource.onerror = (ev: Event) => {
         const state = getReadyState(newEventSource.readyState);
+        console.log(`SSE 오류 발생: ${state}`);
 
         clearInterval(connectionCheck);
 
@@ -150,6 +185,7 @@ export const subscribeToNotifications = () => {
 
       NotificationEventSource.setInstance(newEventSource);
     } catch (error) {
+      console.error('SSE 연결 오류:', error);
       setTimeout(connect, currentReconnectDelay);
     }
   };
@@ -192,6 +228,7 @@ function showTradeNotification(data: TradeSignal, isAuto: boolean) {
 
 // SSE 연결 수동 해제 함수
 export const unsubscribeFromNotifications = () => {
+  console.log('SSE 연결 수동 해제 요청');
   NotificationEventSource.closeConnection();
 };
 
