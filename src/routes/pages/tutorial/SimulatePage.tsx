@@ -217,7 +217,7 @@ export const SimulatePage = () => {
   const [trades, setTrades] = useState<TradeRecord[]>([]);
 
   // 현재 가격 상태
-  const [latestPrice, setLatestPrice] = useState(50000);
+  const [latestPrice, setLatestPrice] = useState(0);
 
   // 현재 뉴스 상태
   const [currentNews, setCurrentNews] = useState<NewsResponseWithThumbnail | null>(null);

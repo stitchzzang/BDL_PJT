@@ -283,8 +283,8 @@ export const StockTutorialInfo = ({
                 {companyInfo?.companyCode || '회사코드'}
               </p>
             </div>
-            <div className="flex w-full flex-col items-start justify-start gap-[18px] sm:flex-row sm:items-center sm:justify-between">
-              <div className="ite flex flex-col gap-1 sm:flex-row">
+            <div className="flex w-full flex-col items-start justify-start gap-[17px] sm:flex-row sm:items-center sm:justify-between">
+              <div className="ite flex flex-col gap-2 sm:flex-row">
                 <div className="flex flex-col items-center gap-2 text-[14px] sm:flex-row">
                   <h3 className="text-[22px] font-medium text-white">
                     {addCommasToThousand(displayPrice || 0)}원
