@@ -143,7 +143,7 @@ export const RealTimeChartTransaction = () => {
 
   return (
     <div>
-      <div className="w-full animate-fadeIn">
+      <div className="w-full animate-fadeIn duration-1000 ease-in-out">
         <div className="!mt-0 flex flex-col">
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">
