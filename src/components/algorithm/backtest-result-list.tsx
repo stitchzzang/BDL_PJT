@@ -33,7 +33,7 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
               <div
                 key={`item-${dailyData.length - 1 - index}`}
                 className="animate-fadeIn cursor-pointer rounded-lg bg-border-color bg-opacity-10 p-2 transition-colors duration-300 hover:bg-background-color hover:bg-opacity-100"
-                onClick={() => setClickNumber(dailyDatacard.index)}
+                onClick={() => setClickNumber(dailyDatacard.index + 1)}
               >
                 <div className="flex justify-between gap-2">
                   {dailyDatacard.trade.type === 'BUY' ? (
