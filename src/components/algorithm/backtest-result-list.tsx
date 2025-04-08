@@ -87,7 +87,7 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                   <p className="text-border-color">
                     총 자산:{' '}
                     <span
-                      className={`${dailyDatacard.portfolioValue > 10000000 ? 'text-btn-red-color' : 'text-btn-blue-color'} text-[15px]`}
+                      className={`${dailyDatacard.portfolioValue === 10000000 ? 'text-white' : dailyDatacard.portfolioValue > 10000000 ? 'text-btn-red-color' : 'text-btn-blue-color'} text-[15px]`}
                     >
                       {formatKoreanMoney(dailyDatacard.portfolioValue)}원
                     </span>
