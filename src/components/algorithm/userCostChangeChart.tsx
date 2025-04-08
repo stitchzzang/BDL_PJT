@@ -20,6 +20,7 @@ interface AssetComparisonChartProps {
   initialAsset: number; // 초기 자산 (고정값)
   changingAssets?: DailyData[] | null; // 시간에 따른 변동 자산 값 배열
   labels?: string[]; // 차트 x축 라벨 (기간 표시, 선택 사항)
+  isRunning?: boolean; // 10초 애니메이션 구동 여부 확인
 }
 
 // 자산 비교 차트 컴포넌트
@@ -27,6 +28,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
   initialAsset,
   changingAssets,
   labels,
+  isRunning,
 }) => {
   // 차트 옵션 상태
   const [options, setOptions] = useState<EChartsOption>({});
@@ -318,7 +320,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
           moveOnMouseMove: false, // 드래그로만 이동 가능하게 설정
         },
       ],
-      animation: false,
+      animation: !isRunning,
     };
 
     setOptions(chartOptions);

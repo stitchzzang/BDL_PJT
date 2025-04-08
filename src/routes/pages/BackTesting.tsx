@@ -281,7 +281,11 @@ export const BackTesting = () => {
           <div className="mt-1 grid grid-cols-14 gap-1">
             <div className="col-span-9">
               {dayChart ? (
-                <AssetComparisonChart initialAsset={10000000} changingAssets={dayChart} />
+                <AssetComparisonChart
+                  initialAsset={10000000}
+                  changingAssets={dayChart}
+                  isRunning={isRunning}
+                />
               ) : (
                 <div>no data</div>
               )}
