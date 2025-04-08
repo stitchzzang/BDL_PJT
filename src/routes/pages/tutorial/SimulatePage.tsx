@@ -84,6 +84,16 @@ const TutorialEndModal = memo(
     const rateColor = isZero ? 'text-gray-400' : isPositive ? 'text-[#E5404A]' : 'text-blue-500';
     const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(2)}%`;
 
+    // props 로그 추가
+    useEffect(() => {
+      console.log('[TutorialEndModal] props 변경:', {
+        isOpen,
+        changeRate,
+        formattedRate,
+        feedback,
+      });
+    }, [isOpen, changeRate, formattedRate, feedback]);
+
     if (!isOpen) return null;
 
     return (
@@ -310,6 +320,31 @@ export const SimulatePage = () => {
     currentTotalAsset: 10000000, // 초기 자산 가치
     totalReturnRate: 0, // 초기 수익률
   });
+
+  // 자산 정보 상태 변경 감지
+  useEffect(() => {
+    console.log('[SimulatePage] assetInfo 업데이트됨:', assetInfo);
+
+    // 자산 정보 유효성 검증
+    if (
+      typeof assetInfo.availableOrderAsset !== 'number' ||
+      typeof assetInfo.currentTotalAsset !== 'number' ||
+      typeof assetInfo.totalReturnRate !== 'number'
+    ) {
+      console.error('[SimulatePage] 유효하지 않은 자산 정보:', assetInfo);
+    }
+
+    // 상태 업데이트 후 최신 자산 정보 출력
+    const timer = setTimeout(() => {
+      console.log('[SimulatePage] 최신 자산 정보 확인 (setTimeout):', {
+        availableOrderAsset: assetInfo.availableOrderAsset,
+        currentTotalAsset: assetInfo.currentTotalAsset,
+        totalReturnRate: assetInfo.totalReturnRate,
+      });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [assetInfo]);
 
   // 튜토리얼 주식 데이터 상태
   const [stockData, setStockData] = useState<TutorialStockResponse | null>(null);
@@ -699,6 +734,63 @@ export const SimulatePage = () => {
     };
   }, []);
 
+  // API 응답 디버그 헬퍼 함수
+  const debugAPIResponse = (response: any, action: string) => {
+    console.log(`[디버그] ${action} API 응답:`, response);
+
+    // 응답 구조 분석
+    if (!response) {
+      console.error(`[디버그] ${action} 응답이 없습니다.`);
+      return;
+    }
+
+    if (!response.isSuccess) {
+      console.error(`[디버그] ${action} 응답 실패:`, response.message || '이유 없음');
+      return;
+    }
+
+    if (!response.result) {
+      console.error(`[디버그] ${action} 결과 없음`);
+      return;
+    }
+
+    // result 타입 확인
+    console.log(
+      `[디버그] ${action} result 타입:`,
+      Array.isArray(response.result) ? 'Array' : typeof response.result,
+    );
+
+    // 배열 또는 AssetResponse 배열 추출
+    const assetResponses = Array.isArray(response.result)
+      ? response.result
+      : response.result.AssetResponse || [];
+
+    console.log(`[디버그] ${action} AssetResponse 배열 길이:`, assetResponses.length);
+
+    // 배열이 비어있지 않다면 첫 번째와 마지막 항목 로깅
+    if (assetResponses.length > 0) {
+      console.log(`[디버그] ${action} 첫 번째 항목:`, assetResponses[0]);
+      console.log(`[디버그] ${action} 마지막 항목:`, assetResponses[assetResponses.length - 1]);
+
+      // 마지막 항목의 키 확인
+      const latestAsset = assetResponses[assetResponses.length - 1];
+      console.log(`[디버그] ${action} 마지막 항목 키:`, Object.keys(latestAsset));
+
+      // 중요 필드 유무 확인
+      const hasTradeDate = 'tradingDate' in latestAsset;
+      const hasAvailableOrderAsset = 'availableOrderAsset' in latestAsset;
+      const hasCurrentTotalAsset = 'currentTotalAsset' in latestAsset;
+      const hasTotalReturnRate = 'totalReturnRate' in latestAsset;
+
+      console.log(`[디버그] ${action} 필드 존재 여부:`, {
+        tradingDate: hasTradeDate,
+        availableOrderAsset: hasAvailableOrderAsset,
+        currentTotalAsset: hasCurrentTotalAsset,
+        totalReturnRate: hasTotalReturnRate,
+      });
+    }
+  };
+
   // 거래 처리 함수
   const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
     if (!isUserLoggedIn()) {
@@ -798,21 +890,51 @@ export const SimulatePage = () => {
           endStockCandleId: endPointId,
         });
 
+        console.log('[handleTrade] hold API 응답:', response);
+        // 응답 디버그 추가
+        debugAPIResponse(response, 'handleTrade hold');
+
         // API 응답에서 자산 정보 업데이트
-        if (response.isSuccess && response.result && response.result.AssetResponse) {
-          const assetResponses = response.result.AssetResponse;
+        if (response.isSuccess && response.result) {
+          // 배열인지 확인
+          const assetResponses = Array.isArray(response.result)
+            ? response.result
+            : response.result.AssetResponse || [];
+
+          console.log('[handleTrade] hold AssetResponse 배열:', assetResponses);
+
           if (assetResponses.length > 0) {
             // 최신 자산 정보 가져오기 (마지막 항목)
             const latestAsset = assetResponses[assetResponses.length - 1];
+            console.log('[handleTrade] hold 최신 자산 정보:', latestAsset);
 
-            // 자산 정보 업데이트
-            setAssetInfo({
-              tradingDate: latestAsset.tradingDate,
-              availableOrderAsset: latestAsset.availableOrderAsset,
-              currentTotalAsset: latestAsset.currentTotalAsset,
-              totalReturnRate: latestAsset.totalReturnRate,
-            });
+            // 필수 필드 존재 여부 확인
+            if (
+              latestAsset &&
+              'availableOrderAsset' in latestAsset &&
+              'currentTotalAsset' in latestAsset &&
+              'totalReturnRate' in latestAsset &&
+              'tradingDate' in latestAsset
+            ) {
+              // 자산 정보 업데이트
+              const newAssetInfo = {
+                tradingDate: latestAsset.tradingDate,
+                availableOrderAsset: latestAsset.availableOrderAsset,
+                currentTotalAsset: latestAsset.currentTotalAsset,
+                totalReturnRate: latestAsset.totalReturnRate,
+              };
+
+              console.log('[handleTrade] hold 새 자산 정보로 업데이트:', newAssetInfo);
+              setAssetInfo(newAssetInfo);
+              console.log('[handleTrade] hold 업데이트 후 확인:', newAssetInfo);
+            } else {
+              console.error('[handleTrade] hold 필요한 필드가 없습니다:', latestAsset);
+            }
+          } else {
+            console.warn('[handleTrade] hold AssetResponse 배열이 비어 있습니다.');
           }
+        } else {
+          console.warn('[handleTrade] hold API 응답 없음 또는 오류:', response);
         }
 
         // 관망 거래 기록 추가
@@ -843,21 +965,51 @@ export const SimulatePage = () => {
         endStockCandleId: endPointId,
       });
 
+      console.log(`[handleTrade] ${action} API 응답:`, response);
+      // 응답 디버그 추가
+      debugAPIResponse(response, `handleTrade ${action}`);
+
       // API 응답에서 자산 정보 업데이트
-      if (response.isSuccess && response.result && response.result.AssetResponse) {
-        const assetResponses = response.result.AssetResponse;
+      if (response.isSuccess && response.result) {
+        // 배열인지 확인
+        const assetResponses = Array.isArray(response.result)
+          ? response.result
+          : response.result.AssetResponse || [];
+
+        console.log(`[handleTrade] ${action} AssetResponse 배열:`, assetResponses);
+
         if (assetResponses.length > 0) {
           // 최신 자산 정보 가져오기 (마지막 항목)
           const latestAsset = assetResponses[assetResponses.length - 1];
+          console.log(`[handleTrade] ${action} 최신 자산 정보:`, latestAsset);
 
-          // 자산 정보 업데이트
-          setAssetInfo({
-            tradingDate: latestAsset.tradingDate,
-            availableOrderAsset: latestAsset.availableOrderAsset,
-            currentTotalAsset: latestAsset.currentTotalAsset,
-            totalReturnRate: latestAsset.totalReturnRate,
-          });
+          // 필수 필드 존재 여부 확인
+          if (
+            latestAsset &&
+            'availableOrderAsset' in latestAsset &&
+            'currentTotalAsset' in latestAsset &&
+            'totalReturnRate' in latestAsset &&
+            'tradingDate' in latestAsset
+          ) {
+            // 자산 정보 업데이트
+            const newAssetInfo = {
+              tradingDate: latestAsset.tradingDate,
+              availableOrderAsset: latestAsset.availableOrderAsset,
+              currentTotalAsset: latestAsset.currentTotalAsset,
+              totalReturnRate: latestAsset.totalReturnRate,
+            };
+
+            console.log(`[handleTrade] ${action} 새 자산 정보로 업데이트:`, newAssetInfo);
+            setAssetInfo(newAssetInfo);
+            console.log(`[handleTrade] ${action} 업데이트 후 확인:`, newAssetInfo);
+          } else {
+            console.error(`[handleTrade] ${action} 필요한 필드가 없습니다:`, latestAsset);
+          }
+        } else {
+          console.warn(`[handleTrade] ${action} AssetResponse 배열이 비어 있습니다.`);
         }
+      } else {
+        console.warn(`[handleTrade] ${action} API 응답 없음 또는 오류:`, response);
       }
 
       // 거래 완료 처리
@@ -931,13 +1083,14 @@ export const SimulatePage = () => {
     // 마지막 턴(현재 턴)의 세션 정보 가져오기
     const session = calculateSession(currentTurn);
     if (!session) {
-      console.error('세션 정보를 가져올 수 없습니다.');
+      console.error('[updateAssetInfo] 세션 정보를 가져올 수 없습니다.');
       return;
     }
 
     // 현재 턴의 차트 데이터 가져오기
     const currentTurnChartData = turnChartData[currentTurn];
     if (!currentTurnChartData?.data || currentTurnChartData.data.length === 0) {
+      console.error('[updateAssetInfo] 차트 데이터가 없습니다.');
       return;
     }
 
@@ -947,6 +1100,7 @@ export const SimulatePage = () => {
       .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
 
     if (dayCandles.length === 0) {
+      console.error('[updateAssetInfo] 일봉 데이터가 없습니다.');
       return;
     }
 
@@ -983,6 +1137,16 @@ export const SimulatePage = () => {
 
     try {
       // 실제 거래 없이 자산 정보만 가져오기 위해 observe 액션 사용
+      console.log('[updateAssetInfo] API 요청 시작:', {
+        memberId,
+        action: 'hold',
+        price: 0,
+        quantity: 0,
+        companyId,
+        startStockCandleId: startPointId,
+        endStockCandleId: endPointId,
+      });
+
       const response = await processUserAction.mutateAsync({
         memberId,
         action: 'hold',
@@ -993,27 +1157,60 @@ export const SimulatePage = () => {
         endStockCandleId: endPointId,
       });
 
+      console.log('[updateAssetInfo] API 응답 전체:', response);
+      // 응답 디버그 추가
+      debugAPIResponse(response, 'updateAssetInfo');
+
       // API 응답에서 자산 정보 업데이트
-      if (response.isSuccess && response.result && response.result.AssetResponse) {
-        const assetResponses = response.result.AssetResponse;
+      if (response.isSuccess && response.result) {
+        // 배열인지 확인
+        const assetResponses = Array.isArray(response.result)
+          ? response.result
+          : response.result.AssetResponse || [];
+
+        console.log('[updateAssetInfo] AssetResponse 배열:', assetResponses);
+
         if (assetResponses.length > 0) {
           // 최신 자산 정보 가져오기 (마지막 항목)
           const latestAsset = assetResponses[assetResponses.length - 1];
+          console.log('[updateAssetInfo] 최신 자산 정보:', latestAsset);
 
-          // 자산 정보 업데이트
-          setAssetInfo({
-            tradingDate: latestAsset.tradingDate,
-            availableOrderAsset: latestAsset.availableOrderAsset,
-            currentTotalAsset: latestAsset.currentTotalAsset,
-            totalReturnRate: latestAsset.totalReturnRate,
-          });
+          // 필수 필드 존재 여부 확인
+          if (
+            latestAsset &&
+            'availableOrderAsset' in latestAsset &&
+            'currentTotalAsset' in latestAsset &&
+            'totalReturnRate' in latestAsset &&
+            'tradingDate' in latestAsset
+          ) {
+            // 자산 정보 업데이트
+            const newAssetInfo = {
+              tradingDate: latestAsset.tradingDate,
+              availableOrderAsset: latestAsset.availableOrderAsset,
+              currentTotalAsset: latestAsset.currentTotalAsset,
+              totalReturnRate: latestAsset.totalReturnRate,
+            };
 
-          // 최종 수익률 설정
-          setFinalChangeRate(latestAsset.totalReturnRate);
+            console.log('[updateAssetInfo] 변경 전 자산 정보:', assetInfo);
+            console.log('[updateAssetInfo] 새 자산 정보로 업데이트:', newAssetInfo);
+
+            setAssetInfo(newAssetInfo);
+            console.log('[updateAssetInfo] 업데이트 후 확인:', newAssetInfo);
+
+            // 최종 수익률 설정
+            console.log('[updateAssetInfo] 최종 수익률 설정:', latestAsset.totalReturnRate);
+            setFinalChangeRate(latestAsset.totalReturnRate);
+          } else {
+            console.error('[updateAssetInfo] 필요한 필드가 없습니다:', latestAsset);
+          }
+        } else {
+          console.warn('[updateAssetInfo] AssetResponse 배열이 비어 있습니다.');
         }
+      } else {
+        console.warn('[updateAssetInfo] API 응답 없음 또는 오류:', response);
       }
     } catch (error) {
-      console.error('자산 정보 업데이트 중 오류:', error);
+      console.error('[updateAssetInfo] 자산 정보 업데이트 중 오류:', error);
     }
   };
 
@@ -1272,36 +1469,40 @@ export const SimulatePage = () => {
       saveSuccess = saveResponse.isSuccess;
 
       if (saveSuccess) {
-        // '
+        console.log(`[튜토리얼 완료] 결과 저장 성공 - 최종 수익률: ${finalRate}%`);
       } else {
-        // e
+        console.warn('[튜토리얼 완료] 결과 저장 실패');
       }
     } catch (error) {
-      // 오류 발생
+      console.error('[튜토리얼 완료] 결과 저장 중 오류:', error);
     }
 
     // 세션 삭제 시도 (결과 저장 성공 여부와 관계없이)
     try {
       await deleteTutorialSession.mutateAsync(memberId);
-      // '
+      console.log('[튜토리얼 완료] 세션 삭제 성공');
     } catch (error) {
-      // 오류 발생
+      console.warn('[튜토리얼 완료] 세션 삭제 실패, 재시도 중...');
 
       // 세션 삭제 실패 시 다시 시도
       try {
         await new Promise((resolve) => setTimeout(resolve, 500));
         await deleteTutorialSession.mutateAsync(memberId);
-        // '
+        console.log('[튜토리얼 완료] 세션 삭제 재시도 성공');
       } catch (retryError) {
-        // r
+        console.error('[튜토리얼 완료] 세션 삭제 재시도 실패');
       }
     }
 
     // 최종 수익률 설정 - 4턴의 정확한 수익률 사용
+    console.log(`[튜토리얼 완료] 최종 수익률 설정: ${finalRate}%`);
     setFinalChangeRate(finalRate);
 
-    // 종료 모달 표시
-    setIsModalOpen(true);
+    // 약간의 지연 후 모달 표시 (상태 업데이트 완료 후)
+    setTimeout(() => {
+      console.log('[튜토리얼 완료] 종료 모달 표시');
+      setIsModalOpen(true);
+    }, 300);
   };
 
   // 변곡점 데이터 로드
@@ -1829,15 +2030,24 @@ export const SimulatePage = () => {
 
   // 튜토리얼 버튼 클릭 핸들러 - useCallback으로 최적화
   const handleTutorialButtonClick = useCallback(() => {
+    console.log('[handleTutorialButtonClick] 상태:', {
+      isTutorialStarted,
+      isCurrentTurnCompleted,
+      currentTurn,
+    });
+
     if (!isTutorialStarted) {
       // 튜토리얼 시작
+      console.log('[handleTutorialButtonClick] 튜토리얼 시작 호출');
       handleTutorialStart();
     } else if (isCurrentTurnCompleted) {
       if (currentTurn < 4) {
         // 다음 턴으로 이동
+        console.log(`[handleTutorialButtonClick] ${currentTurn}턴에서 다음 턴으로 이동`);
         moveToNextTurn();
       } else {
         // 4턴이고 완료되었을 때 결과 확인하기 버튼 클릭 시 completeTutorial 호출
+        console.log('[handleTutorialButtonClick] 튜토리얼 완료 호출 (4턴 완료)');
         completeTutorial();
       }
     }
@@ -1938,6 +2148,16 @@ export const SimulatePage = () => {
       };
     }
   }, [isTutorialStarted, isNewsModalOpen, isNewsLoading, isChartLoading]);
+
+  // isCurrentTurnCompleted 상태 변경 감지
+  useEffect(() => {
+    console.log(
+      '[SimulatePage] isCurrentTurnCompleted 변경:',
+      isCurrentTurnCompleted,
+      '현재 턴:',
+      currentTurn,
+    );
+  }, [isCurrentTurnCompleted, currentTurn]);
 
   return (
     <>
