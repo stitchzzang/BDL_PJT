@@ -680,7 +680,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     <>
       {/* 투어 컴포넌트 */}
       <Joyride
-        key={`tutorial-joyride-${run}`} // run 상태가 변경될 때마다 컴포넌트를 새로 마운트
+        key={`tutorial-joyride-${run}`}
         callback={handleJoyrideCallback}
         continuous
         hideCloseButton
@@ -726,6 +726,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           },
           buttonSkip: {
             color: 'rgba(255, 255, 255, 0.7)',
+            fontSize: '16px',
           },
         }}
         locale={{
@@ -739,7 +740,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
       {/* 데모 화면 - 투어 실행 시에만 표시 */}
       {showDemo && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90">
           <div
             className="tour-modal-container scrollbar-hide w-full max-w-[1400px] overflow-y-auto"
             style={{ maxHeight: '100vh', paddingTop: '2rem', paddingBottom: '2rem' }}
@@ -749,7 +750,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
               <div className="flex h-full w-full flex-col">
                 <div
-                  className="stock-tutorial-info mb-8 flex items-center justify-between"
+                  className="stock-tutorial-info pointer-events-none mb-8 flex items-center justify-between opacity-90"
                   id="stock-tutorial-info"
                 >
                   <StockTutorialInfo
@@ -765,7 +766,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                 </div>
                 <div className="mb-8 flex flex-col gap-4 md:flex-row md:justify-between">
                   <div
-                    className="stock-tutorial-money-info w-full md:w-5/12"
+                    className="stock-tutorial-money-info pointer-events-none w-full opacity-90 md:w-5/12"
                     id="stock-tutorial-money-info"
                   >
                     <StockTutorialMoneyInfo
@@ -775,7 +776,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                       totalReturnRate={dummyMoneyInfo.totalReturnRate}
                     />
                   </div>
-                  <div className="stock-progress w-full md:w-7/12" id="stock-progress">
+                  <div
+                    className="stock-progress pointer-events-none w-full opacity-90 md:w-7/12"
+                    id="stock-progress"
+                  >
                     <StockProgress
                       progress={progress}
                       currentTurn={currentTurn}
@@ -791,7 +795,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                 <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-12">
                   <div className="col-span-1 h-full lg:col-span-9">
                     <div
-                      className="chart-tutorial relative h-[520px] rounded-xl bg-[#0D192B] text-white"
+                      className="chart-tutorial pointer-events-none relative h-[520px] rounded-xl bg-[#0D192B] text-white opacity-90"
                       id="chart-tutorial"
                     >
                       <ChartComponent
@@ -802,7 +806,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                   </div>
                   <div className="col-span-1 h-full lg:col-span-3">
                     <div
-                      className="stock-tutorial-order h-[520px] rounded-xl bg-modal-background-color p-4"
+                      className="stock-tutorial-order pointer-events-none h-[520px] rounded-xl bg-modal-background-color p-4 opacity-90"
                       id="stock-tutorial-order"
                     >
                       <TutorialOrderStatusBuy
@@ -818,13 +822,19 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                 </div>
 
                 <div className="mt-[45px] grid grid-cols-6 gap-6">
-                  <div className="stock-tutorial-comment col-span-3" id="stock-tutorial-comment">
+                  <div
+                    className="stock-tutorial-comment pointer-events-none col-span-3 opacity-90"
+                    id="stock-tutorial-comment"
+                  >
                     <StockTutorialComment
                       comment={dummyAIComment}
                       isTutorialStarted={isTutorialStarted}
                     />
                   </div>
-                  <div className="day-history col-span-3" id="day-history">
+                  <div
+                    className="day-history pointer-events-none col-span-3 opacity-90"
+                    id="day-history"
+                  >
                     <DayHistory
                       news={dummyPastNews}
                       height={320}
@@ -833,7 +843,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                   </div>
                 </div>
                 <div className="mt-[35px] grid grid-cols-6 gap-6">
-                  <div className="stock-tutorial-news col-span-4" id="stock-tutorial-news">
+                  <div
+                    className="stock-tutorial-news pointer-events-none col-span-4 opacity-90"
+                    id="stock-tutorial-news"
+                  >
                     <StockTutorialNews
                       currentNews={dummyNewsData}
                       companyId={dummyCompanyInfo.companyId}
@@ -841,7 +854,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                     />
                   </div>
                   <div
-                    className="stock-tutorial-conclusion col-span-2"
+                    className="stock-tutorial-conclusion pointer-events-none col-span-2 opacity-90"
                     id="stock-tutorial-conclusion"
                   >
                     <StockTutorialConclusion trades={dummyTradeRecord} isCompleted={false} />
