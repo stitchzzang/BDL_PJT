@@ -118,3 +118,16 @@ html {
 .Toastify__toast {
   word-break: keep-all;
 }
+
+body[data-scroll-locked] {
+  overflow: hidden !important;
+  overscroll-behavior: contain !important;
+  position: relative !important;
+  padding-left: 0px !important;
+  padding-top: 0px !important;
+  padding-right: 0px !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  margin-right: 0px !important;
+  width: 100% !important;
+}
