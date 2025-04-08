@@ -46,6 +46,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuthStore } from '@/store/useAuthStore';
 import { updateAssetsByTurn, updateAssetsByTurnChange } from '@/utils/asset-calculator';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
@@ -155,6 +156,10 @@ export const SimulatePage = () => {
 
   // 뉴스 모달 관련 상태 추가
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+  // 뉴스 데이터 로딩 상태 추가
+  const [isNewsLoading, setIsNewsLoading] = useState(false);
+  // 랜덤 로딩 메시지를 위한 상태 추가
+  const [loadingMessage, setLoadingMessage] = useState('');
 
   // 각 턴별로 모달이 이미 표시되었는지 여부를 기록하는 상태 추가
   const [turnModalShown, setTurnModalShown] = useState<Record<number, boolean>>({
@@ -463,13 +468,12 @@ export const SimulatePage = () => {
         return;
       }
 
-      // 지연 시간 단축 (1000ms → 200ms)
       const timer = setTimeout(() => {
         // 해당 턴의 교육용 뉴스가 있을 때만 모달 표시
         if (turnCurrentNews[currentTurn] && Object.keys(turnCurrentNews[currentTurn]).length > 0) {
           setIsNewsModalOpen(true);
         }
-      }, 200);
+      }, 100);
 
       return () => clearTimeout(timer);
     }
@@ -1192,6 +1196,19 @@ export const SimulatePage = () => {
       [turn]: true,
     };
 
+    // 랜덤 로딩 메시지 설정
+    const loadingMessages = [
+      '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
+      '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
+      '시장을 움직인 결정적 순간을 추적 중입니다...',
+      '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
+      '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
+    ];
+    setLoadingMessage(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+
+    // 뉴스 로딩 상태 설정
+    setIsNewsLoading(true);
+
     // 변곡점 ID가 없으면 먼저 로드
     if (pointStockCandleIds.length === 0) {
       await loadPointsData();
@@ -1398,6 +1415,8 @@ export const SimulatePage = () => {
     } finally {
       // API 요청 완료 처리
       handleNewsDataLoaded(turn);
+      // 뉴스 로딩 상태 해제
+      setIsNewsLoading(false);
     }
   };
 
@@ -1720,8 +1739,22 @@ export const SimulatePage = () => {
       {/* 투어 컴포넌트 추가 */}
       <SimulationTour run={runTour} setRun={setRunTour} />
 
+      {/* 뉴스 모달이 열려있을 때 또는 로딩 중일 때 전체 페이지에 클릭 방지 오버레이 추가 */}
+      {(isNewsModalOpen || isNewsLoading) && (
+        <div className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          {isNewsLoading && !isNewsModalOpen && (
+            <LoadingSpinner size="large">
+              <p className="mt-4 text-white">{loadingMessage}</p>
+            </LoadingSpinner>
+          )}
+        </div>
+      )}
+
       {/* 기존 컴포넌트 */}
-      <div className="flex h-full w-full flex-col px-6">
+      <div
+        className="flex h-full w-full flex-col px-6"
+        style={{ pointerEvents: isNewsModalOpen || isNewsLoading ? 'none' : 'auto' }}
+      >
         <div className="stock-tutorial-info flex items-center justify-between">
           <StockTutorialInfo
             companyId={companyId}
@@ -1880,14 +1913,16 @@ export const SimulatePage = () => {
           onEndTutorialClick={handleNavigateToSelect}
         />
 
-        {/* 교육용 뉴스 모달 추가 - onClose 핸들러 교체 */}
-        <TutorialNewsModal
-          isOpen={isNewsModalOpen}
-          onClose={handleCloseNewsModal}
-          news={currentNews}
-          companyId={companyId}
-          currentTurn={currentTurn}
-        />
+        {/* 교육용 뉴스 모달 추가 - z-index가 가장 높고 pointer-events가 항상 auto여야 함 */}
+        <div style={{ position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
+          <TutorialNewsModal
+            isOpen={isNewsModalOpen}
+            onClose={handleCloseNewsModal}
+            news={currentNews}
+            companyId={companyId}
+            currentTurn={currentTurn}
+          />
+        </div>
       </div>
     </>
   );
