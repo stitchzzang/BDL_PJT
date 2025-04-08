@@ -20,6 +20,7 @@ export interface StockInfoProps {
   latestPrice?: number;
   showButtonInInfoSection?: boolean;
   isLoading?: boolean;
+  onHelpClick?: () => void;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -50,6 +51,7 @@ export const StockTutorialInfo = ({
   latestPrice,
   showButtonInInfoSection = false,
   isLoading = false,
+  onHelpClick,
 }: StockInfoProps) => {
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -281,7 +283,7 @@ export const StockTutorialInfo = ({
                     {buttonTextContent}
                   </Button>
                 )}
-                <StockTutorialHelp />
+                <StockTutorialHelp onClick={onHelpClick} />
               </div>
             </div>
           </div>
