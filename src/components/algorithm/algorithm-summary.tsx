@@ -20,8 +20,11 @@ export const AlgorithmSummary = ({ summary }: AlgorithmSummaryProps) => {
   // 성과 상태에 따른 색상 선택
   // 성과 상태에 따른 색상 선택 (음수일 때 파란색, 양수일 때 빨간색)
   const isPositiveReturn = summary.rateOfReturn > 0;
+  const isPositiveDrawdown = summary.maxDrawdown > 0;
   const returnColor = isPositiveReturn ? 'text-btn-red-color' : 'text-btn-blue-color';
   const returnBgColor = isPositiveReturn ? 'bg-btn-red-color/10' : 'bg-btn-blue-color/10';
+  const drawColorText = 'text-btn-blue-color';
+  const drawColorBack = 'bg-btn-blue-color/10';
 
   // 승률 색상 (70% 이상이면 녹색, 50% 이상이면 노랑, 그 이하면 빨강)
   const getWinRateColor = (rate: number) => {
@@ -58,10 +61,10 @@ export const AlgorithmSummary = ({ summary }: AlgorithmSummaryProps) => {
           </p>
         </div>
         <div
-          className={`${returnBgColor} flex flex-col items-center justify-center rounded-lg p-4`}
+          className={`${drawColorBack} flex flex-col items-center justify-center rounded-lg p-4`}
         >
           <p className="mb-1 text-sm text-text-inactive-color">최대 낙폭</p>
-          <p className={`${returnColor} text-2xl font-bold`}>
+          <p className={`${drawColorText} text-2xl font-bold`}>
             -{Math.abs(summary.maxDrawdown).toFixed(2)}%
           </p>
         </div>
