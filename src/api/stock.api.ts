@@ -185,6 +185,8 @@ export const useUserSimulatedData = (memberId: number | null) => {
   return useQuery({
     queryKey: ['userSimulated'],
     queryFn: () => StockApi.getUserSimulated(memberId).then((res) => res.result),
+    refetchInterval: 200, // 0.5초(500ms)마다 자동으로 refetch
+    refetchIntervalInBackground: false, // 탭이 활성화되어 있을 때만 refetch
   });
 };
 // 주문 취소
@@ -201,6 +203,9 @@ export const useChangeUserSimulated = () => {
   return useMutation({
     mutationFn: ({ orderId, ...orderData }: SimulatedData) =>
       StockApi.changeUserSimulated(orderId, orderData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+    },
   });
 };
 
