@@ -32,6 +32,7 @@ export const BackTesting = () => {
   // 하루 정보
   const [saveDay, setSaveDay] = useState<DailyData[] | null>(null);
   const [day, setDay] = useState<DailyData[] | null>(null);
+  const [dayChart, setDayChart] = useState<DailyData[] | null>(null);
   // 결과 정보
   const [summary, setSummary] = useState<Summary | null>(null);
 
@@ -79,6 +80,7 @@ export const BackTesting = () => {
         onSuccess: (res) => {
           // 하루 정보
           setDay(res.dailyData);
+          setDayChart(res.dailyData);
           setSaveDay(res.dailyData);
           setCompanyProfile(res.companyProfile);
           // 결과 정보
@@ -106,11 +108,13 @@ export const BackTesting = () => {
       // 항상 원본 데이터(saveDailyData)에서 슬라이싱
       setDailyData(saveDailyData.slice(0, newValue));
       setDay(saveDay.slice(0, newValue));
+      setDayChart(saveDay.slice(0, newValue));
     }
   };
   useEffect(() => {
     if (saveDailyData && saveDay) {
       setDailyData(saveDailyData.slice(0, clickNumber));
+      setDayChart(saveDay.slice(0, clickNumber));
       // setDay(saveDay.slice(0, clickNumber));
     }
   }, [clickNumber]);
@@ -143,6 +147,7 @@ export const BackTesting = () => {
         if (saveDailyData && saveDay) {
           setDailyData(saveDailyData.slice(0, newValue));
           setDay(saveDay.slice(0, newValue));
+          setDayChart(saveDay.slice(0, newValue));
         }
 
         // 다음 프레임 요청
@@ -153,6 +158,7 @@ export const BackTesting = () => {
         if (saveDailyData && saveDay) {
           setDailyData(saveDailyData.slice(0, maxNumber));
           setDay(saveDay.slice(0, maxNumber));
+          setDayChart(saveDay.slice(0, maxNumber));
         }
         setProgress(100);
         setIsRunning(false);
@@ -240,7 +246,7 @@ export const BackTesting = () => {
         {showSummary ? (
           <></>
         ) : (
-          <div className="mb-2 mt-4 flex animate-fadeIn justify-between gap-2 rounded-xl bg-modal-background-color p-2 duration-300">
+          <div className="mb-2 mt-4 flex animate-fadeIn justify-between gap-2 rounded-xl bg-modal-background-color p-2 duration-1000">
             <div className="flex w-[100%] items-center">
               <input
                 type="range"
@@ -252,8 +258,8 @@ export const BackTesting = () => {
               />
             </div>
             <div>
-              <Button variant={'green'} size={'sm'} onClick={() => handleMoveMypage()}>
-                테스트 확인
+              <Button variant={'red'} size={'sm'} onClick={() => handleMoveMypage()}>
+                테스트 종료
               </Button>
             </div>
           </div>
@@ -274,8 +280,12 @@ export const BackTesting = () => {
           </div>
           <div className="mt-1 grid grid-cols-14 gap-1">
             <div className="col-span-9">
-              {day ? (
-                <AssetComparisonChart initialAsset={10000000} changingAssets={day} />
+              {dayChart ? (
+                <AssetComparisonChart
+                  initialAsset={10000000}
+                  changingAssets={dayChart}
+                  isRunning={isRunning}
+                />
               ) : (
                 <div>no data</div>
               )}

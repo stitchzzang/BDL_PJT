@@ -1,3 +1,4 @@
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -107,6 +108,8 @@ export const OrderStatusBuy = ({
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: (err) => {
+          setBuyCost(0);
+          setStockCount(0);
           toast.error(`지정가를 활용하세요.`);
         },
       },
@@ -158,15 +161,15 @@ export const OrderStatusBuy = ({
             </div>
             <div className="flex w-full max-w-[80%] flex-col gap-2">
               {/* 지정가 */}
-              <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-1 py-1">
+              <div className="flex w-full justify-between gap-3 rounded-xl bg-background-color px-1 py-1">
                 <div
-                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '지정가' ? `bg-btn-primary-active-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
                   <p className="text-[14px]">지정가</p>
                 </div>
                 <div
-                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '시장가' ? `bg-btn-primary-active-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('시장가')}
                 >
                   <p className="text-[14px]">시장가</p>
@@ -210,22 +213,22 @@ export const OrderStatusBuy = ({
             </div>
             <div className=" flex w-full max-w-[80%] gap-2">
               <NumberInput value={stockCount} setValue={setStockCount} placeholder="수량 입력" />
-              <div className="pointer-events-none inset-0 flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
-                  >
-                    -
-                  </button>
+              <div className="flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
+                <div
+                  className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
+                  onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                >
+                  <div className="h-5 w-5">
+                    <MinusIcon />
+                  </div>
                 </div>
-                <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md  hover:bg-background-color">
-                  <button
-                    className="text-[22px]"
-                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
-                  >
-                    +
-                  </button>
+                <div
+                  className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
+                  onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                >
+                  <div className="h-5 w-5">
+                    <PlusIcon />
+                  </div>
                 </div>
               </div>
             </div>
@@ -292,7 +295,7 @@ export const OrderStatusBuy = ({
                 })
               }
             >
-              <p className=" text-[16px] font-medium text-white">구매하기</p>
+              <p className=" text-[14px] font-medium text-white">구매하기</p>
             </Button>
           )}
           <p className="text-[14px] font-light text-[#718096]">

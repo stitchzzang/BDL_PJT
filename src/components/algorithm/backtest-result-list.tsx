@@ -87,7 +87,7 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                   <p className="text-border-color">
                     총 자산:{' '}
                     <span
-                      className={`${dailyDatacard.portfolioValue > 10000000 ? 'text-btn-red-color' : 'text-btn-blue-color'} text-[15px]`}
+                      className={`${dailyDatacard.portfolioValue === 10000000 ? 'text-white' : dailyDatacard.portfolioValue > 10000000 ? 'text-btn-red-color' : 'text-btn-blue-color'} text-[15px]`}
                     >
                       {formatKoreanMoney(dailyDatacard.portfolioValue)}원
                     </span>
@@ -127,7 +127,13 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                 </div>
                 <div className="m-1 flex items-center gap-2 rounded-md border border-border-color border-opacity-20 p-2">
                   <p className="text-border-color">응답:</p>
-                  <p>{dailyDatacard.trade.reason}</p>
+                  {dailyDatacard.trade.reason === '골든크로스' ? (
+                    <p>'골든크로스 : 주가가 오를 것 같은 신호'</p>
+                  ) : dailyDatacard.trade.reason === '데드크로스' ? (
+                    <p>데드크로스 : 주가가 내릴 것 같은 신호</p>
+                  ) : (
+                    <p>{dailyDatacard.trade.reason}</p>
+                  )}
                 </div>
               </div>
             );

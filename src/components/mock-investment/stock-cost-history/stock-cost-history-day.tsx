@@ -21,7 +21,7 @@ export const StockCostHistoryDay = ({
           <div>{/* 실시간, 일별 */}</div>
           <div className="flex flex-col space-y-2">
             {/* 테이블 헤더 */}
-            <div className="rounded-lgp-2 flex flex-row">
+            <div className="rounded-lgp-2 flex flex-row pl-4 pr-5">
               <div className="w-[20%] text-[14px] text-border-color">일자</div>
               <div className="w-[20%] text-right text-[14px] text-border-color">종가</div>
               <div className="w-[20%] text-right text-[14px] text-border-color">등락률</div>
@@ -33,7 +33,7 @@ export const StockCostHistoryDay = ({
             </div>
             {/* 가장 상단은 항상 최신신 */}
             {tickData && (
-              <div className="flex flex-row rounded-lg bg-[#102038] p-3 text-[14px] text-white hover:bg-modal-background-color">
+              <div className="flex flex-row rounded-lg bg-[#102038] p-3 pl-4 pr-5 text-[14px]  text-white hover:bg-modal-background-color">
                 <div className="w-[20%] text-[14px] font-light text-border-color">
                   {getTodayFormatted()}
                 </div>
