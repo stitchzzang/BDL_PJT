@@ -52,6 +52,7 @@ interface ChartDataPoint {
   fiveAverage: number | null;
   twentyAverage: number | null;
   rawDate: Date | null;
+  closePricePercent: number | null;
 }
 
 // PeriodType enum 정의
@@ -208,6 +209,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           fiveAverage: item.fiveAverage || null,
           twentyAverage: item.twentyAverage || null,
           rawDate: date,
+          closePricePercent: item.closePricePercent,
         };
       });
     },
@@ -237,6 +239,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         fiveAverage: null,
         twentyAverage: null,
         rawDate: null,
+        closePricePercent: 0,
       }));
 
     // 데이터 반환 - 역순으로 정렬 (날짜순으로)
@@ -352,11 +355,21 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         return '데이터 없음';
       }
 
-      const { date, open, close, low, high, volume, fiveAverage, twentyAverage } = item;
+      const {
+        date,
+        open,
+        close,
+        low,
+        high,
+        volume,
+        fiveAverage,
+        twentyAverage,
+        closePricePercent,
+      } = item;
 
       // 색상 설정
       const priceColor = close >= open ? RISE_COLOR : FALL_COLOR;
-      const priceChangePercent = open > 0 ? (((close - open) / open) * 100).toFixed(2) : '0.00';
+      const priceChangePercent = open > 0 ? (closePricePercent ?? 0 * 100).toFixed(2) : '0.00';
       const priceChangeText = close >= open ? `+${priceChangePercent}%` : `${priceChangePercent}%`;
 
       return `
