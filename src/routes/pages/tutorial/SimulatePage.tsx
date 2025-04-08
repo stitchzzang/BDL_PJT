@@ -242,18 +242,23 @@ export const SimulatePage = () => {
   }, [companyId, navigate]);
 
   // 회사 정보 가져오기
-  const { data: companyInfo, isError: isCompanyInfoError } = useGetCompanyProfile(
-    String(companyId),
-  );
+  const {
+    data: companyInfo,
+    isError: isCompanyInfoError,
+    isLoading: isCompanyInfoLoading,
+  } = useGetCompanyProfile(String(companyId));
 
   // 회사 정보 존재 여부 확인 및 리다이렉트 처리
   useEffect(() => {
-    // 회사 정보 로드 후, 데이터가 없거나 오류가 발생한 경우 404 페이지로 리다이렉트
-    if (isCompanyInfoError || (companyInfo === undefined && companyId > 0)) {
+    // 회사 정보 로딩 중인 경우 리다이렉트하지 않음
+    if (isCompanyInfoLoading) return;
+
+    // 회사 정보 로드 후, 오류가 발생한 경우에만 404 페이지로 리다이렉트
+    if (isCompanyInfoError) {
       console.error(`[SimulatePage] 회사 정보가 존재하지 않음: companyId=${companyId}`);
       navigate('/error/not-found');
     }
-  }, [companyInfo, isCompanyInfoError, companyId, navigate]);
+  }, [companyInfo, isCompanyInfoError, isCompanyInfoLoading, companyId, navigate]);
 
   // 뉴스 모달 관련 상태 추가
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
