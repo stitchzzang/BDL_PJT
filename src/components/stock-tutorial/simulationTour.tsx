@@ -268,9 +268,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         position: relative;
         background-color: transparent !important;
         color: transparent !important;
-        width: 225px !important;
+        width: 80px !important;
         height: 45px !important;
-        margin-left: 5px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
       }
       
       .react-joyride__tooltip button[data-action="primary"]::after {
@@ -278,7 +279,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         position: absolute;
         left: 0;
         top: 0;
-        width: 100%;
+        width: 80px !important;
         height: 100%;
         display: flex;
         align-items: center;
@@ -317,14 +318,18 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       
       /* 차트 영역의 툴팁 위치 조정 */
       #chart-tutorial + div > div {
-        margin-left: 450px !important;
-        transform: translateX(40%) !important;
+        position: fixed !important;
+        left: auto !important;
+        right: 20px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
       }
       
       /* 차트 영역에 표시되는 툴팁의 화살표 방향 조정 */
       #chart-tutorial + div .react-joyride__tooltip {
         position: relative;
         z-index: 10001 !important;
+        width: 300px !important;
       }
       
       /* 차트 튜토리얼 스팟라이트 조정 */
@@ -510,16 +515,28 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         target: '#chart-tutorial',
         content: (
           <div className="p-4">
-            <h2 className="mb-5 text-[25px] font-bold">주식 차트</h2>
-            <p className="text-[18px]">실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.</p>
-            <p className="mt-2 text-[18px]">
-              캔들 차트와 이동평균선을 통해 주가 흐름을 분석해보세요.
+            <h2 className="mb-3 text-[25px] font-bold">주식 차트</h2>
+            <p className="text-[16px]">실제 주가 데이터를{'\n'}기반으로 한 차트입니다.</p>
+            <p className="mt-1 text-[16px]">
+              캔들 차트와 이동평균선으로{'\n'}주가 흐름을 분석하세요.
             </p>
           </div>
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'top',
+        placement: 'right',
+        styles: {
+          options: {
+            width: '300px',
+          },
+          buttonNext: {
+            width: '80px',
+          },
+          tooltip: {
+            width: '300px',
+            whiteSpace: 'pre-line',
+          },
+        },
       },
       {
         target: '#stock-tutorial-order',
@@ -618,7 +635,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
     // 단계 변경 시에만 인덱스 업데이트 (조건 변경)
     if (type === 'step:after') {
-      setStepIndex(index + 1); // 다음 스텝으로 명시적 설정
+      setStepIndex(index + 1);
 
       // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
       if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
@@ -646,12 +663,11 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           }
         }, 50);
       }
-    } else if (type === 'tour:start') {
-      setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
     }
 
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
+      setStepIndex(0); // 투어가 종료될 때도 stepIndex를 0으로 초기화
 
       // 튜토리얼이 완료되면 로컬 스토리지에 저장
       if (memberId > 0) {
@@ -664,7 +680,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     <>
       {/* 투어 컴포넌트 */}
       <Joyride
-        key="tutorial-joyride"
+        key={`tutorial-joyride-${run}`} // run 상태가 변경될 때마다 컴포넌트를 새로 마운트
         callback={handleJoyrideCallback}
         continuous
         hideCloseButton
