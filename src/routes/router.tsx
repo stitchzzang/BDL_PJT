@@ -25,6 +25,7 @@ import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
+import { TooLargePage } from '@/routes/pages/TooLargePage';
 import { SelectPage } from '@/routes/pages/tutorial/SelectPage';
 import { SimulatePage } from '@/routes/pages/tutorial/SimulatePage';
 
@@ -163,5 +164,9 @@ export const router = createBrowserRouter([
   {
     path: 'error/bad-gateway',
     element: <BadGatewayPage />,
+  },
+  {
+    path: 'error/too-large',
+    element: <TooLargePage />,
   },
 ]);
