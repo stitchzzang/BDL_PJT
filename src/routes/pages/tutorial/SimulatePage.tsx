@@ -945,15 +945,17 @@ export const SimulatePage = () => {
   const moveToNextTurn = async () => {
     if (currentTurn < 4) {
       try {
-        // 현재 턴의 마지막 가격과 상태 저장 (비동기 작업 전에 값을 보존)
+        // 현재 턴의 마지막 가격과 상태 저장
         const prevTurnLastPrice = latestPrice;
         const prevAvailableOrderAsset = assetInfo.availableOrderAsset;
         const prevOwnedStock = ownedStockCount;
+        const prevTotalAsset = assetInfo.currentTotalAsset;
+        const prevReturnRate = assetInfo.totalReturnRate;
 
         // 다음 턴 번호 계산
         const nextTurn = currentTurn + 1;
 
-        // 세션 업데이트 및 데이터 로드 (누적 방식)
+        // 세션 업데이트 및 데이터 로드
         const newSession = calculateSession(nextTurn);
         if (!newSession) return;
 
@@ -971,14 +973,9 @@ export const SimulatePage = () => {
         };
         setProgress(turnToProgressMap[nextTurn]);
 
-        // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate)
-        const chartResult = await loadChartData(
-          defaultStartDate, // 항상 처음부터 시작 (누적)
-          newSession.endDate,
-          nextTurn,
-        );
+        // 차트 데이터 로드
+        const chartResult = await loadChartData(defaultStartDate, newSession.endDate, nextTurn);
 
-        // chartResult가 null이면 오류 발생, 처리 중단
         if (!chartResult || !chartResult.data || chartResult.data.length === 0) {
           throw new Error('차트 데이터를 불러오는 중 오류가 발생했습니다.');
         }
@@ -1066,8 +1063,25 @@ export const SimulatePage = () => {
         // 최신 가격 업데이트
         setLatestPrice(nextTurnPrice);
 
-        // 자산 정보 업데이트
-        updateAssetInfo();
+        // 자산 정보 업데이트 - 이전 턴의 거래 내역을 반영하여 계산
+        const updatedAssetInfo = {
+          tradingDate: new Date().toISOString(),
+          availableOrderAsset: prevAvailableOrderAsset,
+          currentTotalAsset: prevAvailableOrderAsset + prevOwnedStock * nextTurnPrice,
+          totalReturnRate:
+            ((prevAvailableOrderAsset + prevOwnedStock * nextTurnPrice - 10000000) / 10000000) *
+            100,
+        };
+
+        // 자산 정보 및 수익률 설정
+        setAssetInfo(updatedAssetInfo);
+        setFinalChangeRate(updatedAssetInfo.totalReturnRate);
+
+        // 현재 턴의 수익률 저장 (초기화 방지)
+        setTurnReturnRates((prev) => ({
+          ...prev,
+          [nextTurn]: updatedAssetInfo.totalReturnRate,
+        }));
       } catch (error) {
         console.error('다음 턴으로 이동 중 오류:', error);
         toast.error('다음 턴으로 이동 중 오류가 발생했습니다.');
