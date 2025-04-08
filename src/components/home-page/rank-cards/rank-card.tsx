@@ -52,7 +52,7 @@ export const RankCard = ({ rankInfo, rank, isEmpty }: RankCardProps) => {
           />
           {/* 1등 표시 - 애니메이션 왕관 사용 */}
           {rank === 1 && (
-            <div className="absolute -right-7 -top-7 h-16 w-16">
+            <div className="absolute -right-6 -top-6 h-16 w-16">
               <Lottie animationData={crownAnimation} loop={true} />
             </div>
           )}
