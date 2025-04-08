@@ -48,7 +48,7 @@ import {
 import ChartComponent from '@/components/ui/chart-tutorial';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useAuthStore } from '@/store/useAuthStore';
-import { updateAssetsByTurn, updateAssetsByTurnChange } from '@/utils/asset-calculator';
+import { updateAssetsByTurn } from '@/utils/asset-calculator';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
 // 거래 기록을 위한 타입 정의 (외부 컴포넌트와 호환되는 타입)
@@ -353,7 +353,7 @@ export const SimulatePage = () => {
   const [newsComment, setNewsComment] = useState('');
 
   // 턴별 차트 데이터를 저장할 상태 추가
-  const [, setTurnChartData] = useState<Record<number, TutorialStockResponse | null>>({
+  const [turnChartData, setTurnChartData] = useState<Record<number, TutorialStockResponse | null>>({
     1: null,
     2: null,
     3: null,
@@ -717,24 +717,30 @@ export const SimulatePage = () => {
         return;
       }
 
-      // 현재 변곡점의 stockCandleId 가져오기
-      const startPointId =
-        currentTurn > 1 && pointStockCandleIds.length >= currentTurn - 1
-          ? pointStockCandleIds[currentTurn - 2]
-          : 0;
-
-      // endPointId 계산 - 변곡점 - 1일로 설정 (4턴 제외)
-      let endPointId = 0;
-      if (pointStockCandleIds.length >= currentTurn - 1) {
-        // 현재 턴의 변곡점 ID
-        const turnPointId = pointStockCandleIds[currentTurn - 1];
-
-        // 4번째 턴이 아닌 경우, 변곡점 ID에서 1을 빼서 처리 (변곡점 - 1일)
-        // 이는 calculateSession과 loadNewsData 함수의 변경 사항과 일치하게 함
-        endPointId = currentTurn < 4 && turnPointId > 1 ? turnPointId - 1 : turnPointId;
+      // 현재 턴의 차트 데이터 가져오기
+      const currentTurnChartData = turnChartData[currentTurn];
+      if (!currentTurnChartData?.data || currentTurnChartData.data.length === 0) {
+        alert('차트 데이터를 불러오는 중 오류가 발생했습니다.');
+        return;
       }
 
-      if (endPointId === 0) {
+      // 일봉 데이터 필터링 및 정렬
+      const dayCandles = currentTurnChartData.data
+        .filter((candle: StockCandle) => candle.periodType === 1)
+        .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
+
+      if (dayCandles.length === 0) {
+        alert('유효한 거래 데이터가 없습니다.');
+        return;
+      }
+
+      // 시작점과 끝점의 stockCandleId 가져오기
+      const startPointId = dayCandles[0].stockCandleId; // 첫 번째 캔들의 ID
+      const endPointId = dayCandles[dayCandles.length - 1].stockCandleId; // 마지막 캔들의 ID
+
+      // 유효한 ID 체크
+      if (startPointId <= 0 || endPointId <= 0) {
+        alert('유효하지 않은 거래 구간입니다.');
         return;
       }
 
@@ -943,11 +949,32 @@ export const SimulatePage = () => {
         };
         setProgress(turnToProgressMap[nextTurn]);
 
-        // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate, 종료일만 변경)
+        // 차트 데이터 로드 - 누적 방식 (시작일은 항상 defaultStartDate)
         const chartResult = await loadChartData(
           defaultStartDate, // 항상 처음부터 시작 (누적)
           newSession.endDate,
           nextTurn,
+        );
+
+        // chartResult가 null이면 오류 발생, 처리 중단
+        if (!chartResult || !chartResult.data || chartResult.data.length === 0) {
+          throw new Error('차트 데이터를 불러오는 중 오류가 발생했습니다.');
+        }
+
+        // 일봉 데이터 필터링 및 정렬 (시간순)
+        const dayCandles = chartResult.data
+          .filter((candle: StockCandle) => candle.periodType === 1)
+          .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
+
+        if (dayCandles.length === 0) {
+          throw new Error('일봉 데이터가 없습니다.');
+        }
+
+        // 시작점과 끝점의 stockCandleId 로깅 (디버깅용)
+        const firstCandleId = dayCandles[0].stockCandleId;
+        const lastCandleId = dayCandles[dayCandles.length - 1].stockCandleId;
+        console.log(
+          `[턴 ${nextTurn}] 시작 stockCandleId: ${firstCandleId}, 끝 stockCandleId: ${lastCandleId}`,
         );
 
         // 뉴스 데이터 로드 (이미 로드된 경우 또는 요청 중인 경우 스킵)
@@ -984,7 +1011,7 @@ export const SimulatePage = () => {
           });
         }
 
-        // 날짜 기준으로 정렬 (최신순)
+        // 뉴스가 있으면 날짜 기준으로 정렬 (최신순)
         if (accumulatedNews.length > 0) {
           const sortedNews = [...accumulatedNews].sort(
             (a, b) => new Date(b.newsDate).getTime() - new Date(a.newsDate).getTime(),
@@ -995,61 +1022,36 @@ export const SimulatePage = () => {
         }
 
         // 차트 데이터 로드 후 현재 주가 확인
-        const dayCandles =
-          chartResult?.data?.filter((candle: StockCandle) => candle.periodType === 1) || [];
         let nextTurnPrice = latestPrice;
 
         if (dayCandles.length > 0) {
-          // 날짜순 정렬
-          const sortedCandles = [...dayCandles].sort(
-            (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-          );
-
           // 턴에 맞는 종가 설정
           if (nextTurn === 1) {
             // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
-            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            nextTurnPrice = dayCandles[dayCandles.length - 1].closePrice;
           } else if (nextTurn === 2) {
             // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
-            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            nextTurnPrice = dayCandles[dayCandles.length - 1].closePrice;
           } else if (nextTurn === 3) {
             // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
-            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            nextTurnPrice = dayCandles[dayCandles.length - 1].closePrice;
           } else if (nextTurn === 4) {
             // 4턴: 끝점의 종가 (마지막 캔들)
-            nextTurnPrice = sortedCandles[sortedCandles.length - 1].closePrice;
+            nextTurnPrice = dayCandles[dayCandles.length - 1].closePrice;
           }
-
-          // 현재 가격 업데이트
-          setLatestPrice(nextTurnPrice);
         }
 
-        // 턴 변경에 따른 자산 정보 업데이트 (updateAssetsByTurnChange 함수 사용)
-        const { availableOrderAsset, currentTotalAsset, totalReturnRate } =
-          updateAssetsByTurnChange(
-            10000000, // 초기 자산 (시드머니)
-            prevTurnLastPrice, // 이전 턴 종가
-            nextTurnPrice, // 현재 턴 종가
-            prevAvailableOrderAsset, // 주문 가능 금액
-            prevOwnedStock, // 보유 주식 수량
-          );
+        // 최신 가격 업데이트
+        setLatestPrice(nextTurnPrice);
 
-        // 현재 턴의 수익률 저장
-        setTurnReturnRates((prev) => ({
-          ...prev,
-          [nextTurn]: totalReturnRate,
-        }));
-
-        // 자산 정보 수동 업데이트
-        setAssetInfo({
-          tradingDate: new Date().toISOString(),
-          availableOrderAsset,
-          currentTotalAsset,
-          totalReturnRate,
-        });
-        setFinalChangeRate(totalReturnRate);
-      } catch {
-        //
+        // 자산 정보 업데이트
+        updateAssetInfo();
+      } catch (error) {
+        console.error('다음 턴으로 이동 중 오류:', error);
+        toast.error('다음 턴으로 이동 중 오류가 발생했습니다.');
+        // 세션 및 턴 정보 원상복구
+        setCurrentTurn(currentTurn);
+        setIsCurrentTurnCompleted(true);
       }
     }
   };
@@ -1274,18 +1276,21 @@ export const SimulatePage = () => {
       [turn]: true,
     };
 
-    // 랜덤 로딩 메시지 설정
-    const loadingMessages = [
-      '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
-      '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
-      '시장을 움직인 결정적 순간을 추적 중입니다...',
-      '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
-      '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
-    ];
-    setLoadingMessage(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+    // 4턴일 때는 로딩 스피너 및 로딩 메시지를 표시하지 않음
+    if (turn !== 4) {
+      // 랜덤 로딩 메시지 설정
+      const loadingMessages = [
+        '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
+        '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
+        '시장을 움직인 결정적 순간을 추적 중입니다...',
+        '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
+        '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
+      ];
+      setLoadingMessage(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
 
-    // 뉴스 로딩 상태 설정
-    setIsNewsLoading(true);
+      // 뉴스 로딩 상태 설정
+      setIsNewsLoading(true);
+    }
 
     // 변곡점 ID가 없으면 먼저 로드
     if (pointStockCandleIds.length === 0) {
@@ -1538,54 +1543,54 @@ export const SimulatePage = () => {
         return updated;
       });
 
-      // 튜토리얼 날짜 범위 업데이트
-      if (result.data && result.data.length > 0) {
-        const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
-        if (dayCandles.length > 0) {
-          const sortedCandles = [...dayCandles].sort(
-            (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
-          );
+      // 일봉 데이터 필터링 및 정렬
+      const dayCandles = result.data
+        .filter((candle: StockCandle) => candle.periodType === 1)
+        .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
 
-          const firstDate = formatDateToYYMMDD(new Date(sortedCandles[0].tradingDate));
-          const lastDate = formatDateToYYMMDD(
-            new Date(sortedCandles[sortedCandles.length - 1].tradingDate),
-          );
-
-          setTutorialDateRange({
-            startDate: firstDate,
-            endDate: lastDate,
-          });
-        }
-      }
-
-      // 최신 가격 업데이트 (요구사항에 맞게 각 턴별로 적절한 종가 설정)
-      const dayCandles = result.data.filter((candle: StockCandle) => candle.periodType === 1);
       if (dayCandles.length > 0) {
-        const sortedCandles = [...dayCandles].sort(
-          (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+        // 첫 번째와 마지막 캔들의 ID 로깅 (디버깅용)
+        const firstCandleId = dayCandles[0].stockCandleId;
+        const lastCandleId = dayCandles[dayCandles.length - 1].stockCandleId;
+        console.log(
+          `[턴 ${turn} 차트 로드] 시작 stockCandleId: ${firstCandleId}, 끝 stockCandleId: ${lastCandleId}`,
         );
 
+        // 튜토리얼 날짜 범위 업데이트
+        const firstDate = formatDateToYYMMDD(new Date(dayCandles[0].tradingDate));
+        const lastDate = formatDateToYYMMDD(
+          new Date(dayCandles[dayCandles.length - 1].tradingDate),
+        );
+
+        setTutorialDateRange({
+          startDate: firstDate,
+          endDate: lastDate,
+        });
+
+        // 최신 가격 업데이트 (요구사항에 맞게 각 턴별로 적절한 종가 설정)
         let priceToShow = 0;
 
         // 각 턴별로 요구사항에 맞는 가격 설정
         if (turn === 1) {
           // 1턴: 변곡점1 - 1일의 종가 (마지막 캔들)
-          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+          priceToShow = dayCandles[dayCandles.length - 1].closePrice;
         } else if (turn === 2) {
           // 2턴: 변곡점2 - 1일의 종가 (마지막 캔들)
-          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+          priceToShow = dayCandles[dayCandles.length - 1].closePrice;
         } else if (turn === 3) {
           // 3턴: 변곡점3 - 1일의 종가 (마지막 캔들)
-          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+          priceToShow = dayCandles[dayCandles.length - 1].closePrice;
         } else if (turn === 4) {
           // 4턴: 끝점의 종가 (마지막 캔들)
-          priceToShow = sortedCandles[sortedCandles.length - 1].closePrice;
+          priceToShow = dayCandles[dayCandles.length - 1].closePrice;
         }
 
         // 가격 변경
         if (priceToShow > 0) {
           setLatestPrice(priceToShow);
         }
+      } else {
+        console.warn(`[턴 ${turn} 차트 로드] 일봉 데이터가 없습니다.`);
       }
 
       // 뉴스 데이터 로드 (API 요청이 중복되지 않도록 조건 체크)
@@ -1596,6 +1601,7 @@ export const SimulatePage = () => {
       // 데이터 로드가 완료되었음을 나타내는 return
       return result;
     } catch (error) {
+      console.error(`[턴 ${turn} 차트 로드] 오류:`, error);
       setHasChartError(true);
       return null;
     } finally {
