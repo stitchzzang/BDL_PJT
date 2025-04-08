@@ -1696,7 +1696,7 @@ export const SimulatePage = () => {
 
   // 도움말 버튼 클릭 핸들러 추가
   const handleHelpClick = () => {
-    setRunTour(true);
+    setRunTour((prev) => !prev); // 이전 상태의 반대값으로 토글
   };
 
   // 페이지 접근 시 투어 자동 시작 (현재는 주석 처리)

@@ -340,6 +340,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   useEffect(() => {
     if (run) {
       setShowDemo(true);
+      setStepIndex(0); // run이 true로 변경될 때마다 stepIndex를 0으로 초기화
     } else {
       // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
       const timer = setTimeout(() => {
@@ -503,10 +504,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         target: '#chart-tutorial',
         content: (
           <div className="p-4">
-            <h2 className="mb-3 text-[20px] font-bold">주식 차트</h2>
-            <p className="text-[16px]">
-              실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.
-              <br />
+            <h2 className="mb-5 text-[25px] font-bold">주식 차트</h2>
+            <p className="text-[18px]">실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.</p>
+            <p className="mt-2 text-[18px]">
               캔들 차트와 이동평균선을 통해 주가 흐름을 분석해보세요.
             </p>
           </div>
