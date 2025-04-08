@@ -108,6 +108,8 @@ export const OrderStatusBuy = ({
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
         onError: (err) => {
+          setBuyCost(0);
+          setStockCount(0);
           toast.error(`지정가를 활용하세요.`);
         },
       },
