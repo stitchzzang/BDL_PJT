@@ -644,67 +644,41 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, index, type } = data;
+    const { status, index, type, action } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
     if (type === 'tour:start') {
       // 투어 시작 시 항상 0으로 초기화
       setStepIndex(0);
     } else if (type === 'step:after') {
-      // 단계 변경 시에만 인덱스 업데이트
-      setStepIndex(index + 1);
+      // 다음 버튼 클릭 시
+      if (action === 'next') {
+        setStepIndex(index + 1);
 
-      // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
-      if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
-        setTimeout(() => {
-          const targetElement = document.querySelector(steps[index + 1].target as string);
-          if (targetElement && showDemo) {
-            const container = document.querySelector('.tour-modal-container');
-            if (container) {
-              const targetRect = targetElement.getBoundingClientRect();
-              const containerRect = container.getBoundingClientRect();
+        // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
+        if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
+          setTimeout(() => {
+            scrollToTarget(steps[index + 1].target as string);
+          }, 50);
+        }
+      }
+      // 이전 버튼 클릭 시
+      else if (action === 'prev') {
+        // 이전 단계로 이동
+        setStepIndex(index - 1);
 
-              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
-              const scrollPosition =
-                targetRect.top +
-                window.scrollY -
-                containerRect.top -
-                containerRect.height / 2 +
-                targetRect.height / 2;
-
-              (container as HTMLElement).scrollTo({
-                top: Math.max(0, scrollPosition),
-                behavior: 'smooth',
-              });
-            }
-          }
-        }, 50);
+        // 이전 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
+        if (steps[index - 1] && steps[index - 1].target && steps[index - 1].target !== 'body') {
+          setTimeout(() => {
+            scrollToTarget(steps[index - 1].target as string);
+          }, 50);
+        }
       }
     } else if (type === 'step:before') {
       // 현재 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
       if (steps[index] && steps[index].target && steps[index].target !== 'body') {
         setTimeout(() => {
-          const targetElement = document.querySelector(steps[index].target as string);
-          if (targetElement && showDemo) {
-            const container = document.querySelector('.tour-modal-container');
-            if (container) {
-              const targetRect = targetElement.getBoundingClientRect();
-              const containerRect = container.getBoundingClientRect();
-
-              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
-              const scrollPosition =
-                targetRect.top +
-                window.scrollY -
-                containerRect.top -
-                containerRect.height / 2 +
-                targetRect.height / 2;
-
-              (container as HTMLElement).scrollTo({
-                top: Math.max(0, scrollPosition),
-                behavior: 'smooth',
-              });
-            }
-          }
+          scrollToTarget(steps[index].target as string);
         }, 50);
       }
     }
@@ -712,6 +686,31 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     // 투어가 종료되거나 스킵된 경우
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
+    }
+  };
+
+  // 스크롤 조정 함수
+  const scrollToTarget = (targetSelector: string) => {
+    const targetElement = document.querySelector(targetSelector);
+    if (targetElement && showDemo) {
+      const container = document.querySelector('.tour-modal-container');
+      if (container) {
+        const targetRect = targetElement.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+
+        // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
+        const scrollPosition =
+          targetRect.top +
+          window.scrollY -
+          containerRect.top -
+          containerRect.height / 2 +
+          targetRect.height / 2;
+
+        (container as HTMLElement).scrollTo({
+          top: Math.max(0, scrollPosition),
+          behavior: 'smooth',
+        });
+      }
     }
   };
 
@@ -732,16 +731,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks
         disableOverlayClose
         spotlightPadding={10}
-        floaterProps={{
-          disableAnimation: false,
-          offset: 0,
-          styles: {
-            floater: {
-              filter: 'none',
-              zIndex: 10001,
-            },
-          },
-        }}
+        disableScrollParentFix
+        disableScrolling
         styles={{
           options: {
             zIndex: 10000,
