@@ -734,9 +734,31 @@ export const SimulatePage = () => {
         return;
       }
 
-      // 시작점과 끝점의 stockCandleId 가져오기
-      const startPointId = dayCandles[0].stockCandleId; // 첫 번째 캔들의 ID
-      const endPointId = dayCandles[dayCandles.length - 1].stockCandleId; // 마지막 캔들의 ID
+      // 각 턴별로 적절한 구간의 stockCandleId 설정
+      let startPointId = 0;
+      let endPointId = 0;
+
+      // 턴별로 적절한 구간 설정
+      if (currentTurn === 1) {
+        // 1턴: 시작점 ~ 변곡점1 - 1
+        startPointId = dayCandles[0].stockCandleId;
+        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+      } else if (currentTurn === 2) {
+        // 2턴: 변곡점1 ~ 변곡점2 - 1
+        startPointId =
+          pointStockCandleIds[0] > 0 ? pointStockCandleIds[0] : dayCandles[0].stockCandleId;
+        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+      } else if (currentTurn === 3) {
+        // 3턴: 변곡점2 ~ 변곡점3 - 1
+        startPointId =
+          pointStockCandleIds[1] > 0 ? pointStockCandleIds[1] : dayCandles[0].stockCandleId;
+        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+      } else if (currentTurn === 4) {
+        // 4턴: 변곡점3 ~ 끝점
+        startPointId =
+          pointStockCandleIds[2] > 0 ? pointStockCandleIds[2] : dayCandles[0].stockCandleId;
+        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+      }
 
       // 유효한 ID 체크
       if (startPointId <= 0 || endPointId <= 0) {
