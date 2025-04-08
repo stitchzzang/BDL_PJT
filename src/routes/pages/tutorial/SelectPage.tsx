@@ -136,9 +136,16 @@ export const SelectPage = () => {
 
           {/* 실제 모달 콘텐츠 */}
           <div className="flex flex-col items-center px-5 pb-5 pt-0 text-center">
-            <div className="flex flex-col text-[16px] text-white">
-              <span>기업 선택을 완료했습니다.</span>
-              <span className="mt-2">주식 튜토리얼의 시간대는 다음과 같습니다.</span>
+            <div className="flex flex-col items-center text-[16px] text-white">
+              <div className="flex items-center gap-2">
+                <img
+                  src={selectedCompany?.companyImage || 'https://placehold.co/40x40'}
+                  alt={selectedCompany?.companyName}
+                  className="h-10 w-10 rounded-lg"
+                />
+                <span className="font-bold">{selectedCompany?.companyName}</span>
+              </div>
+              <span className="mt-2">기업에 대한 주식 튜토리얼을 진행하시겠습니까?</span>
             </div>
 
             <div className="my-10 flex w-full items-center justify-center gap-5 rounded-lg bg-[#041021] p-4">
