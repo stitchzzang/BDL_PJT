@@ -34,6 +34,7 @@ import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-in
 import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
 import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-news';
 import { TutorialOrderStatus } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status';
+import { TutorialNewsModal } from '@/components/stock-tutorial/tutorial-news-modal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,7 +46,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
-import { TutorialNewsModal } from '@/components/ui/tutorial-news-modal';
 import { useAuthStore } from '@/store/useAuthStore';
 import { updateAssetsByTurn, updateAssetsByTurnChange } from '@/utils/asset-calculator';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
