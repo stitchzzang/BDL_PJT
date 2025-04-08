@@ -189,6 +189,8 @@ export const SimulatePage = () => {
   // 로그인 상태 및 유저 정보 가져오기
   const { userData, isLogin } = useAuthStore();
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  // 사용자 ID 가져오기
+  const memberId = userData?.memberId || 0;
 
   // 로그인 상태 확인 및 리다이렉트
   useEffect(() => {
@@ -204,9 +206,6 @@ export const SimulatePage = () => {
       navigate('/login');
     }
   }, [shouldRedirect, navigate]);
-
-  // 인증된 사용자 ID 사용 (API 호출을 위해 null이 아닌 값으로 설정)
-  const memberId = userData?.memberId || 0;
 
   // 실제 로그인 여부 체크를 위한 함수
   const isUserLoggedIn = () => {
@@ -1699,20 +1698,22 @@ export const SimulatePage = () => {
     setRunTour((prev) => !prev); // 이전 상태의 반대값으로 토글
   };
 
-  // 페이지 접근 시 투어 자동 시작 (현재는 주석 처리)
+  // 페이지 접근 시 투어 자동 시작
   useEffect(() => {
-    // localStorage에서 이 사용자가 이미 투어를 봤는지 확인
-    // const hasSeen = localStorage.getItem(`tutorial_tour_seen_${memberId}`);
-    // if (!hasSeen) {
-    //   // 1초 후 투어 시작 (페이지 렌더링 안정화를 위해)
-    //   const timer = setTimeout(() => {
-    //     setRunTour(true);
-    //     // 투어를 봤다고 표시
-    //     localStorage.setItem(`tutorial_tour_seen_${memberId}`, 'true');
-    //   }, 1000);
-    //   return () => clearTimeout(timer);
-    // }
-  }, [memberId]);
+    if (isLogin && memberId > 0) {
+      // localStorage에서 이 사용자가 이미 투어를 봤는지 확인
+      const hasSeen = localStorage.getItem(`tutorial_tour_seen_${memberId}`);
+      if (!hasSeen) {
+        // 1초 후 투어 시작 (페이지 렌더링 안정화를 위해)
+        const timer = setTimeout(() => {
+          setRunTour(true);
+          // 투어를 봤다고 표시
+          localStorage.setItem(`tutorial_tour_seen_${memberId}`, 'true');
+        }, 1000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isLogin, memberId]);
 
   return (
     <>

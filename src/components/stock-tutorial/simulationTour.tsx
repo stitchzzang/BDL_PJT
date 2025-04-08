@@ -22,6 +22,8 @@ import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutori
 import ChartComponent, { StockCandle } from '@/components/ui/chart-help';
 // 더미 데이터 임포트
 import { DUMMY_DAILY_CHART_DATA } from '@/mocks/dummy-data';
+// useAuthStore 임포트
+import { useAuthStore } from '@/store/useAuthStore';
 
 // 튜토리얼 스톡 응답 타입 정의
 interface TutorialStockResponse {
@@ -66,6 +68,10 @@ interface SimulationTourProps {
 export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
+
+  // useAuthStore에서 사용자 데이터 가져오기
+  const { userData } = useAuthStore();
+  const memberId = userData?.memberId || 0;
 
   // 더미 데이터 상태 관리
   const [showDemo, setShowDemo] = useState(false);
@@ -646,6 +652,11 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
+
+      // 튜토리얼이 완료되면 로컬 스토리지에 저장
+      if (memberId > 0) {
+        localStorage.setItem(`tutorial_tour_seen_${memberId}`, 'true');
+      }
     }
   };
 
