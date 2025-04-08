@@ -1,4 +1,4 @@
-import { QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
+import { ChartBarIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
 import { ChangeEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -365,6 +365,36 @@ export const MarketPage = () => {
       )}
 
       <div className="w-full max-w-md space-y-6">
+        <div className="mb-6 w-full rounded-2xl border border-btn-primary-inactive-color bg-modal-background-color p-4 shadow-sm">
+          <div>
+            <p className="flex items-center text-lg font-bold text-primary-color">
+              <ChartBarIcon className="mr-1 h-5 w-5" />
+              반응 강도란?
+            </p>
+            <p className="text-sm">
+              주가 변동에 <b className="text-primary-color">얼마나 강하게 반응할지</b>를 결정하는
+              비율입니다.
+            </p>
+            <div className="my-2 rounded-lg p-2">
+              <p className="text-sm">
+                예를 들어, 상승 시 반응 강도가 2%라면
+                <br />
+                <b className="text-primary-color">
+                  주가가 2% 이상 상승할 때 설정한 행동(구매/판매)을 실행
+                </b>
+                합니다.
+              </p>
+            </div>
+            <div className="rounded-lg p-2">
+              <p className="text-sm">
+                반응 강도가 높을수록 <b className="text-primary-color">큰 변동에만 반응</b>하게
+                되고,
+                <br />
+                낮을수록 <b className="text-primary-color">작은 변동에도 민감하게 반응</b>합니다.
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="flex flex-col gap-2">
           <div className="mb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
