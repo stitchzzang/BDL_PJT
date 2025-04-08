@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { SearchedCompanyResponse } from '@/api/types/home';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SearchedCompanyListItemProps {
   company: SearchedCompanyResponse;
@@ -28,6 +26,10 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
   const handleConfirm = () => {
     navigate(`/investment/simulate/${company.companyId}`);
     setIsDialogOpen(false);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
   };
 
   return (
@@ -62,16 +64,14 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
         </div>
       </div>
 
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
-          <AlertDialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
-            <AlertDialogTitle className="mb-1 text-[28px] font-bold">
-              모의투자 안내
-            </AlertDialogTitle>
-            <AlertDialogDescription className="sr-only">
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
+          <DialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
+            <DialogTitle className="mb-1 text-[28px] font-bold">모의투자 안내</DialogTitle>
+            <DialogDescription className="sr-only">
               선택한 기업에 대한 모의투자 안내 사항을 확인하세요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="flex flex-col items-center px-5 pb-5 pt-0 text-center">
             <div className="flex flex-col items-center text-[16px] text-white">
@@ -99,20 +99,20 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
               <span>충분히 확인하시기 바랍니다.</span>
             </div>
 
-            <div className="mt-10 flex w-full flex-col items-center gap-4">
-              <AlertDialogAction
+            <div className="mt-10 flex w-full flex-col items-center">
+              <Button
                 className="w-full max-w-[400px] rounded-full bg-[#5676F5] px-8 py-4 text-[18px] font-bold text-white hover:bg-[#4A67DE]"
                 onClick={handleConfirm}
               >
                 모의투자 시작하기
-              </AlertDialogAction>
-              <AlertDialogCancel className="w-full max-w-[400px] rounded-full px-8 py-4 text-[18px] font-bold">
-                취소하기
-              </AlertDialogCancel>
+              </Button>
+              <span className="mb-4 mt-4 text-center text-[13px] text-gray-500">
+                모의투자 시작하기 버튼 클릭시 모의투자가 시작됩니다.
+              </span>
             </div>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
