@@ -202,7 +202,7 @@ export const BackTesting = () => {
                         실제 거래와 달리 거래{' '}
                         <span className="text-btn-yellow-color">
                           {' '}
-                          수수류, 세금, 슬리피지 등이 고려되지 않았습니다.
+                          수수료, 세금, 슬리피지 등이 고려되지 않았습니다.
                         </span>
                       </p>
                       <p>
