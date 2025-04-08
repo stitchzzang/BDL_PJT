@@ -350,6 +350,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: 'body',
@@ -369,6 +370,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: 'body',
@@ -389,6 +391,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: 'body',
@@ -407,6 +410,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: 'body',
@@ -424,6 +428,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: '.stock-tutorial-info',
@@ -439,6 +444,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'bottom',
+        disableScrolling: true,
       },
       {
         target: '.stock-tutorial-money-info',
@@ -457,6 +463,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'bottom',
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: '.stock-progress',
@@ -470,15 +477,15 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'bottom',
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: '#chart-tutorial',
         content: (
           <div className="p-4">
-            <h2 className="mb-3 text-[20px] font-bold">주식 차트</h2>
-            <p className="text-[16px]">
-              실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.
-              <br />
+            <h2 className="mb-5 text-[25px] font-bold">주식 차트</h2>
+            <p className="text-[18px]">실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.</p>
+            <p className="mt-2 text-[18px]">
               캔들 차트와 이동평균선을 통해 주가 흐름을 분석해보세요.
             </p>
           </div>
@@ -486,6 +493,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'bottom',
+        disableScrolling: true,
       },
       {
         target: '.stock-tutorial-order',
@@ -499,6 +507,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'left',
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: '.stock-tutorial-comment',
@@ -514,6 +523,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'top',
+        disableScrolling: true,
       },
       {
         target: '.day-history',
@@ -527,6 +537,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'right',
+        disableScrolling: true,
       },
       {
         target: '.stock-tutorial-news',
@@ -540,6 +551,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'bottom',
         spotlightClicks: true,
+        disableScrolling: true,
       },
       {
         target: '.stock-tutorial-conclusion',
@@ -555,6 +567,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'bottom',
+        disableScrolling: true,
       },
       {
         target: 'body',
@@ -573,18 +586,69 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
+        disableScrolling: true,
       },
     ]);
   }, []);
 
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, index, type } = data;
+    const { status, index, type, action, step } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
+
+    // 스텝 시작 시 스크롤 조정
+    if (type === 'step:before') {
+      if (step.target && step.target !== 'body') {
+        const targetElement = document.querySelector(step.target as string);
+        if (targetElement) {
+          setTimeout(() => {
+            const container = document.querySelector('.mx-auto.max-h-\\[90vh\\].overflow-y-auto');
+            if (container) {
+              const targetRect = targetElement.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+
+              // 컨테이너 내에서 타겟 요소의 위치 계산
+              const targetTop =
+                targetRect.top - containerRect.top + (container as HTMLElement).scrollTop;
+
+              // 스크롤 위치 조정 (요소가 컨테이너 중앙에 오도록)
+              (container as HTMLElement).scrollTo({
+                top: targetTop - containerRect.height / 2 + targetRect.height / 2,
+                behavior: 'smooth',
+              });
+            }
+          }, 100);
+        }
+      }
+    }
 
     // 단계 변경 시에만 인덱스 업데이트 (조건 변경)
     if (type === 'step:after') {
       setStepIndex(index + 1); // 다음 스텝으로 명시적 설정
+
+      // 스크롤 위치 조정 (다음 타겟으로 스크롤)
+      if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
+        const targetElement = document.querySelector(steps[index + 1].target as string);
+        if (targetElement) {
+          setTimeout(() => {
+            const container = document.querySelector('.mx-auto.max-h-\\[90vh\\].overflow-y-auto');
+            if (container) {
+              const targetRect = targetElement.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+
+              // 컨테이너 내에서 타겟 요소의 위치 계산
+              const targetTop =
+                targetRect.top - containerRect.top + (container as HTMLElement).scrollTop;
+
+              // 스크롤 위치 조정 (요소가 컨테이너 중앙에 오도록)
+              (container as HTMLElement).scrollTo({
+                top: targetTop - containerRect.height / 2 + targetRect.height / 2,
+                behavior: 'smooth',
+              });
+            }
+          }, 300);
+        }
+      }
     } else if (type === 'tour:start') {
       setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
     }
@@ -611,8 +675,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks
         disableOverlayClose
         spotlightPadding={10}
-        disableScrolling
-        disableScrollParentFix
+        scrollToSteps={true}
+        scrollOffset={150}
+        scrollDuration={300}
         styles={{
           options: {
             zIndex: 10000,
@@ -648,8 +713,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
       {/* 데모 화면 - 투어 실행 시에만 표시 */}
       {showDemo && (
-        <div className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black bg-opacity-80 p-8">
-          <div className="mx-auto w-full max-w-[1400px] rounded-xl bg-background-color p-8">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black bg-opacity-80 p-8">
+          <div className="mx-auto max-h-[90vh] w-full max-w-[1400px] overflow-y-auto rounded-xl bg-background-color p-8">
             <h1 className="mb-8 text-center text-[30px] font-bold">주식 튜토리얼 가이드</h1>
 
             <div className="flex h-full w-full flex-col">
