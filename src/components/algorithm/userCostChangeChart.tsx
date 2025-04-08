@@ -318,7 +318,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
           moveOnMouseMove: false, // 드래그로만 이동 가능하게 설정
         },
       ],
-      animation: true,
+      animation: false,
     };
 
     setOptions(chartOptions);
