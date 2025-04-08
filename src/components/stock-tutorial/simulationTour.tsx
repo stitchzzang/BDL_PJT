@@ -22,6 +22,8 @@ import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutori
 import ChartComponent, { StockCandle } from '@/components/ui/chart-help';
 // 더미 데이터 임포트
 import { DUMMY_DAILY_CHART_DATA } from '@/mocks/dummy-data';
+// useAuthStore 임포트
+import { useAuthStore } from '@/store/useAuthStore';
 
 // 튜토리얼 스톡 응답 타입 정의
 interface TutorialStockResponse {
@@ -66,6 +68,10 @@ interface SimulationTourProps {
 export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
+
+  // useAuthStore에서 사용자 데이터 가져오기
+  const { userData } = useAuthStore();
+  const memberId = userData?.memberId || 0;
 
   // 더미 데이터 상태 관리
   const [showDemo, setShowDemo] = useState(false);
@@ -283,9 +289,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         font-size: 16px;
       }
       
-      /* 이전 버튼에 여백 추가 */
+      /* 이전 버튼 숨기기 */
       .react-joyride__tooltip button[data-action="back"] {
-        margin-right: 30px !important;
+        display: none !important;
       }
       
       /* Step 텍스트 제거 */
@@ -340,6 +346,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   useEffect(() => {
     if (run) {
       setShowDemo(true);
+      setStepIndex(0); // run이 true로 변경될 때마다 stepIndex를 0으로 초기화
     } else {
       // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
       const timer = setTimeout(() => {
@@ -503,10 +510,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         target: '#chart-tutorial',
         content: (
           <div className="p-4">
-            <h2 className="mb-3 text-[20px] font-bold">주식 차트</h2>
-            <p className="text-[16px]">
-              실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.
-              <br />
+            <h2 className="mb-5 text-[25px] font-bold">주식 차트</h2>
+            <p className="text-[18px]">실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.</p>
+            <p className="mt-2 text-[18px]">
               캔들 차트와 이동평균선을 통해 주가 흐름을 분석해보세요.
             </p>
           </div>
@@ -640,39 +646,17 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           }
         }, 50);
       }
-    } else if (type === 'step:before') {
-      // 현재 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
-      if (steps[index] && steps[index].target && steps[index].target !== 'body') {
-        setTimeout(() => {
-          const targetElement = document.querySelector(steps[index].target as string);
-          if (targetElement && showDemo) {
-            const container = document.querySelector('.tour-modal-container');
-            if (container) {
-              const targetRect = targetElement.getBoundingClientRect();
-              const containerRect = container.getBoundingClientRect();
-
-              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
-              const scrollPosition =
-                targetRect.top +
-                window.scrollY -
-                containerRect.top -
-                containerRect.height / 2 +
-                targetRect.height / 2;
-
-              (container as HTMLElement).scrollTo({
-                top: Math.max(0, scrollPosition),
-                behavior: 'smooth',
-              });
-            }
-          }
-        }, 50);
-      }
     } else if (type === 'tour:start') {
       setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
     }
 
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
+
+      // 튜토리얼이 완료되면 로컬 스토리지에 저장
+      if (memberId > 0) {
+        localStorage.setItem(`tutorial_tour_seen_${memberId}`, 'true');
+      }
     }
   };
 
@@ -693,6 +677,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks
         disableOverlayClose
         spotlightPadding={10}
+        hideBackButton={true}
         floaterProps={{
           disableAnimation: false,
           offset: 0,
@@ -721,7 +706,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
             color: '#ffffff',
           },
           buttonBack: {
-            color: '#ffffff',
+            display: 'none',
           },
           buttonSkip: {
             color: 'rgba(255, 255, 255, 0.7)',
