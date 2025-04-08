@@ -1073,10 +1073,42 @@ export const SimulatePage = () => {
 
   // 거래 내역이 변경될 때마다 보유 주식 수량 재계산
   useEffect(() => {
-    if (trades.length > 0) {
-      initOwnedStockCount();
+    if (trades.length > 0 && isTutorialStarted) {
+      // 현재 턴의 거래만 필터링
+      const currentTurnTrades = trades.filter((trade) => trade.turnNumber === currentTurn);
+
+      // 보유 주식 수량 계산
+      let totalStock = 0;
+
+      // 이전 턴까지의 거래 결과 합산
+      if (currentTurn > 1) {
+        const previousTurnTrades = trades.filter((trade) => trade.turnNumber < currentTurn);
+        previousTurnTrades.forEach((trade) => {
+          if (trade.action === 'buy') {
+            totalStock += trade.quantity;
+          } else if (trade.action === 'sell') {
+            totalStock -= trade.quantity;
+          }
+        });
+      }
+
+      // 현재 턴의 거래 결과 합산
+      currentTurnTrades.forEach((trade) => {
+        if (trade.action === 'buy') {
+          totalStock += trade.quantity;
+        } else if (trade.action === 'sell') {
+          totalStock -= trade.quantity;
+        }
+      });
+
+      // 음수가 되지 않도록 보정
+      totalStock = Math.max(0, totalStock);
+      setOwnedStockCount(totalStock);
+
+      // 자산 정보 업데이트 로그
+      console.log(`[거래 내역 업데이트] 현재 턴: ${currentTurn}, 총 보유 주식: ${totalStock}주`);
     }
-  }, [trades, initOwnedStockCount]);
+  }, [isTutorialStarted, trades, currentTurn]);
 
   // 자산 정보 업데이트 함수 추가
   const updateAssetInfo = async () => {
@@ -1216,7 +1248,6 @@ export const SimulatePage = () => {
 
   // 일시적으로 moveToNextTurn을 일반 함수로 선언 (loadChartData 의존성 제거)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveToNextTurn = async () => {
     if (currentTurn < 4) {
       try {
@@ -1227,7 +1258,11 @@ export const SimulatePage = () => {
         const newSession = calculateSession(nextTurn);
         if (!newSession) return;
 
-        // 시각적인 업데이트를 위해 먼저 턴과 세션 정보 업데이트
+        // 다음 턴으로 이동하기 전에 자산 정보를 업데이트
+        // 이렇게 하면 이전 턴의 거래 결과가 다음 턴에서 확인 가능
+        await updateAssetInfo();
+
+        // 시각적인 업데이트를 위해 턴과 세션 정보 업데이트
         setCurrentTurn(nextTurn);
         setIsCurrentTurnCompleted(false);
         setCurrentSession(newSession);
@@ -1337,7 +1372,6 @@ export const SimulatePage = () => {
         // 최신 가격 업데이트
         setLatestPrice(nextTurnPrice);
 
-        // 자산 정보는 이미 handleTrade에서 업데이트된 상태 사용
         // 마지막 턴인 경우 최종 수익률 설정
         if (nextTurn === 4) {
           setFinalChangeRate(assetInfo.totalReturnRate);
@@ -1353,7 +1387,7 @@ export const SimulatePage = () => {
   };
 
   // 튜토리얼 시작 함수 추가
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const handleTutorialStart = async () => {
     if (!isUserLoggedIn()) {
       alert('로그인이 필요한 기능입니다.');
@@ -1417,93 +1451,101 @@ export const SimulatePage = () => {
   };
 
   // 튜토리얼 완료 처리 함수
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   const completeTutorial = async () => {
     if (!isUserLoggedIn()) return;
 
-    // 튜토리얼 완료 전 자산 정보 최종 업데이트
-    await updateAssetInfo();
+    try {
+      // 튜토리얼 완료 전 자산 정보 최종 업데이트
+      await updateAssetInfo();
 
-    // 4단계에서 isCurrentTurnCompleted를 true로 설정하여 피드백 API가 호출되도록 함
-    if (!isCurrentTurnCompleted) {
-      setIsCurrentTurnCompleted(true);
-
-      // 피드백 데이터가 로드될 시간 확보 (500ms)
+      // 충분한 시간을 두고 자산 정보가 업데이트되었는지 확인
       await new Promise((resolve) => setTimeout(resolve, 500));
-    }
 
-    // 피드백 데이터가 있는지 확인하고 없으면 수동으로 로드
-    if (!tutorialFeedback) {
-      try {
-        await refetchFeedback();
-        // 피드백 데이터가 로드될 시간 확보 (300ms)
-        await new Promise((resolve) => setTimeout(resolve, 300));
-      } catch (error) {
-        // 오류 발생
-      }
-    }
+      // 4단계에서 isCurrentTurnCompleted를 true로 설정하여 피드백 API가 호출되도록 함
+      if (!isCurrentTurnCompleted) {
+        setIsCurrentTurnCompleted(true);
 
-    // 날짜 정보 준비
-    const currentDate = new Date();
-    // 어제 날짜로 설정
-    currentDate.setDate(currentDate.getDate() - 1);
-    const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
-    oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
-
-    // 현재 자산 정보에서 최종 수익률 가져오기
-    // finalChangeRate 상태값을 사용 (updateAssetInfo 함수에서 설정된 값)
-    const finalRate = finalChangeRate;
-
-    let saveSuccess = false;
-    try {
-      // 튜토리얼 결과 저장
-      const saveResponse = await saveTutorialResult.mutateAsync({
-        companyId,
-        startMoney: 10000000,
-        endMoney: assetInfo.currentTotalAsset,
-        changeRate: finalRate,
-        startDate: oneYearAgo.toISOString(),
-        endDate: currentDate.toISOString(),
-        memberId: memberId,
-      });
-
-      saveSuccess = saveResponse.isSuccess;
-
-      if (saveSuccess) {
-        console.log(`[튜토리얼 완료] 결과 저장 성공 - 최종 수익률: ${finalRate}%`);
-      } else {
-        console.warn('[튜토리얼 완료] 결과 저장 실패');
-      }
-    } catch (error) {
-      console.error('[튜토리얼 완료] 결과 저장 중 오류:', error);
-    }
-
-    // 세션 삭제 시도 (결과 저장 성공 여부와 관계없이)
-    try {
-      await deleteTutorialSession.mutateAsync(memberId);
-      console.log('[튜토리얼 완료] 세션 삭제 성공');
-    } catch (error) {
-      console.warn('[튜토리얼 완료] 세션 삭제 실패, 재시도 중...');
-
-      // 세션 삭제 실패 시 다시 시도
-      try {
+        // 피드백 데이터가 로드될 시간 확보 (500ms)
         await new Promise((resolve) => setTimeout(resolve, 500));
-        await deleteTutorialSession.mutateAsync(memberId);
-        console.log('[튜토리얼 완료] 세션 삭제 재시도 성공');
-      } catch (retryError) {
-        console.error('[튜토리얼 완료] 세션 삭제 재시도 실패');
       }
+
+      // 피드백 데이터가 있는지 확인하고 없으면 수동으로 로드
+      if (!tutorialFeedback) {
+        try {
+          await refetchFeedback();
+          // 피드백 데이터가 로드될 시간 확보 (300ms)
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        } catch (error) {
+          // 오류 발생
+        }
+      }
+
+      // 날짜 정보 준비
+      const currentDate = new Date();
+      // 어제 날짜로 설정
+      currentDate.setDate(currentDate.getDate() - 1);
+      const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+      oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
+
+      // 현재 자산 정보에서 최종 수익률 가져오기
+      // 최신 수익률 정보를 확실히 사용하기 위해 현재 자산 정보에서 직접 가져옴
+      const finalRate = assetInfo.totalReturnRate;
+
+      // 최종 수익률 설정
+      console.log(`[튜토리얼 완료] 최종 수익률 설정: ${finalRate}%`);
+      setFinalChangeRate(finalRate);
+
+      let saveSuccess = false;
+      try {
+        // 튜토리얼 결과 저장
+        const saveResponse = await saveTutorialResult.mutateAsync({
+          companyId,
+          startMoney: 10000000,
+          endMoney: assetInfo.currentTotalAsset,
+          changeRate: finalRate,
+          startDate: oneYearAgo.toISOString(),
+          endDate: currentDate.toISOString(),
+          memberId: memberId,
+        });
+
+        saveSuccess = saveResponse.isSuccess;
+
+        if (saveSuccess) {
+          console.log(`[튜토리얼 완료] 결과 저장 성공 - 최종 수익률: ${finalRate}%`);
+        } else {
+          console.warn('[튜토리얼 완료] 결과 저장 실패');
+        }
+      } catch (error) {
+        console.error('[튜토리얼 완료] 결과 저장 중 오류:', error);
+      }
+
+      // 세션 삭제 시도 (결과 저장 성공 여부와 관계없이)
+      try {
+        await deleteTutorialSession.mutateAsync(memberId);
+        console.log('[튜토리얼 완료] 세션 삭제 성공');
+      } catch (error) {
+        console.warn('[튜토리얼 완료] 세션 삭제 실패, 재시도 중...');
+
+        // 세션 삭제 실패 시 다시 시도
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          await deleteTutorialSession.mutateAsync(memberId);
+          console.log('[튜토리얼 완료] 세션 삭제 재시도 성공');
+        } catch (retryError) {
+          console.error('[튜토리얼 완료] 세션 삭제 재시도 실패');
+        }
+      }
+
+      // 충분한 지연 후 모달 표시 (상태 업데이트가 완전히 완료된 후)
+      setTimeout(() => {
+        console.log('[튜토리얼 완료] 종료 모달 표시');
+        setIsModalOpen(true);
+      }, 500);
+    } catch (error) {
+      console.error('[튜토리얼 완료] 오류 발생:', error);
+      toast.error('튜토리얼 완료 처리 중 오류가 발생했습니다.');
     }
-
-    // 최종 수익률 설정 - 4턴의 정확한 수익률 사용
-    console.log(`[튜토리얼 완료] 최종 수익률 설정: ${finalRate}%`);
-    setFinalChangeRate(finalRate);
-
-    // 약간의 지연 후 모달 표시 (상태 업데이트 완료 후)
-    setTimeout(() => {
-      console.log('[튜토리얼 완료] 종료 모달 표시');
-      setIsModalOpen(true);
-    }, 300);
   };
 
   // 변곡점 데이터 로드
@@ -2029,8 +2071,8 @@ export const SimulatePage = () => {
     }
   }, [loadInitialData, isTutorialStarted, currentTurn]);
 
-  // 튜토리얼 버튼 클릭 핸들러 - useCallback으로 최적화
-  const handleTutorialButtonClick = useCallback(() => {
+  // 튜토리얼 버튼 클릭 핸들러 (턴 이동 또는 튜토리얼 완료)
+  const handleTutorialButtonClick = async () => {
     console.log('[handleTutorialButtonClick] 상태:', {
       isTutorialStarted,
       isCurrentTurnCompleted,
@@ -2041,25 +2083,26 @@ export const SimulatePage = () => {
       // 튜토리얼 시작
       console.log('[handleTutorialButtonClick] 튜토리얼 시작 호출');
       handleTutorialStart();
+    } else if (currentTurn === 4) {
+      console.log('[튜토리얼 버튼 클릭] 4단계 완료, 튜토리얼 결과 표시');
+
+      // 튜토리얼 완료 처리
+      await completeTutorial();
     } else if (isCurrentTurnCompleted) {
-      if (currentTurn < 4) {
-        // 다음 턴으로 이동
-        console.log(`[handleTutorialButtonClick] ${currentTurn}턴에서 다음 턴으로 이동`);
-        moveToNextTurn();
-      } else {
-        // 4턴이고 완료되었을 때 결과 확인하기 버튼 클릭 시 completeTutorial 호출
-        console.log('[handleTutorialButtonClick] 튜토리얼 완료 호출 (4턴 완료)');
-        completeTutorial();
-      }
+      console.log(`[튜토리얼 버튼 클릭] ${currentTurn}단계 완료, 다음 단계로 이동`);
+
+      // 턴 변경 전 자산 정보를 확실히 업데이트
+      await updateAssetInfo();
+
+      // 0.5초 지연 후 다음 턴으로 이동 (API 응답 처리 시간 확보)
+      setTimeout(async () => {
+        await moveToNextTurn();
+      }, 500);
+    } else {
+      console.log(`[튜토리얼 버튼 클릭] ${currentTurn}단계 미완료, 알림 표시`);
+      toast.info('해당 단계의 주식 매매를 완료해야 다음 단계로 넘어갈 수 있습니다.');
     }
-  }, [
-    isTutorialStarted,
-    isCurrentTurnCompleted,
-    currentTurn,
-    handleTutorialStart,
-    moveToNextTurn,
-    completeTutorial,
-  ]);
+  };
 
   // 첫 렌더링 이후 변곡점 데이터 로드
   useEffect(() => {
@@ -2080,20 +2123,41 @@ export const SimulatePage = () => {
   // 거래 내역 변경 시 자산 정보 업데이트
   useEffect(() => {
     if (trades.length > 0 && isTutorialStarted) {
-      // 보유 주식 수량만 업데이트
+      // 현재 턴의 거래만 필터링
+      const currentTurnTrades = trades.filter((trade) => trade.turnNumber === currentTurn);
+
+      // 보유 주식 수량 계산
       let totalStock = 0;
-      trades.forEach((trade) => {
+
+      // 이전 턴까지의 거래 결과 합산
+      if (currentTurn > 1) {
+        const previousTurnTrades = trades.filter((trade) => trade.turnNumber < currentTurn);
+        previousTurnTrades.forEach((trade) => {
+          if (trade.action === 'buy') {
+            totalStock += trade.quantity;
+          } else if (trade.action === 'sell') {
+            totalStock -= trade.quantity;
+          }
+        });
+      }
+
+      // 현재 턴의 거래 결과 합산
+      currentTurnTrades.forEach((trade) => {
         if (trade.action === 'buy') {
           totalStock += trade.quantity;
         } else if (trade.action === 'sell') {
           totalStock -= trade.quantity;
         }
       });
+
       // 음수가 되지 않도록 보정
       totalStock = Math.max(0, totalStock);
       setOwnedStockCount(totalStock);
+
+      // 자산 정보 업데이트 로그
+      console.log(`[거래 내역 업데이트] 현재 턴: ${currentTurn}, 총 보유 주식: ${totalStock}주`);
     }
-  }, [isTutorialStarted, trades]);
+  }, [isTutorialStarted, trades, currentTurn]);
 
   // 모달 닫기 핸들러 추가
   const handleCloseNewsModal = useCallback(() => {
@@ -2151,6 +2215,31 @@ export const SimulatePage = () => {
   }, [isTutorialStarted, isNewsModalOpen, isNewsLoading, isChartLoading]);
 
   // isCurrentTurnCompleted 상태 변경 감지
+  useEffect(() => {
+    console.log(
+      '[SimulatePage] isCurrentTurnCompleted 변경:',
+      isCurrentTurnCompleted,
+      '현재 턴:',
+      currentTurn,
+    );
+  }, [isCurrentTurnCompleted, currentTurn]);
+
+  // isCurrentTurnCompleted 상태 변경 시 자산 정보 업데이트
+  useEffect(() => {
+    // 1. 턴 완료 시 (거래 후) 자산 정보 업데이트
+    if (isTutorialStarted && isCurrentTurnCompleted && currentTurn > 0) {
+      console.log(`[턴 완료 감지] ${currentTurn}단계 완료, 자산 정보 업데이트`);
+
+      // 0.5초 지연 후 자산 정보 업데이트 (API 응답 처리 시간 확보)
+      const timer = setTimeout(async () => {
+        await updateAssetInfo();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isTutorialStarted, isCurrentTurnCompleted, currentTurn]);
+
+  // isCurrentTurnCompleted 상태 변경 감지 (디버깅용)
   useEffect(() => {
     console.log(
       '[SimulatePage] isCurrentTurnCompleted 변경:',
