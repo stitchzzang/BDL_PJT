@@ -298,6 +298,34 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         opacity: 0 !important;
         visibility: hidden !important;
       }
+      
+      /* 스크롤바 숨기기 */
+      .scrollbar-hide {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;     /* Firefox */
+      }
+      
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;  /* Chrome, Safari, Opera */
+      }
+      
+      /* 차트 영역의 툴팁 위치 조정 */
+      #chart-tutorial + div > div {
+        margin-left: 450px !important;
+        transform: translateX(40%) !important;
+      }
+      
+      /* 차트 영역에 표시되는 툴팁의 화살표 방향 조정 */
+      #chart-tutorial + div .react-joyride__tooltip {
+        position: relative;
+        z-index: 10001 !important;
+      }
+      
+      /* 차트 튜토리얼 스팟라이트 조정 */
+      #chart-tutorial {
+        position: relative !important;
+        z-index: 1 !important;
+      }
     `;
     document.head.appendChild(styleTag);
 
@@ -350,7 +378,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
         target: 'body',
@@ -370,7 +397,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
         target: 'body',
@@ -391,7 +417,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
         target: 'body',
@@ -410,7 +435,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
         target: 'body',
@@ -428,10 +452,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
-        target: '.stock-tutorial-info',
+        target: '#stock-tutorial-info',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">기업 정보</h2>
@@ -444,10 +467,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'bottom',
-        disableScrolling: true,
       },
       {
-        target: '.stock-tutorial-money-info',
+        target: '#stock-tutorial-money-info',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">자산 정보</h2>
@@ -463,10 +485,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'bottom',
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
-        target: '.stock-progress',
+        target: '#stock-progress',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">진행 정보</h2>
@@ -477,26 +498,25 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'bottom',
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
         target: '#chart-tutorial',
         content: (
           <div className="p-4">
-            <h2 className="mb-5 text-[25px] font-bold">주식 차트</h2>
-            <p className="text-[18px]">실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.</p>
-            <p className="mt-2 text-[18px]">
+            <h2 className="mb-3 text-[20px] font-bold">주식 차트</h2>
+            <p className="text-[16px]">
+              실제 주가 데이터를 기반으로 한 차트를 확인할 수 있습니다.
+              <br />
               캔들 차트와 이동평균선을 통해 주가 흐름을 분석해보세요.
             </p>
           </div>
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'bottom',
-        disableScrolling: true,
+        placement: 'top',
       },
       {
-        target: '.stock-tutorial-order',
+        target: '#stock-tutorial-order',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">거래 체결</h2>
@@ -507,10 +527,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'left',
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
-        target: '.stock-tutorial-comment',
+        target: '#stock-tutorial-comment',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">AI 코멘트</h2>
@@ -523,10 +542,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'top',
-        disableScrolling: true,
       },
       {
-        target: '.day-history',
+        target: '#day-history',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">뉴스 히스토리</h2>
@@ -537,10 +555,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'right',
-        disableScrolling: true,
       },
       {
-        target: '.stock-tutorial-news',
+        target: '#stock-tutorial-news',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">교육용 뉴스</h2>
@@ -551,10 +568,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         placement: 'bottom',
         spotlightClicks: true,
-        disableScrolling: true,
       },
       {
-        target: '.stock-tutorial-conclusion',
+        target: '#stock-tutorial-conclusion',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">체결 내역</h2>
@@ -567,7 +583,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         disableBeacon: true,
         spotlightClicks: true,
         placement: 'bottom',
-        disableScrolling: true,
       },
       {
         target: 'body',
@@ -586,68 +601,71 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         placement: 'center',
         disableBeacon: true,
         spotlightClicks: true,
-        disableScrolling: true,
       },
     ]);
   }, []);
 
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, index, type, action, step } = data;
+    const { status, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
-
-    // 스텝 시작 시 스크롤 조정
-    if (type === 'step:before') {
-      if (step.target && step.target !== 'body') {
-        const targetElement = document.querySelector(step.target as string);
-        if (targetElement) {
-          setTimeout(() => {
-            const container = document.querySelector('.mx-auto.max-h-\\[90vh\\].overflow-y-auto');
-            if (container) {
-              const targetRect = targetElement.getBoundingClientRect();
-              const containerRect = container.getBoundingClientRect();
-
-              // 컨테이너 내에서 타겟 요소의 위치 계산
-              const targetTop =
-                targetRect.top - containerRect.top + (container as HTMLElement).scrollTop;
-
-              // 스크롤 위치 조정 (요소가 컨테이너 중앙에 오도록)
-              (container as HTMLElement).scrollTo({
-                top: targetTop - containerRect.height / 2 + targetRect.height / 2,
-                behavior: 'smooth',
-              });
-            }
-          }, 100);
-        }
-      }
-    }
 
     // 단계 변경 시에만 인덱스 업데이트 (조건 변경)
     if (type === 'step:after') {
       setStepIndex(index + 1); // 다음 스텝으로 명시적 설정
 
-      // 스크롤 위치 조정 (다음 타겟으로 스크롤)
+      // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
       if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
-        const targetElement = document.querySelector(steps[index + 1].target as string);
-        if (targetElement) {
-          setTimeout(() => {
-            const container = document.querySelector('.mx-auto.max-h-\\[90vh\\].overflow-y-auto');
+        setTimeout(() => {
+          const targetElement = document.querySelector(steps[index + 1].target as string);
+          if (targetElement && showDemo) {
+            const container = document.querySelector('.tour-modal-container');
             if (container) {
               const targetRect = targetElement.getBoundingClientRect();
               const containerRect = container.getBoundingClientRect();
 
-              // 컨테이너 내에서 타겟 요소의 위치 계산
-              const targetTop =
-                targetRect.top - containerRect.top + (container as HTMLElement).scrollTop;
+              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
+              const scrollPosition =
+                targetRect.top +
+                window.scrollY -
+                containerRect.top -
+                containerRect.height / 2 +
+                targetRect.height / 2;
 
-              // 스크롤 위치 조정 (요소가 컨테이너 중앙에 오도록)
               (container as HTMLElement).scrollTo({
-                top: targetTop - containerRect.height / 2 + targetRect.height / 2,
+                top: Math.max(0, scrollPosition),
                 behavior: 'smooth',
               });
             }
-          }, 300);
-        }
+          }
+        }, 50);
+      }
+    } else if (type === 'step:before') {
+      // 현재 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
+      if (steps[index] && steps[index].target && steps[index].target !== 'body') {
+        setTimeout(() => {
+          const targetElement = document.querySelector(steps[index].target as string);
+          if (targetElement && showDemo) {
+            const container = document.querySelector('.tour-modal-container');
+            if (container) {
+              const targetRect = targetElement.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+
+              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
+              const scrollPosition =
+                targetRect.top +
+                window.scrollY -
+                containerRect.top -
+                containerRect.height / 2 +
+                targetRect.height / 2;
+
+              (container as HTMLElement).scrollTo({
+                top: Math.max(0, scrollPosition),
+                behavior: 'smooth',
+              });
+            }
+          }
+        }, 50);
       }
     } else if (type === 'tour:start') {
       setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
@@ -667,7 +685,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         continuous
         hideCloseButton
         run={run}
-        scrollToFirstStep
+        scrollToFirstStep={false}
         showProgress
         showSkipButton
         steps={steps}
@@ -675,9 +693,16 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks
         disableOverlayClose
         spotlightPadding={10}
-        scrollToSteps={true}
-        scrollOffset={150}
-        scrollDuration={300}
+        floaterProps={{
+          disableAnimation: false,
+          offset: 0,
+          styles: {
+            floater: {
+              filter: 'none',
+              zIndex: 10001,
+            },
+          },
+        }}
         styles={{
           options: {
             zIndex: 10000,
@@ -713,96 +738,113 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
       {/* 데모 화면 - 투어 실행 시에만 표시 */}
       {showDemo && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black bg-opacity-80 p-8">
-          <div className="mx-auto max-h-[90vh] w-full max-w-[1400px] overflow-y-auto rounded-xl bg-background-color p-8">
-            <h1 className="mb-8 text-center text-[30px] font-bold">주식 튜토리얼 가이드</h1>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80">
+          <div
+            className="tour-modal-container scrollbar-hide w-full max-w-[1400px] overflow-y-auto"
+            style={{ maxHeight: '100vh', paddingTop: '2rem', paddingBottom: '2rem' }}
+          >
+            <div className="mx-auto w-full max-w-[1400px] rounded-xl bg-background-color p-8">
+              <h1 className="mb-8 text-center text-[30px] font-bold">주식 튜토리얼 가이드</h1>
 
-            <div className="flex h-full w-full flex-col">
-              <div className="stock-tutorial-info mb-8 flex items-center justify-between">
-                <StockTutorialInfo
-                  companyId={dummyCompanyInfo.companyId}
-                  isTutorialStarted={isTutorialStarted}
-                  onTutorialStart={handleTutorialButtonClick}
-                  onMoveToNextTurn={handleTutorialButtonClick}
-                  currentTurn={currentTurn}
-                  isCurrentTurnCompleted={isCurrentTurnCompleted}
-                  latestPrice={latestPrice}
-                  showButtonInInfoSection={false}
-                />
-              </div>
-              <div className="mb-8 flex flex-col gap-4 md:flex-row md:justify-between">
-                <div className="stock-tutorial-money-info w-full md:w-5/12">
-                  <StockTutorialMoneyInfo
-                    initialAsset={dummyMoneyInfo.initialAsset}
-                    availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
-                    currentTotalAsset={dummyMoneyInfo.currentTotalAsset}
-                    totalReturnRate={dummyMoneyInfo.totalReturnRate}
-                  />
-                </div>
-                <div className="stock-progress w-full md:w-7/12">
-                  <StockProgress
-                    progress={progress}
-                    currentTurn={currentTurn}
-                    startDate={getTurnDateRange(currentTurn).start}
-                    endDate={getTurnDateRange(currentTurn).end}
-                    formatDateFn={formatYYMMDDToYYYYMMDD}
-                    pointDates={pointDates}
-                    defaultStartDate={defaultStartDate}
-                    defaultEndDate={defaultEndDate}
-                  />
-                </div>
-              </div>
-              <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-12">
-                <div className="col-span-1 h-full lg:col-span-9">
-                  <div
-                    className="chart-tutorial relative h-[520px] rounded-xl bg-[#0D192B] text-white"
-                    id="chart-tutorial"
-                  >
-                    <ChartComponent
-                      periodData={dummyDailyChartDataConverted}
-                      inflectionPoints={inflectionPoints}
-                    />
-                  </div>
-                </div>
-                <div className="col-span-1 h-full lg:col-span-3">
-                  <div className="stock-tutorial-order h-[520px] rounded-xl bg-modal-background-color p-4">
-                    <TutorialOrderStatusBuy
-                      onBuy={(price, quantity) => console.log('가상 매수:', price, quantity)}
-                      companyId={dummyCompanyInfo.companyId}
-                      latestPrice={latestPrice}
-                      availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
-                      ownedStockCount={10}
-                      isActive={false}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-[45px] grid grid-cols-6 gap-6">
-                <div className="stock-tutorial-comment col-span-3">
-                  <StockTutorialComment
-                    comment={dummyAIComment}
-                    isTutorialStarted={isTutorialStarted}
-                  />
-                </div>
-                <div className="day-history col-span-3">
-                  <DayHistory
-                    news={dummyPastNews}
-                    height={320}
-                    isTutorialStarted={isTutorialStarted}
-                  />
-                </div>
-              </div>
-              <div className="mt-[35px] grid grid-cols-6 gap-6">
-                <div className="stock-tutorial-news col-span-4">
-                  <StockTutorialNews
-                    currentNews={dummyNewsData}
+              <div className="flex h-full w-full flex-col">
+                <div
+                  className="stock-tutorial-info mb-8 flex items-center justify-between"
+                  id="stock-tutorial-info"
+                >
+                  <StockTutorialInfo
                     companyId={dummyCompanyInfo.companyId}
+                    isTutorialStarted={isTutorialStarted}
+                    onTutorialStart={handleTutorialButtonClick}
+                    onMoveToNextTurn={handleTutorialButtonClick}
                     currentTurn={currentTurn}
+                    isCurrentTurnCompleted={isCurrentTurnCompleted}
+                    latestPrice={latestPrice}
+                    showButtonInInfoSection={false}
                   />
                 </div>
-                <div className="stock-tutorial-conclusion col-span-2">
-                  <StockTutorialConclusion trades={dummyTradeRecord} isCompleted={false} />
+                <div className="mb-8 flex flex-col gap-4 md:flex-row md:justify-between">
+                  <div
+                    className="stock-tutorial-money-info w-full md:w-5/12"
+                    id="stock-tutorial-money-info"
+                  >
+                    <StockTutorialMoneyInfo
+                      initialAsset={dummyMoneyInfo.initialAsset}
+                      availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
+                      currentTotalAsset={dummyMoneyInfo.currentTotalAsset}
+                      totalReturnRate={dummyMoneyInfo.totalReturnRate}
+                    />
+                  </div>
+                  <div className="stock-progress w-full md:w-7/12" id="stock-progress">
+                    <StockProgress
+                      progress={progress}
+                      currentTurn={currentTurn}
+                      startDate={getTurnDateRange(currentTurn).start}
+                      endDate={getTurnDateRange(currentTurn).end}
+                      formatDateFn={formatYYMMDDToYYYYMMDD}
+                      pointDates={pointDates}
+                      defaultStartDate={defaultStartDate}
+                      defaultEndDate={defaultEndDate}
+                    />
+                  </div>
+                </div>
+                <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-12">
+                  <div className="col-span-1 h-full lg:col-span-9">
+                    <div
+                      className="chart-tutorial relative h-[520px] rounded-xl bg-[#0D192B] text-white"
+                      id="chart-tutorial"
+                    >
+                      <ChartComponent
+                        periodData={dummyDailyChartDataConverted}
+                        inflectionPoints={inflectionPoints}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-1 h-full lg:col-span-3">
+                    <div
+                      className="stock-tutorial-order h-[520px] rounded-xl bg-modal-background-color p-4"
+                      id="stock-tutorial-order"
+                    >
+                      <TutorialOrderStatusBuy
+                        onBuy={(price, quantity) => console.log('가상 매수:', price, quantity)}
+                        companyId={dummyCompanyInfo.companyId}
+                        latestPrice={latestPrice}
+                        availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
+                        ownedStockCount={10}
+                        isActive={false}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-[45px] grid grid-cols-6 gap-6">
+                  <div className="stock-tutorial-comment col-span-3" id="stock-tutorial-comment">
+                    <StockTutorialComment
+                      comment={dummyAIComment}
+                      isTutorialStarted={isTutorialStarted}
+                    />
+                  </div>
+                  <div className="day-history col-span-3" id="day-history">
+                    <DayHistory
+                      news={dummyPastNews}
+                      height={320}
+                      isTutorialStarted={isTutorialStarted}
+                    />
+                  </div>
+                </div>
+                <div className="mt-[35px] grid grid-cols-6 gap-6">
+                  <div className="stock-tutorial-news col-span-4" id="stock-tutorial-news">
+                    <StockTutorialNews
+                      currentNews={dummyNewsData}
+                      companyId={dummyCompanyInfo.companyId}
+                      currentTurn={currentTurn}
+                    />
+                  </div>
+                  <div
+                    className="stock-tutorial-conclusion col-span-2"
+                    id="stock-tutorial-conclusion"
+                  >
+                    <StockTutorialConclusion trades={dummyTradeRecord} isCompleted={false} />
+                  </div>
                 </div>
               </div>
             </div>
