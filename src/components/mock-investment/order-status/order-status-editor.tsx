@@ -1,3 +1,4 @@
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -194,22 +195,22 @@ export const OrderStatusEditor = ({
                   setValue={setStockCount}
                   placeholder="수량을 입력하세요."
                 />
-                <div className="pointer-events-none inset-0 flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
-                    >
-                      -
-                    </button>
+                <div className="flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
+                  <div
+                    className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
+                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                  >
+                    <div className="h-5 w-5">
+                      <MinusIcon />
+                    </div>
                   </div>
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
-                    >
-                      +
-                    </button>
+                  <div
+                    className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
+                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                  >
+                    <div className="h-5 w-5">
+                      <PlusIcon />
+                    </div>
                   </div>
                 </div>
               </div>
