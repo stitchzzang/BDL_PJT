@@ -158,15 +158,15 @@ export const OrderStatusBuy = ({
             </div>
             <div className="flex w-full max-w-[80%] flex-col gap-2">
               {/* 지정가 */}
-              <div className="flex w-full justify-between gap-3 rounded-xl bg-btn-primary-active-color px-1 py-1">
+              <div className="flex w-full justify-between gap-3 rounded-xl bg-background-color px-1 py-1">
                 <div
-                  className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '지정가' ? `bg-btn-primary-active-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('지정가')}
                 >
                   <p className="text-[14px]">지정가</p>
                 </div>
                 <div
-                  className={`${isActive === '시장가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
+                  className={`${isActive === '시장가' ? `bg-btn-primary-active-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                   onClick={() => isActiveHandler('시장가')}
                 >
                   <p className="text-[14px]">시장가</p>
@@ -292,7 +292,7 @@ export const OrderStatusBuy = ({
                 })
               }
             >
-              <p className=" text-[16px] font-medium text-white">구매하기</p>
+              <p className=" text-[14px] font-medium text-white">구매하기</p>
             </Button>
           )}
           <p className="text-[14px] font-light text-[#718096]">
