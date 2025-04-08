@@ -1806,7 +1806,7 @@ export const SimulatePage = () => {
           setRunTour(true);
           // 투어를 봤다고 표시
           localStorage.setItem(`tutorial_tour_seen_${memberId}`, 'true');
-        }, 1000);
+        });
         return () => clearTimeout(timer);
       }
     }
