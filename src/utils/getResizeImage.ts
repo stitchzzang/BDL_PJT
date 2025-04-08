@@ -48,12 +48,12 @@ export const getResizeImage = (
       img.onload = () => {
         // 이미지 크기 체크
         if (img.width < 50 || img.height < 50) {
-          reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+          reject(new Error('50x50 이상의 이미지를 선택해주세요.'));
           return;
         }
 
         if (img.width > 4000 || img.height > 4000) {
-          reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+          reject(new Error('4000x4000 이하의 이미지를 선택해주세요.'));
           return;
         }
 
@@ -106,7 +106,7 @@ export const getResizeImage = (
       };
 
       img.onerror = () => {
-        reject(new Error('적합하지 않은 이미지입니다. 다른 이미지를 선택해주세요.'));
+        reject(new Error('이미지 로드에 실패했습니다. 다시 시도해주세요.'));
       };
     };
 
