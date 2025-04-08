@@ -283,9 +283,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         font-size: 16px;
       }
       
-      /* 이전 버튼에 여백 추가 */
+      /* 이전 버튼 숨기기 */
       .react-joyride__tooltip button[data-action="back"] {
-        margin-right: 30px !important;
+        display: none !important;
       }
       
       /* Step 텍스트 제거 */
@@ -311,12 +311,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       
       /* 차트 영역의 툴팁 위치 조정 */
       #chart-tutorial + div > div {
-        position: absolute !important;
-        right: -270px !important;
-        left: auto !important;
-        margin-left: 0 !important;
-        transform: translateX(0) !important;
-        margin-top: 30px !important;
+        margin-left: 450px !important;
+        transform: translateX(40%) !important;
       }
       
       /* 차트 영역에 표시되는 툴팁의 화살표 방향 조정 */
@@ -325,42 +321,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         z-index: 10001 !important;
       }
       
-      /* 차트 영역의 툴팁 내용 위치 조정 */
-      #chart-tutorial + div .react-joyride__tooltip .react-joyride__tooltip__content {
-        min-width: 250px;
-        width: auto !important;
-        max-width: 300px !important;
-      }
-      
-      /* 차트 영역의 화살표 위치 조정 */
-      #chart-tutorial + div .react-joyride__tooltip__arrow {
-        left: -8px !important;
-        right: auto !important;
-        transform: rotate(180deg) !important;
-      }
-      
       /* 차트 튜토리얼 스팟라이트 조정 */
       #chart-tutorial {
         position: relative !important;
         z-index: 1 !important;
-      }
-      
-      /* 가이드 페이지의 모든 컴포넌트 비활성화 */
-      .tour-modal-container * {
-        pointer-events: none !important;
-      }
-      
-      /* Joyride 관련 요소는 클릭 가능하도록 예외 처리 */
-      .react-joyride__tooltip,
-      .react-joyride__tooltip *,
-      .react-joyride__overlay,
-      .react-joyride__spotlight {
-        pointer-events: auto !important;
-      }
-      
-      /* 스크롤은 허용 */
-      .tour-modal-container {
-        pointer-events: auto !important;
       }
     `;
     document.head.appendChild(styleTag);
@@ -372,11 +336,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     };
   }, [stepIndex, steps.length]);
 
-  // 투어 시작 시 더미 화면 표시 및 stepIndex 리셋
+  // 투어 시작 시 더미 화면 표시
   useEffect(() => {
     if (run) {
       setShowDemo(true);
-      setStepIndex(0); // 투어가 시작될 때 stepIndex 리셋
     } else {
       // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
       const timer = setTimeout(() => {
@@ -550,7 +513,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'right',
+        placement: 'top',
       },
       {
         target: '#stock-tutorial-order',
@@ -640,77 +603,49 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks: true,
       },
     ]);
-  }, [run]);
+  }, []);
 
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, index, type, action } = data;
+    const { status, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    if (type === 'tour:start') {
-      // 투어 시작 시 항상 0으로 초기화
-      setStepIndex(0);
-    } else if (type === 'step:after') {
-      // 다음 버튼 클릭 시
-      if (action === 'next') {
-        setStepIndex(index + 1);
+    // 단계 변경 시에만 인덱스 업데이트 (조건 변경)
+    if (type === 'step:after') {
+      setStepIndex(index + 1); // 다음 스텝으로 명시적 설정
 
-        // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
-        if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
-          setTimeout(() => {
-            scrollToTarget(steps[index + 1].target as string);
-          }, 50);
-        }
-      }
-      // 이전 버튼 클릭 시
-      else if (action === 'prev') {
-        // 이전 단계로 이동
-        setStepIndex(index - 1);
-
-        // 이전 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
-        if (steps[index - 1] && steps[index - 1].target && steps[index - 1].target !== 'body') {
-          setTimeout(() => {
-            scrollToTarget(steps[index - 1].target as string);
-          }, 50);
-        }
-      }
-    } else if (type === 'step:before') {
-      // 현재 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
-      if (steps[index] && steps[index].target && steps[index].target !== 'body') {
+      // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
+      if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
         setTimeout(() => {
-          scrollToTarget(steps[index].target as string);
+          const targetElement = document.querySelector(steps[index + 1].target as string);
+          if (targetElement && showDemo) {
+            const container = document.querySelector('.tour-modal-container');
+            if (container) {
+              const targetRect = targetElement.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+
+              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
+              const scrollPosition =
+                targetRect.top +
+                window.scrollY -
+                containerRect.top -
+                containerRect.height / 2 +
+                targetRect.height / 2;
+
+              (container as HTMLElement).scrollTo({
+                top: Math.max(0, scrollPosition),
+                behavior: 'smooth',
+              });
+            }
+          }
         }, 50);
       }
+    } else if (type === 'tour:start') {
+      setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
     }
 
-    // 투어가 종료되거나 스킵된 경우
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
-    }
-  };
-
-  // 스크롤 조정 함수
-  const scrollToTarget = (targetSelector: string) => {
-    const targetElement = document.querySelector(targetSelector);
-    if (targetElement && showDemo) {
-      const container = document.querySelector('.tour-modal-container');
-      if (container) {
-        const targetRect = targetElement.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-
-        // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
-        const scrollPosition =
-          targetRect.top +
-          window.scrollY -
-          containerRect.top -
-          containerRect.height / 2 +
-          targetRect.height / 2;
-
-        (container as HTMLElement).scrollTo({
-          top: Math.max(0, scrollPosition),
-          behavior: 'smooth',
-        });
-      }
     }
   };
 
@@ -718,7 +653,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     <>
       {/* 투어 컴포넌트 */}
       <Joyride
-        key={`tutorial-joyride-${run}`}
+        key="tutorial-joyride"
         callback={handleJoyrideCallback}
         continuous
         hideCloseButton
@@ -731,8 +666,17 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks
         disableOverlayClose
         spotlightPadding={10}
-        disableScrollParentFix
-        disableScrolling
+        hideBackButton={true}
+        floaterProps={{
+          disableAnimation: false,
+          offset: 0,
+          styles: {
+            floater: {
+              filter: 'none',
+              zIndex: 10001,
+            },
+          },
+        }}
         styles={{
           options: {
             zIndex: 10000,
@@ -751,7 +695,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
             color: '#ffffff',
           },
           buttonBack: {
-            color: '#ffffff',
+            display: 'none',
           },
           buttonSkip: {
             color: 'rgba(255, 255, 255, 0.7)',
