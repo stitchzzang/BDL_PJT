@@ -1,3 +1,23 @@
+/**
+ * 이미지 파일을 최적화하는 함수
+ *
+ * 최적화 과정:
+ * 1. 파일 크기 제한: 10MB
+ * 2. 허용 파일 형식: JPEG, PNG
+ * 3. 이미지 크기 제한:
+ *    - 최소: 50x50 픽셀
+ *    - 최대: 4000x4000 픽셀
+ * 4. 리사이즈 규칙:
+ *    - 최대 너비: 400px
+ *    - 최대 높이: 400px
+ *    - 원본 비율 유지
+ * 5. 품질 압축: 80% (0.8)
+ *
+ * @param file - 원본 이미지 파일
+ * @param maxWidth - 최대 너비 (기본값: 400px)
+ * @param maxHeight - 최대 높이 (기본값: 400px)
+ * @returns Promise<File> - 최적화된 이미지 파일
+ */
 export const getResizeImage = (
   file: File,
   maxWidth: number = 400,
