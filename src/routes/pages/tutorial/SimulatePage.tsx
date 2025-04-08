@@ -1,6 +1,6 @@
 import Lottie from 'lottie-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useGetCompanyProfile } from '@/api/company.api';
@@ -142,6 +142,46 @@ export interface StockInfoProps {
   latestPrice?: number;
 }
 
+// 튜토리얼 페이지 이탈 방지를 위한 커스텀 훅
+const usePreventLeave = (when: boolean, message: string) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPathRef = useRef(location.pathname);
+
+  // beforeunload 이벤트 핸들러 (페이지 새로고침, 브라우저 닫기 등)
+  useEffect(() => {
+    if (when) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = message; // Chrome에서는 이 설정이 필요
+        return message; // 다른 브라우저를 위한 리턴값
+      };
+
+      // 이벤트 리스너 등록
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, [when, message]);
+
+  // 경로 변경 감지
+  useEffect(() => {
+    if (when && location.pathname !== currentPathRef.current) {
+      // 경로가 변경되었을 때 (사용자가 다른 페이지로 이동하려고 할 때)
+      const confirmed = window.confirm(message);
+      if (!confirmed) {
+        // 사용자가 취소를 선택하면 이전 경로로 다시 이동
+        navigate(-1);
+      }
+      // 현재 경로 업데이트
+      currentPathRef.current = location.pathname;
+    }
+  }, [when, message, location.pathname, navigate]);
+};
+
 export const SimulatePage = () => {
   const navigate = useNavigate();
   const { companyId: companyIdParam } = useParams<{ companyId: string }>();
@@ -150,6 +190,12 @@ export const SimulatePage = () => {
   const [progress, setProgress] = useState(0);
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
   const companyId = Number(companyIdParam) || 1;
+
+  // 페이지 이탈 방지 훅 사용
+  usePreventLeave(
+    isTutorialStarted && progress < 100,
+    '페이지를 벗어나면 튜토리얼 단계가 초기화됩니다. 벗어나시겠습니까?',
+  );
 
   // 투어 관련 상태 추가
   const [runTour, setRunTour] = useState(false);
@@ -1733,6 +1779,29 @@ export const SimulatePage = () => {
       }
     }
   }, [isLogin, memberId]);
+
+  // 페이지 이탈/새로고침 방지를 위한 핸들러 추가
+  useEffect(() => {
+    // 튜토리얼이 시작되었고 아직 완료되지 않았을 때만 경고창 표시
+    if (isTutorialStarted && progress < 100) {
+      // beforeunload 이벤트 핸들러 (페이지 새로고침, 브라우저 닫기 등)
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        // 표준 메시지 설정 (브라우저마다 실제 표시되는 메시지는 다를 수 있음)
+        const message = '페이지를 벗어나면 튜토리얼 단계가 초기화됩니다. 벗어나시겠습니까?';
+        e.preventDefault();
+        e.returnValue = message; // Chrome에서는 이 설정이 필요
+        return message; // 다른 브라우저를 위한 리턴값
+      };
+
+      // 이벤트 리스너 등록
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, [isTutorialStarted, progress]);
 
   return (
     <>
