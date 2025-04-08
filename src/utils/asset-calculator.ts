@@ -4,7 +4,7 @@
 
 // 주식 거래를 처리하는 유틸리티 함수
 export const calculateTradingAssets = (
-  action: 'buy' | 'sell' | 'wait',
+  action: 'buy' | 'sell' | 'hold',
   price: number,
   quantity: number,
   initialAsset: number,

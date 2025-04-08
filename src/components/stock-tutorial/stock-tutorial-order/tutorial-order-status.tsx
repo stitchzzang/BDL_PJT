@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-export type TradeAction = 'buy' | 'sell' | 'wait';
+export type TradeAction = 'buy' | 'sell' | 'hold';
 import NextAnimation from '@/assets/lottie/next-animation.json';
 import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-buy';
 import { TutorialOrderStatusCategory } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-category';
@@ -79,7 +79,7 @@ export const TutorialOrderStatus = ({
     setWaitSelectedTurns((prev) => [...prev, currentTurn]);
 
     // 관망은 'wait' 액션으로 처리
-    onTrade('wait', 0, 0);
+    onTrade('hold', 0, 0);
   };
 
   // 버튼 클릭 처리 함수

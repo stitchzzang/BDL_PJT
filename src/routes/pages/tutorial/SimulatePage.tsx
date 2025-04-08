@@ -50,7 +50,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
 // 거래 기록을 위한 타입 정의 (외부 컴포넌트와 호환되는 타입)
-type TradeAction = 'buy' | 'sell' | 'wait';
+type TradeAction = 'buy' | 'sell' | 'hold';
 
 interface TradeRecord {
   action: TradeAction;
@@ -785,12 +785,12 @@ export const SimulatePage = () => {
         return;
       }
 
-      // 관망 선택 시 API 호출 (관망 - wait 액션으로 처리)
-      if (action === 'wait') {
+      // 관망 선택 시 API 호출
+      if (action === 'hold') {
         // API 요청 처리
         const response = await processUserAction.mutateAsync({
           memberId,
-          action: 'observe', // 백엔드 API는 'observe'로 처리
+          action: 'hold',
           price: 0,
           quantity: 0,
           companyId,
@@ -817,7 +817,7 @@ export const SimulatePage = () => {
 
         // 관망 거래 기록 추가
         const newTrade: TradeRecord = {
-          action: 'wait',
+          action: 'hold',
           price: 0,
           quantity: 0,
           timestamp: new Date(),
@@ -985,7 +985,7 @@ export const SimulatePage = () => {
       // 실제 거래 없이 자산 정보만 가져오기 위해 observe 액션 사용
       const response = await processUserAction.mutateAsync({
         memberId,
-        action: 'observe',
+        action: 'hold',
         price: 0,
         quantity: 0,
         companyId,

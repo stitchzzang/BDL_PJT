@@ -26,7 +26,7 @@ export const StockTutorialMoneyInfo = ({
   const textProfitColor =
     totalReturnRate > 0 ? 'text-btn-red-color' : totalReturnRate < 0 ? 'text-btn-blue-color' : '';
   // 퍼센트 부호 표시 (소수점 둘째 자리까지만 표시)
-  const displayPercentage = `${totalReturnRate > 0 ? '+ ' : ''}${totalReturnRate.toFixed(2)}%`;
+  const displayPercentage = `${totalReturnRate > 0 ? '+' : ''}${totalReturnRate.toFixed(2)}%`;
 
   // 거래 가능 금액 및 현재 자산 표시 (원 단위로 정확하게 표시)
   const formattedAvailableAsset = addCommasToThousand(Math.round(availableOrderAsset));

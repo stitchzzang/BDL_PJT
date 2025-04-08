@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 // TradeRecord 인터페이스 정의
 interface TradeRecord {
-  action: 'buy' | 'sell' | 'wait';
+  action: 'buy' | 'sell' | 'hold';
   price: number;
   quantity: number;
   timestamp: Date;

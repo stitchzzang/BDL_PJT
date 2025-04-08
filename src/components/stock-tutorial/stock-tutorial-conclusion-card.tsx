@@ -1,9 +1,9 @@
-import { addCommasToThousand } from '@/utils/numberFormatter';
 import { Skeleton } from '@/components/ui/skeleton';
+import { addCommasToThousand } from '@/utils/numberFormatter';
 
 // TradeRecord 인터페이스 정의
 interface TradeRecord {
-  action: 'buy' | 'sell' | 'wait';
+  action: 'buy' | 'sell' | 'hold';
   price: number;
   quantity: number;
   timestamp: Date;
@@ -68,7 +68,7 @@ export const StockTutorialConclusionCard = ({
                     <div className="flex items-center justify-between">
                       {/* 금액과 수량 정보 */}
                       <div>
-                        {trade.action === 'wait' ? (
+                        {trade.action === 'hold' ? (
                           <span className="text-white">관망</span>
                         ) : (
                           <span className="text-[18px] font-medium text-white">
