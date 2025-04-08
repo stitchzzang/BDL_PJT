@@ -109,6 +109,11 @@ export const financialTerms: Record<string, TermDefinition> = {
       '여러 날의 주가를 평균 내어 그린 선이에요. \n 그래서 주가가 매일 조금씩 오르락내리락해도,\n이 선을 보면 주가가 대체로 오르고 있는지, 내리고 있는지를 한눈에 알 수 있어요.',
     category: '알고리즘 LAB',
   },
+  '100원 단위': {
+    term: '100원 단위',
+    definition: '한국투자증권의 가격별 호가 단위',
+    category: '알고리즘 LAB',
+  },
 
   // 주식 튜토리얼 관련 용어
   '기업 코드': {

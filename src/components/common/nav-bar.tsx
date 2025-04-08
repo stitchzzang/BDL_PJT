@@ -1,6 +1,4 @@
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 import { useLogout } from '@/api/auth.api';
 import { MainLogoIcon } from '@/components/common/icons';
@@ -10,16 +8,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 export const NavBar = () => {
   const { isLogin, userData } = useAuthStore();
   const { mutate: logout } = useLogout();
-  const [isRotating, setIsRotating] = useState(false);
-  const navigate = useNavigate();
-
-  const handleNavigateToSearch = () => {
-    setIsRotating(true);
-    setTimeout(() => {
-      setIsRotating(false);
-      navigate('/search');
-    }, 500);
-  };
 
   return (
     <nav className="mb-[60px] flex items-center justify-between bg-[#030D1B] px-10 py-3 shadow-xl shadow-white/10">
@@ -60,16 +48,16 @@ export const NavBar = () => {
           >
             주식 튜토리얼
           </NavLink>
-        </div>
-
-        <div
-          className="flex cursor-pointer items-center gap-2 rounded-full bg-[#0D192B] p-3 duration-300 hover:outline hover:outline-2 hover:outline-offset-2 hover:outline-primary-color"
-          onClick={handleNavigateToSearch}
-        >
-          <MagnifyingGlassIcon
-            className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'hover:animate-rotate hover:text-primary-color'}`}
-          />
-          <span className="w-60 text-[#718096]">모의 투자를 할 기업을 찾아보세요</span>
+          <NavLink
+            to="/investment/search"
+            className={({ isActive }) =>
+              `text-text-inactive-color hover:text-text-main-color active:text-text-main-color ${
+                isActive ? 'text-text-main-color' : ''
+              }`
+            }
+          >
+            모의 투자
+          </NavLink>
         </div>
       </div>
 

@@ -41,7 +41,7 @@ export const SearchPage = () => {
 
   const handleSearch = () => {
     setIsRotating(true);
-    navigate(`/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
+    navigate(`/investment/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
     setTimeout(() => {
       setIsRotating(false);
       refetch();
@@ -79,7 +79,7 @@ export const SearchPage = () => {
 
   const handleCategoryChange = (newCategoryId: string) => {
     setCategoryId(newCategoryId);
-    navigate(`/search?q=${encodeURIComponent(companyName)}&category=${newCategoryId}`);
+    navigate(`/investment/search?q=${encodeURIComponent(companyName)}&category=${newCategoryId}`);
     setSearchParams({
       categoryId: newCategoryId,
       companyName,
