@@ -167,19 +167,52 @@ const usePreventLeave = (when: boolean, message: string) => {
     }
   }, [when, message]);
 
-  // 경로 변경 감지
+  // 경로 변경 감지 - 뒤로가기/앞으로가기 버튼이나 다른 페이지로 이동할 때 작동
   useEffect(() => {
+    // location이 변경되었고, 현재 경로가 이전 경로와 다르고, when 조건이 true일 때
     if (when && location.pathname !== currentPathRef.current) {
-      // 경로가 변경되었을 때 (사용자가 다른 페이지로 이동하려고 할 때)
+      // 확인 창 표시
       const confirmed = window.confirm(message);
       if (!confirmed) {
-        // 사용자가 취소를 선택하면 이전 경로로 다시 이동
-        navigate(-1);
+        // 사용자가 취소하면 이전 경로로 다시 이동
+        navigate(currentPathRef.current, { replace: true });
+        return;
       }
-      // 현재 경로 업데이트
+      // 사용자가 확인을 누르면 현재 경로를 업데이트
       currentPathRef.current = location.pathname;
     }
   }, [when, message, location.pathname, navigate]);
+
+  // 브라우저의 뒤로가기/앞으로가기 버튼 감지를 위한 추가 이벤트 핸들러
+  useEffect(() => {
+    if (!when) return;
+
+    // popstate 이벤트는 브라우저의 히스토리 엔트리가 변경될 때 발생
+    const handlePopState = (e: PopStateEvent) => {
+      // 사용자에게 확인 메시지 표시
+      const confirmed = window.confirm(message);
+      if (!confirmed) {
+        // 사용자가 취소하면 현재 URL로 히스토리 엔트리 추가 (뒤로가기 방지)
+        window.history.pushState(null, '', window.location.href);
+        // 기본 이벤트 방지
+        e.preventDefault();
+      } else {
+        // 사용자가 확인하면 현재 경로 업데이트
+        currentPathRef.current = location.pathname;
+      }
+    };
+
+    // popstate 이벤트 리스너 등록
+    window.addEventListener('popstate', handlePopState);
+
+    // history.pushState를 가로채서 현재 페이지 상태 저장
+    window.history.pushState(null, '', window.location.href);
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 제거
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [when, message, navigate, location.pathname]);
 };
 
 export const SimulatePage = () => {
@@ -191,19 +224,22 @@ export const SimulatePage = () => {
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
   const companyId = Number(companyIdParam) || 1;
 
+  // 뉴스 모달 관련 상태 추가
+  const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+  // 뉴스 데이터 로딩 상태 추가
+  const [isNewsLoading, setIsNewsLoading] = useState(false);
+  // 차트 데이터 로딩 상태 추가
+  const [isChartLoading, setIsChartLoading] = useState(false);
+
   // 페이지 이탈 방지 훅 사용
   usePreventLeave(
-    isTutorialStarted && progress < 100,
+    isTutorialStarted || isNewsModalOpen || isNewsLoading || isChartLoading,
     '페이지를 벗어나면 튜토리얼 단계가 초기화됩니다. 벗어나시겠습니까?',
   );
 
   // 투어 관련 상태 추가
   const [runTour, setRunTour] = useState(false);
 
-  // 뉴스 모달 관련 상태 추가
-  const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
-  // 뉴스 데이터 로딩 상태 추가
-  const [isNewsLoading, setIsNewsLoading] = useState(false);
   // 랜덤 로딩 메시지를 위한 상태 추가
   const [loadingMessage, setLoadingMessage] = useState('');
 
@@ -230,12 +266,8 @@ export const SimulatePage = () => {
   const [currentTurn, setCurrentTurn] = useState<number>(0);
   // 현재 턴이 완료되었는지 여부를 추적하는 상태 추가
   const [isCurrentTurnCompleted, setIsCurrentTurnCompleted] = useState(false);
-  // 차트 데이터 로딩 상태 추가
-  const [isChartLoading, setIsChartLoading] = useState(false);
   // 차트 데이터 로딩 오류 여부 추가
   const [hasChartError, setHasChartError] = useState(false);
-  // 뉴스 데이터 로딩 상태 추가 - 사용되지 않음
-  // const [isNewsLoading, setIsNewsLoading] = useState(false);
 
   // 로그인 상태 및 유저 정보 가져오기
   const { userData, isLogin } = useAuthStore();
@@ -1782,8 +1814,8 @@ export const SimulatePage = () => {
 
   // 페이지 이탈/새로고침 방지를 위한 핸들러 추가
   useEffect(() => {
-    // 튜토리얼이 시작되었고 아직 완료되지 않았을 때만 경고창 표시
-    if (isTutorialStarted && progress < 100) {
+    // 튜토리얼이 시작되었거나, 뉴스 모달이 열려있거나, 데이터 로딩 중일 때 경고창 표시
+    if (isTutorialStarted || isNewsModalOpen || isNewsLoading || isChartLoading) {
       // beforeunload 이벤트 핸들러 (페이지 새로고침, 브라우저 닫기 등)
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         // 표준 메시지 설정 (브라우저마다 실제 표시되는 메시지는 다를 수 있음)
@@ -1801,7 +1833,7 @@ export const SimulatePage = () => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
       };
     }
-  }, [isTutorialStarted, progress]);
+  }, [isTutorialStarted, isNewsModalOpen, isNewsLoading, isChartLoading]);
 
   return (
     <>
