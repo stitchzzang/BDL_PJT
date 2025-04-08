@@ -208,6 +208,10 @@ export const EditPage = () => {
               accept="image/jpeg,image/png"
               onChange={handleImageChange}
             />
+            <div className="mb-2 text-center text-xs text-text-inactive-2-color">
+              <p>JPG, PNG 파일만 가능 (최대 10MB)</p>
+              <p>권장 크기: 50x50 ~ 4000x4000</p>
+            </div>
             <div className="flex w-full justify-center gap-2">
               <Button className="w-full" variant="black" onClick={handleImageChangeClick}>
                 이미지 변경
