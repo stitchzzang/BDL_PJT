@@ -230,7 +230,30 @@ export const SimulatePage = () => {
   const [finalChangeRate, setFinalChangeRate] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
-  const companyId = Number(companyIdParam) || 1;
+  const companyId = Number(companyIdParam);
+
+  // companyId 유효성 검사를 위한 useEffect 추가
+  useEffect(() => {
+    // companyId가 NaN이거나 정수가 아닌 경우 NotFoundPage로 리다이렉트
+    if (isNaN(companyId) || !Number.isInteger(companyId) || companyId <= 0) {
+      navigate('/error/not-found');
+      return;
+    }
+  }, [companyId, navigate]);
+
+  // 회사 정보 가져오기
+  const { data: companyInfo, isError: isCompanyInfoError } = useGetCompanyProfile(
+    String(companyId),
+  );
+
+  // 회사 정보 존재 여부 확인 및 리다이렉트 처리
+  useEffect(() => {
+    // 회사 정보 로드 후, 데이터가 없거나 오류가 발생한 경우 404 페이지로 리다이렉트
+    if (isCompanyInfoError || (companyInfo === undefined && companyId > 0)) {
+      console.error(`[SimulatePage] 회사 정보가 존재하지 않음: companyId=${companyId}`);
+      navigate('/error/not-found');
+    }
+  }, [companyInfo, isCompanyInfoError, companyId, navigate]);
 
   // 뉴스 모달 관련 상태 추가
   const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
@@ -540,7 +563,6 @@ export const SimulatePage = () => {
   const getCurrentNews = useGetCurrentNews();
   const getPastNews = useGetPastNews();
   const getNewsComment = useGetNewsComment();
-  const { data: companyInfo } = useGetCompanyProfile(String(companyId));
 
   // 현재 턴이 변경될 때마다 해당 턴의 코멘트로 업데이트
   useEffect(() => {
