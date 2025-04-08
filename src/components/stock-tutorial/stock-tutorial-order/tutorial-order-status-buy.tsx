@@ -112,7 +112,7 @@ export const TutorialOrderStatusBuy = ({
                 <NumberInput
                   value={buyCost}
                   setValue={setBuyCost}
-                  placeholder={isSessionActive ? '시장가 원' : '턴 시작 후 자동 설정됩니다'}
+                  placeholder={isSessionActive ? '시장가 원' : '시작 후 자동 설정됩니다'}
                   formatAsCurrency={true}
                   className="text-right text-[18px]"
                 />

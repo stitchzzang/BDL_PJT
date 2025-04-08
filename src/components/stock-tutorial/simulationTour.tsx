@@ -1,12 +1,62 @@
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 
+// helpNewsImage 추가
+import helpNewsImage from '@/assets/product-tour/helpNewsImage.png';
 // 필요한 이미지들 임포트
 import LineExplainImg from '@/assets/product-tour/Line_explain.png';
 import MoneyExplainImg from '@/assets/product-tour/Money_explain.png';
 import OHLCExplainImg from '@/assets/product-tour/OHLC_explain.png';
 import OHLCGraphImg from '@/assets/product-tour/OHLC_graph.png';
 import PointExplainImg from '@/assets/product-tour/Point_explain.png';
+import { DayHistory } from '@/components/stock-tutorial/day-history';
+import { StockProgress } from '@/components/stock-tutorial/stock-progress';
+import { StockTutorialComment } from '@/components/stock-tutorial/stock-tutorial-comment';
+import { StockTutorialConclusion } from '@/components/stock-tutorial/stock-tutorial-conclusion';
+// 필요한 모든 컴포넌트 임포트
+import { StockTutorialInfo } from '@/components/stock-tutorial/stock-tutorial-info';
+import { StockTutorialMoneyInfo } from '@/components/stock-tutorial/stock-tutorial-money-info';
+import { StockTutorialNews } from '@/components/stock-tutorial/stock-tutorial-news';
+import { TutorialOrderStatusBuy } from '@/components/stock-tutorial/stock-tutorial-order/tutorial-order-status-buy';
+// 차트 컴포넌트 임포트
+import ChartComponent, { StockCandle } from '@/components/ui/chart-help';
+// 더미 데이터 임포트
+import { DUMMY_DAILY_CHART_DATA } from '@/mocks/dummy-data';
+
+// 튜토리얼 스톡 응답 타입 정의
+interface TutorialStockResponse {
+  companyId: string;
+  limit: number;
+  cursor: string;
+  data: StockCandle[];
+}
+
+// 거래 기록 타입 정의
+type TradeAction = 'buy' | 'sell' | 'wait';
+
+interface TradeRecord {
+  action: TradeAction;
+  price: number;
+  quantity: number;
+  timestamp: Date;
+  stockCandleId: number;
+  turnNumber: number;
+}
+
+// 뉴스 타입 정의
+interface NewsResponse {
+  newsId: number;
+  newsTitle: string;
+  newsContent: string;
+  newsDate: string;
+  stockCandleId: number;
+  changeRate: number;
+}
+
+interface NewsResponseWithThumbnail extends NewsResponse {
+  newsThumbnailUrl: string;
+  inflectionPointTurn?: number;
+}
 
 interface SimulationTourProps {
   run: boolean;
@@ -16,6 +66,184 @@ interface SimulationTourProps {
 export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   const [steps, setSteps] = useState<Step[]>([]);
   const [stepIndex, setStepIndex] = useState(0);
+
+  // 더미 데이터 상태 관리
+  const [showDemo, setShowDemo] = useState(false);
+  const [isTutorialStarted, setIsTutorialStarted] = useState(true);
+  const [currentTurn, setCurrentTurn] = useState(2);
+  const [isCurrentTurnCompleted, setIsCurrentTurnCompleted] = useState(true);
+
+  // 더미 데이터
+  const dummyCompanyInfo = {
+    companyId: 1,
+    companyName: '삼성전자',
+    companyCode: '005930',
+    companyImage: 'https://via.placeholder.com/50',
+    categories: ['전체', 'IT', '반도체'],
+    previousClosePrice: 78000,
+  };
+
+  const latestPrice = 79500;
+
+  const dummyMoneyInfo = {
+    initialAsset: 10000000,
+    availableOrderAsset: 8500000,
+    currentTotalAsset: 10200000,
+    totalReturnRate: 2.0,
+  };
+
+  const dummyTradeRecord: TradeRecord[] = [
+    {
+      action: 'buy',
+      price: 75000,
+      quantity: 10,
+      timestamp: new Date('2023-04-01'),
+      stockCandleId: 1,
+      turnNumber: 1,
+    },
+    {
+      action: 'sell',
+      price: 79000,
+      quantity: 5,
+      timestamp: new Date('2023-04-15'),
+      stockCandleId: 2,
+      turnNumber: 2,
+    },
+  ];
+
+  const dummyNewsData: NewsResponseWithThumbnail = {
+    newsId: 1,
+    newsTitle: '삼성전자, 신형 반도체 생산량 확대 예정',
+    newsContent:
+      '삼성전자가 차세대 반도체 생산량을 확대할 예정이라고 밝혔습니다. 이는 글로벌 반도체 수요 증가에 대응하기 위한 전략으로, 향후 시장 점유율 확대를 노리고 있습니다.',
+    newsDate: '2023-04-01',
+    newsThumbnailUrl: helpNewsImage,
+    stockCandleId: 123,
+    changeRate: 1.5,
+    inflectionPointTurn: 2,
+  };
+
+  const dummyPastNews: NewsResponse[] = [
+    {
+      newsId: 1,
+      newsTitle: '삼성전자, 신형 반도체 생산량 확대 예정',
+      newsContent: '삼성전자가 차세대 반도체 생산량을 확대할 예정이라고 밝혔습니다.',
+      newsDate: '2023-04-01',
+      stockCandleId: 123,
+      changeRate: 1.5,
+    },
+    {
+      newsId: 2,
+      newsTitle: '갤럭시 신제품 출시 호조, 주가 상승세',
+      newsContent:
+        '삼성전자의 갤럭시 신제품이 시장에서 호평을 받으며 주가가 상승세를 보이고 있습니다.',
+      newsDate: '2023-03-15',
+      stockCandleId: 100,
+      changeRate: 0.8,
+    },
+  ];
+
+  const dummyAIComment =
+    '[뉴스 분위기]\n- 긍정 뉴스: 신제품 출시, 수익성 개선, 글로벌 시장 진출\n- 부정 뉴스: 인력 감축, 국내 시장 침체\n\n[주가 추세 요약]\n- 기간 내 주가: 상승세 지속\n- 투자자 반응: 긍정적, 매수세 강화';
+
+  // 프로그레스 정보
+  const progress = 50;
+  const pointDates = ['230215', '230401', '230515'];
+  const defaultStartDate = '230101';
+  const defaultEndDate = '230630';
+
+  // 변곡점 정보 추가
+  const inflectionPoints = [
+    { date: '230215', label: '변곡점1', index: 10 },
+    { date: '230401', label: '변곡점2', index: 20 },
+    { date: '230515', label: '변곡점3', index: 30 },
+  ];
+
+  // 일봉 데이터 형식으로 변환 (TutorialStockResponse 형식에 맞춤)
+  const dummyDailyChartDataConverted: TutorialStockResponse = {
+    companyId: DUMMY_DAILY_CHART_DATA.companyId,
+    limit: DUMMY_DAILY_CHART_DATA.limit,
+    cursor: DUMMY_DAILY_CHART_DATA.cursor || '',
+    data: DUMMY_DAILY_CHART_DATA.data.map((item) => ({
+      stockCandleId: Number(item.stockCandleId),
+      companyId: item.companyId,
+      openPrice: item.openPrice,
+      openPricePercent: item.openPricePercent,
+      highPrice: item.highPrice,
+      highPricePercent: item.highPricePercent,
+      lowPrice: item.lowPrice,
+      lowPricePercent: item.lowPricePercent,
+      closePrice: item.closePrice,
+      closePricePercent: item.closePricePercent,
+      accumulatedVolume: item.accumulatedVolume,
+      accumulatedTradeAmount: item.accumulatedTradeAmount,
+      tradingDate: item.tradingDate,
+      periodType: item.periodType,
+      fiveAverage: item.fiveAverage,
+      twentyAverage: item.twentyAverage,
+    })),
+  };
+
+  // 진행 중인 턴의 날짜 범위 계산
+  const getTurnDateRange = (turn: number) => {
+    if (turn <= 0 || pointDates.length < 3) {
+      return { start: defaultStartDate, end: defaultEndDate };
+    }
+
+    const subtractOneDay = (dateStr: string): string => {
+      try {
+        // 날짜 형식이 'YYMMDD'라고 가정
+        const year = parseInt('20' + dateStr.substring(0, 2));
+        const month = parseInt(dateStr.substring(2, 4)) - 1; // 0-based 월
+        const day = parseInt(dateStr.substring(4, 6));
+
+        const date = new Date(year, month, day);
+        date.setDate(date.getDate() - 1);
+
+        // 다시 'YYMMDD' 형식으로 변환
+        const adjustedYear = date.getFullYear().toString().substring(2);
+        const adjustedMonth = (date.getMonth() + 1).toString().padStart(2, '0');
+        const adjustedDay = date.getDate().toString().padStart(2, '0');
+
+        return adjustedYear + adjustedMonth + adjustedDay;
+      } catch (e) {
+        return dateStr; // 오류 시 원본 날짜 반환
+      }
+    };
+
+    switch (turn) {
+      case 1:
+        return {
+          start: defaultStartDate,
+          end: subtractOneDay(pointDates[0]),
+        };
+      case 2:
+        return {
+          start: pointDates[0],
+          end: subtractOneDay(pointDates[1]),
+        };
+      case 3:
+        return {
+          start: pointDates[1],
+          end: subtractOneDay(pointDates[2]),
+        };
+      case 4:
+        return {
+          start: pointDates[2],
+          end: defaultEndDate,
+        };
+      default:
+        return { start: defaultStartDate, end: defaultEndDate };
+    }
+  };
+
+  // 날짜 포맷팅 함수
+  const formatYYMMDDToYYYYMMDD = (date: string): string => {
+    if (date && date.length === 6) {
+      return `20${date.substring(0, 2)}.${date.substring(2, 4)}.${date.substring(4, 6)}`;
+    }
+    return date;
+  };
 
   // CSS 오버라이드를 위한 스타일 태그 추가
   useLayoutEffect(() => {
@@ -40,7 +268,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       }
       
       .react-joyride__tooltip button[data-action="primary"]::after {
-        content: "${isLastStep ? `완료 (${steps.length}/${steps.length})` : `다음 (${stepIndex + 1} / ${steps.length})`}";
+        content: "${isLastStep ? '완료' : '다음'}";
         position: absolute;
         left: 0;
         top: 0;
@@ -80,6 +308,24 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     };
   }, [stepIndex, steps.length]);
 
+  // 투어 시작 시 더미 화면 표시
+  useEffect(() => {
+    if (run) {
+      setShowDemo(true);
+    } else {
+      // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
+      const timer = setTimeout(() => {
+        setShowDemo(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [run]);
+
+  // 튜토리얼 버튼 클릭 핸들러
+  const handleTutorialButtonClick = () => {
+    // 더미 구현이므로 아무 동작도 하지 않습니다
+  };
+
   useEffect(() => {
     // 투어 스텝 정의
     setSteps([
@@ -113,9 +359,8 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
             <div className="mb-8 flex justify-center">
               <img src={PointExplainImg} alt="변곡점 설명" className="w-[600px] max-w-[100%]" />
             </div>
-            <p className="text-[18px]">
-              주식 차트에서 중요한 변화가 발생하는 시점을 변곡점이라고 합니다.
-            </p>
+            <p className="text-[18px]">변곡점이란 주가의 흐름 중에서 상승에서 하락으로,</p>
+            <p className="text-[18px]">혹은 하락에서 상승으로 전환되는 지점을 말합니다.</p>
             <p className="mt-2 text-[18px]">
               튜토리얼에서는 총 3개의 변곡점을 기준으로 4단계로 진행됩니다.
             </p>
@@ -337,9 +582,11 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     const { status, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    // 단계 변경 시에만 인덱스 업데이트
-    if (type === 'step:after' || type === 'tour:start') {
-      setStepIndex(index);
+    // 단계 변경 시에만 인덱스 업데이트 (조건 변경)
+    if (type === 'step:after') {
+      setStepIndex(index + 1); // 다음 스텝으로 명시적 설정
+    } else if (type === 'tour:start') {
+      setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
     }
 
     if (finishedStatuses.includes(status as string)) {
@@ -348,49 +595,155 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
   };
 
   return (
-    <Joyride
-      callback={handleJoyrideCallback}
-      continuous
-      hideCloseButton
-      run={run}
-      scrollToFirstStep
-      showProgress
-      showSkipButton
-      steps={steps}
-      spotlightClicks
-      disableOverlayClose
-      spotlightPadding={10}
-      styles={{
-        options: {
-          zIndex: 10000,
-          primaryColor: '#5676F5',
-          backgroundColor: '#121729',
-          arrowColor: '#121729',
-          textColor: '#ffffff',
-          overlayColor: 'rgba(0, 0, 0, 0.65)',
-        },
-        tooltip: {
-          width: '600px',
-          padding: '20px',
-        },
-        buttonNext: {
-          backgroundColor: '#5676F5',
-          color: '#ffffff',
-        },
-        buttonBack: {
-          color: '#ffffff',
-        },
-        buttonSkip: {
-          color: 'rgba(255, 255, 255, 0.7)',
-        },
-      }}
-      locale={{
-        back: '이전',
-        close: '닫기',
-        last: '완료',
-        next: '다음',
-        skip: '종료',
-      }}
-    />
+    <>
+      {/* 투어 컴포넌트 */}
+      <Joyride
+        key="tutorial-joyride"
+        callback={handleJoyrideCallback}
+        continuous
+        hideCloseButton
+        run={run}
+        scrollToFirstStep
+        showProgress
+        showSkipButton
+        steps={steps}
+        stepIndex={stepIndex}
+        spotlightClicks
+        disableOverlayClose
+        spotlightPadding={10}
+        disableScrolling
+        disableScrollParentFix
+        styles={{
+          options: {
+            zIndex: 10000,
+            primaryColor: '#5676F5',
+            backgroundColor: '#121729',
+            arrowColor: '#121729',
+            textColor: '#ffffff',
+            overlayColor: 'rgba(0, 0, 0, 0.65)',
+          },
+          tooltip: {
+            width: '650px',
+            padding: '20px',
+          },
+          buttonNext: {
+            backgroundColor: '#5676F5',
+            color: '#ffffff',
+          },
+          buttonBack: {
+            color: '#ffffff',
+          },
+          buttonSkip: {
+            color: 'rgba(255, 255, 255, 0.7)',
+          },
+        }}
+        locale={{
+          back: '이전',
+          close: '닫기',
+          last: '완료',
+          next: '다음',
+          skip: '종료',
+        }}
+      />
+
+      {/* 데모 화면 - 투어 실행 시에만 표시 */}
+      {showDemo && (
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black bg-opacity-80 p-8">
+          <div className="mx-auto w-full max-w-[1400px] rounded-xl bg-background-color p-8">
+            <h1 className="mb-8 text-center text-[30px] font-bold">주식 튜토리얼 가이드</h1>
+
+            <div className="flex h-full w-full flex-col">
+              <div className="stock-tutorial-info mb-8 flex items-center justify-between">
+                <StockTutorialInfo
+                  companyId={dummyCompanyInfo.companyId}
+                  isTutorialStarted={isTutorialStarted}
+                  onTutorialStart={handleTutorialButtonClick}
+                  onMoveToNextTurn={handleTutorialButtonClick}
+                  currentTurn={currentTurn}
+                  isCurrentTurnCompleted={isCurrentTurnCompleted}
+                  latestPrice={latestPrice}
+                  showButtonInInfoSection={false}
+                />
+              </div>
+              <div className="mb-8 flex flex-col gap-4 md:flex-row md:justify-between">
+                <div className="stock-tutorial-money-info w-full md:w-5/12">
+                  <StockTutorialMoneyInfo
+                    initialAsset={dummyMoneyInfo.initialAsset}
+                    availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
+                    currentTotalAsset={dummyMoneyInfo.currentTotalAsset}
+                    totalReturnRate={dummyMoneyInfo.totalReturnRate}
+                  />
+                </div>
+                <div className="stock-progress w-full md:w-7/12">
+                  <StockProgress
+                    progress={progress}
+                    currentTurn={currentTurn}
+                    startDate={getTurnDateRange(currentTurn).start}
+                    endDate={getTurnDateRange(currentTurn).end}
+                    formatDateFn={formatYYMMDDToYYYYMMDD}
+                    pointDates={pointDates}
+                    defaultStartDate={defaultStartDate}
+                    defaultEndDate={defaultEndDate}
+                  />
+                </div>
+              </div>
+              <div className="grid h-full grid-cols-1 gap-4 lg:grid-cols-12">
+                <div className="col-span-1 h-full lg:col-span-9">
+                  <div
+                    className="chart-tutorial relative h-[520px] rounded-xl bg-[#0D192B] text-white"
+                    id="chart-tutorial"
+                  >
+                    <ChartComponent
+                      periodData={dummyDailyChartDataConverted}
+                      inflectionPoints={inflectionPoints}
+                    />
+                  </div>
+                </div>
+                <div className="col-span-1 h-full lg:col-span-3">
+                  <div className="stock-tutorial-order h-[520px] rounded-xl bg-modal-background-color p-4">
+                    <TutorialOrderStatusBuy
+                      onBuy={(price, quantity) => console.log('가상 매수:', price, quantity)}
+                      companyId={dummyCompanyInfo.companyId}
+                      latestPrice={latestPrice}
+                      availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
+                      ownedStockCount={10}
+                      isActive={false}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-[45px] grid grid-cols-6 gap-6">
+                <div className="stock-tutorial-comment col-span-3">
+                  <StockTutorialComment
+                    comment={dummyAIComment}
+                    isTutorialStarted={isTutorialStarted}
+                  />
+                </div>
+                <div className="day-history col-span-3">
+                  <DayHistory
+                    news={dummyPastNews}
+                    height={320}
+                    isTutorialStarted={isTutorialStarted}
+                  />
+                </div>
+              </div>
+              <div className="mt-[35px] grid grid-cols-6 gap-6">
+                <div className="stock-tutorial-news col-span-4">
+                  <StockTutorialNews
+                    currentNews={dummyNewsData}
+                    companyId={dummyCompanyInfo.companyId}
+                    currentTurn={currentTurn}
+                  />
+                </div>
+                <div className="stock-tutorial-conclusion col-span-2">
+                  <StockTutorialConclusion trades={dummyTradeRecord} isCompleted={false} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

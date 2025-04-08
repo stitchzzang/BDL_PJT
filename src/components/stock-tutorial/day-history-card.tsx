@@ -44,7 +44,7 @@ export const DayHistoryCard = ({ newsItem, isLoading = false }: DayHistoryCardPr
     } else {
       formattedDate = '날짜 없음';
     }
-  } catch (error) {
+  } catch {
     formattedDate = '날짜 없음';
   }
 

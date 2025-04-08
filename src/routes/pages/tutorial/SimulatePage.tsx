@@ -662,10 +662,10 @@ export const SimulatePage = () => {
         alert(`보유량(${ownedStockCount}주)보다 많은 수량을 판매할 수 없습니다.`);
         return;
       }
-
       // 이전 자산 상태 저장 (초기화 방지용)
       const prevAvailableAsset = assetInfo.availableOrderAsset;
       const prevOwnedStockCount = ownedStockCount;
+
       // 이전 현재 총자산 및 수익률도 저장 (초기화 방지용)
       const prevCurrentTotalAsset = assetInfo.currentTotalAsset;
       const prevTotalReturnRate = assetInfo.totalReturnRate;
@@ -1720,177 +1720,173 @@ export const SimulatePage = () => {
       <SimulationTour run={runTour} setRun={setRunTour} />
 
       {/* 기존 컴포넌트 */}
-      <div className="mx-auto max-w-[1600px] px-3 pb-10 pt-4 sm:px-5">
-        <div className="flex h-full w-full flex-col px-6">
-          <div className="stock-tutorial-info flex items-center justify-between">
-            <StockTutorialInfo
-              companyId={companyId}
-              isTutorialStarted={isTutorialStarted}
-              onTutorialStart={handleTutorialStart}
-              onMoveToNextTurn={handleTutorialButtonClick}
-              currentTurn={currentTurn}
-              isCurrentTurnCompleted={isCurrentTurnCompleted}
-              buttonText={getTutorialButtonText}
-              latestPrice={latestPrice}
-              onHelpClick={handleHelpClick}
-            />
-          </div>
-          <div className="mb-[20px] flex justify-between">
-            <div className="stock-tutorial-money-info">
-              <StockTutorialMoneyInfo
-                initialAsset={10000000}
-                availableOrderAsset={assetInfo.availableOrderAsset}
-                currentTotalAsset={assetInfo.currentTotalAsset}
-                totalReturnRate={assetInfo.totalReturnRate}
-              />
-            </div>
-            <div className="stock-progress">
-              <StockProgress
-                progress={progress}
-                currentTurn={currentTurn}
-                startDate={
-                  currentTurn > 0
-                    ? getTurnDateRange(currentTurn).start
-                    : tutorialDateRange.startDate
-                }
-                endDate={
-                  currentTurn > 0 ? getTurnDateRange(currentTurn).end : tutorialDateRange.endDate
-                }
-                formatDateFn={formatYYMMDDToYYYYMMDD}
-                pointDates={pointDates}
-                defaultStartDate={defaultStartDate}
-                defaultEndDate={defaultEndDate}
-              />
-            </div>
-          </div>
-          <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
-            <div className="col-span-1 h-full lg:col-span-9">
-              {!isTutorialStarted ? (
-                <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
-                  <div className="max-w-[300px]">
-                    <Lottie animationData={ChartAnimation} loop={true} />
-                  </div>
-                  <p className="mt-4 text-center text-xl font-medium">
-                    튜토리얼을 시작하여 주식 차트를 확인해보세요.
-                  </p>
-                  <p className="mt-2 text-center text-sm text-gray-400">
-                    4단계로 구성된 주식 튜토리얼에서 실전과 같은 투자 경험을 해볼 수 있습니다.
-                  </p>
-                </div>
-              ) : isChartLoading ? (
-                <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
-                  <div className="text-center">
-                    <p className="mb-3 text-xl">차트 데이터를 불러오는 중입니다...</p>
-                    <p className="text-sm text-gray-400">
-                      일봉 데이터를 로드하고 있습니다. 잠시만 기다려주세요.
-                    </p>
-                  </div>
-                </div>
-              ) : hasChartError ? (
-                <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
-                  <div className="text-center">
-                    <p className="mb-3 text-xl">차트 데이터를 불러오는데 문제가 발생했습니다.</p>
-                    <p className="text-sm text-gray-400">잠시 후 다시 시도해 주세요.</p>
-                  </div>
-                </div>
-              ) : !stockData?.data?.length ? (
-                <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
-                  <div className="text-center">
-                    <p className="mb-3 text-xl">차트 데이터가 없습니다.</p>
-                    <p className="text-sm text-gray-400">
-                      일봉 데이터를 불러오는 중이거나, 데이터가 존재하지 않습니다.
-                    </p>
-                    <button
-                      onClick={() =>
-                        loadPointsData().then(() => {
-                          const session = calculateSession(currentTurn);
-                          if (session) {
-                            loadChartData(session.startDate, session.endDate, currentTurn);
-                          }
-                        })
-                      }
-                      className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-white"
-                    >
-                      다시 시도하기
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="chart-tutorial relative h-full" id="chart-tutorial">
-                  <ChartComponent
-                    periodData={stockData || undefined}
-                    inflectionPoints={pointDates.map((date, index) => ({
-                      date: date,
-                      label: `변곡점${index + 1}`,
-                      index: pointStockCandleIds[index] ? pointStockCandleIds[index] - 1 : 0,
-                    }))}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="col-span-1 h-full lg:col-span-3">
-              <div className="stock-tutorial-order h-full">
-                <TutorialOrderStatus
-                  onTrade={handleTrade}
-                  isSessionActive={isTutorialStarted && !isCurrentTurnCompleted && currentTurn < 4}
-                  companyId={companyId}
-                  latestPrice={latestPrice}
-                  ownedStockCount={ownedStockCount}
-                  currentTurn={currentTurn}
-                  isCurrentTurnCompleted={isCurrentTurnCompleted}
-                  availableOrderAsset={assetInfo.availableOrderAsset}
-                  isTutorialStarted={isTutorialStarted}
-                  onTutorialStart={handleTutorialStart}
-                  onMoveToNextTurn={handleTutorialButtonClick}
-                  initSessionPending={initSessionMutation.isPending}
-                  companyInfoExists={!!companyInfo}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-[24px] grid grid-cols-6 gap-3">
-            <div className="stock-tutorial-comment col-span-3" ref={commentRef}>
-              <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
-            </div>
-            <div className="day-history col-span-3">
-              <DayHistory
-                news={pastNewsList}
-                height={commentHeight}
-                isTutorialStarted={isTutorialStarted}
-              />
-            </div>
-          </div>
-          <div className="mt-[25px] grid grid-cols-6 gap-3">
-            <div className="stock-tutorial-news col-span-4">
-              <StockTutorialNews
-                currentNews={currentNews}
-                companyId={companyId}
-                currentTurn={currentTurn}
-              />
-            </div>
-            <div className="stock-tutorial-conclusion col-span-2">
-              <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
-            </div>
-          </div>
-          <TutorialEndModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            changeRate={finalChangeRate}
-            feedback={tutorialFeedback || ''}
-            onConfirmResultClick={handleNavigateToResult}
-            onEndTutorialClick={handleNavigateToSelect}
-          />
-
-          {/* 교육용 뉴스 모달 추가 - onClose 핸들러 교체 */}
-          <TutorialNewsModal
-            isOpen={isNewsModalOpen}
-            onClose={handleCloseNewsModal}
-            news={currentNews}
+      <div className="flex h-full w-full flex-col px-6">
+        <div className="stock-tutorial-info flex items-center justify-between">
+          <StockTutorialInfo
             companyId={companyId}
+            isTutorialStarted={isTutorialStarted}
+            onTutorialStart={handleTutorialStart}
+            onMoveToNextTurn={handleTutorialButtonClick}
             currentTurn={currentTurn}
+            isCurrentTurnCompleted={isCurrentTurnCompleted}
+            buttonText={getTutorialButtonText}
+            latestPrice={latestPrice}
+            onHelpClick={handleHelpClick}
           />
         </div>
+        <div className="mb-[20px] flex justify-between">
+          <div className="stock-tutorial-money-info">
+            <StockTutorialMoneyInfo
+              initialAsset={10000000}
+              availableOrderAsset={assetInfo.availableOrderAsset}
+              currentTotalAsset={assetInfo.currentTotalAsset}
+              totalReturnRate={assetInfo.totalReturnRate}
+            />
+          </div>
+          <div className="stock-progress">
+            <StockProgress
+              progress={progress}
+              currentTurn={currentTurn}
+              startDate={
+                currentTurn > 0 ? getTurnDateRange(currentTurn).start : tutorialDateRange.startDate
+              }
+              endDate={
+                currentTurn > 0 ? getTurnDateRange(currentTurn).end : tutorialDateRange.endDate
+              }
+              formatDateFn={formatYYMMDDToYYYYMMDD}
+              pointDates={pointDates}
+              defaultStartDate={defaultStartDate}
+              defaultEndDate={defaultEndDate}
+            />
+          </div>
+        </div>
+        <div className="grid h-full grid-cols-1 gap-2 lg:grid-cols-12">
+          <div className="col-span-1 h-full lg:col-span-9">
+            {!isTutorialStarted ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+                <div className="max-w-[300px]">
+                  <Lottie animationData={ChartAnimation} loop={true} />
+                </div>
+                <p className="mt-4 text-center text-xl font-medium">
+                  튜토리얼을 시작하여 주식 차트를 확인해보세요.
+                </p>
+                <p className="mt-2 text-center text-sm text-gray-400">
+                  4단계로 구성된 주식 튜토리얼에서 실전과 같은 투자 경험을 해볼 수 있습니다.
+                </p>
+              </div>
+            ) : isChartLoading ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+                <div className="text-center">
+                  <p className="mb-3 text-xl">차트 데이터를 불러오는 중입니다...</p>
+                  <p className="text-sm text-gray-400">
+                    일봉 데이터를 로드하고 있습니다. 잠시만 기다려주세요.
+                  </p>
+                </div>
+              </div>
+            ) : hasChartError ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+                <div className="text-center">
+                  <p className="mb-3 text-xl">차트 데이터를 불러오는데 문제가 발생했습니다.</p>
+                  <p className="text-sm text-gray-400">잠시 후 다시 시도해 주세요.</p>
+                </div>
+              </div>
+            ) : !stockData?.data?.length ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
+                <div className="text-center">
+                  <p className="mb-3 text-xl">차트 데이터가 없습니다.</p>
+                  <p className="text-sm text-gray-400">
+                    일봉 데이터를 불러오는 중이거나, 데이터가 존재하지 않습니다.
+                  </p>
+                  <button
+                    onClick={() =>
+                      loadPointsData().then(() => {
+                        const session = calculateSession(currentTurn);
+                        if (session) {
+                          loadChartData(session.startDate, session.endDate, currentTurn);
+                        }
+                      })
+                    }
+                    className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-white"
+                  >
+                    다시 시도하기
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="chart-tutorial relative h-full" id="chart-tutorial">
+                <ChartComponent
+                  periodData={stockData || undefined}
+                  inflectionPoints={pointDates.map((date, index) => ({
+                    date: date,
+                    label: `변곡점${index + 1}`,
+                    index: pointStockCandleIds[index] ? pointStockCandleIds[index] - 1 : 0,
+                  }))}
+                />
+              </div>
+            )}
+          </div>
+          <div className="col-span-1 h-full lg:col-span-3">
+            <div className="stock-tutorial-order h-full">
+              <TutorialOrderStatus
+                onTrade={handleTrade}
+                isSessionActive={isTutorialStarted && !isCurrentTurnCompleted && currentTurn < 4}
+                companyId={companyId}
+                latestPrice={latestPrice}
+                ownedStockCount={ownedStockCount}
+                currentTurn={currentTurn}
+                isCurrentTurnCompleted={isCurrentTurnCompleted}
+                availableOrderAsset={assetInfo.availableOrderAsset}
+                isTutorialStarted={isTutorialStarted}
+                onTutorialStart={handleTutorialStart}
+                onMoveToNextTurn={handleTutorialButtonClick}
+                initSessionPending={initSessionMutation.isPending}
+                companyInfoExists={!!companyInfo}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-[24px] grid grid-cols-6 gap-3">
+          <div className="stock-tutorial-comment col-span-3" ref={commentRef}>
+            <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
+          </div>
+          <div className="day-history col-span-3">
+            <DayHistory
+              news={pastNewsList}
+              height={commentHeight}
+              isTutorialStarted={isTutorialStarted}
+            />
+          </div>
+        </div>
+        <div className="mt-[25px] grid grid-cols-6 gap-3">
+          <div className="stock-tutorial-news col-span-4">
+            <StockTutorialNews
+              currentNews={currentNews}
+              companyId={companyId}
+              currentTurn={currentTurn}
+            />
+          </div>
+          <div className="stock-tutorial-conclusion col-span-2">
+            <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
+          </div>
+        </div>
+        <TutorialEndModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          changeRate={finalChangeRate}
+          feedback={tutorialFeedback || ''}
+          onConfirmResultClick={handleNavigateToResult}
+          onEndTutorialClick={handleNavigateToSelect}
+        />
+
+        {/* 교육용 뉴스 모달 추가 - onClose 핸들러 교체 */}
+        <TutorialNewsModal
+          isOpen={isNewsModalOpen}
+          onClose={handleCloseNewsModal}
+          news={currentNews}
+          companyId={companyId}
+          currentTurn={currentTurn}
+        />
       </div>
     </>
   );
