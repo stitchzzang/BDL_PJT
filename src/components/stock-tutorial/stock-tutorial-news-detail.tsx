@@ -37,10 +37,18 @@ export const StockTutorialNewsDetail = ({
 
   return (
     <div className="rounded-xl bg-modal-background-color py-2">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col">
         <h2 className="line-clamp-1 text-[21px] font-bold">{news.newsTitle}</h2>
-        <p className="text-[16px] text-border-color">
-          {new Date(news.newsDate).toLocaleDateString('ko-KR')}
+        <p className="ml-2 mt-1 text-[16px] text-border-color">
+          {new Date(news.newsDate)
+            .toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+            .replace('일', '일')
+            .replace('월', '월')
+            .replace('년', '년')}
         </p>
       </div>
 
