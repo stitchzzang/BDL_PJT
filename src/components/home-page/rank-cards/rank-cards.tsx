@@ -8,6 +8,7 @@ import { RocketAnimation } from '@/components/common/rocket-animation';
 import { RankCard } from '@/components/home-page/rank-cards/rank-card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 export interface RankInformation {
   name: string;
   rate: number;
@@ -58,11 +59,21 @@ export const RankCards = ({
   if (isLoading) return <LoadingSpinner />;
   if (isError) return <ErrorScreen onRefresh={refetch} />;
   if (userRanking.length === 0) return <EmptyRankState />;
+
+  // 항상 5개의 카드를 표시하기 위해 빈 카드 추가
+  const displayCards = [...userRanking];
+  const emptyCardsCount = 5 - displayCards.length;
+
   return (
     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-      {userRanking.map((rankInfo, index) => (
+      {displayCards.map((rankInfo, index) => (
         <div key={index}>
-          <RankCard rankInfo={rankInfo} rank={index + 1} />
+          <RankCard rankInfo={rankInfo} rank={index + 1} isEmpty={false} />
+        </div>
+      ))}
+      {Array.from({ length: emptyCardsCount }).map((_, index) => (
+        <div key={`empty-${index}`}>
+          <RankCard rankInfo={undefined} rank={displayCards.length + index + 1} isEmpty={true} />
         </div>
       ))}
     </div>
