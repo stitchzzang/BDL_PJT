@@ -39,11 +39,11 @@ export const TermTooltip: React.FC<TermTooltipProps> = ({
       <Tooltip>
         <TooltipTrigger
           asChild
-          className={`relative inline-flex cursor-help items-center whitespace-nowrap ${className}`}
+          className={`inline-flex cursor-help items-center whitespace-nowrap ${className}`}
         >
-          <span className="relative">
+          <span>
             {children || term}
-            <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+            <QuestionMarkCircleIcon className="ml-1 h-4 w-4 text-white" />
           </span>
         </TooltipTrigger>
         <TooltipContent side={side} sideOffset={sideOffset}>
