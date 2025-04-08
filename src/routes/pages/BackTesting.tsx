@@ -240,7 +240,7 @@ export const BackTesting = () => {
         {showSummary ? (
           <></>
         ) : (
-          <div className="mb-2 mt-4 flex animate-fadeIn justify-between gap-2 rounded-xl bg-modal-background-color p-2 duration-300">
+          <div className="mb-2 mt-4 flex animate-fadeIn justify-between gap-2 rounded-xl bg-modal-background-color p-2 duration-1000">
             <div className="flex w-[100%] items-center">
               <input
                 type="range"
@@ -252,8 +252,8 @@ export const BackTesting = () => {
               />
             </div>
             <div>
-              <Button variant={'green'} size={'sm'} onClick={() => handleMoveMypage()}>
-                테스트 확인
+              <Button variant={'red'} size={'sm'} onClick={() => handleMoveMypage()}>
+                테스트 종료
               </Button>
             </div>
           </div>
