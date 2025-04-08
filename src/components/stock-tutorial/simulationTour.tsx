@@ -344,6 +344,24 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         position: relative !important;
         z-index: 1 !important;
       }
+      
+      /* 가이드 페이지의 모든 컴포넌트 비활성화 */
+      .tour-modal-container * {
+        pointer-events: none !important;
+      }
+      
+      /* Joyride 관련 요소는 클릭 가능하도록 예외 처리 */
+      .react-joyride__tooltip,
+      .react-joyride__tooltip *,
+      .react-joyride__overlay,
+      .react-joyride__spotlight {
+        pointer-events: auto !important;
+      }
+      
+      /* 스크롤은 허용 */
+      .tour-modal-container {
+        pointer-events: auto !important;
+      }
     `;
     document.head.appendChild(styleTag);
 
