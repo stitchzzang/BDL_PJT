@@ -311,14 +311,32 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       
       /* 차트 영역의 툴팁 위치 조정 */
       #chart-tutorial + div > div {
-        margin-left: 450px !important;
-        transform: translateX(40%) !important;
+        position: absolute !important;
+        right: -270px !important;
+        left: auto !important;
+        margin-left: 0 !important;
+        transform: translateX(0) !important;
+        margin-top: 30px !important;
       }
       
       /* 차트 영역에 표시되는 툴팁의 화살표 방향 조정 */
       #chart-tutorial + div .react-joyride__tooltip {
         position: relative;
         z-index: 10001 !important;
+      }
+      
+      /* 차트 영역의 툴팁 내용 위치 조정 */
+      #chart-tutorial + div .react-joyride__tooltip .react-joyride__tooltip__content {
+        min-width: 250px;
+        width: auto !important;
+        max-width: 300px !important;
+      }
+      
+      /* 차트 영역의 화살표 위치 조정 */
+      #chart-tutorial + div .react-joyride__tooltip__arrow {
+        left: -8px !important;
+        right: auto !important;
+        transform: rotate(180deg) !important;
       }
       
       /* 차트 튜토리얼 스팟라이트 조정 */
@@ -513,7 +531,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'top',
+        placement: 'right',
       },
       {
         target: '#stock-tutorial-order',
