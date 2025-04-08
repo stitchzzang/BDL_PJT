@@ -52,9 +52,7 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-end">
             <span className="text-text-sub-color text-xs text-border-color">현재가</span>
-            <p className="text-base font-medium text-btn-green-color">
-              {company.closePrice.toLocaleString()}원
-            </p>
+            <p className="text-base font-medium">{company.closePrice.toLocaleString()}원</p>
           </div>
           <div className="flex gap-2">
             <Button variant="blue" size="sm" onClick={handleMockInvestment} className="text-xs">
@@ -88,7 +86,7 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
 
             <div className="my-10 flex w-full items-center justify-center gap-5 rounded-lg bg-[#041021] p-4">
               <span className="text-xl font-bold">현재가</span>
-              <span className="text-lg font-bold text-[#4CAF50]">
+              <span className="text text-lg font-bold">
                 {company.closePrice.toLocaleString()}원
               </span>
             </div>
