@@ -11,7 +11,10 @@ import { SimpleMinuteChart } from '@/components/ui/simple-minute-chart';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
-import { DUMMY_DAILY_CHART_DATA, DUMMY_MINUTE_CHART_DATA } from '@/mocks/dummy-data';
+import {
+  DUMMY_ALGORITHM_LAB_DAILY_CHART_DATA,
+  DUMMY_ALGORITHM_LAB_MINUTE_CHART_DATA,
+} from '@/mocks/dummy-data';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 
@@ -224,10 +227,10 @@ export const MarketPage = () => {
                   (
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="relative ml-1 mr-1 inline-block cursor-help">
-                        <span className="relative">
+                      <TooltipTrigger className="relative ml-1 mr-1 inline-flex cursor-help items-center">
+                        <span className="flex items-center">
                           분봉
-                          <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                          <QuestionMarkCircleIcon className="ml-1 h-4 w-4 text-white" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="w-auto p-2" side="top">
@@ -257,10 +260,10 @@ export const MarketPage = () => {
                   (
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="relative ml-1 mr-1 inline-block cursor-help">
-                        <span className="relative">
+                      <TooltipTrigger className="relative ml-1 mr-1 inline-flex cursor-help items-center">
+                        <span className="flex items-center">
                           일봉
-                          <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                          <QuestionMarkCircleIcon className="ml-1 h-4 w-4 text-white" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="w-auto p-2" side="top">
@@ -290,9 +293,9 @@ export const MarketPage = () => {
 
           <div className="flex w-full flex-col items-center justify-center p-2">
             {selectedTimeframe === 'oneMinute' ? (
-              <SimpleMinuteChart data={DUMMY_MINUTE_CHART_DATA.data} />
+              <SimpleMinuteChart data={DUMMY_ALGORITHM_LAB_MINUTE_CHART_DATA.data} />
             ) : (
-              <SimpleDailyChart data={DUMMY_DAILY_CHART_DATA.data} />
+              <SimpleDailyChart data={DUMMY_ALGORITHM_LAB_DAILY_CHART_DATA.data} />
             )}
           </div>
 
@@ -313,9 +316,9 @@ export const MarketPage = () => {
                     <Tooltip>
                       <TooltipTrigger className="flex cursor-help items-center">
                         <div className="mr-1 h-3 w-3 rounded-sm bg-[#FFC000]"></div>
-                        <span className="relative">
+                        <span className="flex items-center">
                           단기(5일)선
-                          <QuestionMarkCircleIcon className="absolute -right-3.5 -top-2.5 h-4 w-4 text-white" />
+                          <QuestionMarkCircleIcon className="ml-1 h-4 w-4 text-white" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs p-2">
@@ -332,9 +335,9 @@ export const MarketPage = () => {
                     <Tooltip>
                       <TooltipTrigger className="flex cursor-help items-center">
                         <div className="mr-1 h-3 w-3 rounded-sm bg-[#9BD45E]"></div>
-                        <span className="relative">
+                        <span className="flex items-center">
                           장기(20일)선
-                          <QuestionMarkCircleIcon className="absolute -right-3.5 -top-2.5 h-4 w-4 text-white" />
+                          <QuestionMarkCircleIcon className="ml-1 h-4 w-4 text-white" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-xs p-2">
@@ -514,10 +517,10 @@ export const MarketPage = () => {
                   주식의
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="relative ml-1 mr-2 inline-block cursor-help">
-                        <span className="relative">
+                      <TooltipTrigger className="relative ml-1 mr-2 inline-flex cursor-help items-center">
+                        <span className="flex items-center">
                           장기적인 움직임
-                          <QuestionMarkCircleIcon className="absolute -right-2.5 -top-2.5 h-4 w-4 text-white" />
+                          <QuestionMarkCircleIcon className="ml-1 h-4 w-4 text-white" />
                         </span>
                       </TooltipTrigger>
                       <TooltipContent className="w-auto bg-white p-0" side="top">
