@@ -372,10 +372,11 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     };
   }, [stepIndex, steps.length]);
 
-  // 투어 시작 시 더미 화면 표시
+  // 투어 시작 시 더미 화면 표시 및 stepIndex 리셋
   useEffect(() => {
     if (run) {
       setShowDemo(true);
+      setStepIndex(0); // 투어가 시작될 때 stepIndex 리셋
     } else {
       // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
       const timer = setTimeout(() => {
@@ -639,16 +640,19 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         spotlightClicks: true,
       },
     ]);
-  }, []);
+  }, [run]);
 
   // 투어 콜백 핸들러
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status, index, type } = data;
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-    // 단계 변경 시에만 인덱스 업데이트 (조건 변경)
-    if (type === 'step:after') {
-      setStepIndex(index + 1); // 다음 스텝으로 명시적 설정
+    if (type === 'tour:start') {
+      // 투어 시작 시 항상 0으로 초기화
+      setStepIndex(0);
+    } else if (type === 'step:after') {
+      // 단계 변경 시에만 인덱스 업데이트
+      setStepIndex(index + 1);
 
       // 다음 스텝이 특정 컴포넌트를 대상으로 할 경우 스크롤 조정
       if (steps[index + 1] && steps[index + 1].target && steps[index + 1].target !== 'body') {
@@ -703,10 +707,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           }
         }, 50);
       }
-    } else if (type === 'tour:start') {
-      setStepIndex(0); // 투어 시작 시 명시적으로 0으로 설정
     }
 
+    // 투어가 종료되거나 스킵된 경우
     if (finishedStatuses.includes(status as string)) {
       setRun(false);
     }
@@ -716,7 +719,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     <>
       {/* 투어 컴포넌트 */}
       <Joyride
-        key="tutorial-joyride"
+        key={`tutorial-joyride-${run}`}
         callback={handleJoyrideCallback}
         continuous
         hideCloseButton
