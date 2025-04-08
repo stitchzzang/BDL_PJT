@@ -43,6 +43,19 @@ export const BackTestResultList = ({ dailyData, setClickNumber }: BackTestResult
                           <ChevronDoubleRightIcon />
                         </div>
                         <p className="font-bold text-btn-red-color">구매</p>
+                        <div className="flex gap-2 rounded-md border border-border-color border-opacity-40 p-1 px-2">
+                          <p className="text-border-color">
+                            거래가격:
+                            <span className="text-white">
+                              {' '}
+                              {formatKoreanMoney(dailyDatacard.trade.price)}원
+                            </span>
+                          </p>
+                          <p className="text-border-color">
+                            거래개수:
+                            <span className="text-white"> {dailyDatacard.trade.quantity}개</span>
+                          </p>
+                        </div>
                       </div>
                     </>
                   ) : (
