@@ -13,11 +13,18 @@ export const LoginPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const initialRender = useRef(true);
   const { mutateAsync: login, isPending } = useLogin();
 
   useEffect(() => {
-    // 이미 로그인된 상태에서 로그인 페이지에 접근할 때만 토스트 메시지 표시
+    // 페이지 로드 시 저장된 에러 메시지 확인
+    const savedError = localStorage.getItem('loginError');
+    if (savedError) {
+      setError(savedError);
+      localStorage.removeItem('loginError'); // 메시지 표시 후 삭제
+    }
+
     if (isLogin && initialRender.current) {
       toast.success('이미 로그인 상태입니다.');
       navigate('/');
@@ -27,10 +34,12 @@ export const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
       await login({ email, password });
     } catch (error) {
-      console.error('로그인 실패:', error);
+      localStorage.setItem('loginError', '아이디 또는 비밀번호가 잘못 되었습니다.');
+      window.location.reload();
     }
   };
 
@@ -60,6 +69,7 @@ export const LoginPage = () => {
             required
             maxLength={20}
           />
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <Button variant="blue" className="mt-5 w-full" type="submit" disabled={isPending}>
             {isPending ? '로그인 중...' : '로그인'}
           </Button>

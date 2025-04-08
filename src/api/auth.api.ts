@@ -66,8 +66,8 @@ export const useLogin = () => {
       }
     },
     // 로그인 실패
-    onError: (error: HTTPError) => {
-      handleKyError(error, '로그인에 실패했습니다.');
+    onError: () => {
+      throw new Error('로그인 실패');
     },
   });
 };
