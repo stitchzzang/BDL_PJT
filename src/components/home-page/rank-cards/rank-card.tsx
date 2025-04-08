@@ -33,8 +33,24 @@ export const RankCard = ({ rankInfo, rank }: RankCardProps) => {
         <p className="text-xl font-medium">{nickname}</p>
 
         {/* 수익률 */}
-        <div className="rounded-2xl border border-btn-red-color px-6 py-2">
-          <p className="text-xl font-bold text-btn-red-color">
+        <div
+          className={`rounded-2xl border ${
+            changeRate === 0
+              ? 'border-white'
+              : changeRate > 0
+                ? 'border-btn-red-color'
+                : 'border-btn-blue-color'
+          } px-6 py-2`}
+        >
+          <p
+            className={`text-xl font-bold ${
+              changeRate === 0
+                ? 'text-white'
+                : changeRate > 0
+                  ? 'text-btn-red-color'
+                  : 'text-btn-blue-color'
+            }`}
+          >
             {roundToTwoDecimalPlaces(changeRate)} %
           </p>
         </div>
