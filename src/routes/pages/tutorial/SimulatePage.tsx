@@ -1451,7 +1451,8 @@ export const SimulatePage = () => {
     oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
     // 현재 자산 정보에서 최종 수익률 가져오기
-    const finalRate = assetInfo.totalReturnRate;
+    // finalChangeRate 상태값을 사용 (updateAssetInfo 함수에서 설정된 값)
+    const finalRate = finalChangeRate;
 
     let saveSuccess = false;
     try {
