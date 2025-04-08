@@ -249,7 +249,8 @@ export const MethodPage = () => {
                 <div className="text-sm text-gray-500">원</div>
               </div>
               <div className="text-center text-xs text-gray-500">
-                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (100원 단위)
+                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (
+                <TermTooltip term="100원 단위">100원 단위</TermTooltip>)
               </div>
             </div>
           )}
@@ -355,7 +356,8 @@ export const MethodPage = () => {
                 <div className="text-sm text-gray-500">원</div>
               </div>
               <div className="text-center text-xs text-gray-500">
-                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (100원 단위)
+                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (
+                <TermTooltip term="100원 단위">100원 단위</TermTooltip>)
               </div>
             </div>
           )}
