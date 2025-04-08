@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 
 // helpNewsImage 추가
@@ -34,7 +34,7 @@ interface TutorialStockResponse {
 }
 
 // 거래 기록 타입 정의
-type TradeAction = 'buy' | 'sell' | 'wait';
+type TradeAction = 'buy' | 'sell' | 'hold';
 
 interface TradeRecord {
   action: TradeAction;
