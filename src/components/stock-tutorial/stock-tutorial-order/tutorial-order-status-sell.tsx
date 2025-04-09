@@ -203,11 +203,11 @@ export const TutorialOrderStatusSell = ({
               10%
             </button>
             <button
-              onClick={() => setPercentageStockCount(20)}
+              onClick={() => setPercentageStockCount(25)}
               className={`flex-1 rounded-md border border-border-color py-1 text-[14px] text-white ${!canSell ? 'cursor-not-allowed opacity-50' : 'hover:bg-background-color'}`}
               disabled={!canSell}
             >
-              20%
+              25%
             </button>
             <button
               onClick={() => setPercentageStockCount(50)}
