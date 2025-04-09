@@ -725,14 +725,16 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           options: {
             zIndex: 10000,
             primaryColor: '#5676F5',
-            backgroundColor: '#121729',
-            arrowColor: '#121729',
-            textColor: '#ffffff',
-            overlayColor: 'rgba(0, 0, 0, 0.65)',
+            backgroundColor: '#192644',
+            arrowColor: '#192644',
+            textColor: '#FFFFFF',
+            overlayColor: 'rgba(0, 0, 0, 0.7)',
           },
           tooltip: {
             width: '650px',
             padding: '20px',
+            borderRadius: '5px',
+            boxShadow: '0 0 20px 3px rgba(136, 151, 172, 0.5)',
           },
           buttonNext: {
             backgroundColor: '#5676F5',
