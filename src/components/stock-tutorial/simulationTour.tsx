@@ -75,9 +75,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
   // 더미 데이터 상태 관리
   const [showDemo, setShowDemo] = useState(false);
-  const [isTutorialStarted, setIsTutorialStarted] = useState(true);
-  const [currentTurn, setCurrentTurn] = useState(2);
-  const [isCurrentTurnCompleted, setIsCurrentTurnCompleted] = useState(true);
+  const [isTutorialStarted] = useState(true);
+  const [currentTurn] = useState(2);
+  const [isCurrentTurnCompleted] = useState(true);
 
   // 더미 데이터
   const dummyCompanyInfo = {
@@ -212,7 +212,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         const adjustedDay = date.getDate().toString().padStart(2, '0');
 
         return adjustedYear + adjustedMonth + adjustedDay;
-      } catch (e) {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('날짜 변환 오류:', error);
         return dateStr; // 오류 시 원본 날짜 반환
       }
     };
@@ -691,11 +693,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     }
   };
 
-  // 튜토리얼 버튼 클릭 핸들러
-  const handleTutorialButtonClick = () => {
-    // 더미 구현이므로 아무 동작도 하지 않습니다
-  };
-
   return (
     <>
       {/* 투어 컴포넌트 */}
@@ -828,7 +825,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                       id="stock-tutorial-order"
                     >
                       <TutorialOrderStatusBuy
-                        onBuy={(price, quantity) => console.log('가상 매수:', price, quantity)}
+                        onBuy={(price, quantity) => {
+                          // eslint-disable-next-line no-console
+                          console.log('가상 매수:', price, quantity);
+                        }}
                         companyId={dummyCompanyInfo.companyId}
                         latestPrice={latestPrice}
                         availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
