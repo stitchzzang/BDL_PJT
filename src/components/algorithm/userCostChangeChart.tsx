@@ -316,7 +316,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
           type: 'inside',
           start: 0,
           end: 100,
-          zoomLock: dateLabels.length <= 30, // 데이터가 30개 이하일 때 줌 잠금
+          // zoomLock: dateLabels.length <= 30, // 데이터가 30개 이하일 때 줌 잠금
           moveOnMouseMove: false, // 드래그로만 이동 가능하게 설정
         },
       ],
