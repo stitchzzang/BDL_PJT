@@ -10,6 +10,7 @@ import { SimpleMinuteChart } from '@/components/ui/simple-minute-chart';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
+import { usePreventLeave } from '@/hooks/usePreventLeave';
 import {
   DUMMY_ALGORITHM_LAB_DAILY_CHART_DATA,
   DUMMY_ALGORITHM_LAB_MINUTE_CHART_DATA,
@@ -50,6 +51,12 @@ export const MarketPage = () => {
   const [decreaseValue, setDecreaseValue] = useState<string>('0.1');
   // 알림 메시지 상태 추가
   const [showAlert, setShowAlert] = useState<boolean>(false);
+
+  // 페이지 이탈 방지 훅 적용
+  usePreventLeave(
+    isValidAccess,
+    '페이지를 벗어나면 지금까지 설정한 알고리즘 전략이 모두 사라집니다. 정말 나가시겠습니까?',
+  );
 
   // 기존 상태값이 있으면 UI에 반영
   useEffect(() => {

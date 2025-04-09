@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
+import { usePreventLeave } from '@/hooks/usePreventLeave';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 import { addCommasToThousand } from '@/utils/numberFormatter';
@@ -35,6 +36,12 @@ export const MethodPage = () => {
     setExitFixedPercentage,
     setIsFee,
   } = useAlgorithmLabStore();
+
+  // 페이지 이탈 방지 훅 적용
+  usePreventLeave(
+    isValidAccess,
+    '페이지를 벗어나면 지금까지 설정한 알고리즘 전략이 모두 사라집니다. 정말 나가시겠습니까?',
+  );
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
