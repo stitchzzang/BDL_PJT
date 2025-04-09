@@ -291,7 +291,7 @@ export const OrderStatusShell = ({
               variant="blue"
               className="w-full"
               size="sm"
-              disabled={stockAccount === 0}
+              disabled={stockAccount === 0 || stockCount === 0}
               onClick={() =>
                 handleLimitOrder({
                   memberId: memberId,
@@ -309,7 +309,7 @@ export const OrderStatusShell = ({
               variant="blue"
               className="w-full"
               size="sm"
-              disabled={stockAccount === 0}
+              disabled={stockAccount === 0 || stockCount === 0}
               onClick={() =>
                 handleMarketOrder({
                   memberId: memberId,
