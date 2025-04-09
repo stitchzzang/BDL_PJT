@@ -496,9 +496,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">기업 정보</h2>
             <p className="text-[18px]">현재 선택된 기업의 정보와 주가를 확인할 수 있습니다.</p>
-            <p className="mt-2 text-[18px]">
-              튜토리얼 시작 버튼을 클릭하면 시뮬레이션이 시작됩니다.
-            </p>
+            <p className="mt-2 text-[18px]">주가는 전일 종가를 기준으로 표시됩니다.</p>
           </div>
         ),
         disableBeacon: true,
