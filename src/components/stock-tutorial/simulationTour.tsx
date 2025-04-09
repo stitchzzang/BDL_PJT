@@ -306,6 +306,26 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         visibility: hidden !important;
       }
       
+      /* 프로그레스 바 숨기기 */
+      .react-joyride__tooltip div[class*="__progress"] {
+        display: none !important;
+      }
+      
+      /* 하단의 'Next n of n' 영역 완전히 숨기기 */
+      .react-joyride__tooltip-footer {
+        justify-content: center !important;
+      }
+      
+      .react-joyride__tooltip-footer-count {
+        display: none !important;
+      }
+      
+      /* 버튼 aria-label 및 title 속성 비우기 */
+      .react-joyride__tooltip button[data-action="primary"][aria-label*="Next"],
+      .react-joyride__tooltip button[data-action="primary"][title*="Next"] {
+        font-size: 0 !important;
+      }
+      
       /* 스크롤바 숨기기 */
       .scrollbar-hide {
         -ms-overflow-style: none;  /* IE and Edge */
@@ -671,6 +691,11 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     }
   };
 
+  // 튜토리얼 버튼 클릭 핸들러
+  const handleTutorialButtonClick = () => {
+    // 더미 구현이므로 아무 동작도 하지 않습니다
+  };
+
   return (
     <>
       {/* 투어 컴포넌트 */}
@@ -681,7 +706,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         hideCloseButton
         run={run}
         scrollToFirstStep={false}
-        showProgress
+        showProgress={false}
         showSkipButton
         steps={steps}
         stepIndex={stepIndex}
