@@ -596,7 +596,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">뉴스 히스토리</h2>
-            <p className="text-[18px]">현재 단계까지의 뉴스 히스토리를 확인할 수 있습니다.</p>
+            <p className="text-[18px]">
+              현재 단계까지의 뉴스 타이틀과 변동률을 확인할 수 있습니다.
+            </p>
             <p className="mt-2 text-[18px]">뉴스와 주가 변동의 연관성을 분석해보세요.</p>
           </div>
         ),
@@ -609,8 +611,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">교육용 뉴스</h2>
-            <p className="text-[18px]">각 변곡점의 주요 뉴스를 제공합니다.</p>
-            <p className="mt-2 text-[18px]">실제 뉴스가 주가에 어떤 영향을 미쳤는지 학습하세요.</p>
+            <p className="text-[18px]">3개의 변곡점과 관련된 주요 뉴스를 제공해드립니다.</p>
+            <p className="mt-2 text-[18px]">
+              실제 뉴스가 주가에 어떤 영향을 미쳤는지 학습해보세요.
+            </p>
           </div>
         ),
         disableBeacon: true,
@@ -638,9 +642,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           <div className="p-4">
             <h2 className="mb-7 animate-bounce text-[25px] font-bold">도움말을 마칩니다!</h2>
             <p className="text-[18px]">이제 실제 튜토리얼을 진행해보세요.</p>
-            <p className="mt-2 text-[18px]">
-              도움말 버튼을 클릭하면 언제든지 이 투어를 다시 볼 수 있습니다.
-            </p>
+            <p className="mt-2 text-[18px]">도움말 버튼을 클릭하면 언제든지 다시 볼 수 있습니다.</p>
             <p className="mt-2 text-[18px]">
               주식 튜토리얼을 통해 안전하게 투자 경험을 쌓아보세요!
             </p>

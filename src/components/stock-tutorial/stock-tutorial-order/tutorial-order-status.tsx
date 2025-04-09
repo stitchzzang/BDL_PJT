@@ -25,6 +25,7 @@ export interface TutorialOrderStatusProps {
   onMoveToNextTurn?: () => void;
   initSessionPending?: boolean;
   companyInfoExists?: boolean;
+  isLoading?: boolean; // 로딩 상태 추가
 }
 
 export const TutorialOrderStatus = ({
@@ -41,6 +42,7 @@ export const TutorialOrderStatus = ({
   onMoveToNextTurn,
   initSessionPending = false,
   companyInfoExists = true,
+  isLoading = false, // 기본값 false
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';
@@ -111,6 +113,7 @@ export const TutorialOrderStatus = ({
           <TutorialOrderStatusCategory
             isActiveCategory={isActiveCategory}
             setIsActiveCategory={setIsActiveCategory}
+            isLoading={isLoading}
           />
         </div>
         <hr className="mb-2 border border-border-color border-opacity-20" />
@@ -123,6 +126,7 @@ export const TutorialOrderStatus = ({
               isActive={isSessionActive && !isCurrentTurnCompleted && currentTurn < 4}
               availableOrderAsset={availableOrderAsset}
               ownedStockCount={ownedStockCount}
+              isLoading={isLoading}
             />
           )}
           {isActiveCategory === '판매' && (
@@ -132,12 +136,14 @@ export const TutorialOrderStatus = ({
               latestPrice={latestPrice}
               isActive={isSessionActive && !isCurrentTurnCompleted}
               ownedStockCount={ownedStockCount}
+              isLoading={isLoading}
             />
           )}
           {isActiveCategory === '관망' && (
             <TutorialOrderStatusWait
               isActive={isSessionActive && !isWaitDisabled}
               onWait={handleWait}
+              isLoading={isLoading}
             />
           )}
         </div>

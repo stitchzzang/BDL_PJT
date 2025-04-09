@@ -63,9 +63,16 @@ export const StockTutorialInfo = ({
   oneYearAgo.setFullYear(today.getFullYear() - 1);
 
   // 변경: useGetCompanyProfile 훅 사용
-  const { data: companyInfo } = useGetCompanyProfile(String(companyId));
+  const { data: companyInfo, isLoading: isCompanyInfoLoading } = useGetCompanyProfile(
+    String(companyId),
+  );
   // 추가: useGetCompanyBasicInfo 훅을 사용하여 전일종가 정보 가져오기
-  const { data: companyBasicInfo } = useGetCompanyBasicInfo(String(companyId));
+  const { data: companyBasicInfo, isLoading: isCompanyBasicInfoLoading } = useGetCompanyBasicInfo(
+    String(companyId),
+  );
+
+  // 모든 데이터 로딩 상태 통합
+  const isDataLoading = isLoading || isCompanyInfoLoading || isCompanyBasicInfoLoading;
 
   // 현재 가격 정보를 가져오기 위한 API 호출 - 튜토리얼 시작 전에만 사용됨
   useEffect(() => {
@@ -175,7 +182,7 @@ export const StockTutorialInfo = ({
         ? '초기화 중...'
         : '튜토리얼 시작하기');
 
-  if (isLoading) {
+  if (isDataLoading) {
     return (
       <div className="flex animate-fadeIn items-center">
         <div className="flex w-full items-start gap-[20px] sm:items-center">

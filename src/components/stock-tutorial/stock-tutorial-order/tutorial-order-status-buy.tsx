@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 
 export interface TutorialOrderStatusBuyProps {
@@ -11,6 +12,7 @@ export interface TutorialOrderStatusBuyProps {
   isActive: boolean;
   availableOrderAsset?: number; // 구매 가능한 자금 (옵션)
   ownedStockCount?: number; // 보유 주식 수량 (옵션)
+  isLoading?: boolean; // 로딩 상태 추가
 }
 
 export const TutorialOrderStatusBuy = ({
@@ -19,6 +21,7 @@ export const TutorialOrderStatusBuy = ({
   isActive: isSessionActive,
   availableOrderAsset = 0, // 기본값 0
   ownedStockCount = 0, // 기본값 0
+  isLoading = false, // 기본값 false
 }: TutorialOrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
@@ -100,6 +103,94 @@ export const TutorialOrderStatusBuy = ({
     onBuy(buyCost, stockCount);
     setStockCount(0); // 구매 후 수량 초기화
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full animate-fadeIn flex-col">
+        <div className="flex h-full flex-col justify-between">
+          <div className="mb-3 flex w-full flex-col gap-3">
+            <Skeleton
+              className="h-[48px] w-full rounded-lg"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+            <Skeleton
+              className="h-[48px] w-full rounded-lg"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <Skeleton
+                className="h-[36px] w-[60px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+              <Skeleton
+                className="h-[36px] w-[60px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+              <Skeleton
+                className="h-[36px] w-[60px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+              <Skeleton
+                className="h-[36px] w-[60px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton
+                className="h-[20px] w-[100px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+              <Skeleton
+                className="h-[20px] w-[80px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton
+                className="h-[20px] w-[100px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+              <Skeleton
+                className="h-[20px] w-[80px] rounded-md"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            </div>
+            <hr className="border border-border-color border-opacity-20" />
+          </div>
+          <div className="mt-auto">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <Skeleton
+                  className="h-[24px] w-[120px] rounded-md"
+                  style={{ backgroundColor: '#0D192B' }}
+                />
+                <Skeleton
+                  className="h-[24px] w-[100px] rounded-md"
+                  style={{ backgroundColor: '#0D192B' }}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Skeleton
+                  className="h-[24px] w-[120px] rounded-md"
+                  style={{ backgroundColor: '#0D192B' }}
+                />
+                <Skeleton
+                  className="h-[24px] w-[100px] rounded-md"
+                  style={{ backgroundColor: '#0D192B' }}
+                />
+              </div>
+            </div>
+            <div className="mt-3">
+              <Skeleton
+                className="h-[48px] w-full rounded-lg"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full animate-fadeIn flex-col">

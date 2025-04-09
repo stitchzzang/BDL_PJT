@@ -46,6 +46,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import ChartComponent from '@/components/ui/chart-tutorial';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/useAuthStore';
 import { formatDateToYYMMDD, formatYYMMDDToYYYYMMDD } from '@/utils/dateFormatter.ts';
 
@@ -1281,6 +1282,13 @@ export const SimulatePage = () => {
         // 다음 턴 번호 계산
         const nextTurn = currentTurn + 1;
 
+        // 모든 skeleton 표시
+        setIsChartSkeleton(true);
+        setIsNewsSkeleton(true);
+        setIsCommentSkeleton(true);
+        setIsHistorySkeleton(true);
+        setIsConclusionSkeleton(true);
+
         // 세션 업데이트 및 데이터 로드
         const newSession = calculateSession(nextTurn);
         if (!newSession) return;
@@ -1420,6 +1428,13 @@ export const SimulatePage = () => {
       alert('로그인이 필요한 기능입니다.');
       return;
     }
+
+    // 모든 skeleton 표시
+    setIsChartSkeleton(true);
+    setIsNewsSkeleton(true);
+    setIsCommentSkeleton(true);
+    setIsHistorySkeleton(true);
+    setIsConclusionSkeleton(true);
 
     setIsChartLoading(true);
     setHasChartError(false);
@@ -1638,6 +1653,11 @@ export const SimulatePage = () => {
     if (newsRequestRef.current[turn]) {
       return;
     }
+
+    // Skeleton 표시
+    setIsNewsSkeleton(true);
+    setIsCommentSkeleton(true);
+    setIsHistorySkeleton(true);
 
     // 해당 턴의 API 요청 상태를 true로 설정
     newsRequestRef.current = {
@@ -1869,6 +1889,11 @@ export const SimulatePage = () => {
       handleNewsDataLoaded(turn);
       // 뉴스 로딩 상태 해제
       setIsNewsLoading(false);
+      // 모든 skeleton 상태 해제
+      setIsNewsSkeleton(false);
+      setIsCommentSkeleton(false);
+      setIsHistorySkeleton(false);
+      setIsConclusionSkeleton(false);
     }
   };
 
@@ -1883,6 +1908,7 @@ export const SimulatePage = () => {
 
     setIsChartLoading(true);
     setHasChartError(false);
+    setIsChartSkeleton(true); // 차트 skeleton 표시
 
     // 차트 데이터 누적 호출을 위한 URL 생성 (항상 기본 시작점부터 현재 턴의 끝까지)
     const apiUrl = `stocks/${companyId}/tutorial?startDate=${startDate}&endDate=${endDate}`;
@@ -1969,6 +1995,8 @@ export const SimulatePage = () => {
         await loadNewsData(turn);
       }
 
+      setIsChartSkeleton(false); // 차트 skeleton 숨김
+
       // 데이터 로드가 완료되었음을 나타내는 return
       return result;
     } catch (error) {
@@ -1994,6 +2022,36 @@ export const SimulatePage = () => {
       [turn]: true,
     };
   }, []);
+
+  // 초기 데이터 로드 시 skeleton 처리
+  useEffect(() => {
+    if (!isTutorialStarted) {
+      // 튜토리얼이 시작되기 전에는 skeleton 숨김
+      setIsChartSkeleton(false);
+      setIsNewsSkeleton(false);
+      setIsCommentSkeleton(false);
+      setIsHistorySkeleton(false);
+      setIsConclusionSkeleton(false);
+    } else if (currentTurn > 0) {
+      // 튜토리얼이 시작되면 skeleton 표시
+      setIsChartSkeleton(true);
+      setIsNewsSkeleton(true);
+      setIsCommentSkeleton(true);
+      setIsHistorySkeleton(true);
+      setIsConclusionSkeleton(true);
+    }
+  }, [isTutorialStarted, currentTurn]);
+
+  // 다음 턴으로 이동할 때 skeleton 표시
+  useEffect(() => {
+    if (isTutorialStarted && !isCurrentTurnCompleted) {
+      setIsChartSkeleton(true);
+      setIsNewsSkeleton(true);
+      setIsCommentSkeleton(true);
+      setIsHistorySkeleton(true);
+      setIsConclusionSkeleton(true);
+    }
+  }, [isTutorialStarted, currentTurn, isCurrentTurnCompleted]);
 
   // 결과 확인 페이지로 이동
   const handleNavigateToResult = useCallback(() => {
@@ -2276,6 +2334,13 @@ export const SimulatePage = () => {
     );
   }, [isCurrentTurnCompleted, currentTurn]);
 
+  // 추가: 각 영역별 로딩 상태 관리
+  const [isChartSkeleton, setIsChartSkeleton] = useState(true);
+  const [isNewsSkeleton, setIsNewsSkeleton] = useState(true);
+  const [isCommentSkeleton, setIsCommentSkeleton] = useState(true);
+  const [isHistorySkeleton, setIsHistorySkeleton] = useState(true);
+  const [isConclusionSkeleton, setIsConclusionSkeleton] = useState(true);
+
   return (
     <>
       {/* 투어 컴포넌트 추가 */}
@@ -2308,6 +2373,7 @@ export const SimulatePage = () => {
             buttonText={getTutorialButtonText}
             latestPrice={latestPrice}
             onHelpClick={handleHelpClick}
+            isLoading={isNewsLoading || isChartLoading}
           />
         </div>
         <div className="mb-[20px] flex justify-between">
@@ -2317,6 +2383,7 @@ export const SimulatePage = () => {
               availableOrderAsset={assetInfo.availableOrderAsset}
               currentTotalAsset={assetInfo.currentTotalAsset}
               totalReturnRate={assetInfo.totalReturnRate}
+              isLoading={isNewsLoading || isChartLoading}
             />
           </div>
           <div className="stock-progress">
@@ -2333,6 +2400,7 @@ export const SimulatePage = () => {
               pointDates={pointDates}
               defaultStartDate={defaultStartDate}
               defaultEndDate={defaultEndDate}
+              isLoading={isNewsLoading || isChartLoading}
             />
           </div>
         </div>
@@ -2350,7 +2418,7 @@ export const SimulatePage = () => {
                   4단계로 구성된 주식 튜토리얼에서 실전과 같은 투자 경험을 해볼 수 있습니다.
                 </p>
               </div>
-            ) : isChartLoading ? (
+            ) : isChartLoading && !isChartSkeleton ? (
               <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
                 <div className="text-center">
                   <p className="mb-3 text-xl">차트 데이터를 불러오는 중입니다...</p>
@@ -2358,6 +2426,13 @@ export const SimulatePage = () => {
                     일봉 데이터를 로드하고 있습니다. 잠시만 기다려주세요.
                   </p>
                 </div>
+              </div>
+            ) : isChartSkeleton ? (
+              <div className="h-full rounded-2xl">
+                <Skeleton
+                  className="h-full w-full rounded-2xl"
+                  style={{ backgroundColor: '#0D192B' }}
+                />
               </div>
             ) : hasChartError ? (
               <div className="flex h-full flex-col items-center justify-center rounded-2xl bg-[#0D192B] text-white">
@@ -2397,6 +2472,7 @@ export const SimulatePage = () => {
                     label: `변곡점${index + 1}`,
                     index: pointStockCandleIds[index] ? pointStockCandleIds[index] - 1 : 0,
                   }))}
+                  isLoading={isChartLoading}
                 />
               </div>
             )}
@@ -2417,6 +2493,7 @@ export const SimulatePage = () => {
                 onMoveToNextTurn={handleTutorialButtonClick}
                 initSessionPending={initSessionMutation.isPending}
                 companyInfoExists={!!companyInfo}
+                isLoading={isNewsLoading || isChartLoading}
               />
             </div>
           </div>
@@ -2424,26 +2501,54 @@ export const SimulatePage = () => {
 
         <div className="mt-[24px] grid grid-cols-6 gap-3">
           <div className="stock-tutorial-comment col-span-3" ref={commentRef}>
-            <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
+            {isCommentSkeleton && isTutorialStarted ? (
+              <Skeleton
+                className="h-[150px] w-full rounded-lg"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ) : (
+              <StockTutorialComment comment={newsComment} isTutorialStarted={isTutorialStarted} />
+            )}
           </div>
           <div className="day-history col-span-3">
-            <DayHistory
-              news={pastNewsList}
-              height={commentHeight}
-              isTutorialStarted={isTutorialStarted}
-            />
+            {isHistorySkeleton && isTutorialStarted ? (
+              <Skeleton
+                className="h-[150px] w-full rounded-lg"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ) : (
+              <DayHistory
+                news={pastNewsList}
+                height={commentHeight}
+                isTutorialStarted={isTutorialStarted}
+              />
+            )}
           </div>
         </div>
         <div className="mt-[25px] grid grid-cols-6 gap-3">
           <div className="stock-tutorial-news col-span-4">
-            <StockTutorialNews
-              currentNews={currentNews}
-              companyId={companyId}
-              currentTurn={currentTurn}
-            />
+            {isNewsSkeleton && isTutorialStarted ? (
+              <Skeleton
+                className="h-[170px] w-full rounded-lg"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ) : (
+              <StockTutorialNews
+                currentNews={currentNews}
+                companyId={companyId}
+                currentTurn={currentTurn}
+              />
+            )}
           </div>
           <div className="stock-tutorial-conclusion col-span-2">
-            <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
+            {isConclusionSkeleton && isTutorialStarted ? (
+              <Skeleton
+                className="h-[170px] w-full rounded-lg"
+                style={{ backgroundColor: '#0D192B' }}
+              />
+            ) : (
+              <StockTutorialConclusion trades={trades} isCompleted={progress === 100} />
+            )}
           </div>
         </div>
         <TutorialEndModal
