@@ -20,6 +20,11 @@ export const AlgorithmPage = () => {
     <div className="mx-auto flex w-full max-w-[1000px] flex-col items-center gap-4">
       <div className="w-full">
         <h1 className="text-2xl font-bold">알고리즘</h1>
+        <p className="text-right text-sm text-gray-500">
+          <span className="font-bold text-primary-color">백 테스트</span>는 장기간 흐름을 봐야 하기
+          때문에 <span className="font-bold text-primary-color">일봉 반응</span>
+          이어야만 가능합니다.
+        </p>
         <hr className="my-3 w-full border-t border-btn-primary-inactive-color" />
         {isError ? (
           <ErrorScreen />
@@ -32,7 +37,7 @@ export const AlgorithmPage = () => {
         ) : (
           <>
             {algorithms && algorithms.length > 0 ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex max-h-[560px] flex-col gap-4 overflow-y-auto">
                 {algorithms.map((algorithm: Algorithm) => (
                   <MyAlgorithmItem key={algorithm.algorithmId} algorithm={algorithm} />
                 ))}

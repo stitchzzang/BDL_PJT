@@ -81,7 +81,7 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
         </div>
       </div>
       <div className="flex gap-3">
-        {algorithm.oneMinuteIncreasePercent === null ? (
+        {algorithm.dailyIncreasePercent !== null && algorithm.dailyDecreasePercent !== 0 ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="max-h-[45px] max-w-[225px]" variant={'green'} size={'lg'}>
@@ -107,7 +107,7 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
                             }
                             className="mb-2 flex cursor-pointer items-center gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-3 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
                           >
-                            <p className="opacity-40">{index + 1}</p>
+                            <p className="min-w-[20px] text-center opacity-40">{index + 1}</p>
                             <div className="h-10 w-10 overflow-hidden rounded-xl">
                               <img src={companie.companyImage} alt="none-logo" />
                             </div>

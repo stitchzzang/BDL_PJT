@@ -218,7 +218,7 @@ export const EditPage = () => {
                 onClick={handleUseDefaultProfile}
                 disabled={useDefaultProfile}
               >
-                프로필 삭제
+                이미지 삭제
               </Button>
             </div>
           </div>

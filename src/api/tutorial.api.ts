@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
+import { toast } from 'react-toastify';
 
 import { _ky, _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
@@ -384,6 +385,9 @@ export const tutorialApi = {
         ApiResponse<{ TutorialResultResponse: TutorialResultResponse[] }>
       >(`tutorial/result/${memberId}`)
       .json(),
+
+  deleteTutorialResult: ({ tutorialResultId }: { tutorialResultId: string }) =>
+    _kyAuth.delete(`tutorial/result/delete/${tutorialResultId}`).json(),
 };
 
 export const useTutorialResults = ({ memberId }: { memberId: string }) => {
@@ -410,5 +414,23 @@ export const useTutorialResults = ({ memberId }: { memberId: string }) => {
       }
     },
     enabled: !!memberId,
+  });
+};
+
+export const useDeleteTutorialResult = (onSuccess?: () => void, onError?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ tutorialResultId }: { tutorialResultId: string }) =>
+      tutorialApi.deleteTutorialResult({ tutorialResultId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tutorialResults'] });
+      toast.success('튜토리얼 결과가 성공적으로 삭제되었습니다.');
+      onSuccess?.();
+    },
+    onError: (error: HTTPError) => {
+      handleKyError(error, '튜토리얼 결과 삭제에 실패했습니다. 다시 시도해주세요.');
+      onError?.();
+    },
   });
 };

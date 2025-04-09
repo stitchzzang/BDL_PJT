@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
+import { usePreventLeave } from '@/hooks/usePreventLeave';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
 import { addCommasToThousand } from '@/utils/numberFormatter';
@@ -35,6 +36,12 @@ export const MethodPage = () => {
     setExitFixedPercentage,
     setIsFee,
   } = useAlgorithmLabStore();
+
+  // 페이지 이탈 방지 훅 적용
+  usePreventLeave(
+    isValidAccess,
+    '페이지를 벗어나면 지금까지 설정한 알고리즘 전략이 모두 사라집니다. 정말 나가시겠습니까?',
+  );
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -249,7 +256,8 @@ export const MethodPage = () => {
                 <div className="text-sm text-gray-500">원</div>
               </div>
               <div className="text-center text-xs text-gray-500">
-                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (100원 단위)
+                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (
+                <TermTooltip term="100원 단위">100원 단위</TermTooltip>)
               </div>
             </div>
           )}
@@ -355,7 +363,8 @@ export const MethodPage = () => {
                 <div className="text-sm text-gray-500">원</div>
               </div>
               <div className="text-center text-xs text-gray-500">
-                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (100원 단위)
+                100원 ~ 10,000,000원 사이의 금액만 입력 가능합니다 (
+                <TermTooltip term="100원 단위">100원 단위</TermTooltip>)
               </div>
             </div>
           )}

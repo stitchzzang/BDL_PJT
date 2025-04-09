@@ -83,7 +83,7 @@ export const TutorialNewsModal = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.1 }}
             className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
           />
 
@@ -94,7 +94,7 @@ export const TutorialNewsModal = ({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', bounce: 0.3, duration: 0.5 }}
+              transition={{ type: 'spring', bounce: 0.3, duration: 0.2 }}
               className="group relative flex w-full max-w-3xl items-center justify-center transition-all duration-500 ease-in-out hover:-translate-y-4"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
