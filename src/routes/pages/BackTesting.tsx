@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { useBackTestAlgorithm } from '@/api/algorithm.api';
 import { CompanyProfile, DailyData, StockDailyData, Summary } from '@/api/types/algorithm';
@@ -11,13 +11,17 @@ import AssetComparisonChart from '@/components/algorithm/userCostChangeChart';
 import { AirplaneAnimation } from '@/components/common/airplane-animation';
 import { Button } from '@/components/ui/button';
 import { Lanyard } from '@/components/ui/lanyard';
-import { navigate } from '@/lib/navigation';
 
 export const BackTesting = () => {
   // url 파라미터 값 가져오기
   const { algorithmId, companyId } = useParams();
-  const algorithmIdNum = parseInt(algorithmId ?? '0', 10);
-  const companyIdNum = parseInt(companyId ?? '0', 10);
+  const navigate = useNavigate();
+
+  // 모든 훅 호출을 최상단에 배치
+  const [isValidParams, setIsValidParams] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // 로딩 상태 추가
+  const didMount = useRef(false);
+
   // 스크롤 기능 랜더링 유무 변수
   const [showInfo, setShowInfo] = useState<boolean>(false);
   // 결과 렌더링 유무
@@ -46,10 +50,41 @@ export const BackTesting = () => {
   const totalDuration = 10000; // 총 실행 시간 (10초, 밀리초 단위)
   const animationRef = useRef<number | null>(null); // requestAnimationFrame의 ID 저장
 
+  // API Hook 호출 - 모든 훅은 조건부 렌더링 이전에 호출되어야 함
   const backTestAlgorithm = useBackTestAlgorithm();
+
+  // algorithmId와 companyId를 안전하게 숫자로 변환
+  const algorithmIdNum = Number(algorithmId);
+  const companyIdNum = Number(companyId);
+
+  // 파라미터 유효성 검사 - mount 시에만 한 번 실행
+  useEffect(() => {
+    // didMount가 true이면 이미 실행된 것이므로 중복 실행 방지
+    if (didMount.current) return;
+    didMount.current = true;
+
+    // 파라미터 유효성 검사
+    if (
+      isNaN(algorithmIdNum) ||
+      !Number.isInteger(algorithmIdNum) ||
+      algorithmIdNum <= 0 ||
+      isNaN(companyIdNum) ||
+      !Number.isInteger(companyIdNum) ||
+      companyIdNum <= 0
+    ) {
+      setIsValidParams(false);
+      // 즉시 리다이렉트
+      navigate('/error/not-found');
+    }
+  }, [algorithmId, companyId, navigate, algorithmIdNum, companyIdNum]);
 
   // 백테스팅 자료 요청
   const handleBackTest = () => {
+    // 유효성 검사 후 실행
+    if (!isValidParams) return;
+
+    setIsLoading(true); // 로딩 시작
+
     // 현재 날짜 가져오기
     const today = new Date();
 
@@ -71,8 +106,8 @@ export const BackTesting = () => {
 
     backTestAlgorithm.mutate(
       {
-        algorithmId: algorithmIdNum, // 파라미터로 전달
-        companyId: companyIdNum, // 파라미터로 전달
+        algorithmId: algorithmIdNum,
+        companyId: companyIdNum,
         startDate: formatDate(startDate),
         endDate: formatDate(endDate),
       },
@@ -93,7 +128,12 @@ export const BackTesting = () => {
           setMaxNumber(res.stockDaily.data.length);
           // 현재 숫자를 0으로 초기화
           setCurrentNumber(0);
-          console.log(res);
+          setIsLoading(false); // 로딩 완료
+        },
+        onError: (error: any) => {
+          console.error('[BackTesting] API 요청 오류:', error);
+          // API 오류 발생 시 404 페이지로 리다이렉트
+          navigate('/error/not-found');
         },
       },
     );
@@ -111,13 +151,31 @@ export const BackTesting = () => {
       setDayChart(saveDay.slice(0, newValue));
     }
   };
+
+  // 모든 useEffect는 조건부 렌더링 이전에 호출되어야 함
   useEffect(() => {
     if (saveDailyData && saveDay) {
       setDailyData(saveDailyData.slice(0, clickNumber));
       setDayChart(saveDay.slice(0, clickNumber));
       // setDay(saveDay.slice(0, clickNumber));
     }
-  }, [clickNumber]);
+  }, [clickNumber, saveDailyData, saveDay]);
+
+  // 컴포넌트 언마운트 시 애니메이션 정리
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, []);
+
+  // 처음 마운트 시 백테스트 호출
+  useEffect(() => {
+    if (isValidParams) {
+      handleBackTest();
+    }
+  }, [isValidParams]);
 
   // 애니메이션 시작 함수(마운트시 -> 10초동안 시뮬레이션 시작)
   const startAnimation = () => {
@@ -169,23 +227,15 @@ export const BackTesting = () => {
     animationRef.current = requestAnimationFrame(animate);
   };
 
-  // 컴포넌트 언마운트 시 애니메이션 정리
-  useEffect(() => {
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    handleBackTest();
-  }, []);
-
   // 마이페이지 이동
   const handleMoveMypage = () => {
     navigate(`/member/algorithm`);
   };
+
+  // 유효하지 않은 파라미터인 경우 아무것도 렌더링하지 않음 (모든 훅 호출 이후에 조건부 반환)
+  if (!isValidParams || isLoading) {
+    return null;
+  }
 
   return (
     <div className="w-full px-6">

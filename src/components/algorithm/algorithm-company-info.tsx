@@ -12,7 +12,14 @@ export const AlgorithmCompanyInfo = ({ companyProfile }: AlgorithmCompanyInfoPro
         <div className="flex w-full items-center gap-3">
           <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
             {/* 이미지 */}
-            <img src={companyProfile?.companyImage} alt="stock-icon" />
+            {companyProfile?.companyImage ? (
+              <img src={companyProfile?.companyImage} alt="stock-icon" />
+            ) : (
+              <img
+                src="/none-img/none_stock_img.png"
+                className="h-10 w-10 rounded-xl bg-border-color"
+              />
+            )}
           </div>
           <div className="flex w-full flex-col">
             <div className="flex items-center gap-2">
