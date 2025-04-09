@@ -129,7 +129,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
       },
       grid: {
         left: '1%',
-        right: '2%',
+        right: '5%',
         bottom: '10%',
         top: '5%',
         containLabel: true,
@@ -208,7 +208,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
             color: new graphic.LinearGradient(0, 0, 0, 1, [
               {
                 offset: 0,
-                color: 'rgba(63, 81, 181, 0.2)',
+                color: 'rgba(0, 0, 0, 0.2)',
               },
               {
                 offset: 1,
@@ -227,7 +227,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
                 {
                   yAxis: initialAsset,
                   itemStyle: {
-                    color: '#91CC75', // 상승 영역 색상
+                    color: '#3A1F2D', // 상승 영역 색상
                   },
                 },
                 {
@@ -238,7 +238,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
                 {
                   yAxis: minPortfolioValue - (minPortfolioValue - yMin),
                   itemStyle: {
-                    color: '#EE6666', // 하락 영역 색상
+                    color: '#0A3355', // 하락 영역 색상
                   },
                 },
                 {
@@ -285,7 +285,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
                   name: data.trade?.type === 'BUY' ? '매수' : '매도',
                   coord: [dateLabels.indexOf(data.date), data.portfolioValue],
                   itemStyle: {
-                    color: data.trade?.type === 'BUY' ? '#FF5722' : '#4CAF50',
+                    color: data.trade?.type === 'BUY' ? '#F23636' : '#076BFD',
                   },
                   label: {
                     formatter: data.trade?.type === 'BUY' ? '매수' : '매도',
@@ -316,7 +316,7 @@ const AssetComparisonChart: FC<AssetComparisonChartProps> = ({
           type: 'inside',
           start: 0,
           end: 100,
-          zoomLock: dateLabels.length <= 30, // 데이터가 30개 이하일 때 줌 잠금
+          // zoomLock: dateLabels.length <= 30, // 데이터가 30개 이하일 때 줌 잠금
           moveOnMouseMove: false, // 드래그로만 이동 가능하게 설정
         },
       ],

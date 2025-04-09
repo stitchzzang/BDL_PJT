@@ -153,7 +153,7 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, height = 450 
 
     return `
       <div class="max-w-md rounded-xl overflow-hidden">
-        <div class="p-4">
+        <div class="">
           <div class="flex flex-col justify-between mb-3 border-b border-gray-200 pb-2">
             <div class="text-base font-semibold text-gray-800">주식 정보</div>
             <div class="text-sm text-gray-500">${date}</div>
@@ -182,11 +182,11 @@ const CandlestickChart: React.FC<CandlestickChartProps> = ({ data, height = 450 
           </div>
 
           <div class="mb-3 pt-2 border-t border-gray-200">
-            <div class="flex justify-between items-center mb-1">
+            <div class="flex justify-between items-center mb-1 gap-5">
               <span class="text-gray-600">5일 이평선</span>
               <span class="font-medium">${fiveAverage ? formatNumber(fiveAverage) + '원' : '-'}</span>
             </div>
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center gap-5">
               <span class="text-gray-600">20일 이평선</span>
               <span class="font-medium">${twentyAverage ? formatNumber(twentyAverage) + '원' : '-'}</span>
             </div>

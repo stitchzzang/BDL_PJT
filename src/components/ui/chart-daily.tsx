@@ -79,7 +79,6 @@ const FALL_COLOR = '#1976d2'; // 하락 색상 (파란색)
 const DEFAULT_DATA_ZOOM_START = 50; // 데이터줌 시작 위치
 const DEFAULT_DATA_ZOOM_END = 100; // 데이터줌 종료 위치
 const EMPTY_DATA_COUNT = 10; // 빈 데이터 개수 (여백용)
-const Y_AXIS_MARGIN_PERCENT = 5; // Y축 여백 비율 (%)
 
 // periodType 문자열을 PeriodType 열거형으로 변환하는 함수
 const convertPeriodTypeToEnum = (periodType: 'day' | 'week' | 'month'): PeriodType => {
@@ -216,30 +215,35 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     [formatDate, periodType],
   );
 
-  // 차트 데이터 준비
+  // 1. 빈 데이터를 null로 설정 (MinuteChart와 동일한 방식)
   const processedChartData = useMemo(() => {
-    if (!chartData?.data) {
+    if (!chartData?.data || chartData.data.length === 0) {
+      // 데이터가 없는 경우 빈 배열 반환
       return [];
     }
 
     // 실제 데이터 변환
     const realData = processChartData(chartData.data);
 
-    // 빈 데이터 추가 (차트 오른쪽 공간 확보)
-    const emptyData: ChartDataPoint[] = Array(EMPTY_DATA_COUNT)
+    // 빈 데이터 추가 전에 마지막 유효한 데이터 포인트 찾기
+    const lastValidDataPoint = realData.length > 0 ? realData[realData.length - 1] : null;
+
+    // 빈 데이터 추가 (차트 오른쪽 공간 확보) - 값은 마지막 데이터의 값을 사용하거나 null로 설정
+    const emptyData = Array(EMPTY_DATA_COUNT)
       .fill(null)
       .map(() => ({
         date: '',
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 0,
-        volume: 0,
+        // 마지막 유효한 데이터가 있으면 해당 값 사용, 없으면 null
+        open: null, // 이전: 0
+        high: null, // 이전: 0
+        low: null, // 이전: 0
+        close: null, // 이전: 0
+        volume: null, // 이전: 0
         changeType: 'NONE',
         fiveAverage: null,
         twentyAverage: null,
         rawDate: null,
-        lowPricePercent: 0,
+        lowPricePercent: null, // 이전: 0
       }));
 
     // 데이터 반환 - 역순으로 정렬 (날짜순으로)
@@ -251,91 +255,44 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     return processedChartData.map((item) => item.date);
   }, [processedChartData]);
 
-  // 캔들 데이터 생성
+  // 2. 캔들 데이터 생성 수정
   const candleData = useMemo(() => {
-    return processedChartData.map((item) => [
-      item.open || 0,
-      item.close || 0,
-      item.low || 0,
-      item.high || 0,
-    ]);
-  }, [processedChartData]);
-
-  // 거래량 데이터 생성
-  const volumeData = useMemo(() => {
-    return processedChartData.map((item) => item.volume || 0);
-  }, [processedChartData]);
-
-  // 이동평균선 데이터
-  const ema5Data = useMemo(() => {
-    return processedChartData.map((item) => item.fiveAverage);
-  }, [processedChartData]);
-
-  const ema20Data = useMemo(() => {
-    return processedChartData.map((item) => item.twentyAverage);
-  }, [processedChartData]);
-
-  // 현재 보이는 데이터 범위에 따라 Y축 범위를 계산하는 함수
-  const getVisibleDataRange = useCallback(() => {
-    if (processedChartData.length === 0) return { min: 0, max: 1 };
-
-    // 데이터줌 범위 계산 (백분율을 실제 인덱스로 변환)
-    const dataLength = processedChartData.length - EMPTY_DATA_COUNT;
-    const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
-    const endIdx = Math.min(dataLength, Math.floor((dataLength * dataZoomRange.end) / 100));
-
-    // 추가: 표시 범위보다 더 넓은 범위를 계산에 사용 (앞뒤로 20% 더 확장)
-    const visibleRange = endIdx - startIdx + 1;
-    const extraRange = Math.ceil(visibleRange * 0.6); // 표시되는 영역의 20%를 추가로 고려
-
-    const expandedStartIdx = Math.max(0, startIdx - extraRange);
-    const expandedEndIdx = Math.min(dataLength - 1, endIdx + extraRange);
-
-    // 확장된 범위의 데이터 추출
-    const visibleData = processedChartData.slice(expandedStartIdx, expandedEndIdx + 1);
-
-    // 빈 데이터나 무효한 가격 제외
-    const prices = visibleData
-      .filter((item) => item.high > 0) // 빈 데이터 제외
-      .flatMap((item) => [item.high, item.low]);
-
-    if (prices.length === 0) return { min: 0, max: 1 };
-
-    const min = Math.min(...prices) - 5000;
-    const max = Math.max(...prices) + 5000;
-    const range = max - min;
-
-    // 여백 추가 (범위의 Y_AXIS_MARGIN_PERCENT %)
-    const margin = range * (Y_AXIS_MARGIN_PERCENT / 100);
-
-    console.log('Y축 범위 계산:', {
-      최소값: min,
-      최대값: max,
-      범위: range,
-      여백: margin,
-      최종최소값: Math.max(0, min - margin),
-      최종최대값: max + margin,
+    return processedChartData.map((item) => {
+      // 빈 데이터인 경우 빈 배열 반환
+      if (item.date === '') return [];
+      return [item.open || 0, item.close || 0, item.low || 0, item.high || 0];
     });
-
-    return {
-      min: Math.max(0, min - margin),
-      max: max + margin,
-    };
-  }, [processedChartData, dataZoomRange]);
-
-  // yAxisRange 계산
-  const yAxisRange = useMemo(() => getVisibleDataRange(), [getVisibleDataRange]);
+  }, [processedChartData]);
+  // 3. 거래량 데이터 생성 수정
+  const volumeData = useMemo(() => {
+    return processedChartData.map((item) => {
+      // 빈 데이터인 경우 null 반환
+      if (item.date === '') return null;
+      return item.volume || 0;
+    });
+  }, [processedChartData]);
+  // 4. 이동평균선 데이터도 동일한 방식으로 수정
+  const ema5Data = useMemo(() => {
+    return processedChartData.map((item) => (item.date === '' ? null : item.fiveAverage));
+  }, [processedChartData]);
+  const ema20Data = useMemo(() => {
+    return processedChartData.map((item) => (item.date === '' ? null : item.twentyAverage));
+  }, [processedChartData]);
 
   // 색상 스타일 가져오기
   const getItemStyle = useCallback(
     (params: any) => {
       const item = processedChartData[params.dataIndex];
       if (!item) return FALL_COLOR;
-      return item.open <= item.close ? RISE_COLOR : FALL_COLOR;
+
+      // null인 경우 기본값 설정
+      const openPrice = item.open ?? 0;
+      const closePrice = item.close ?? 0;
+
+      return openPrice <= closePrice ? RISE_COLOR : FALL_COLOR;
     },
     [processedChartData],
   );
-
   // 숫자 포맷팅 (한국어)
   const formatKoreanNumber = useCallback((value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -382,7 +339,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
       return `
         <div class="max-w-md rounded-xl overflow-hidden">
-          <div class="p-4">
+          <div class="">
             <div class="flex flex-col justify-between mb-3 border-b border-gray-200 pb-2">
               <div class="text-base font-semibold text-gray-800">주식 정보</div>
               <div class="text-sm text-gray-500">${date}</div>
@@ -411,12 +368,13 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
             </div>
 
             <div class="mb-3 pt-2 border-t border-gray-200">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-gray-600">5일 이평선</span>
+            <h1>이평선</h1>
+              <div class="flex justify-between items-center mb-1 gap-3">
+                <span class="text-gray-600">5일</span>
                 <span class="font-medium">${fiveAverage ? formatKoreanNumber(fiveAverage) + '원' : '-'}</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-600">20일 이평선</span>
+              <div class="flex justify-between items-center gap-3">
+                <span class="text-gray-600">20일</span>
                 <span class="font-medium">${twentyAverage ? formatKoreanNumber(twentyAverage) + '원' : '-'}</span>
               </div>
             </div>
@@ -452,26 +410,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         start: start,
         end: end,
       });
-
-      // Y축 범위 업데이트를 위해 차트 인스턴스 접근
-      if (chartRef.current) {
-        const chartInstance = chartRef.current.getEchartsInstance();
-        if (chartInstance) {
-          // Y축 범위 다시 계산
-          const newRange = getVisibleDataRange();
-
-          // 차트 옵션 업데이트
-          chartInstance.setOption({
-            yAxis: [
-              {
-                min: newRange.min,
-                max: newRange.max,
-              },
-              {}, // 두 번째 yAxis는 그대로 유지
-            ],
-          });
-        }
-      }
 
       // 왼쪽 경계에 도달했고 아직 추가 데이터가 있으며 로딩 중이 아닐 때만 요청
       if (start <= 5 && hasMoreData && !loading) {
@@ -523,30 +461,8 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           });
       }
     }, 300),
-    [getVisibleDataRange, hasMoreData, loading, cursorValue],
+    [hasMoreData, loading, cursorValue],
   );
-
-  // useEffect: 데이터가 변경될 때마다 Y축 범위 업데이트
-  useEffect(() => {
-    if (chartRef.current) {
-      const chartInstance = chartRef.current.getEchartsInstance();
-      if (chartInstance) {
-        // Y축 범위 다시 계산
-        const newRange = getVisibleDataRange();
-
-        // 차트 옵션 업데이트
-        chartInstance.setOption({
-          yAxis: [
-            {
-              min: newRange.min,
-              max: newRange.max,
-            },
-            {}, // 두 번째 yAxis는 그대로 유지
-          ],
-        });
-      }
-    }
-  }, [processedChartData, getVisibleDataRange]);
 
   // 컴포넌트 마운트 시 데이터줌 이벤트 리스너 등록
   useEffect(() => {
@@ -587,7 +503,11 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     const latestPrice = latestCandle ? latestCandle[1] : 0;
 
     // 상승/하락 여부 확인
-    const isRising = latestCandle && latestCandle[1] >= latestCandle[0];
+    const isRising =
+      latestCandle &&
+      latestCandle[1] != null &&
+      latestCandle[0] != null &&
+      latestCandle[1] >= latestCandle[0];
     const priceColor = isRising ? RISE_COLOR : FALL_COLOR;
 
     return {
@@ -710,8 +630,26 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       yAxis: [
         {
           scale: true,
-          min: yAxisRange.min, // 계산된 최소값
-          max: yAxisRange.max, // 계산된 최대값
+          min: function (value) {
+            // 실제 데이터만 필터링 (빈 데이터 제외)
+            const realData = processedChartData.filter((item) => item.date !== '');
+
+            if (realData.length === 0) return 0;
+
+            // 실제 데이터의 최소값에서 약간의 여백을 제공 (5% 정도)
+            const minPrice = Math.min(...realData.map((item) => item.low || Infinity));
+            return minPrice === Infinity ? 0 : minPrice * 0.95;
+          },
+          max: function (value) {
+            // 실제 데이터만 필터링 (빈 데이터 제외)
+            const realData = processedChartData.filter((item) => item.date !== '');
+
+            if (realData.length === 0) return 1000;
+
+            // 실제 데이터의 최대값에 약간의 여백을 제공 (5% 정도)
+            const maxPrice = Math.max(...realData.map((item) => item.high || 0));
+            return maxPrice * 1.05;
+          },
           splitArea: {
             show: false,
           },
@@ -868,11 +806,10 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
               data: [
                 {
                   name: '최신값',
-                  yAxis: latestPrice,
-                  // x축 값을 완전히 생략하여 전체 차트에 수평선으로 표시
+                  yAxis: latestPrice !== null ? latestPrice : undefined, // null을 undefined로 변환
                   label: {
                     formatter: () => {
-                      return new Intl.NumberFormat('ko-KR').format(Math.floor(latestPrice));
+                      return new Intl.NumberFormat('ko-KR').format(Math.floor(latestPrice ?? 0));
                     },
                   },
                 },
@@ -935,7 +872,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     getItemStyle,
     dataZoomRange,
     tooltipFormatter,
-    yAxisRange,
     periodType,
     processedChartData,
     formatKoreanNumber,

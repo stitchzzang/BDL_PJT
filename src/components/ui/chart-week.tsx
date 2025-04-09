@@ -224,22 +224,21 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
     // 실제 데이터 변환
     const realData = processChartData(chartData.data);
-
     // 빈 데이터 추가 (차트 오른쪽 공간 확보)
-    const emptyData: ChartDataPoint[] = Array(EMPTY_DATA_COUNT)
+    const emptyData = Array(EMPTY_DATA_COUNT)
       .fill(null)
       .map(() => ({
         date: '',
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 0,
+        open: null, // 0 대신 null로 변경
+        high: null, // 0 대신 null로 변경
+        low: null, // 0 대신 null로 변경
+        close: null, // 0 대신 null로 변경
         volume: 0,
         changeType: 'NONE',
         fiveAverage: null,
         twentyAverage: null,
         rawDate: null,
-        closePricePercent: 0,
+        closePricePercent: null, // 0 대신 null로 변경
       }));
 
     // 데이터 반환 - 역순으로 정렬 (날짜순으로)
@@ -253,12 +252,13 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
   // 캔들 데이터 생성
   const candleData = useMemo(() => {
-    return processedChartData.map((item) => [
-      item.open || 0,
-      item.close || 0,
-      item.low || 0,
-      item.high || 0,
-    ]);
+    return processedChartData.map((item) => {
+      // 빈 데이터 구간은 null 반환
+      if (item.date === '') {
+        return [null, null, null, null];
+      }
+      return [item.open, item.close, item.low, item.high];
+    });
   }, [processedChartData]);
 
   // 거래량 데이터 생성
@@ -275,45 +275,17 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     return processedChartData.map((item) => item.twentyAverage);
   }, [processedChartData]);
 
-  // 현재 보이는 데이터 범위에 따라 Y축 범위를 계산하는 함수
-  const getVisibleDataRange = useCallback(() => {
-    if (processedChartData.length === 0) return { min: 0, max: 1 };
-
-    // 데이터줌 범위 계산 (백분율을 실제 인덱스로 변환)
-    const dataLength = processedChartData.length - EMPTY_DATA_COUNT;
-    const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
-    const endIdx = Math.min(dataLength - 1, Math.floor((dataLength * dataZoomRange.end) / 100));
-
-    // 현재 보이는 데이터 추출
-    const visibleData = processedChartData.slice(startIdx, endIdx + 1);
-
-    // 빈 데이터나 무효한 가격 제외
-    const prices = visibleData
-      .filter((item) => item.high > 0) // 빈 데이터 제외
-      .flatMap((item) => [item.high, item.low]);
-
-    if (prices.length === 0) return { min: 0, max: 1 };
-
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min;
-
-    // 여백 추가 (범위의 Y_AXIS_MARGIN_PERCENT %)
-    const margin = range * (Y_AXIS_MARGIN_PERCENT / 100);
-    return {
-      min: Math.max(0, min - margin),
-      max: max + margin,
-    };
-  }, [processedChartData, dataZoomRange]);
-
-  // yAxisRange 계산
-  const yAxisRange = useMemo(() => getVisibleDataRange(), [getVisibleDataRange]);
-
   // 색상 스타일 가져오기
   const getItemStyle = useCallback(
     (params: any) => {
       const item = processedChartData[params.dataIndex];
-      if (!item) return FALL_COLOR;
+      // item이 없거나 date가 빈 문자열인 경우(빈 데이터) 기본 색상 반환
+      if (!item || item.date === '') return FALL_COLOR;
+
+      // open과 close가 null이 아닌 경우에만 비교
+      if (item.open === null || item.close === null) return FALL_COLOR;
+
+      // 정상적인 데이터라면 상승/하락 색상 반환
       return item.open <= item.close ? RISE_COLOR : FALL_COLOR;
     },
     [processedChartData],
@@ -374,7 +346,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
       return `
         <div class="max-w-md rounded-xl overflow-hidden">
-          <div class="p-4">
+          <div class="">
             <div class="flex flex-col justify-between mb-3 border-b border-gray-200 pb-2">
               <div class="text-base font-semibold text-gray-800">주식 정보</div>
               <div class="text-sm text-gray-500">${date}</div>
@@ -403,12 +375,13 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
             </div>
 
             <div class="mb-3 pt-2 border-t border-gray-200">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-gray-600">5일 이평선</span>
+            <h1>이평선</h1>
+              <div class="flex justify-between items-center mb-1 gap-4">
+                <span class="text-gray-600">5일</span>
                 <span class="font-medium">${fiveAverage ? formatKoreanNumber(fiveAverage) + '원' : '-'}</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-600">20일 이평선</span>
+              <div class="flex justify-between items-center gap-4">
+                <span class="text-gray-600">20일</span>
                 <span class="font-medium">${twentyAverage ? formatKoreanNumber(twentyAverage) + '원' : '-'}</span>
               </div>
             </div>
@@ -444,26 +417,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         start: start,
         end: end,
       });
-
-      // Y축 범위 업데이트를 위해 차트 인스턴스 접근
-      if (chartRef.current) {
-        const chartInstance = chartRef.current.getEchartsInstance();
-        if (chartInstance) {
-          // Y축 범위 다시 계산
-          const newRange = getVisibleDataRange();
-
-          // 차트 옵션 업데이트
-          chartInstance.setOption({
-            yAxis: [
-              {
-                min: newRange.min,
-                max: newRange.max,
-              },
-              {}, // 두 번째 yAxis는 그대로 유지
-            ],
-          });
-        }
-      }
 
       // 왼쪽 경계에 도달했고 아직 추가 데이터가 있으며 로딩 중이 아닐 때만 요청
       if (start <= 5 && hasMoreData && !loading) {
@@ -515,30 +468,8 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           });
       }
     }, 300),
-    [getVisibleDataRange, hasMoreData, loading, cursorValue],
+    [hasMoreData, loading, cursorValue],
   );
-
-  // useEffect: 데이터가 변경될 때마다 Y축 범위 업데이트
-  useEffect(() => {
-    if (chartRef.current) {
-      const chartInstance = chartRef.current.getEchartsInstance();
-      if (chartInstance) {
-        // Y축 범위 다시 계산
-        const newRange = getVisibleDataRange();
-
-        // 차트 옵션 업데이트
-        chartInstance.setOption({
-          yAxis: [
-            {
-              min: newRange.min,
-              max: newRange.max,
-            },
-            {}, // 두 번째 yAxis는 그대로 유지
-          ],
-        });
-      }
-    }
-  }, [processedChartData, getVisibleDataRange]);
 
   // 컴포넌트 마운트 시 데이터줌 이벤트 리스너 등록
   useEffect(() => {
@@ -579,7 +510,12 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     const latestPrice = latestCandle ? latestCandle[1] : 0;
 
     // 상승/하락 여부 확인
-    const isRising = latestCandle && latestCandle[1] >= latestCandle[0];
+    // null 체크를 더 철저히 함
+    const isRising =
+      latestCandle &&
+      latestCandle[0] !== null &&
+      latestCandle[1] !== null &&
+      latestCandle[1] >= latestCandle[0];
     const priceColor = isRising ? RISE_COLOR : FALL_COLOR;
 
     return {
@@ -701,8 +637,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       yAxis: [
         {
           scale: true,
-          min: yAxisRange.min, // 계산된 최소값
-          max: yAxisRange.max, // 계산된 최대값
+          filterMode: 'filter', // 무효 데이터 필터링
           splitArea: {
             show: false,
           },
@@ -859,11 +794,12 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
               data: [
                 {
                   name: '최신값',
-                  yAxis: latestPrice,
+                  yAxis: latestPrice !== null ? latestPrice : undefined, // null을 undefined로 변환
                   // x축 값을 완전히 생략하여 전체 차트에 수평선으로 표시
                   label: {
                     formatter: () => {
-                      return new Intl.NumberFormat('ko-KR').format(Math.floor(latestPrice));
+                      // null이면 0을 사용하거나 다른 기본값 사용
+                      return new Intl.NumberFormat('ko-KR').format(Math.floor(latestPrice ?? 0));
                     },
                   },
                 },
@@ -926,7 +862,6 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
     getItemStyle,
     dataZoomRange,
     tooltipFormatter,
-    yAxisRange,
     periodType,
     processedChartData,
     formatKoreanNumber,

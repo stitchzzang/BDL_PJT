@@ -11,9 +11,15 @@ interface StockCostHistoryProps {
   tickData: TickData | null;
   DayData: StockDayCandle[] | undefined;
   closePrice: number | null;
+  comparePrice: number | null;
 }
 
-export const StockCostHistory = ({ tickData, DayData, closePrice }: StockCostHistoryProps) => {
+export const StockCostHistory = ({
+  tickData,
+  DayData,
+  closePrice,
+  comparePrice,
+}: StockCostHistoryProps) => {
   const priceToCompare = tickData ? tickData.stckPrpr : closePrice;
   // 외부 함수 호출 (퍼센트 계산)
   const priceChange = calculatePriceChange(closePrice ?? 0, priceToCompare ?? 0);
@@ -104,7 +110,12 @@ export const StockCostHistory = ({ tickData, DayData, closePrice }: StockCostHis
           {isActive === '실시간' ? (
             <StockCostHistoryRealTime tickDataLists={tickDataLists} animationKey={animationKey} />
           ) : (
-            <StockCostHistoryDay DayData={DayData} tickData={tickData} priceChange={priceChange} />
+            <StockCostHistoryDay
+              DayData={DayData}
+              tickData={tickData}
+              priceChange={priceChange}
+              comparePrice={comparePrice}
+            />
           )}
         </div>
       </div>

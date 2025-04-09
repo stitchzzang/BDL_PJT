@@ -6,6 +6,7 @@ import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter'
 interface StockCostHistoryRealTimeProps {
   tickDataLists: TickData[];
   animationKey: number;
+  closePrice?: number;
 }
 
 export const StockCostHistoryRealTime = ({
@@ -24,7 +25,7 @@ export const StockCostHistoryRealTime = ({
             <div>{/* 실시간, 일별 */}</div>
             <div className="flex flex-col space-y-2">
               {/* 테이블 헤더 */}
-              <div className="rounded-lgp-2 flex flex-row">
+              <div className="rounded-lgp-2 ml-3 mr-4 flex flex-row">
                 <div className="w-[20%] text-[14px] text-border-color">채결가</div>
                 <div className="w-[20%] text-right text-[14px] text-border-color">체결량(주)</div>
                 <div className="w-[20%] text-right text-[14px] text-border-color">누적 거래량</div>
