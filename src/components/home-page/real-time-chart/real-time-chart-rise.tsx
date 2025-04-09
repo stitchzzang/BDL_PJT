@@ -59,12 +59,6 @@ export const RealTimeChartRise = () => {
     }
   }, [tickData]);
 
-  if (isLoading) {
-    <>
-      <LoadingAnimation />
-    </>;
-  }
-
   useEffect(() => {
     // 소켓 연결
     connectRankRiseFallRealTime(setRankVolume);
@@ -83,6 +77,14 @@ export const RealTimeChartRise = () => {
     connectionRankRiseTradeData,
     disconnectRankRiseTradeData,
   ]);
+
+  if (isLoading) {
+    return (
+      <>
+        <LoadingAnimation />
+      </>
+    );
+  }
 
   return (
     <div>
@@ -161,6 +163,15 @@ export const RealTimeChartRise = () => {
                   );
                 })}
               </>
+            ) : !ChangeRateFirstData ? (
+              <div className="flex h-60 w-full flex-col items-center justify-center rounded-lg bg-[#102038] p-4">
+                <p className="text-lg font-medium text-border-color">
+                  서버가 현재 오프라인 상태입니다
+                </p>
+                <p className="mt-2 text-sm text-border-color">
+                  장 시간이 아니거나 서버가 일시적으로 중단되었습니다
+                </p>
+              </div>
             ) : (
               <div className="animate-fadeIn delay-150 duration-300 ease-in-out">
                 <ChartLoadingAnimation />
