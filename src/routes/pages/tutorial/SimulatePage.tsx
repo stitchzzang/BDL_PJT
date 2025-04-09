@@ -228,6 +228,8 @@ export const SimulatePage = () => {
   const navigate = useNavigate();
   const { companyId: companyIdParam } = useParams<{ companyId: string }>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // 튜토리얼 완료 모달 상태 추가
+  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
   const [finalChangeRate, setFinalChangeRate] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
@@ -874,22 +876,110 @@ export const SimulatePage = () => {
         return candleDate >= turnStartDate && candleDate <= turnEndDate;
       });
 
-      if (turnSpecificCandles.length > 0) {
-        // 현재 턴의 구간에 해당하는 캔들 ID 사용
-        startPointId = turnSpecificCandles[0].stockCandleId;
-        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+      // 턴별 차트 구간 설정
+      if (currentTurn === 1) {
+        // 턴 1: 처음부터 변곡점1 전까지
+        if (turnSpecificCandles.length > 0) {
+          startPointId = turnSpecificCandles[0].stockCandleId;
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+          console.log(
+            `[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+          );
+        }
+      } else if (currentTurn === 2) {
+        // 턴 2: 변곡점1부터 변곡점2 전까지
+        // 첫 번째 턴의 캔들 데이터를 가져오기
+        const prevTurnChartData = turnChartData[1];
+        if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
+          const prevSession = calculateSession(1);
+          if (prevSession) {
+            // 1턴 데이터 필터링
+            const prevTurnCandles = prevTurnChartData.data
+              .filter((candle: StockCandle) => candle.periodType === 1)
+              .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
+              .filter((candle) => {
+                const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+                return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
+              });
 
-        console.log(
-          `[턴 ${currentTurn} 거래] 정확한 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
-        );
+            // 1턴의 마지막 캔들ID+1을 2턴의 시작점으로 설정
+            if (prevTurnCandles.length > 0) {
+              startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
+            }
+          }
+        }
+
+        // 2턴의 끝점 설정
+        if (turnSpecificCandles.length > 0) {
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+        }
+
+        // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
+        if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
+          console.warn('[handleTrade] 턴2 ID 범위 오류, 현재 턴 구간으로 대체');
+          if (turnSpecificCandles.length > 0) {
+            startPointId = turnSpecificCandles[0].stockCandleId;
+            endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+          }
+        }
+
+        console.log(`[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}`);
+      } else if (currentTurn === 3) {
+        // 턴 3: 변곡점2부터 변곡점3 전까지
+        // 두 번째 턴의 캔들 데이터를 가져오기
+        const prevTurnChartData = turnChartData[2];
+        if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
+          const prevSession = calculateSession(2);
+          if (prevSession) {
+            // 2턴 데이터 필터링
+            const prevTurnCandles = prevTurnChartData.data
+              .filter((candle: StockCandle) => candle.periodType === 1)
+              .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
+              .filter((candle) => {
+                const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+                return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
+              });
+
+            // 2턴의 마지막 캔들ID+1을 3턴의 시작점으로 설정
+            if (prevTurnCandles.length > 0) {
+              startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
+            }
+          }
+        }
+
+        // 3턴의 끝점 설정
+        if (turnSpecificCandles.length > 0) {
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+        }
+
+        // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
+        if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
+          console.warn('[handleTrade] 턴3 ID 범위 오류, 현재 턴 구간으로 대체');
+          if (turnSpecificCandles.length > 0) {
+            startPointId = turnSpecificCandles[0].stockCandleId;
+            endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+          }
+        }
+
+        console.log(`[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}`);
       } else {
-        // 턴별 구간이 없으면 전체 차트에서 첫/마지막 캔들 ID 사용 (폴백)
-        startPointId = dayCandles[0].stockCandleId;
-        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+        // 기본 케이스: 현재 턴의 구간에 해당하는 캔들 ID 사용
+        if (turnSpecificCandles.length > 0) {
+          startPointId = turnSpecificCandles[0].stockCandleId;
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
 
-        console.log(
-          `[턴 ${currentTurn} 거래] 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
-        );
+          console.log(
+            `[턴 ${currentTurn} 거래] 정확한 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+          );
+        } else {
+          // 턴별 구간이 없으면 전체 차트에서 첫/마지막 캔들 ID 사용 (폴백)
+          startPointId = dayCandles[0].stockCandleId;
+          endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+
+          console.log(
+            `[턴 ${currentTurn} 거래] 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+          );
+        }
       }
 
       // 유효한 ID 체크
@@ -1167,6 +1257,7 @@ export const SimulatePage = () => {
     const turnStartDate = session.startDate;
     const turnEndDate = session.endDate;
 
+    // 현재 턴의 캔들 데이터 필터링
     const turnSpecificCandles = dayCandles.filter((candle) => {
       const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
       return candleDate >= turnStartDate && candleDate <= turnEndDate;
@@ -1176,31 +1267,191 @@ export const SimulatePage = () => {
     let startPointId = 0;
     let endPointId = 0;
 
-    if (turnSpecificCandles.length > 0) {
-      // 현재 턴의 구간에 해당하는 캔들 ID 사용
-      startPointId = turnSpecificCandles[0].stockCandleId;
-      endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+    // 변곡점 데이터가 유효하고 턴별 처리를 위한 변수 준비
+    const targetStartId = 0;
+    const targetEndId = 0;
 
-      console.log(
-        `[자산 정보 업데이트] 턴 ${currentTurn}, 정확한 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
-      );
+    // 현재 턴에 맞는 시작/끝점 설정
+    if (currentTurn === 1) {
+      // 턴 1: 처음부터 변곡점1 전까지
+      if (turnSpecificCandles.length > 0) {
+        startPointId = turnSpecificCandles[0].stockCandleId;
+        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+      }
+    } else if (currentTurn === 2) {
+      // 턴 2: 변곡점1부터 변곡점2 전까지의 수익률을 계산
+      // 첫 번째 턴의 캔들 데이터를 가져오기
+      const prevTurnChartData = turnChartData[1];
+      if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
+        const prevSession = calculateSession(1);
+        if (prevSession) {
+          // 1턴 데이터 필터링
+          const prevTurnCandles = prevTurnChartData.data
+            .filter((candle: StockCandle) => candle.periodType === 1)
+            .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
+            .filter((candle) => {
+              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+              return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
+            });
+
+          // 1턴의 마지막 캔들ID+1을 2턴의 시작점으로 설정
+          if (prevTurnCandles.length > 0) {
+            startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
+          }
+        }
+      }
+
+      // 2턴의 끝점 설정
+      if (turnSpecificCandles.length > 0) {
+        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+      }
+
+      // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
+      if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
+        console.warn('[updateAssetInfo] 턴2 ID 범위 오류, 현재 턴 구간으로 대체');
+        if (turnSpecificCandles.length > 0) {
+          startPointId = turnSpecificCandles[0].stockCandleId;
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+        }
+      }
+    } else if (currentTurn === 3) {
+      // 턴 3: 변곡점2부터 변곡점3 전까지의 수익률을 계산
+      // 두 번째 턴의 캔들 데이터를 가져오기
+      const prevTurnChartData = turnChartData[2];
+      if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
+        const prevSession = calculateSession(2);
+        if (prevSession) {
+          // 2턴 데이터 필터링
+          const prevTurnCandles = prevTurnChartData.data
+            .filter((candle: StockCandle) => candle.periodType === 1)
+            .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
+            .filter((candle) => {
+              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+              return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
+            });
+
+          // 2턴의 마지막 캔들ID+1을 3턴의 시작점으로 설정
+          if (prevTurnCandles.length > 0) {
+            startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
+          }
+        }
+      }
+
+      // 3턴의 끝점 설정
+      if (turnSpecificCandles.length > 0) {
+        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+      }
+
+      // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
+      if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
+        console.warn('[updateAssetInfo] 턴3 ID 범위 오류, 현재 턴 구간으로 대체');
+        if (turnSpecificCandles.length > 0) {
+          startPointId = turnSpecificCandles[0].stockCandleId;
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+        }
+      }
+    } else if (currentTurn === 4) {
+      // 턴 4: 변곡점3부터 끝까지의 수익률 (최종 수익률)
+      // 세 번째 턴의 캔들 데이터를 가져오기
+      const prevTurnChartData = turnChartData[3];
+      if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
+        const prevSession = calculateSession(3);
+        if (prevSession) {
+          // 3턴 데이터 필터링
+          const prevTurnCandles = prevTurnChartData.data
+            .filter((candle: StockCandle) => candle.periodType === 1)
+            .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
+            .filter((candle) => {
+              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+              return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
+            });
+
+          // 3턴의 마지막 캔들ID+1을 4턴의 시작점으로 설정
+          if (prevTurnCandles.length > 0) {
+            startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
+          }
+        }
+      }
+
+      // 4턴의 끝점 설정 (현재 턴 데이터 또는 전체 데이터의 마지막)
+      if (turnSpecificCandles.length > 0) {
+        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+      } else if (dayCandles.length > 0) {
+        // 전체 데이터의 마지막 캔들ID 사용
+        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+      }
+
+      // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
+      if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
+        console.warn('[updateAssetInfo] 턴4 ID 범위 오류, 현재 턴 구간으로 대체');
+        if (turnSpecificCandles.length > 0) {
+          startPointId = turnSpecificCandles[0].stockCandleId;
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+        } else if (dayCandles.length > 0) {
+          startPointId = dayCandles[0].stockCandleId;
+          endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+        }
+      }
     } else {
-      // 턴별 구간이 없으면 전체 차트에서 첫/마지막 캔들 ID 사용 (폴백)
-      startPointId = dayCandles[0].stockCandleId;
-      endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
-
-      console.log(
-        `[자산 정보 업데이트] 턴 ${currentTurn}, 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
-      );
+      // 기본 케이스: 현재 턴의 구간에 해당하는 캔들 ID 사용
+      if (turnSpecificCandles.length > 0) {
+        startPointId = turnSpecificCandles[0].stockCandleId;
+        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+      } else {
+        // 턴별 구간이 없으면 전체 차트에서 첫/마지막 캔들 ID 사용 (폴백)
+        startPointId = dayCandles[0].stockCandleId;
+        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+      }
     }
 
+    console.log(
+      `[자산 정보 업데이트] 턴 ${currentTurn}, stockCandleId 범위: ${startPointId} ~ ${endPointId}`,
+    );
+
     try {
-      // 실제 거래 없이 자산 정보만 가져오기 위해 observe 액션 사용
+      // 이전 턴의 마지막 거래 액션 찾기
+      const prevTurnTrades = trades.filter((trade) => trade.turnNumber === currentTurn - 1);
+
+      // 실제 액션 결정 (이전 턴의 마지막 거래가 있으면 해당 액션 사용, 없으면 'hold' 사용)
+      let actualAction: TradeAction = 'hold';
+      let actualPrice = 0;
+      let actualQuantity = 0;
+
+      if (prevTurnTrades.length > 0) {
+        // 이전 턴의 마지막 거래 사용
+        const lastTrade = prevTurnTrades[prevTurnTrades.length - 1];
+        actualAction = lastTrade.action;
+        actualPrice = lastTrade.price;
+        actualQuantity = lastTrade.quantity;
+
+        console.log(
+          `[updateAssetInfo] 이전 턴 ${currentTurn - 1}의 마지막 거래 액션: ${actualAction}, 가격: ${actualPrice}, 수량: ${actualQuantity}`,
+        );
+      } else {
+        // 현재 턴의 거래도 확인 (있을 경우)
+        const currentTurnTrades = trades.filter((trade) => trade.turnNumber === currentTurn);
+
+        if (currentTurnTrades.length > 0) {
+          // 현재 턴의 마지막 거래 사용
+          const lastTrade = currentTurnTrades[currentTurnTrades.length - 1];
+          actualAction = lastTrade.action;
+          actualPrice = lastTrade.price;
+          actualQuantity = lastTrade.quantity;
+
+          console.log(
+            `[updateAssetInfo] 현재 턴 ${currentTurn}의 마지막 거래 액션: ${actualAction}, 가격: ${actualPrice}, 수량: ${actualQuantity}`,
+          );
+        } else {
+          console.log(`[updateAssetInfo] 거래 내역 없음, 기본 'hold' 액션 사용`);
+        }
+      }
+
+      // 자산 정보 업데이트를 위한 API 호출
       console.log('[updateAssetInfo] API 요청 시작:', {
         memberId,
-        action: 'hold',
-        price: 0,
-        quantity: 0,
+        action: actualAction,
+        price: actualPrice,
+        quantity: actualQuantity,
         companyId,
         startStockCandleId: startPointId,
         endStockCandleId: endPointId,
@@ -1208,9 +1459,9 @@ export const SimulatePage = () => {
 
       const response = await processUserAction.mutateAsync({
         memberId,
-        action: 'hold',
-        price: 0,
-        quantity: 0,
+        action: actualAction,
+        price: actualPrice,
+        quantity: actualQuantity,
         companyId,
         startStockCandleId: startPointId,
         endStockCandleId: endPointId,
@@ -1294,7 +1545,26 @@ export const SimulatePage = () => {
 
         // 다음 턴으로 이동하기 전에 자산 정보를 업데이트
         // 이렇게 하면 이전 턴의 거래 결과가 다음 턴에서 확인 가능
+        console.log(
+          `[moveToNextTurn] 턴 ${currentTurn}에서 턴 ${nextTurn}으로 이동 전 자산 정보 업데이트`,
+        );
+
+        // 현재 턴의 거래 내역 확인
+        const currentTurnTrades = trades.filter((trade) => trade.turnNumber === currentTurn);
+
+        // 거래가 없는 경우 자동으로 'hold' 액션 처리 (이미 handleTutorialButtonClick에서 처리했으나 안전을 위해 재확인)
+        if (currentTurnTrades.length === 0) {
+          console.log(
+            `[moveToNextTurn] 턴 ${currentTurn}에 거래 내역 없음, 자동으로 'hold' 액션으로 처리함`,
+          );
+        } else {
+          console.log(`[moveToNextTurn] 턴 ${currentTurn} 거래 내역:`, currentTurnTrades);
+        }
+
         await updateAssetInfo();
+
+        // 자산 정보가 적절히 반영되도록 약간의 지연 추가
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
         // 시각적인 업데이트를 위해 턴과 세션 정보 업데이트
         setCurrentTurn(nextTurn);
@@ -1343,12 +1613,80 @@ export const SimulatePage = () => {
           return candleDate >= turnStartDate && candleDate <= turnEndDate;
         });
 
+        // 정확한 stockCandleId 범위 저장 (API 호출용)
+        let startPointId = 0;
+        let endPointId = 0;
+
         if (turnSpecificCandles.length > 0) {
-          const turnStartId = turnSpecificCandles[0].stockCandleId;
-          const turnEndId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+          startPointId = turnSpecificCandles[0].stockCandleId;
+          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+
           console.log(
-            `[턴 ${nextTurn} 정확한 구간] 시작 stockCandleId: ${turnStartId}, 끝 stockCandleId: ${turnEndId}`,
+            `[턴 ${nextTurn} 정확한 구간] 시작 stockCandleId: ${startPointId}, 끝 stockCandleId: ${endPointId}`,
           );
+
+          // 이전 턴의 마지막 거래 액션 찾기
+          let actualAction: TradeAction = 'hold';
+          let actualPrice = 0;
+          let actualQuantity = 0;
+
+          if (currentTurnTrades.length > 0) {
+            // 이전 턴(현재 턴)의 마지막 거래 사용
+            const lastTrade = currentTurnTrades[currentTurnTrades.length - 1];
+            actualAction = lastTrade.action;
+            actualPrice = lastTrade.price;
+            actualQuantity = lastTrade.quantity;
+          }
+
+          console.log(
+            `[moveToNextTurn] 턴 ${nextTurn} 자산 정보 API 요청 - 액션: ${actualAction}, 가격: ${actualPrice}, 수량: ${actualQuantity}, 범위: ${startPointId}~${endPointId}`,
+          );
+
+          // 턴 변경 시 정확한 자산 정보 업데이트를 위한 추가 API 호출
+          try {
+            const response = await processUserAction.mutateAsync({
+              memberId,
+              action: actualAction,
+              price: actualPrice,
+              quantity: actualQuantity,
+              companyId,
+              startStockCandleId: startPointId,
+              endStockCandleId: endPointId,
+            });
+
+            console.log(`[moveToNextTurn] 턴 ${nextTurn} 자산 정보 갱신 완료:`, response);
+
+            // 응답에서 자산 정보 업데이트
+            if (response.isSuccess && response.result) {
+              const assetResponses = Array.isArray(response.result)
+                ? response.result
+                : response.result.AssetResponse || [];
+
+              if (assetResponses.length > 0) {
+                const latestAsset = assetResponses[assetResponses.length - 1];
+
+                if (
+                  latestAsset &&
+                  'availableOrderAsset' in latestAsset &&
+                  'currentTotalAsset' in latestAsset &&
+                  'totalReturnRate' in latestAsset &&
+                  'tradingDate' in latestAsset
+                ) {
+                  const newAssetInfo = {
+                    tradingDate: latestAsset.tradingDate,
+                    availableOrderAsset: latestAsset.availableOrderAsset,
+                    currentTotalAsset: latestAsset.currentTotalAsset,
+                    totalReturnRate: latestAsset.totalReturnRate,
+                  };
+
+                  setAssetInfo(newAssetInfo);
+                  console.log(`[moveToNextTurn] 턴 ${nextTurn} 자산 정보 업데이트:`, newAssetInfo);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`[moveToNextTurn] 턴 ${nextTurn} 자산 정보 갱신 오류:`, error);
+          }
         }
 
         // 뉴스 데이터 로드 (이미 로드된 경우 또는 요청 중인 경우 스킵)
@@ -1406,8 +1744,19 @@ export const SimulatePage = () => {
         // 최신 가격 업데이트
         setLatestPrice(nextTurnPrice);
 
+        // 자산 정보 업데이트 확인 로깅
+        console.log('[moveToNextTurn] 최종 자산 정보:', {
+          currentTurn: nextTurn,
+          totalReturnRate: assetInfo.totalReturnRate,
+          currentTotalAsset: assetInfo.currentTotalAsset,
+          availableOrderAsset: assetInfo.availableOrderAsset,
+        });
+
         // 마지막 턴인 경우 최종 수익률 설정
         if (nextTurn === 4) {
+          // 4턴에서는 최종 수익률을 다시 한번 확실히 업데이트
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          await updateAssetInfo();
           setFinalChangeRate(assetInfo.totalReturnRate);
         }
       } catch (error) {
@@ -1494,98 +1843,206 @@ export const SimulatePage = () => {
   // 튜토리얼 완료 처리 함수
 
   const completeTutorial = async () => {
-    if (!isUserLoggedIn()) return;
+    // 최종 턴(4턴)의 자산 정보 확인
+    console.log('[completeTutorial] 튜토리얼 완료 처리 시작, 4턴 최종 자산 정보:', assetInfo);
 
     try {
-      // 튜토리얼 완료 전 자산 정보 최종 업데이트
-      await updateAssetInfo();
+      // 모든 skeleton 표시
+      setIsChartSkeleton(true);
+      setIsNewsSkeleton(true);
+      setIsCommentSkeleton(true);
+      setIsHistorySkeleton(true);
+      setIsConclusionSkeleton(true);
 
-      // 충분한 시간을 두고 자산 정보가 업데이트되었는지 확인
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // 4턴 거래 내역 확인
+      const lastTurnTrades = trades.filter((trade) => trade.turnNumber === 4);
 
-      // 4단계에서 isCurrentTurnCompleted를 true로 설정하여 피드백 API가 호출되도록 함
-      if (!isCurrentTurnCompleted) {
-        setIsCurrentTurnCompleted(true);
-
-        // 피드백 데이터가 로드될 시간 확보 (500ms)
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      // 최종 수익률을 정확하게 계산하기 위한 stockCandleId 범위 결정
+      const lastSession = calculateSession(4);
+      if (!lastSession) {
+        throw new Error('세션 정보를 계산할 수 없습니다.');
       }
 
-      // 피드백 데이터가 있는지 확인하고 없으면 수동으로 로드
-      if (!tutorialFeedback) {
+      // 마지막 턴의 차트 데이터를 가져와서 정확한 stockCandleId 찾기
+      const chartResult = await loadChartData(defaultStartDate, lastSession.endDate, 4);
+
+      if (!chartResult || !chartResult.data || chartResult.data.length === 0) {
+        throw new Error('차트 데이터를 불러오는 중 오류가 발생했습니다.');
+      }
+
+      // 일봉 데이터 필터링 및 정렬 (시간순)
+      const dayCandles = chartResult.data
+        .filter((candle: StockCandle) => candle.periodType === 1)
+        .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
+
+      if (dayCandles.length === 0) {
+        throw new Error('일봉 데이터가 없습니다.');
+      }
+
+      // 4턴에 해당하는 정확한 차트 데이터 필터링
+      const turnSpecificCandles = dayCandles.filter((candle) => {
+        const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+        return candleDate >= lastSession.startDate && candleDate <= lastSession.endDate;
+      });
+
+      // 정확한 stockCandleId 범위 추출
+      let startPointId = 0;
+      let endPointId = 0;
+
+      if (turnSpecificCandles.length > 0) {
+        startPointId = turnSpecificCandles[0].stockCandleId;
+        endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+
+        console.log(
+          `[completeTutorial] 4턴 정확한 구간 - 시작 stockCandleId: ${startPointId}, 끝 stockCandleId: ${endPointId}`,
+        );
+
+        // 4턴의 마지막 거래 액션 확인
+        let actualAction: TradeAction = 'hold';
+        let actualPrice = 0;
+        let actualQuantity = 0;
+
+        if (lastTurnTrades.length > 0) {
+          // 4턴의 마지막 거래 사용
+          const lastTrade = lastTurnTrades[lastTurnTrades.length - 1];
+          actualAction = lastTrade.action;
+          actualPrice = lastTrade.price;
+          actualQuantity = lastTrade.quantity;
+        }
+
+        console.log(
+          `[completeTutorial] 최종 자산 정보 API 요청 - 액션: ${actualAction}, 가격: ${actualPrice}, 수량: ${actualQuantity}, 범위: ${startPointId}~${endPointId}`,
+        );
+
+        // 최종 자산 정보 업데이트 API 호출
         try {
-          await refetchFeedback();
-          // 피드백 데이터가 로드될 시간 확보 (300ms)
-          await new Promise((resolve) => setTimeout(resolve, 300));
+          const response = await processUserAction.mutateAsync({
+            memberId,
+            action: actualAction,
+            price: actualPrice,
+            quantity: actualQuantity,
+            companyId,
+            startStockCandleId: startPointId,
+            endStockCandleId: endPointId,
+          });
+
+          console.log('[completeTutorial] 최종 자산 정보 갱신 완료:', response);
+
+          // 응답에서 자산 정보 업데이트
+          if (response.isSuccess && response.result) {
+            const assetResponses = Array.isArray(response.result)
+              ? response.result
+              : response.result.AssetResponse || [];
+
+            if (assetResponses.length > 0) {
+              const latestAsset = assetResponses[assetResponses.length - 1];
+
+              if (
+                latestAsset &&
+                'availableOrderAsset' in latestAsset &&
+                'currentTotalAsset' in latestAsset &&
+                'totalReturnRate' in latestAsset &&
+                'tradingDate' in latestAsset
+              ) {
+                const newAssetInfo = {
+                  tradingDate: latestAsset.tradingDate,
+                  availableOrderAsset: latestAsset.availableOrderAsset,
+                  currentTotalAsset: latestAsset.currentTotalAsset,
+                  totalReturnRate: latestAsset.totalReturnRate,
+                };
+
+                setAssetInfo(newAssetInfo);
+                setFinalChangeRate(latestAsset.totalReturnRate);
+                console.log('[completeTutorial] 최종 자산 정보 및 수익률 업데이트:', newAssetInfo);
+              }
+            }
+          }
         } catch (error) {
-          // 오류 발생
+          console.error('[completeTutorial] 최종 자산 정보 갱신 오류:', error);
         }
       }
 
-      // 날짜 정보 준비
+      // 최종 수익률 검증 및 검증
+      if (assetInfo.totalReturnRate === null || assetInfo.totalReturnRate === undefined) {
+        throw new Error('유효한 수익률 데이터가 없습니다.');
+      }
+
+      // 날짜 정보 준비 - 어제부터 1년 전까지의 날짜 범위 계산
       const currentDate = new Date();
       // 어제 날짜로 설정
       currentDate.setDate(currentDate.getDate() - 1);
       const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
       oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
-      // 현재 자산 정보에서 최종 수익률 가져오기
-      // 최신 수익률 정보를 확실히 사용하기 위해 현재 자산 정보에서 직접 가져옴
-      const finalRate = assetInfo.totalReturnRate;
+      // 조금 더 대기 후 최종 저장 (state 업데이트가 완료되도록)
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // 최종 수익률 설정
-      console.log(`[튜토리얼 완료] 최종 수익률 설정: ${finalRate}%`);
-      setFinalChangeRate(finalRate);
+      console.log('[completeTutorial] 최종 저장 전 자산 정보:', {
+        totalReturnRate: assetInfo.totalReturnRate,
+        currentTotalAsset: assetInfo.currentTotalAsset,
+        availableOrderAsset: assetInfo.availableOrderAsset,
+        finalChangeRate: finalChangeRate,
+      });
 
-      let saveSuccess = false;
-      try {
-        // 튜토리얼 결과 저장
-        const saveResponse = await saveTutorialResult.mutateAsync({
-          companyId,
-          startMoney: 10000000,
-          endMoney: assetInfo.currentTotalAsset,
-          changeRate: finalRate,
-          startDate: oneYearAgo.toISOString(),
-          endDate: currentDate.toISOString(),
-          memberId: memberId,
-        });
+      // 튜토리얼 결과 저장
+      const saveResult = await saveTutorialResult.mutateAsync({
+        memberId,
+        companyId,
+        changeRate: finalChangeRate !== null ? finalChangeRate : assetInfo.totalReturnRate,
+        startMoney: 10000000, // 초기 자금 1000만원
+        endMoney: assetInfo.currentTotalAsset,
+        startDate: oneYearAgo.toISOString(), // 1년 전 날짜
+        endDate: currentDate.toISOString(), // 현재 날짜
+      });
 
-        saveSuccess = saveResponse.isSuccess;
-
-        if (saveSuccess) {
-          console.log(`[튜토리얼 완료] 결과 저장 성공 - 최종 수익률: ${finalRate}%`);
-        } else {
-          console.warn('[튜토리얼 완료] 결과 저장 실패');
-        }
-      } catch (error) {
-        console.error('[튜토리얼 완료] 결과 저장 중 오류:', error);
+      if (!saveResult.isSuccess) {
+        throw new Error('튜토리얼 결과 저장에 실패했습니다.');
       }
 
-      // 세션 삭제 시도 (결과 저장 성공 여부와 관계없이)
-      try {
-        await deleteTutorialSession.mutateAsync(memberId);
-        console.log('[튜토리얼 완료] 세션 삭제 성공');
-      } catch (error) {
-        console.warn('[튜토리얼 완료] 세션 삭제 실패, 재시도 중...');
+      console.log('[completeTutorial] 튜토리얼 결과 저장 성공:', saveResult);
 
-        // 세션 삭제 실패 시 다시 시도
+      // 튜토리얼 세션 삭제 (최대 3번 시도)
+      let deleteSuccess = false;
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      while (!deleteSuccess && retryCount < maxRetries) {
         try {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          await deleteTutorialSession.mutateAsync(memberId);
-          console.log('[튜토리얼 완료] 세션 삭제 재시도 성공');
-        } catch (retryError) {
-          console.error('[튜토리얼 완료] 세션 삭제 재시도 실패');
+          const deleteResult = await deleteTutorialSession.mutateAsync(memberId);
+
+          if (deleteResult.isSuccess) {
+            deleteSuccess = true;
+            console.log('[completeTutorial] 튜토리얼 세션 삭제 성공');
+          } else {
+            retryCount++;
+            console.warn(
+              `[completeTutorial] 튜토리얼 세션 삭제 실패 (시도 ${retryCount}/${maxRetries}):`,
+              deleteResult,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 재시도 전 대기
+          }
+        } catch (error) {
+          retryCount++;
+          console.error(
+            `[completeTutorial] 튜토리얼 세션 삭제 중 오류 (시도 ${retryCount}/${maxRetries}):`,
+            error,
+          );
+          await new Promise((resolve) => setTimeout(resolve, 500)); // 재시도 전 대기
         }
       }
 
-      // 충분한 지연 후 모달 표시 (상태 업데이트가 완전히 완료된 후)
-      setTimeout(() => {
-        console.log('[튜토리얼 완료] 종료 모달 표시');
-        setIsModalOpen(true);
-      }, 500);
+      // 튜토리얼 종료 모달 표시
+      setIsModalOpen(true);
     } catch (error) {
-      console.error('[튜토리얼 완료] 오류 발생:', error);
+      console.error('[completeTutorial] 튜토리얼 완료 처리 중 오류:', error);
       toast.error('튜토리얼 완료 처리 중 오류가 발생했습니다.');
+    } finally {
+      // skeleton 상태 초기화
+      setIsChartSkeleton(false);
+      setIsNewsSkeleton(false);
+      setIsCommentSkeleton(false);
+      setIsHistorySkeleton(false);
+      setIsConclusionSkeleton(false);
     }
   };
 
@@ -2179,6 +2636,70 @@ export const SimulatePage = () => {
       await completeTutorial();
     } else if (isCurrentTurnCompleted) {
       console.log(`[튜토리얼 버튼 클릭] ${currentTurn}단계 완료, 다음 단계로 이동`);
+
+      // 현재 턴의 거래 내역 확인
+      const currentTurnTrades = trades.filter((trade) => trade.turnNumber === currentTurn);
+
+      // 현재 턴에 거래가 없는 경우 자동으로 'hold' 액션 수행
+      if (currentTurnTrades.length === 0) {
+        console.log(
+          `[튜토리얼 버튼 클릭] 턴 ${currentTurn}에 거래 내역 없음, 자동으로 'hold' 액션 수행`,
+        );
+
+        // 현재 턴의 차트 데이터 가져오기 (stockCandleId 범위 설정용)
+        const currentTurnChartData = turnChartData[currentTurn];
+        if (currentTurnChartData?.data && currentTurnChartData.data.length > 0) {
+          // 세션 정보 가져오기
+          const session = calculateSession(currentTurn);
+          if (session) {
+            const dayCandles = currentTurnChartData.data
+              .filter((candle: StockCandle) => candle.periodType === 1)
+              .sort(
+                (a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime(),
+              );
+
+            // 현재 턴에 해당하는 구간만 필터링
+            const turnSpecificCandles = dayCandles.filter((candle) => {
+              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
+              return candleDate >= session.startDate && candleDate <= session.endDate;
+            });
+
+            if (turnSpecificCandles.length > 0) {
+              const startPointId = turnSpecificCandles[0].stockCandleId;
+              const endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+
+              // 'hold' 액션 요청
+              try {
+                const response = await processUserAction.mutateAsync({
+                  memberId,
+                  action: 'hold',
+                  price: 0,
+                  quantity: 0,
+                  companyId,
+                  startStockCandleId: startPointId,
+                  endStockCandleId: endPointId,
+                });
+
+                console.log(`[튜토리얼 버튼 클릭] 자동 'hold' 액션 결과:`, response);
+
+                // 'hold' 거래 기록 추가
+                const newTrade: TradeRecord = {
+                  action: 'hold',
+                  price: 0,
+                  quantity: 0,
+                  timestamp: new Date(),
+                  stockCandleId: endPointId,
+                  turnNumber: currentTurn,
+                };
+
+                setTrades((prev) => [...prev, newTrade]);
+              } catch (error) {
+                console.error(`[튜토리얼 버튼 클릭] 자동 'hold' 액션 오류:`, error);
+              }
+            }
+          }
+        }
+      }
 
       // 턴 변경 전 자산 정보를 확실히 업데이트
       await updateAssetInfo();
