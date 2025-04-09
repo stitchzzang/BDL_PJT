@@ -361,11 +361,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
     }
   }, [run]);
 
-  // 튜토리얼 버튼 클릭 핸들러
-  const handleTutorialButtonClick = () => {
-    // 더미 구현이므로 아무 동작도 하지 않습니다
-  };
-
   useEffect(() => {
     // 투어 스텝 정의
     setSteps([
@@ -756,8 +751,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                   <StockTutorialInfo
                     companyId={dummyCompanyInfo.companyId}
                     isTutorialStarted={isTutorialStarted}
-                    onTutorialStart={handleTutorialButtonClick}
-                    onMoveToNextTurn={handleTutorialButtonClick}
                     currentTurn={currentTurn}
                     isCurrentTurnCompleted={isCurrentTurnCompleted}
                     latestPrice={latestPrice}
