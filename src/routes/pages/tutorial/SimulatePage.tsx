@@ -878,90 +878,89 @@ export const SimulatePage = () => {
 
       // 턴별 차트 구간 설정
       if (currentTurn === 1) {
-        // 턴 1: 처음부터 변곡점1 전까지
-        if (turnSpecificCandles.length > 0) {
+        // 턴 1: 변곡점1 ~ (변곡점2 - 1), 가격은 변곡점1 종가
+        if (pointStockCandleIds.length >= 1) {
+          startPointId = pointStockCandleIds[0]; // 변곡점1
+          endPointId =
+            pointStockCandleIds.length >= 2
+              ? pointStockCandleIds[1] - 1
+              : turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+
+          // 변곡점1의 종가 찾기
+          const inflectionPoint1 = dayCandles.find(
+            (candle) => candle.stockCandleId === pointStockCandleIds[0],
+          );
+          if (inflectionPoint1) {
+            price = inflectionPoint1.closePrice;
+          }
+
+          console.log(
+            `[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${price}`,
+          );
+        } else if (turnSpecificCandles.length > 0) {
+          // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
           startPointId = turnSpecificCandles[0].stockCandleId;
           endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
           console.log(
-            `[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+            `[턴 ${currentTurn} 거래] 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
           );
         }
       } else if (currentTurn === 2) {
-        // 턴 2: 변곡점1부터 변곡점2 전까지
-        // 첫 번째 턴의 캔들 데이터를 가져오기
-        const prevTurnChartData = turnChartData[1];
-        if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
-          const prevSession = calculateSession(1);
-          if (prevSession) {
-            // 1턴 데이터 필터링
-            const prevTurnCandles = prevTurnChartData.data
-              .filter((candle: StockCandle) => candle.periodType === 1)
-              .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
-              .filter((candle) => {
-                const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
-                return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
-              });
+        // 턴 2: 변곡점2 ~ (변곡점3 - 1), 가격은 변곡점2 종가
+        if (pointStockCandleIds.length >= 2) {
+          startPointId = pointStockCandleIds[1]; // 변곡점2
+          endPointId =
+            pointStockCandleIds.length >= 3
+              ? pointStockCandleIds[2] - 1
+              : turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
 
-            // 1턴의 마지막 캔들ID+1을 2턴의 시작점으로 설정
-            if (prevTurnCandles.length > 0) {
-              startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
-            }
+          // 변곡점2의 종가 찾기
+          const inflectionPoint2 = dayCandles.find(
+            (candle) => candle.stockCandleId === pointStockCandleIds[1],
+          );
+          if (inflectionPoint2) {
+            price = inflectionPoint2.closePrice;
           }
-        }
 
-        // 2턴의 끝점 설정
-        if (turnSpecificCandles.length > 0) {
+          console.log(
+            `[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${price}`,
+          );
+        } else if (turnSpecificCandles.length > 0) {
+          // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
+          startPointId = turnSpecificCandles[0].stockCandleId;
           endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+          console.log(
+            `[턴 ${currentTurn} 거래] 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+          );
         }
-
-        // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
-        if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
-          console.warn('[handleTrade] 턴2 ID 범위 오류, 현재 턴 구간으로 대체');
-          if (turnSpecificCandles.length > 0) {
-            startPointId = turnSpecificCandles[0].stockCandleId;
-            endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-          }
-        }
-
-        console.log(`[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}`);
       } else if (currentTurn === 3) {
-        // 턴 3: 변곡점2부터 변곡점3 전까지
-        // 두 번째 턴의 캔들 데이터를 가져오기
-        const prevTurnChartData = turnChartData[2];
-        if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
-          const prevSession = calculateSession(2);
-          if (prevSession) {
-            // 2턴 데이터 필터링
-            const prevTurnCandles = prevTurnChartData.data
-              .filter((candle: StockCandle) => candle.periodType === 1)
-              .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
-              .filter((candle) => {
-                const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
-                return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
-              });
+        // 턴 3: 변곡점3 ~ 기간 끝점, 가격은 변곡점3 종가
+        if (pointStockCandleIds.length >= 3) {
+          startPointId = pointStockCandleIds[2]; // 변곡점3
+          endPointId =
+            turnSpecificCandles.length > 0
+              ? turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId
+              : dayCandles[dayCandles.length - 1].stockCandleId;
 
-            // 2턴의 마지막 캔들ID+1을 3턴의 시작점으로 설정
-            if (prevTurnCandles.length > 0) {
-              startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
-            }
+          // 변곡점3의 종가 찾기
+          const inflectionPoint3 = dayCandles.find(
+            (candle) => candle.stockCandleId === pointStockCandleIds[2],
+          );
+          if (inflectionPoint3) {
+            price = inflectionPoint3.closePrice;
           }
-        }
 
-        // 3턴의 끝점 설정
-        if (turnSpecificCandles.length > 0) {
+          console.log(
+            `[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${price}`,
+          );
+        } else if (turnSpecificCandles.length > 0) {
+          // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
+          startPointId = turnSpecificCandles[0].stockCandleId;
           endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+          console.log(
+            `[턴 ${currentTurn} 거래] 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+          );
         }
-
-        // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
-        if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
-          console.warn('[handleTrade] 턴3 ID 범위 오류, 현재 턴 구간으로 대체');
-          if (turnSpecificCandles.length > 0) {
-            startPointId = turnSpecificCandles[0].stockCandleId;
-            endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-          }
-        }
-
-        console.log(`[턴 ${currentTurn} 거래] 구간 stockCandleId: ${startPointId} ~ ${endPointId}`);
       } else {
         // 기본 케이스: 현재 턴의 구간에 해당하는 캔들 ID 사용
         if (turnSpecificCandles.length > 0) {
@@ -1266,147 +1265,144 @@ export const SimulatePage = () => {
     // 현재 턴의 시작점과 끝점 ID 설정
     let startPointId = 0;
     let endPointId = 0;
-
-    // 변곡점 데이터가 유효하고 턴별 처리를 위한 변수 준비
-    const targetStartId = 0;
-    const targetEndId = 0;
+    let calcPrice = 0; // 계산에 사용할 가격
 
     // 현재 턴에 맞는 시작/끝점 설정
     if (currentTurn === 1) {
-      // 턴 1: 처음부터 변곡점1 전까지
-      if (turnSpecificCandles.length > 0) {
+      // 1턴: 변곡점1 ~ (변곡점2 - 1), 가격은 변곡점1 종가
+      if (pointStockCandleIds.length >= 1) {
+        startPointId = pointStockCandleIds[0]; // 변곡점1
+        endPointId =
+          pointStockCandleIds.length >= 2
+            ? pointStockCandleIds[1] - 1
+            : turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+
+        // 변곡점1의 종가 찾기
+        const inflectionPoint1 = dayCandles.find(
+          (candle) => candle.stockCandleId === pointStockCandleIds[0],
+        );
+        if (inflectionPoint1) {
+          calcPrice = inflectionPoint1.closePrice;
+        }
+
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${calcPrice}`,
+        );
+      } else if (turnSpecificCandles.length > 0) {
+        // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
         startPointId = turnSpecificCandles[0].stockCandleId;
         endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+        );
       }
     } else if (currentTurn === 2) {
-      // 턴 2: 변곡점1부터 변곡점2 전까지의 수익률을 계산
-      // 첫 번째 턴의 캔들 데이터를 가져오기
-      const prevTurnChartData = turnChartData[1];
-      if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
-        const prevSession = calculateSession(1);
-        if (prevSession) {
-          // 1턴 데이터 필터링
-          const prevTurnCandles = prevTurnChartData.data
-            .filter((candle: StockCandle) => candle.periodType === 1)
-            .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
-            .filter((candle) => {
-              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
-              return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
-            });
+      // 2턴: 변곡점2 ~ (변곡점3 - 1), 가격은 변곡점2 종가
+      if (pointStockCandleIds.length >= 2) {
+        startPointId = pointStockCandleIds[1]; // 변곡점2
+        endPointId =
+          pointStockCandleIds.length >= 3
+            ? pointStockCandleIds[2] - 1
+            : turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
 
-          // 1턴의 마지막 캔들ID+1을 2턴의 시작점으로 설정
-          if (prevTurnCandles.length > 0) {
-            startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
-          }
+        // 변곡점2의 종가 찾기
+        const inflectionPoint2 = dayCandles.find(
+          (candle) => candle.stockCandleId === pointStockCandleIds[1],
+        );
+        if (inflectionPoint2) {
+          calcPrice = inflectionPoint2.closePrice;
         }
-      }
 
-      // 2턴의 끝점 설정
-      if (turnSpecificCandles.length > 0) {
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${calcPrice}`,
+        );
+      } else if (turnSpecificCandles.length > 0) {
+        // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
+        startPointId = turnSpecificCandles[0].stockCandleId;
         endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-      }
-
-      // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
-      if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
-        console.warn('[updateAssetInfo] 턴2 ID 범위 오류, 현재 턴 구간으로 대체');
-        if (turnSpecificCandles.length > 0) {
-          startPointId = turnSpecificCandles[0].stockCandleId;
-          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-        }
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+        );
       }
     } else if (currentTurn === 3) {
-      // 턴 3: 변곡점2부터 변곡점3 전까지의 수익률을 계산
-      // 두 번째 턴의 캔들 데이터를 가져오기
-      const prevTurnChartData = turnChartData[2];
-      if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
-        const prevSession = calculateSession(2);
-        if (prevSession) {
-          // 2턴 데이터 필터링
-          const prevTurnCandles = prevTurnChartData.data
-            .filter((candle: StockCandle) => candle.periodType === 1)
-            .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
-            .filter((candle) => {
-              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
-              return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
-            });
+      // 3턴: 변곡점3 ~ 기간 끝점, 가격은 변곡점3 종가
+      if (pointStockCandleIds.length >= 3) {
+        startPointId = pointStockCandleIds[2]; // 변곡점3
+        endPointId =
+          turnSpecificCandles.length > 0
+            ? turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId
+            : dayCandles[dayCandles.length - 1].stockCandleId;
 
-          // 2턴의 마지막 캔들ID+1을 3턴의 시작점으로 설정
-          if (prevTurnCandles.length > 0) {
-            startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
-          }
+        // 변곡점3의 종가 찾기
+        const inflectionPoint3 = dayCandles.find(
+          (candle) => candle.stockCandleId === pointStockCandleIds[2],
+        );
+        if (inflectionPoint3) {
+          calcPrice = inflectionPoint3.closePrice;
         }
-      }
 
-      // 3턴의 끝점 설정
-      if (turnSpecificCandles.length > 0) {
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${calcPrice}`,
+        );
+      } else if (turnSpecificCandles.length > 0) {
+        // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
+        startPointId = turnSpecificCandles[0].stockCandleId;
         endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-      }
-
-      // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
-      if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
-        console.warn('[updateAssetInfo] 턴3 ID 범위 오류, 현재 턴 구간으로 대체');
-        if (turnSpecificCandles.length > 0) {
-          startPointId = turnSpecificCandles[0].stockCandleId;
-          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-        }
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+        );
       }
     } else if (currentTurn === 4) {
-      // 턴 4: 변곡점3부터 끝까지의 수익률 (최종 수익률)
-      // 세 번째 턴의 캔들 데이터를 가져오기
-      const prevTurnChartData = turnChartData[3];
-      if (prevTurnChartData?.data && prevTurnChartData.data.length > 0) {
-        const prevSession = calculateSession(3);
-        if (prevSession) {
-          // 3턴 데이터 필터링
-          const prevTurnCandles = prevTurnChartData.data
-            .filter((candle: StockCandle) => candle.periodType === 1)
-            .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime())
-            .filter((candle) => {
-              const candleDate = formatDateToYYMMDD(new Date(candle.tradingDate));
-              return candleDate >= prevSession.startDate && candleDate <= prevSession.endDate;
-            });
+      // 4턴: 모든 턴의 최종 결과
+      if (pointStockCandleIds.length >= 3) {
+        startPointId = pointStockCandleIds[2]; // 변곡점3
+        endPointId =
+          turnSpecificCandles.length > 0
+            ? turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId
+            : dayCandles[dayCandles.length - 1].stockCandleId;
 
-          // 3턴의 마지막 캔들ID+1을 4턴의 시작점으로 설정
-          if (prevTurnCandles.length > 0) {
-            startPointId = prevTurnCandles[prevTurnCandles.length - 1].stockCandleId + 1;
-          }
+        // 변곡점3의 종가 찾기
+        const inflectionPoint3 = dayCandles.find(
+          (candle) => candle.stockCandleId === pointStockCandleIds[2],
+        );
+        if (inflectionPoint3) {
+          calcPrice = inflectionPoint3.closePrice;
         }
-      }
 
-      // 4턴의 끝점 설정 (현재 턴 데이터 또는 전체 데이터의 마지막)
-      if (turnSpecificCandles.length > 0) {
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 구간 stockCandleId: ${startPointId} ~ ${endPointId}, 가격: ${calcPrice}`,
+        );
+      } else if (turnSpecificCandles.length > 0) {
+        // 폴백: 변곡점이 없는 경우 현재 턴의 구간 사용
+        startPointId = turnSpecificCandles[0].stockCandleId;
         endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-      } else if (dayCandles.length > 0) {
-        // 전체 데이터의 마지막 캔들ID 사용
-        endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
-      }
-
-      // 범위가 제대로 설정되지 않으면 현재 턴의 구간을 사용
-      if (startPointId <= 0 || endPointId <= 0 || startPointId >= endPointId) {
-        console.warn('[updateAssetInfo] 턴4 ID 범위 오류, 현재 턴 구간으로 대체');
-        if (turnSpecificCandles.length > 0) {
-          startPointId = turnSpecificCandles[0].stockCandleId;
-          endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-        } else if (dayCandles.length > 0) {
-          startPointId = dayCandles[0].stockCandleId;
-          endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
-        }
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 폴백 구간 stockCandleId: ${startPointId} ~ ${endPointId}`,
+        );
       }
     } else {
-      // 기본 케이스: 현재 턴의 구간에 해당하는 캔들 ID 사용
+      // 예상치 못한 턴 번호인 경우 현재 턴의 캔들 데이터로 범위 설정
       if (turnSpecificCandles.length > 0) {
         startPointId = turnSpecificCandles[0].stockCandleId;
         endPointId = turnSpecificCandles[turnSpecificCandles.length - 1].stockCandleId;
-      } else {
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 예상치 못한 턴 번호 구간: ${startPointId} ~ ${endPointId}`,
+        );
+      } else if (dayCandles.length > 0) {
         // 턴별 구간이 없으면 전체 차트에서 첫/마지막 캔들 ID 사용 (폴백)
         startPointId = dayCandles[0].stockCandleId;
         endPointId = dayCandles[dayCandles.length - 1].stockCandleId;
+        console.log(
+          `[updateAssetInfo] 턴 ${currentTurn} 전체 구간 폴백: ${startPointId} ~ ${endPointId}`,
+        );
       }
     }
 
-    console.log(
-      `[자산 정보 업데이트] 턴 ${currentTurn}, stockCandleId 범위: ${startPointId} ~ ${endPointId}`,
-    );
+    // 유효한 ID 체크
+    if (startPointId <= 0 || endPointId <= 0) {
+      console.error('[updateAssetInfo] 유효하지 않은 거래 구간입니다.');
+      return;
+    }
 
     try {
       // 이전 턴의 마지막 거래 액션 찾기
@@ -2105,63 +2101,47 @@ export const SimulatePage = () => {
 
   // 뉴스 데이터 로드
   const loadNewsData = async (turn: number) => {
-    // 이미 요청 중인 턴에 대해서는 중복 요청하지 않음
+    // 중복 로드 방지
     if (newsRequestRef.current[turn]) {
+      console.warn(`[loadNewsData] 이미 턴 ${turn}의 뉴스를 로드 중입니다.`);
       return;
     }
 
-    // Skeleton 표시
+    // 이미 로드된 턴인지 확인
+    if (loadedTurnsRef.current[turn]) {
+      console.warn(`[loadNewsData] 턴 ${turn}의 뉴스가 이미 로드되었습니다.`);
+      return;
+    }
+
+    // API 요청 상태 업데이트
+    newsRequestRef.current = { ...newsRequestRef.current, [turn]: true };
+
+    // 로딩 상태 설정
     setIsNewsSkeleton(true);
     setIsCommentSkeleton(true);
     setIsHistorySkeleton(true);
+    setIsConclusionSkeleton(true);
 
-    // 해당 턴의 API 요청 상태를 true로 설정
-    newsRequestRef.current = {
-      ...newsRequestRef.current,
-      [turn]: true,
-    };
-
-    // 4턴일 때는 로딩 스피너 및 로딩 메시지를 표시하지 않음
-    if (turn !== 4) {
-      // 랜덤 로딩 메시지 설정
-      const loadingMessages = [
-        '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
-        '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
-        '시장을 움직인 결정적 순간을 추적 중입니다...',
-        '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
-        '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
-      ];
-      setLoadingMessage(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
-
-      // 뉴스 로딩 상태 설정
-      setIsNewsLoading(true);
-    }
-
-    // 변곡점 ID가 없으면 먼저 로드
-    if (pointStockCandleIds.length === 0) {
-      await loadPointsData();
-    }
-
-    // 구간별 시작/종료 ID 계산
-    let startStockCandleId = 1; // 기본값
-    let endStockCandleId = 0; // 기본값
+    // 기본 스톡캔들 ID 값 설정
+    let startStockCandleId = 0;
+    let endStockCandleId = 0;
 
     // 히스토리와 코멘트용 ID 범위: 구간별 설정
     if (turn === 1) {
-      // 첫 번째 턴: 시작점 ~ 변곡점1 - 1
-      startStockCandleId = 1; // 시작점
-      endStockCandleId = pointStockCandleIds[0] > 1 ? pointStockCandleIds[0] - 1 : 500;
+      // 첫 번째 턴: 변곡점1 ~ (변곡점2 - 1)
+      startStockCandleId = pointStockCandleIds.length >= 1 ? pointStockCandleIds[0] : 1;
+      endStockCandleId = pointStockCandleIds.length >= 2 ? pointStockCandleIds[1] - 1 : 500;
     } else if (turn === 2) {
-      // 두 번째 턴: 변곡점1 ~ 변곡점2 - 1
-      startStockCandleId = pointStockCandleIds[0] > 0 ? pointStockCandleIds[0] : 500;
-      endStockCandleId = pointStockCandleIds[1] > 1 ? pointStockCandleIds[1] - 1 : 1000;
+      // 두 번째 턴: 변곡점2 ~ (변곡점3 - 1)
+      startStockCandleId = pointStockCandleIds.length >= 2 ? pointStockCandleIds[1] : 500;
+      endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] - 1 : 1000;
     } else if (turn === 3) {
-      // 세 번째 턴: 변곡점2 ~ 변곡점3 - 1
-      startStockCandleId = pointStockCandleIds[1] > 0 ? pointStockCandleIds[1] : 1000;
-      endStockCandleId = pointStockCandleIds[2] > 1 ? pointStockCandleIds[2] - 1 : 1500;
+      // 세 번째 턴: 변곡점3 ~ 끝점
+      startStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] : 1500;
+      endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 2000;
     } else if (turn === 4) {
       // 네 번째 턴: 변곡점3 ~ 끝점
-      startStockCandleId = pointStockCandleIds[2] > 0 ? pointStockCandleIds[2] : 1500;
+      startStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] : 1500;
       endStockCandleId = pointStockCandleIds.length >= 3 ? pointStockCandleIds[2] + 1000 : 2000;
     }
 
