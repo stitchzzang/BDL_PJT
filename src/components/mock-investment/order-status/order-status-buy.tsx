@@ -72,12 +72,46 @@ export const OrderStatusBuy = ({
       setValue(value - chagneValue);
     }
   };
+
   // 수량
   const [stockCount, setStockCount] = useState<number>(0);
   // 총 주문 금액
   const totalPrice = () => {
     const printTotalPrice: number = buyCost * stockCount;
     return printTotalPrice;
+  };
+  // 수량 버튼 헨들러
+  const handlerCostButton = (check: string) => {
+    if (buyCost === 0) {
+      toast.error('금액을 입력하세요');
+      return;
+    }
+
+    if (userAsset) {
+      let useMoney = 0;
+
+      // 선택한 비율에 따라 사용할 금액 계산
+      if (check === '10') {
+        useMoney = userAsset * 0.1;
+      } else if (check === '30') {
+        useMoney = userAsset * 0.3;
+      } else if (check === '50') {
+        useMoney = userAsset * 0.5;
+      } else if (check === '100') {
+        useMoney = userAsset;
+      }
+
+      // 주식 수량 계산 (금액 ÷ 주식 가격)
+      // 정수로 내림 처리 (소수점 이하 주식은 구매 불가)
+      const useStockCount = Math.floor(useMoney / buyCost);
+      if (useStockCount <= 0) {
+        toast.error('현금이 부족합니다.');
+        return;
+      }
+
+      // useStockCount 값 설정 (상태 업데이트 함수 사용)
+      setStockCount(useStockCount);
+    }
   };
   // 예상 총 주문 금액
   const estimatedTotalPrice = (estimatedPrice: number | undefined) => {
@@ -233,23 +267,39 @@ export const OrderStatusBuy = ({
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-[74px]" />
-            <div className="flex w-full max-w-[80%] justify-end gap-1">
-              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
-                <p className="text-[13px]">10%</p>
-              </div>
-              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
-                <p className="text-[13px]">30%</p>
-              </div>
-              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
-                <p className="text-[13px]">50%</p>
-              </div>
-              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
-                <p className="text-[13px]">전체</p>
+          {isActive === '지정가' ? (
+            <div className="flex items-center justify-between gap-4">
+              <div className="min-w-[74px]" />
+              <div className="flex w-full max-w-[80%] justify-end gap-1">
+                <div
+                  onClick={() => handlerCostButton('10')}
+                  className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white"
+                >
+                  <p className="text-[13px]">10%</p>
+                </div>
+                <div
+                  onClick={() => handlerCostButton('30')}
+                  className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white"
+                >
+                  <p className="text-[13px]">30%</p>
+                </div>
+                <div
+                  onClick={() => handlerCostButton('50')}
+                  className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white"
+                >
+                  <p className="text-[13px]">50%</p>
+                </div>
+                <div
+                  onClick={() => handlerCostButton('100')}
+                  className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white"
+                >
+                  <p className="text-[13px]">전체</p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <></>
+          )}
         </div>
         <div className=" flex flex-col gap-4 rounded-xl border border-border-color border-opacity-20 p-3">
           <div className="flex items-center justify-between">
