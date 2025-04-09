@@ -14,6 +14,8 @@ export const StockCostHistoryDay = ({
   tickData,
   priceChange,
 }: StockCostHistoryDayProps) => {
+  const reverseDayData = DayData ? [...DayData].reverse() : undefined;
+
   return (
     <div>
       <div className="w-full">
@@ -85,7 +87,7 @@ export const StockCostHistoryDay = ({
                 scrollbarColor: '#718096 #1a202c',
               }}
             >
-              {DayData?.map((daylist, index) => (
+              {reverseDayData?.map((daylist, index) => (
                 <div
                   key={index}
                   className="my-2 flex flex-row rounded-lg bg-[#102038] p-3 text-white hover:bg-modal-background-color"
