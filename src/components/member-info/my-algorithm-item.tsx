@@ -81,7 +81,7 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
         </div>
       </div>
       <div className="flex gap-3">
-        {algorithm.oneMinuteIncreasePercent === null ? (
+        {algorithm.dailyIncreasePercent !== null && algorithm.dailyDecreasePercent !== 0 ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="max-h-[45px] max-w-[225px]" variant={'green'} size={'lg'}>
