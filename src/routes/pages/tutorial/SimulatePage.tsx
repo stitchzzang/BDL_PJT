@@ -1905,14 +1905,14 @@ export const SimulatePage = () => {
       // 변곡점 기반으로 명확하게 턴별 구간 설정
       switch (turn) {
         case 1:
-          // 첫 번째 턴: 변곡점1 ~ 변곡점2
+          // 첫 번째 턴: 변곡점1 ~ (변곡점2 - 1)
           startStockCandleId = pointStockCandleIds[0];
-          endStockCandleId = pointStockCandleIds[1];
+          endStockCandleId = pointStockCandleIds[1] - 1;
           break;
         case 2:
-          // 두 번째 턴: 변곡점2 ~ 변곡점3
+          // 두 번째 턴: 변곡점2 ~ (변곡점3 - 1)
           startStockCandleId = pointStockCandleIds[1];
-          endStockCandleId = pointStockCandleIds[2];
+          endStockCandleId = pointStockCandleIds[2] - 1;
           break;
         case 3:
           // 세 번째 턴: 변곡점3 ~ 전체 데이터 마지막
