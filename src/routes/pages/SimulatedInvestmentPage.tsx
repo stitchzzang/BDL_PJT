@@ -1,5 +1,5 @@
 import Lottie from 'lottie-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -22,8 +22,6 @@ export const SimulatedInvestmentPage = () => {
   const { companyId } = useParams(); // companyId 주소 파라미터에서 가져오기
   const navigate = useNavigate();
   const { isLogin } = useAuthStore();
-  const [shouldRedirect, setShouldRedirect] = useState(false);
-  const navigate = useNavigate();
 
   // 상태 관리
   const [shouldRedirect, setShouldRedirect] = useState(false);
