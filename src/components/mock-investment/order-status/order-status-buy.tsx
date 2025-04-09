@@ -336,6 +336,7 @@ export const OrderStatusBuy = ({
               variant="red"
               className="w-full"
               size="sm"
+              disabled={stockCount === 0 || buyCost === 0}
               onClick={() =>
                 handleLimitOrder({
                   memberId: memberId,
@@ -353,6 +354,7 @@ export const OrderStatusBuy = ({
               variant="red"
               className="w-full"
               size="sm"
+              disabled={stockCount === 0 || buyCost === 0}
               onClick={() =>
                 handleMarketOrder({
                   memberId: memberId,
