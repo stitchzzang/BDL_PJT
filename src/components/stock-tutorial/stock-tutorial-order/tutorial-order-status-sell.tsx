@@ -135,7 +135,7 @@ export const TutorialOrderStatusSell = ({
                   placeholder={isSessionActive ? '시장가 원' : '턴 시작 후 자동 설정됩니다'}
                   formatAsCurrency={true}
                   className="text-right text-[18px]"
-                  disabled={!isSessionActive}
+                  disabled={true}
                 />
                 <div className="pointer-events-none absolute inset-0 flex items-center px-[20px] text-border-color">
                   <span className="text-[16px] font-bold text-white">현재 주식 가격</span>
