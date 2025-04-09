@@ -6,7 +6,6 @@ import { toast } from 'react-toastify';
 import { useCompanyInfoData, useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
 import walkMove from '@/assets/lottie/walk-animation.json';
-import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { OrderStatus } from '@/components/mock-investment/order-status/order-status';
 import { SellingPrice } from '@/components/mock-investment/selling-price/selling-price';
@@ -87,12 +86,18 @@ export const SimulatedInvestmentPage = () => {
       <>
         {comparePrice === 0 ? (
           <div className="flex flex-col items-center justify-center">
-            <ErrorScreen />
+            <LoadingAnimation />
             <p className="font-light text-border-color">
               (현재{' '}
               <span className="font-bold text-btn-blue-color">{stockCompanyInfo?.companyName}</span>{' '}
               종목에 오류가 발생했습니다.)
             </p>
+            <button
+              onClick={() => navigate('/')}
+              className="mt-4 rounded-md bg-btn-blue-color px-6 py-2 text-white transition-colors duration-300 hover:bg-blue-600"
+            >
+              홈으로 이동
+            </button>
           </div>
         ) : (
           <>
