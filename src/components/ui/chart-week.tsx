@@ -346,7 +346,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
 
       return `
         <div class="max-w-md rounded-xl overflow-hidden">
-          <div class="p-4">
+          <div class="">
             <div class="flex flex-col justify-between mb-3 border-b border-gray-200 pb-2">
               <div class="text-base font-semibold text-gray-800">주식 정보</div>
               <div class="text-sm text-gray-500">${date}</div>
@@ -375,12 +375,13 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
             </div>
 
             <div class="mb-3 pt-2 border-t border-gray-200">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-gray-600">5일 이평선</span>
+            <h1>이평선</h1>
+              <div class="flex justify-between items-center mb-1 gap-4">
+                <span class="text-gray-600">5일</span>
                 <span class="font-medium">${fiveAverage ? formatKoreanNumber(fiveAverage) + '원' : '-'}</span>
               </div>
-              <div class="flex justify-between items-center">
-                <span class="text-gray-600">20일 이평선</span>
+              <div class="flex justify-between items-center gap-4">
+                <span class="text-gray-600">20일</span>
                 <span class="font-medium">${twentyAverage ? formatKoreanNumber(twentyAverage) + '원' : '-'}</span>
               </div>
             </div>
