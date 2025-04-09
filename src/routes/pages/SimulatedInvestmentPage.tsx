@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 
 import { useCompanyInfoData, useStockDailyData, useStockMinuteData } from '@/api/stock.api';
 import { TickData } from '@/api/types/stock';
+import airPlane from '@/assets/lottie/air-plane.json';
 import walkMove from '@/assets/lottie/walk-animation.json';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { OrderStatus } from '@/components/mock-investment/order-status/order-status';
@@ -222,39 +223,91 @@ export const SimulatedInvestmentPage = () => {
         </div>
       ) : (
         <div className="my-1">
-          <div className="relative h-full overflow-hidden rounded-2xl border border-border-color border-opacity-20 p-[20px]">
-            <div className="absolute inset-0 h-full w-full">
-              <SparklesCore
-                id="sparkles"
-                background="transparent"
-                minSize={0.6}
-                maxSize={1.4}
-                particleColor="#ffffff"
-                particleDensity={70}
-                className="h-full w-full"
-              />
-            </div>
-            <div className="flex items-center justify-center gap-4">
-              <Lottie
-                animationData={walkMove}
-                loop={true}
-                autoplay={true}
-                style={{ height: 150, width: 150 }}
-                rendererSettings={{
-                  preserveAspectRatio: 'xMidYMid slice',
-                }}
-              />
-              <div>
-                <p className="text-[18px] text-border-color">
-                  현재 <span className="font-bold text-btn-blue-color">거래시간</span>이 아닙니다.
-                </p>
-                <p className="text-[12px] text-border-color">
-                  거래는 한국시간 기준 <span className="font-bold text-white"> 09:00 ~ 15:10</span>{' '}
-                  입니다.
-                </p>
-              </div>
-            </div>
-          </div>
+          {(() => {
+            // 현재 한국 시간 확인
+            const now = new Date();
+            const koreaTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+            const hours = koreaTime.getHours();
+            const minutes = koreaTime.getMinutes();
+            const totalMinutes = hours * 60 + minutes;
+
+            // 거래 시간은 09:00 ~ 15:10 (540분 ~ 910분)
+            const isMarketHours = totalMinutes >= 540 && totalMinutes <= 910;
+
+            if (isMarketHours) {
+              // 거래 시간인 경우
+              return (
+                <div className="relative h-full overflow-hidden rounded-2xl border border-border-color border-opacity-20 p-[20px]">
+                  <div className="absolute inset-0 h-full w-full">
+                    <SparklesCore
+                      id="sparkles"
+                      background="transparent"
+                      minSize={0.6}
+                      maxSize={1.4}
+                      particleColor="#ffffff"
+                      particleDensity={70}
+                      className="h-full w-full"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-4">
+                    <Lottie
+                      animationData={airPlane}
+                      loop={true}
+                      autoplay={true}
+                      style={{ height: 150, width: 150 }}
+                      rendererSettings={{
+                        preserveAspectRatio: 'xMidYMid slice',
+                      }}
+                    />
+                    <div>
+                      <p className="text-[18px] text-border-color">
+                        현재 <span className="font-bold text-btn-blue-color">틱정보</span>를
+                        연결중입니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            } else {
+              // 거래 시간이 아닌 경우
+              return (
+                <div className="relative h-full overflow-hidden rounded-2xl border border-border-color border-opacity-20 p-[20px]">
+                  <div className="absolute inset-0 h-full w-full">
+                    <SparklesCore
+                      id="sparkles"
+                      background="transparent"
+                      minSize={0.6}
+                      maxSize={1.4}
+                      particleColor="#ffffff"
+                      particleDensity={70}
+                      className="h-full w-full"
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-4">
+                    <Lottie
+                      animationData={walkMove}
+                      loop={true}
+                      autoplay={true}
+                      style={{ height: 150, width: 150 }}
+                      rendererSettings={{
+                        preserveAspectRatio: 'xMidYMid slice',
+                      }}
+                    />
+                    <div>
+                      <p className="text-[18px] text-border-color">
+                        현재 <span className="font-bold text-btn-blue-color">거래시간</span>이
+                        아닙니다.
+                      </p>
+                      <p className="text-[12px] text-border-color">
+                        거래는 한국시간 기준{' '}
+                        <span className="font-bold text-white"> 09:00 ~ 15:10</span> 입니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          })()}
         </div>
       )}
       <div className="grid grid-cols-10 gap-2">
