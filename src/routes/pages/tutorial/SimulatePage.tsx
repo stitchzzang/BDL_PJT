@@ -784,62 +784,23 @@ export const SimulatePage = () => {
 
   // 거래 처리 함수
   const handleTrade = async (action: TradeAction, price: number, quantity: number) => {
-    // 셀렉트박스 초기값이 아닌지 확인 (0은 초기값)
-    if (quantity === 0) {
-      alert('수량을 선택해주세요.');
-      return;
-    }
-
-    try {
-      // 거래 전에 차트 데이터 확인
-      if (!stockData || !stockData.data) {
-        alert('차트 데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-        return;
-      }
-
-      // 일봉 데이터만 필터링 (periodType: 1 = 일봉)
-      const dayCandles = stockData.data
-        .filter((candle) => candle.periodType === 1)
-        .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
-
-      if (dayCandles.length === 0) {
-        alert('차트 데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
-        return;
-      }
-
-      // 현재 턴의 세션 계산 (구간 정보)
-      const session = calculateSession(currentTurn);
-      if (!session) {
-        alert('세션 정보를 가져올 수 없습니다.');
-        return;
-      }
-
-      // StockCandleId 범위 가져오기 - getStockCandleIdRange 함수 사용
-      const { startStockCandleId, endStockCandleId } = getStockCandleIdRange(currentTurn);
-
-      console.log(
-        `[handleTrade] 거래 요청 - 턴: ${currentTurn}, 액션: ${action}, 가격: ${price}, 수량: ${quantity}, 범위: ${startStockCandleId}~${endStockCandleId}`,
-      );
-
-      // 매수 가능 금액 확인
-      if (action === 'buy') {
-        const totalPrice = price * quantity;
-        if (totalPrice > assetInfo.availableOrderAsset) {
-          alert(
-            `매수 가능 금액(${assetInfo.availableOrderAsset.toLocaleString()}원)을 초과했습니다.`,
-          );
+    // 관망 액션은 수량 체크 없이 바로 처리
+    if (action === 'hold') {
+      try {
+        // 현재 턴의 세션 계산 (구간 정보)
+        const session = calculateSession(currentTurn);
+        if (!session) {
+          alert('세션 정보를 가져올 수 없습니다.');
           return;
         }
-      }
 
-      // 판매 수량 확인
-      if (action === 'sell' && quantity > ownedStockCount) {
-        alert(`보유량(${ownedStockCount}주)보다 많은 수량을 판매할 수 없습니다.`);
-        return;
-      }
+        // StockCandleId 범위 가져오기
+        const { startStockCandleId, endStockCandleId } = getStockCandleIdRange(currentTurn);
 
-      // 관망 선택 시 API 호출
-      if (action === 'hold') {
+        console.log(
+          `[handleTrade] 관망 요청 - 턴: ${currentTurn}, 액션: ${action}, 범위: ${startStockCandleId}~${endStockCandleId}`,
+        );
+
         // API 요청 처리
         const response = await processUserAction.mutateAsync({
           memberId,
@@ -893,77 +854,139 @@ export const SimulatePage = () => {
 
         setTrades((prev) => [...prev, newTrade]);
 
+        // 관망 선택 알림
+        toast.success('이번 턴은 관망하기를 선택하셨습니다.');
+
         // 턴 완료 처리
         setIsCurrentTurnCompleted(true);
         return;
+      } catch (error) {
+        console.error('[handleTrade] 관망 처리 중 오류:', error);
+        toast.error('관망 처리 중 오류가 발생했습니다.');
+        return;
+      }
+    } else {
+      // 매수/매도일 경우에만 수량 검증
+      if (quantity === 0) {
+        alert('수량을 선택해주세요.');
+        return;
       }
 
-      // buy 또는 sell 액션 처리
-      const response = await processUserAction.mutateAsync({
-        memberId,
-        action: action.toLowerCase(),
-        price,
-        quantity,
-        companyId,
-        startStockCandleId,
-        endStockCandleId,
-      });
+      try {
+        // 거래 전에 차트 데이터 확인
+        if (!stockData || !stockData.data) {
+          alert('차트 데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
 
-      // API 응답 처리하지만 UI 업데이트는 하지 않음 (다음 턴으로 넘어갈 때 적용)
-      if (response.isSuccess && response.result) {
-        // 배열인지 확인
-        const assetResponses = Array.isArray(response.result)
-          ? response.result
-          : response.result.AssetResponse || [];
+        // 일봉 데이터만 필터링 (periodType: 1 = 일봉)
+        const dayCandles = stockData.data
+          .filter((candle) => candle.periodType === 1)
+          .sort((a, b) => new Date(a.tradingDate).getTime() - new Date(b.tradingDate).getTime());
 
-        if (assetResponses.length > 0) {
-          // 최신 자산 정보 가져오기 (마지막 항목)
-          const latestAsset = assetResponses[assetResponses.length - 1];
+        if (dayCandles.length === 0) {
+          alert('차트 데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+          return;
+        }
 
-          // 필수 필드 존재 여부 확인
-          if (
-            latestAsset &&
-            'availableOrderAsset' in latestAsset &&
-            'currentTotalAsset' in latestAsset &&
-            'totalReturnRate' in latestAsset &&
-            'tradingDate' in latestAsset
-          ) {
-            // 자산 정보 임시 저장 (다음 턴에서 사용)
-            tempAssetInfoRef.current = {
-              tradingDate: latestAsset.tradingDate,
-              availableOrderAsset: latestAsset.availableOrderAsset,
-              currentTotalAsset: latestAsset.currentTotalAsset,
-              totalReturnRate: latestAsset.totalReturnRate,
-            };
+        // 현재 턴의 세션 계산 (구간 정보)
+        const session = calculateSession(currentTurn);
+        if (!session) {
+          alert('세션 정보를 가져올 수 없습니다.');
+          return;
+        }
+
+        // StockCandleId 범위 가져오기 - getStockCandleIdRange 함수 사용
+        const { startStockCandleId, endStockCandleId } = getStockCandleIdRange(currentTurn);
+
+        console.log(
+          `[handleTrade] 거래 요청 - 턴: ${currentTurn}, 액션: ${action}, 가격: ${price}, 수량: ${quantity}, 범위: ${startStockCandleId}~${endStockCandleId}`,
+        );
+
+        // 매수 가능 금액 확인
+        if (action === 'buy') {
+          const totalPrice = price * quantity;
+          if (totalPrice > assetInfo.availableOrderAsset) {
+            alert(
+              `매수 가능 금액(${assetInfo.availableOrderAsset.toLocaleString()}원)을 초과했습니다.`,
+            );
+            return;
           }
         }
+
+        // 판매 수량 확인
+        if (action === 'sell' && quantity > ownedStockCount) {
+          alert(`보유량(${ownedStockCount}주)보다 많은 수량을 판매할 수 없습니다.`);
+          return;
+        }
+
+        // buy 또는 sell 액션 처리
+        const response = await processUserAction.mutateAsync({
+          memberId,
+          action: action.toLowerCase(),
+          price,
+          quantity,
+          companyId,
+          startStockCandleId,
+          endStockCandleId,
+        });
+
+        // API 응답 처리하지만 UI 업데이트는 하지 않음 (다음 턴으로 넘어갈 때 적용)
+        if (response.isSuccess && response.result) {
+          // 배열인지 확인
+          const assetResponses = Array.isArray(response.result)
+            ? response.result
+            : response.result.AssetResponse || [];
+
+          if (assetResponses.length > 0) {
+            // 최신 자산 정보 가져오기 (마지막 항목)
+            const latestAsset = assetResponses[assetResponses.length - 1];
+
+            // 필수 필드 존재 여부 확인
+            if (
+              latestAsset &&
+              'availableOrderAsset' in latestAsset &&
+              'currentTotalAsset' in latestAsset &&
+              'totalReturnRate' in latestAsset &&
+              'tradingDate' in latestAsset
+            ) {
+              // 자산 정보 임시 저장 (다음 턴에서 사용)
+              tempAssetInfoRef.current = {
+                tradingDate: latestAsset.tradingDate,
+                availableOrderAsset: latestAsset.availableOrderAsset,
+                currentTotalAsset: latestAsset.currentTotalAsset,
+                totalReturnRate: latestAsset.totalReturnRate,
+              };
+            }
+          }
+        }
+
+        // 새 거래 기록 추가
+        const newTrade: TradeRecord = {
+          action,
+          price,
+          quantity,
+          timestamp: new Date(),
+          stockCandleId: endStockCandleId,
+          turnNumber: currentTurn,
+        };
+
+        setTrades((prev) => [...prev, newTrade]);
+
+        // 거래 성공 안내 (매수/매도에 따라 다른 메시지)
+        if (action === 'buy') {
+          toast.success(`${price.toLocaleString()}원에 ${quantity}주 매수 완료`);
+        } else if (action === 'sell') {
+          toast.success(`${price.toLocaleString()}원에 ${quantity}주 매도 완료`);
+        }
+
+        // 턴 완료 처리
+        setIsCurrentTurnCompleted(true);
+      } catch (error) {
+        console.error('[handleTrade] 거래 처리 중 오류:', error);
+        // 오류 발생 시 알림 표시
+        toast.error('거래 처리 중 오류가 발생했습니다.');
       }
-
-      // 새 거래 기록 추가
-      const newTrade: TradeRecord = {
-        action,
-        price,
-        quantity,
-        timestamp: new Date(),
-        stockCandleId: endStockCandleId,
-        turnNumber: currentTurn,
-      };
-
-      setTrades((prev) => [...prev, newTrade]);
-
-      // 거래 성공 안내 (매수/매도에 따라 다른 메시지)
-      if (action === 'buy') {
-        toast.success(`${price.toLocaleString()}원에 ${quantity}주 매수 완료`);
-      } else if (action === 'sell') {
-        toast.success(`${price.toLocaleString()}원에 ${quantity}주 매도 완료`);
-      }
-
-      // 턴 완료 처리
-      setIsCurrentTurnCompleted(true);
-    } catch (error) {
-      console.error('[handleTrade] 거래 처리 중 오류:', error);
-      // 오류 발생 시 알림 표시
-      toast.error('거래 처리 중 오류가 발생했습니다.');
     }
   };
 
