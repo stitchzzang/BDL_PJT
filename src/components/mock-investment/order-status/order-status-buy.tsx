@@ -233,6 +233,23 @@ export const OrderStatusBuy = ({
               </div>
             </div>
           </div>
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-[74px]" />
+            <div className="flex w-full max-w-[80%] justify-end gap-1">
+              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
+                <p className="text-[13px]">10%</p>
+              </div>
+              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
+                <p className="text-[13px]">30%</p>
+              </div>
+              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
+                <p className="text-[13px]">50%</p>
+              </div>
+              <div className="flex-1 cursor-pointer rounded-md border border-border-color py-1 text-center text-border-color transition-all duration-300 hover:bg-background-color hover:text-white">
+                <p className="text-[13px]">전체</p>
+              </div>
+            </div>
+          </div>
         </div>
         <div className=" flex flex-col gap-4 rounded-xl border border-border-color border-opacity-20 p-3">
           <div className="flex items-center justify-between">
