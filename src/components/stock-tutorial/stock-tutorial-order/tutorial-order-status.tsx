@@ -26,6 +26,7 @@ export interface TutorialOrderStatusProps {
   initSessionPending?: boolean;
   companyInfoExists?: boolean;
   isLoading?: boolean; // 로딩 상태 추가
+  isPending?: boolean; // isPending 추가
 }
 
 export const TutorialOrderStatus = ({
@@ -43,6 +44,7 @@ export const TutorialOrderStatus = ({
   initSessionPending = false,
   companyInfoExists = true,
   isLoading = false, // 기본값 false
+  isPending = false, // 기본값 false
 }: TutorialOrderStatusProps) => {
   // 허용된 탭 타입을 정의
   type TabType = '구매' | '판매' | '관망';
@@ -80,7 +82,7 @@ export const TutorialOrderStatus = ({
     // 현재 턴을 관망 선택 턴 목록에 추가
     setWaitSelectedTurns((prev) => [...prev, currentTurn]);
 
-    // 관망은 'wait' 액션으로 처리
+    // 관망은 'hold' 액션으로 처리
     onTrade('hold', 0, 0);
   };
 
@@ -117,7 +119,7 @@ export const TutorialOrderStatus = ({
           />
         </div>
         <hr className="mb-2 border border-border-color border-opacity-20" />
-        <div className="flex-1 min-h-[450px] overflow-y-auto">
+        <div className="min-h-[450px] flex-1 overflow-y-auto">
           {isActiveCategory === '구매' && (
             <TutorialOrderStatusBuy
               onBuy={(price, quantity) => handleTrade('buy', price, quantity)}
@@ -165,7 +167,7 @@ export const TutorialOrderStatus = ({
               variant={'green'}
               size={'lg'}
               onClick={handleButtonClick}
-              disabled={initSessionPending || !companyInfoExists}
+              disabled={initSessionPending || !companyInfoExists || isPending}
             >
               {buttonTextContent}
             </Button>
@@ -185,7 +187,7 @@ export const TutorialOrderStatus = ({
               variant={'green'}
               size={'lg'}
               onClick={handleButtonClick}
-              disabled={!isCurrentTurnCompleted}
+              disabled={!isCurrentTurnCompleted || isPending}
             >
               다음 턴으로
             </Button>
@@ -204,7 +206,7 @@ export const TutorialOrderStatus = ({
               variant={'green'}
               size={'lg'}
               onClick={handleButtonClick}
-              disabled={!isCurrentTurnCompleted}
+              disabled={!isCurrentTurnCompleted || isPending}
             >
               튜토리얼 완료
             </Button>

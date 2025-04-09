@@ -21,6 +21,7 @@ export interface StockInfoProps {
   showButtonInInfoSection?: boolean;
   isLoading?: boolean;
   onHelpClick?: () => void;
+  isPending?: boolean;
 }
 
 // 카테고리 정규화 매핑 (서버 이름 -> 프론트엔드 카테고리)
@@ -52,6 +53,7 @@ export const StockTutorialInfo = ({
   showButtonInInfoSection = false,
   isLoading = false,
   onHelpClick,
+  isPending,
 }: StockInfoProps) => {
   const [initialPrice, setInitialPrice] = useState<number>(0);
   const [normalizedCategories, setNormalizedCategories] = useState<CategoryName[]>(['전체']);
@@ -284,7 +286,8 @@ export const StockTutorialInfo = ({
                     disabled={
                       (isTutorialStarted && !isCurrentTurnCompleted) ||
                       initSessionMutation.isPending ||
-                      !companyInfo
+                      !companyInfo ||
+                      isPending
                     }
                   >
                     {buttonTextContent}

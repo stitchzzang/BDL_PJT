@@ -5,12 +5,14 @@ export interface TutorialOrderStatusWaitProps {
   isActive: boolean;
   onWait: () => void;
   isLoading?: boolean;
+  isPending?: boolean;
 }
 
 export const TutorialOrderStatusWait = ({
   isActive,
   onWait,
   isLoading = false,
+  isPending = false,
 }: TutorialOrderStatusWaitProps) => {
   if (isLoading) {
     return (
@@ -56,7 +58,7 @@ export const TutorialOrderStatusWait = ({
             className="w-full"
             size="lg"
             onClick={onWait}
-            disabled={!isActive}
+            disabled={!isActive || isPending}
           >
             <p className="text-[16px] font-medium text-white">관망하기</p>
           </Button>

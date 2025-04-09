@@ -2378,6 +2378,7 @@ export const SimulatePage = () => {
             latestPrice={latestPrice}
             onHelpClick={handleHelpClick}
             isLoading={isNewsLoading || isChartLoading}
+            isPending={initSessionMutation.isPending || processUserAction.isPending}
           />
         </div>
         <div className="mb-[20px] flex justify-between">
@@ -2498,6 +2499,7 @@ export const SimulatePage = () => {
                 initSessionPending={initSessionMutation.isPending}
                 companyInfoExists={!!companyInfo}
                 isLoading={isNewsLoading || isChartLoading}
+                isPending={initSessionMutation.isPending || processUserAction.isPending}
               />
             </div>
           </div>

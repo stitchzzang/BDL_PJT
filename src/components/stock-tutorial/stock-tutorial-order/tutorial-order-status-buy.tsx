@@ -13,15 +13,18 @@ export interface TutorialOrderStatusBuyProps {
   availableOrderAsset?: number; // 구매 가능한 자금 (옵션)
   ownedStockCount?: number; // 보유 주식 수량 (옵션)
   isLoading?: boolean; // 로딩 상태 추가
+  isPending?: boolean; // isPending 추가
 }
 
 export const TutorialOrderStatusBuy = ({
   onBuy,
+  companyId,
   latestPrice,
   isActive: isSessionActive,
-  availableOrderAsset = 0, // 기본값 0
-  ownedStockCount = 0, // 기본값 0
-  isLoading = false, // 기본값 false
+  availableOrderAsset = 10000000, // 기본값 1천만원
+  ownedStockCount = 0,
+  isLoading = false,
+  isPending = false,
 }: TutorialOrderStatusBuyProps) => {
   // 폰트 동일 스타일링 함수
   const h3Style = 'text-[16px] font-bold text-white';
@@ -324,7 +327,12 @@ export const TutorialOrderStatusBuy = ({
               className="w-full"
               size="lg"
               onClick={handleBuyStock}
-              disabled={!isSessionActive || stockCount <= 0 || totalPrice() > availableOrderAsset}
+              disabled={
+                !isSessionActive ||
+                stockCount <= 0 ||
+                totalPrice() > availableOrderAsset ||
+                isPending
+              }
             >
               <p className="text-[16px] font-medium text-white">구매하기</p>
             </Button>

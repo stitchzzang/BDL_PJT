@@ -12,6 +12,7 @@ export interface TutorialOrderStatusSellProps {
   isActive: boolean;
   ownedStockCount?: number; // 보유 주식 수량 (옵션)
   isLoading?: boolean; // 로딩 상태 추가
+  isPending?: boolean; // isPending 추가
 }
 
 export const TutorialOrderStatusSell = ({
@@ -20,6 +21,7 @@ export const TutorialOrderStatusSell = ({
   isActive: isSessionActive,
   ownedStockCount = 0, // 기본값 0
   isLoading = false, // 기본값 false
+  isPending = false,
 }: TutorialOrderStatusSellProps) => {
   const h3Style = 'text-[16px] font-bold text-white';
 
@@ -321,16 +323,10 @@ export const TutorialOrderStatusSell = ({
           <div className="mt-3">
             <Button
               variant="blue"
-              className={`w-full ${!isSessionActive || ownedStockCount <= 0 ? 'opacity-50' : ''}`}
+              className="w-full"
               size="lg"
               onClick={handleSellStock}
-              disabled={
-                !isSessionActive ||
-                stockCount <= 0 ||
-                stockCount > ownedStockCount ||
-                sellPrice <= 0 ||
-                ownedStockCount <= 0
-              }
+              disabled={!canSell || stockCount <= 0 || isPending}
             >
               <p className="text-[16px] font-medium text-white">판매하기</p>
             </Button>
