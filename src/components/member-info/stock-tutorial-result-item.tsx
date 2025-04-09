@@ -1,4 +1,19 @@
+import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
+
+import { useDeleteTutorialResult } from '@/api/tutorial.api';
 import { TutorialResultResponse } from '@/api/types/tutorial';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   addCommasToThousand,
@@ -16,6 +31,20 @@ export const StockTutorialResultItem = ({
   result,
   isHighlighted = false,
 }: StockTutorialResultItemProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { mutate: deleteTutorialResult } = useDeleteTutorialResult();
+
+  const handleDelete = () => {
+    deleteTutorialResult(
+      { tutorialResultId: result.tutorialResultId.toString() },
+      {
+        onSuccess: () => {
+          setIsOpen(false);
+        },
+      },
+    );
+  };
+
   return (
     <div
       className={`flex w-full flex-row items-center justify-between gap-2 rounded-[10px] bg-modal-background-color p-3 transition-all duration-300 hover:bg-modal-background-color/50 ${isHighlighted ? 'animate-pulse border-2 border-blue-500 bg-blue-900/20' : ''}`}
@@ -62,6 +91,29 @@ export const StockTutorialResultItem = ({
             )}%`}
           </p>
         </div>
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+          <AlertDialogTrigger asChild>
+            <button className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white">
+              <XMarkIcon className="h-5 w-5" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>튜토리얼 결과 삭제</AlertDialogTitle>
+              <AlertDialogDescription>
+                튜토리얼 결과를 삭제하면 되돌릴 수 없습니다.
+                <br />
+                계속하시겠습니까?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>취소</AlertDialogCancel>
+              <AlertDialogAction variant="red" onClick={handleDelete}>
+                삭제
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 // 알고리즘 관련 api (https://www.notion.so/otterbit/API-1a42f79c753081d38d42cf8c22a01fa3?pvs=4)
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 
 import { _kyAuth } from '@/api/instance';
 import {
@@ -10,7 +11,6 @@ import {
   CreateAlgorithmRequest,
 } from '@/api/types/algorithm';
 import { ApiResponse, ApiSuccess } from '@/api/types/common';
-
 export const algorithmAPI = {
   createAlgorithm: (memberId: string, algorithm: CreateAlgorithmRequest) =>
     _kyAuth.post(`algorithm/${memberId}`, { json: algorithm }).json<ApiResponse<Algorithm>>(),
@@ -92,6 +92,10 @@ export const useDeleteAlgorithm = () => {
     onSuccess: () => {
       // 삭제 후 알고리즘 목록 쿼리 무효화하여 데이터 갱신
       queryClient.invalidateQueries({ queryKey: ['algorithms'] });
+      toast.success('알고리즘이 성공적으로 삭제되었습니다.');
+    },
+    onError: () => {
+      toast.error('알고리즘 삭제에 실패했습니다. 다시 시도해주세요.');
     },
   });
 };
