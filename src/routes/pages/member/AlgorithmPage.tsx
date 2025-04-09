@@ -32,7 +32,7 @@ export const AlgorithmPage = () => {
         ) : (
           <>
             {algorithms && algorithms.length > 0 ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex max-h-[560px] flex-col gap-4 overflow-y-auto">
                 {algorithms.map((algorithm: Algorithm) => (
                   <MyAlgorithmItem key={algorithm.algorithmId} algorithm={algorithm} />
                 ))}

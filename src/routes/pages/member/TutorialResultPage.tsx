@@ -73,7 +73,7 @@ export const TutorialResultPage = () => {
           ))}
         </div>
       ) : tutorialResults && tutorialResults.length > 0 ? (
-        <>
+        <div className="max-h-[610px] w-full overflow-y-auto">
           {tutorialResults.map((tutorialResult) => (
             <div
               key={tutorialResult.tutorialResultId}
@@ -86,7 +86,7 @@ export const TutorialResultPage = () => {
               />
             </div>
           ))}
-        </>
+        </div>
       ) : (
         <div className="flex w-full flex-col items-center justify-center p-5">
           <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
