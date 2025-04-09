@@ -1,6 +1,6 @@
 import Lottie from 'lottie-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 import { useCompanyInfoData, useStockDailyData, useStockMinuteData } from '@/api/stock.api';
@@ -24,6 +24,7 @@ export const SimulatedInvestmentPage = () => {
   const stockCompanyId = Number(companyId); // 숫자로 변환
   const { isLogin } = useAuthStore();
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isLogin) {
@@ -94,10 +95,9 @@ export const SimulatedInvestmentPage = () => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center">
-            <ErrorScreen />
-            <p className="font-light text-border-color">(현재 잘못된 종목 페이지입니다.)</p>
-          </div>
+          <>
+            return <Navigate to="/error/not-found" replace />;
+          </>
         )}
       </>
     );
