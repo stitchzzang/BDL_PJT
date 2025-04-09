@@ -235,8 +235,8 @@ export const SimulatePage = () => {
 
   // companyId 유효성 검사를 위한 useEffect 추가
   useEffect(() => {
-    // companyId가 NaN이거나 정수가 아닌 경우 NotFoundPage로 리다이렉트
-    if (isNaN(companyId) || !Number.isInteger(companyId) || companyId <= 0) {
+    // companyId가 NaN이거나 정수가 아닌 경우 또는 범위를 벗어나는 경우 NotFoundPage로 리다이렉트
+    if (isNaN(companyId) || !Number.isInteger(companyId) || companyId <= 0 || companyId > 33) {
       navigate('/error/not-found');
       return;
     }
@@ -254,9 +254,8 @@ export const SimulatePage = () => {
     // 회사 정보 로딩 중인 경우 리다이렉트하지 않음
     if (isCompanyInfoLoading) return;
 
-    // 회사 정보 로드 후, 오류가 발생한 경우에만 404 페이지로 리다이렉트
-    if (isCompanyInfoError) {
-      console.error(`[SimulatePage] 회사 정보가 존재하지 않음: companyId=${companyId}`);
+    // 회사 정보 로드 후, 오류가 발생했거나 데이터가 없는 경우 404 페이지로 리다이렉트
+    if (isCompanyInfoError || !companyInfo) {
       navigate('/error/not-found');
     }
   }, [companyInfo, isCompanyInfoError, isCompanyInfoLoading, companyId, navigate]);
