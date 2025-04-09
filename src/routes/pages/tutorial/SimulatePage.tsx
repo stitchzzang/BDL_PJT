@@ -1905,6 +1905,7 @@ export const SimulatePage = () => {
     }
     prevSessionRef.current = sessionKey;
 
+    // 로딩 상태 설정
     setIsChartLoading(true);
     setHasChartError(false);
     setIsChartSkeleton(true); // 차트 skeleton 표시
@@ -1925,8 +1926,8 @@ export const SimulatePage = () => {
 
       const result = stockDataResponse.result;
 
-      // 현재 턴의 데이터 저장
-      setStockData(result);
+      // 현재 턴의 데이터 저장 (차트 업데이트 준비)
+      // setStockData는 나중에 설정하여 차트가 데이터를 받기 전에 스켈레톤이 보이도록 함
 
       // 턴별 차트 데이터 저장 - 동기적으로 업데이트하기 위해 함수형 업데이트 사용
       setTurnChartData((prev) => {
@@ -1994,7 +1995,11 @@ export const SimulatePage = () => {
         await loadNewsData(turn);
       }
 
-      setIsChartSkeleton(false); // 차트 skeleton 숨김
+      // 모든 데이터 처리가 완료된 후 마지막으로 스켈레톤 상태 해제
+      setIsChartSkeleton(false);
+
+      // 마지막으로 stockData 업데이트하여 차트 렌더링 트리거
+      setStockData(result);
 
       // 데이터 로드가 완료되었음을 나타내는 return
       return result;
@@ -2471,7 +2476,7 @@ export const SimulatePage = () => {
                     label: `변곡점${index + 1}`,
                     index: pointStockCandleIds[index] ? pointStockCandleIds[index] - 1 : 0,
                   }))}
-                  isLoading={isChartLoading}
+                  isLoading={isChartSkeleton || isChartLoading}
                 />
               </div>
             )}
