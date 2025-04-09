@@ -1,6 +1,9 @@
+import Lottie from 'lottie-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 
+// Lottie 애니메이션 JSON 파일 임포트
+import stockAnimation from '@/assets/lottie/stock-animation.json';
 // helpNewsImage 추가
 import helpNewsImage from '@/assets/product-tour/helpNewsImage.png';
 // 필요한 이미지들 임포트
@@ -389,11 +392,16 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       {
         target: 'body',
         content: (
-          <div className="p-4">
-            <h2 className="mb-8 text-[25px] font-bold">
+          <div className="p-4 text-center">
+            <h2 className="mb-4 text-[25px] font-bold">
               안녕하세요! <br />
               주식 튜토리얼에 오신 것을 환영합니다.
             </h2>
+            <Lottie
+              loop
+              animationData={stockAnimation}
+              style={{ width: 150, height: 150, margin: '0 auto', marginBottom: '16px' }}
+            />
             <p className="animate-fadeIn text-[18px]">실제 주식 차트와 데이터를 기반으로</p>
             <p className="animate-fadeIn text-[18px]">
               주식 투자를 안전하게 경험해 볼 수 있습니다.
@@ -733,8 +741,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           tooltip: {
             width: '650px',
             padding: '20px',
-            borderRadius: '5px',
-            boxShadow: '0 0 20px 3px rgba(136, 151, 172, 0.5)',
+            boxShadow: '0 0 15px 3px rgba(136, 151, 172, 0.5)',
           },
           buttonNext: {
             backgroundColor: '#5676F5',
