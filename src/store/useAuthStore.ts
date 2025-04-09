@@ -70,9 +70,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   initializeAuth: () => {
     const token = localStorage.getItem('accessToken');
     const userData = getUserDataFromStorage();
+    const storedUserData = localStorage.getItem('userData');
 
-    // 토큰이 있지만 만료된 경우 로그아웃 처리
-    if (token && isTokenExpired()) {
+    // 토큰이 있지만 만료된 경우 또는 userData가 없는 경우 로그아웃 처리
+    if ((token && isTokenExpired()) || !storedUserData) {
       unsubscribeFromNotifications(); // SSE 연결 종료
       localStorage.removeItem('accessToken');
       localStorage.removeItem('tokenExpiry');
