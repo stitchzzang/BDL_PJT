@@ -100,7 +100,6 @@ const FALL_COLOR = '#1976d2'; // 하락 색상 (파란색)
 const DEFAULT_DATA_ZOOM_START = 50; // 데이터줌 시작 위치
 const DEFAULT_DATA_ZOOM_END = 100; // 데이터줌 종료 위치
 const EMPTY_DATA_COUNT = 10; // 빈 데이터 개수 (여백용)
-const Y_AXIS_MARGIN_PERCENT = 25; // Y축 여백 비율 (%)
 
 // 커스텀 비교 함수 - 실제로 props가 변경되었는지 확인
 const arePropsEqual = (prevProps: MinuteChartProps, nextProps: MinuteChartProps) => {
@@ -141,7 +140,6 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     end: DEFAULT_DATA_ZOOM_END,
   });
   const chartRef = useRef<ReactECharts>(null);
-  // const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [cursorValue, setCursorValue] = useState<string>('0');
 
   // 커서 페이지네이션을 위한 변수
@@ -184,26 +182,26 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     };
   }, []);
 
-  // 차트 데이터 준비
+  // 차트 데이터 준비 부분을 수정
   const chartData = useMemo(() => {
     if (!minuteData?.data) return [];
 
     // 실제 데이터 변환
     const realData = minuteData.data.map(convertMinuteDataToChartData);
 
-    // 빈 데이터 추가 (차트 오른쪽 공간 확보)
+    // 빈 데이터 추가 (차트 오른쪽 공간 확보) - null 값 사용
     const emptyData = Array(EMPTY_DATA_COUNT)
       .fill(null)
       .map(() => ({
         date: '',
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 0,
-        volume: 0,
+        open: null,
+        high: null,
+        low: null,
+        close: null,
+        volume: null,
         changeType: 'NONE' as const,
-        fiveAverage: 0,
-        twentyAverage: 0,
+        fiveAverage: null,
+        twentyAverage: null,
         rawDate: null,
       }));
 
@@ -215,19 +213,18 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     return chartData.map((item) => item.date);
   }, [chartData]);
 
-  // 캔들 데이터 생성
+  // 캔들 데이터 생성 - null 처리 추가
   const candleData = useMemo(() => {
-    return chartData.map((item) => [
-      item.open || 0,
-      item.close || 0,
-      item.low || 0,
-      item.high || 0,
-    ]);
+    return chartData.map((item) => {
+      // 빈 데이터인 경우 null 반환
+      if (item.open === null) return [null, null, null, null];
+      return [item.open || 0, item.close || 0, item.low || 0, item.high || 0];
+    });
   }, [chartData]);
 
-  // 거래량 데이터 생성
+  // 거래량 데이터 생성 - null 처리 추가
   const volumeData = useMemo(() => {
-    return chartData.map((item) => item.volume || 0);
+    return chartData.map((item) => (item.volume === null ? null : item.volume || 0));
   }, [chartData]);
 
   // 이동평균선 데이터
@@ -239,72 +236,17 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     return chartData.map((item) => item.twentyAverage || null);
   }, [chartData]);
 
-  // 현재 보이는 데이터 범위에 따라 Y축 범위를 계산하는 함수 추가
-  const getVisibleDataRange = useCallback(() => {
-    if (chartData.length === 0) return { min: 0, max: 1 };
-
-    // 데이터줌 범위 계산 (백분율을 실제 인덱스로 변환)
-    const dataLength = chartData.length - EMPTY_DATA_COUNT;
-    const startIdx = Math.max(0, Math.floor((dataLength * dataZoomRange.start) / 100));
-    const endIdx = Math.min(dataLength, Math.floor((dataLength * dataZoomRange.end) / 100));
-
-    // 추가: 표시 범위보다 더 넓은 범위를 계산에 사용 (앞뒤로 20% 더 확장)
-    const visibleRange = endIdx - startIdx;
-    const extraRange = Math.ceil(visibleRange * 0.8); // 표시되는 영역의 20%를 추가로 고려
-
-    const expandedStartIdx = Math.max(0, startIdx - extraRange);
-    const expandedEndIdx = Math.min(dataLength, endIdx + extraRange);
-
-    console.log('범위 확장:', {
-      원래범위: `${startIdx}-${endIdx} (${endIdx - startIdx + 1}개)`,
-      확장범위: `${expandedStartIdx}-${expandedEndIdx} (${expandedEndIdx - expandedStartIdx + 1}개)`,
-      추가확장: extraRange,
-    });
-
-    // 확장된 범위의 데이터 추출
-    const visibleData = chartData.slice(expandedStartIdx, expandedEndIdx + 1);
-
-    // 빈 데이터나 무효한 가격 제외
-    const prices = visibleData
-      .filter((item) => item.high > 0) // 빈 데이터 제외
-      .flatMap((item) => [item.high, item.low]);
-
-    if (prices.length === 0) return { min: 0, max: 1 };
-
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const range = max - min;
-
-    // 여백 추가 (범위의 Y_AXIS_MARGIN_PERCENT %)
-    const margin = range * (Y_AXIS_MARGIN_PERCENT / 100);
-
-    console.log('Y축 범위 계산:', {
-      최소값: min,
-      최대값: max,
-      범위: range,
-      여백: margin,
-      최종최소값: Math.max(0, min - margin),
-      최종최대값: max + margin,
-    });
-
-    return {
-      min: Math.max(0, min - margin),
-      max: max + margin,
-    };
-  }, [chartData, dataZoomRange]);
-
-  // yAxisRange 훅을 기존 코드에서 제거하고 getVisibleDataRange 함수로 대체
-  const yAxisRange = useMemo(() => getVisibleDataRange(), [getVisibleDataRange]);
-
   // 색상 스타일 가져오기
   const getItemStyle = useCallback(
     (params: any) => {
       const item = chartData[params.dataIndex];
-      return item?.open <= item?.close ? RISE_COLOR : FALL_COLOR;
+      // ?? 연산자를 사용하여 null 또는 undefined일 경우 0으로 대체
+      const open = item?.open ?? 0;
+      const close = item?.close ?? 0;
+      return open <= close ? RISE_COLOR : FALL_COLOR;
     },
     [chartData],
   );
-
   // 숫자 포맷팅 (한국어)
   const formatKoreanNumber = useCallback((value: number) => {
     return new Intl.NumberFormat('ko-KR').format(Math.floor(value));
@@ -434,32 +376,10 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
         end: end,
       });
 
-      // Y축 범위 업데이트를 위해 차트 인스턴스 접근
-      if (chartRef.current) {
-        const chartInstance = chartRef.current.getEchartsInstance();
-        if (chartInstance) {
-          // Y축 범위 다시 계산
-          const newRange = getVisibleDataRange();
-
-          // 차트 옵션 업데이트
-          chartInstance.setOption({
-            yAxis: [
-              {
-                min: newRange.min,
-                max: newRange.max,
-              },
-              {}, // 두 번째 yAxis는 그대로 유지
-            ],
-          });
-        }
-      }
-
       // 왼쪽 경계에 도달했고 아직 추가 데이터를 로드하지 않았을 때만 요청
       if (start <= 5 && !hasLoadedAdditionalData) {
         console.log('추가 데이터 로드 요청');
         console.log(cursorValue);
-
-        // 가장 오래된 데이터의 시간을 커서로 사용
 
         // 직접 _ky 사용하여 API 호출
         _ky
@@ -505,30 +425,8 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           });
       }
     }, 300),
-    [onLoadMoreData, hasLoadedAdditionalData, cursorValue, getVisibleDataRange],
+    [onLoadMoreData, hasLoadedAdditionalData, cursorValue, companyId],
   );
-
-  // useEffect 추가: 데이터가 변경될 때마다 Y축 범위 업데이트
-  useEffect(() => {
-    if (chartRef.current) {
-      const chartInstance = chartRef.current.getEchartsInstance();
-      if (chartInstance) {
-        // Y축 범위 다시 계산
-        const newRange = getVisibleDataRange();
-
-        // 차트 옵션 업데이트
-        chartInstance.setOption({
-          yAxis: [
-            {
-              min: newRange.min,
-              max: newRange.max,
-            },
-            {}, // 두 번째 yAxis는 그대로 유지
-          ],
-        });
-      }
-    }
-  }, [chartData, getVisibleDataRange]);
 
   useEffect(() => {
     // 차트가 마운트된 후 이벤트 리스너 등록
@@ -733,14 +631,13 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     }, 100), // 스로틀링 시간 100ms로 감소하여 반응성 개선
     [updateChartWithTickData],
   );
+
   // 4. 차트 전체 업데이트 필요 시 처리
-  // 4. 차트 전체 업데이트 필요 시 처리 (option 직접 참조 제거)
   useEffect(() => {
     if (needsUpdate && chartRef.current) {
       const chartInstance = chartRef.current.getEchartsInstance();
       if (chartInstance) {
         // 차트의 현재 상태를 기반으로 새로운 옵션 계산 및 설정
-        // 직접 option 변수 참조하지 않음
         chartInstance.setOption({
           series: [
             {
@@ -789,21 +686,6 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     };
   }, [throttledUpdateWithTickData]);
 
-  // 7. 차트 인스턴스 직접 접근을 위한 함수 (성능 진단용)
-  const getChartPerformanceInfo = useCallback(() => {
-    if (chartRef.current) {
-      const chartInstance = chartRef.current.getEchartsInstance();
-      if (chartInstance) {
-        console.log('차트 성능 정보:', {
-          renderedCount: chartInstance.getOption()?.__renderedCount || 0,
-          currentDataLength: chartData.length,
-        });
-      }
-    }
-  }, [chartData.length]);
-
-  // 보조 함수들
-
   // 틱 시간(HHmmss)을 포맷팅하는 함수
   const formatTickTime = (tickTime: string): string => {
     // HHmmss 형식의 문자열을 HH:mm 형식으로 변환
@@ -830,6 +712,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     // 9시간 추가
     return addNineHours(result);
   };
+
   // 두 날짜가 같은 분(minute)에 속하는지 확인하는 함수
   const isSameMinute = (date1: Date | null, date2: Date | null): boolean => {
     if (!date1 || !date2) return false;
@@ -847,18 +730,26 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
   const option: EChartsOption = useMemo(() => {
     // 실제 데이터 구간에서 마지막 유효한 캔들 찾기
     const dataEndIndex = chartData.length - EMPTY_DATA_COUNT - 1;
-    const latestCandle =
-      dataEndIndex >= 0
-        ? [
-            chartData[dataEndIndex].open,
-            chartData[dataEndIndex].close,
-            chartData[dataEndIndex].low,
-            chartData[dataEndIndex].high,
-          ]
-        : null;
+
+    // null 체크를 추가하여 타입 에러 해결
+    let latestCandle: [number, number, number, number] | null = null;
+
+    if (dataEndIndex >= 0) {
+      const lastItem = chartData[dataEndIndex];
+      // 마지막 아이템의 값이 모두 null이 아닌 경우에만 배열 생성
+      if (
+        lastItem.open !== null &&
+        lastItem.close !== null &&
+        lastItem.low !== null &&
+        lastItem.high !== null
+      ) {
+        latestCandle = [lastItem.open, lastItem.close, lastItem.low, lastItem.high];
+      }
+    }
+
     const latestPrice = latestCandle ? latestCandle[1] : 0; // 종가 값
 
-    // 상승/하락 여부 확인 (안전하게)
+    // 상승/하락 여부 확인 - null 체크 포함
     const isRising = latestCandle && latestCandle[1] >= latestCandle[0];
     const priceColor = isRising ? RISE_COLOR : FALL_COLOR;
 
@@ -973,9 +864,11 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
       ],
       yAxis: [
         {
-          scale: true,
-          min: yAxisRange.min, // 계산된 최소값
-          max: yAxisRange.max, // 계산된 최대값
+          scale: true, // 차트 데이터 중 값이 있는 항목의 최소값보다 약간 낮게 설정
+          min: function (value) {
+            // value.min은 실제 데이터의 최소값입니다
+            return value.min * 1; // 최소값의 95%로 설정
+          },
           splitArea: {
             show: false,
           },
@@ -1079,36 +972,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
             fontFamily:
               'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
           },
-          // onZoom: handleDataZoomChange,
         },
-        // {
-        //   show: true,
-        //   xAxisIndex: [0, 1],
-        //   type: 'slider',
-        //   bottom: '7%',
-        //   start: dataZoomRange.start,
-        //   end: dataZoomRange.end,
-        //   height: 10,
-        //   backgroundColor: 'rgba(40, 44, 52, 0.8)',
-        //   fillerColor: 'rgba(13, 25, 43, 0.5)',
-        //   borderColor: 'rgba(204, 204, 204, 0.2)',
-        //   handleSize: '10%',
-        //   handleStyle: {
-        //     color: '#4169E1',
-        //     borderColor: '#fff',
-        //     borderWidth: 1,
-        //     shadowBlur: 3,
-        //     shadowColor: 'rgba(0, 0, 0, 0.6)',
-        //     shadowOffsetX: 2,
-        //     shadowOffsetY: 2,
-        //   },
-        //   textStyle: {
-        //     color: 'rgba(255, 255, 255, 0.7)',
-        //     fontFamily:
-        //       'Spoqa Han Sans Neo, Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif',
-        //   },
-        //   // onZoom: handleDataZoomChange,
-        // },
       ],
       series: [
         {
@@ -1116,6 +980,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           type: 'candlestick',
           data: candleData,
           clip: true, // 그리드 영역을 벗어나는 요소를 잘라냅니다
+          connectNulls: true, // 널 값 사이를 연결
           itemStyle: {
             color: RISE_COLOR,
             color0: FALL_COLOR,
@@ -1166,6 +1031,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           name: '거래량',
           type: 'bar',
           clip: true,
+          connectNulls: true, // 널 값 사이를 연결
           xAxisIndex: 1,
           yAxisIndex: 1,
           data: volumeData,
@@ -1177,6 +1043,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           name: '5이평선',
           type: 'line',
           clip: true,
+          connectNulls: true, // 널 값 사이를 연결
           data: ema5Data,
           smooth: true,
           lineStyle: {
@@ -1195,6 +1062,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           name: '20이평선',
           type: 'line',
           clip: true,
+          connectNulls: true, // 널 값 사이를 연결
           data: ema20Data,
           smooth: true,
           lineStyle: {
@@ -1220,8 +1088,6 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
     getItemStyle,
     dataZoomRange,
     tooltipFormatter,
-    yAxisRange,
-    handleDataZoomChange,
   ]);
 
   return (
@@ -1237,7 +1103,7 @@ const MinuteChartComponent: React.FC<MinuteChartProps> = ({
           option={option}
           style={{ height: `${height}px` }}
           onEvents={{
-            datazoom: handleDataZoomChange, // 기존 이벤트 (모든 dataZoom 이벤트 처리)
+            datazoom: handleDataZoomChange,
             rendered: () => console.log('차트 렌더링 완료'),
             click: () => console.log('차트 클릭됨'),
           }}
