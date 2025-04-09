@@ -119,19 +119,20 @@ export const useAlgorithmLabStore = create<AlgorithmLabState>((set) => ({
         break;
     }
   },
-  setProfitPercentToSell: (value) => set({ profitPercentToSell: Math.min(Math.max(value, 1), 30) }),
-  setLossPercentToSell: (value) => set({ lossPercentToSell: Math.min(Math.max(value, 1), 30) }),
+  setProfitPercentToSell: (value) =>
+    set({ profitPercentToSell: Math.min(Math.max(value, 0.1), 30) }),
+  setLossPercentToSell: (value) => set({ lossPercentToSell: Math.min(Math.max(value, 0.1), 30) }),
   setOneMinuteIncreasePercent: (value) =>
-    set({ oneMinuteIncreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+    set({ oneMinuteIncreasePercent: value ? Math.min(Math.max(value, 0.1), 30) : null }),
   setOneMinuteIncreaseAction: (action) => set({ oneMinuteIncreaseAction: action }),
   setOneMinuteDecreasePercent: (value) =>
-    set({ oneMinuteDecreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+    set({ oneMinuteDecreasePercent: value ? Math.min(Math.max(value, 0.1), 30) : null }),
   setOneMinuteDecreaseAction: (action) => set({ oneMinuteDecreaseAction: action }),
   setDailyIncreasePercent: (value) =>
-    set({ dailyIncreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+    set({ dailyIncreasePercent: value ? Math.min(Math.max(value, 0.1), 30) : null }),
   setDailyIncreaseAction: (action) => set({ dailyIncreaseAction: action }),
   setDailyDecreasePercent: (value) =>
-    set({ dailyDecreasePercent: value ? Math.min(Math.max(value, 1), 30) : null }),
+    set({ dailyDecreasePercent: value ? Math.min(Math.max(value, 0.1), 30) : null }),
   setDailyDecreaseAction: (action) => set({ dailyDecreaseAction: action }),
   setShortTermMaPeriod: (period) => set({ shortTermMaPeriod: period }),
   setLongTermMaPeriod: (period) => set({ longTermMaPeriod: period }),

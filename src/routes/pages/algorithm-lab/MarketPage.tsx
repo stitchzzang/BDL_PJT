@@ -1,9 +1,8 @@
 import { ChartBarIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/solid';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { HelpBadge } from '@/components/common/help-badge';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SimpleDailyChart } from '@/components/ui/simple-daily-chart';
@@ -47,8 +46,47 @@ export const MarketPage = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'oneMinute' | 'daily' | null>(null);
 
   // 입력값 임시 저장을 위한 상태
-  const [increaseValue, setIncreaseValue] = useState<string>('1.00');
-  const [decreaseValue, setDecreaseValue] = useState<string>('1.00');
+  const [increaseValue, setIncreaseValue] = useState<string>('0.1');
+  const [decreaseValue, setDecreaseValue] = useState<string>('0.1');
+  // 알림 메시지 상태 추가
+  const [showAlert, setShowAlert] = useState<boolean>(false);
+
+  // 기존 상태값이 있으면 UI에 반영
+  useEffect(() => {
+    // 분봉 설정이 있는 경우
+    if (
+      oneMinuteIncreasePercent !== null &&
+      oneMinuteIncreaseAction !== null &&
+      oneMinuteDecreasePercent !== null &&
+      oneMinuteDecreaseAction !== null
+    ) {
+      setSelectedTimeframe('oneMinute');
+      // 소수점 두 자리로 설정 (blur 시에만 포맷팅되므로 여기선 그대로 표시)
+      setIncreaseValue(String(oneMinuteIncreasePercent));
+      setDecreaseValue(String(oneMinuteDecreasePercent));
+    }
+    // 일봉 설정이 있는 경우
+    else if (
+      dailyIncreasePercent !== null &&
+      dailyIncreaseAction !== null &&
+      dailyDecreasePercent !== null &&
+      dailyDecreaseAction !== null
+    ) {
+      setSelectedTimeframe('daily');
+      // 소수점 두 자리로 설정 (blur 시에만 포맷팅되므로 여기선 그대로 표시)
+      setIncreaseValue(String(dailyIncreasePercent));
+      setDecreaseValue(String(dailyDecreasePercent));
+    }
+  }, [
+    oneMinuteIncreasePercent,
+    oneMinuteIncreaseAction,
+    oneMinuteDecreasePercent,
+    oneMinuteDecreaseAction,
+    dailyIncreasePercent,
+    dailyIncreaseAction,
+    dailyDecreasePercent,
+    dailyDecreaseAction,
+  ]);
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -67,34 +105,34 @@ export const MarketPage = () => {
       setDailyDecreaseAction(null);
       setShortTermMaPeriod(null);
       setLongTermMaPeriod(null);
-      setIncreaseValue('1.00');
-      setDecreaseValue('1.00');
+      setIncreaseValue('');
+      setDecreaseValue('');
     } else {
       setSelectedTimeframe(timeframe);
       if (timeframe === 'oneMinute') {
         setShortTermMaPeriod(null);
         setLongTermMaPeriod(null);
-        setOneMinuteIncreasePercent(1);
-        setOneMinuteDecreasePercent(1);
+        setOneMinuteIncreasePercent(0.1);
+        setOneMinuteDecreasePercent(0.1);
         setOneMinuteIncreaseAction('BUY');
         setOneMinuteDecreaseAction('SELL');
         setDailyIncreasePercent(null);
         setDailyDecreasePercent(null);
         setDailyIncreaseAction(null);
         setDailyDecreaseAction(null);
-        setIncreaseValue('1.00');
-        setDecreaseValue('1.00');
+        setIncreaseValue('0.1');
+        setDecreaseValue('0.1');
       } else {
-        setDailyIncreasePercent(1);
-        setDailyDecreasePercent(1);
+        setDailyIncreasePercent(0.1);
+        setDailyDecreasePercent(0.1);
         setDailyIncreaseAction('BUY');
         setDailyDecreaseAction('SELL');
         setOneMinuteIncreasePercent(null);
         setOneMinuteDecreasePercent(null);
         setOneMinuteIncreaseAction(null);
         setOneMinuteDecreaseAction(null);
-        setIncreaseValue('1.00');
-        setDecreaseValue('1.00');
+        setIncreaseValue('0.1');
+        setDecreaseValue('0.1');
       }
     }
   };
@@ -103,49 +141,34 @@ export const MarketPage = () => {
   const handlePercentChange = (e: ChangeEvent<HTMLInputElement>, type: 'increase' | 'decrease') => {
     const value = e.target.value;
 
-    // 소수점 두 자리까지의 숫자만 허용
-    if (/^\d{1,2}(\.\d{0,2})?$/.test(value) || value === '') {
-      let validValue = value;
-      let numValue = value ? parseFloat(value) : 0;
-
-      // 값이 30보다 크면 자동으로 30으로 설정하고 소수점 형식은 유지
-      if (numValue > 30) {
-        numValue = 30;
-
-        // 소수점이 있는 경우 동일한 소수점 자릿수 유지
-        if (value.includes('.')) {
-          const decimalPart = value.split('.')[1] || '';
-          validValue = `30.${decimalPart.substring(0, 2)}`;
-        } else {
-          validValue = '30';
-        }
-      }
-      // 값이 0.1 미만이고 빈 문자열이 아닌 경우 자동으로 0.10으로 설정
-      else if (numValue < 0.1 && value !== '' && value !== '0' && value !== '0.') {
-        numValue = 0.1;
-        validValue = '0.10';
-      }
-
+    // 입력값 패턴 검사: 숫자만, 또는 소수점 포함 숫자만 (소수점 두 자리까지만), 또는 빈 문자열
+    if (/^$|^([0-9]{1,2})$|^([0-9]{1,2}\.[0-9]{0,2})$/.test(value)) {
+      // 중간 입력 (예: '2', '2.', '2.3')은 그대로 허용하고 표시
       if (type === 'increase') {
-        setIncreaseValue(validValue);
-
-        // 빈 값이 아니고 유효 범위 내인 경우에만 저장
-        if (validValue && !isNaN(numValue) && numValue >= 0.1 && numValue <= 30) {
-          if (selectedTimeframe === 'oneMinute') {
-            setOneMinuteIncreasePercent(numValue);
-          } else {
-            setDailyIncreasePercent(numValue);
-          }
-        }
+        setIncreaseValue(value);
       } else {
-        setDecreaseValue(validValue);
+        setDecreaseValue(value);
+      }
 
-        // 빈 값이 아니고 유효 범위 내인 경우에만 저장
-        if (validValue && !isNaN(numValue) && numValue >= 0.1 && numValue <= 30) {
-          if (selectedTimeframe === 'oneMinute') {
-            setOneMinuteDecreasePercent(numValue);
+      // 숫자로 변환하여 범위 체크 및 저장 (완전한 숫자인 경우만)
+      if (value && !/\.$/.test(value)) {
+        // 소수점으로 끝나지 않는 경우에만 숫자로 변환
+        const numValue = parseFloat(value);
+
+        // 값이 유효 범위(0.1~30) 내에 있는 경우에만 저장
+        if (!isNaN(numValue) && numValue >= 0.1 && numValue <= 30) {
+          if (type === 'increase') {
+            if (selectedTimeframe === 'oneMinute') {
+              setOneMinuteIncreasePercent(numValue);
+            } else {
+              setDailyIncreasePercent(numValue);
+            }
           } else {
-            setDailyDecreasePercent(numValue);
+            if (selectedTimeframe === 'oneMinute') {
+              setOneMinuteDecreasePercent(numValue);
+            } else {
+              setDailyDecreasePercent(numValue);
+            }
           }
         }
       }
@@ -206,9 +229,6 @@ export const MarketPage = () => {
           description="주식 가격 변화에 어떻게 반응할까요?
         여러분의 선택에 따라 다양한 방법으로 반응이 가능합니다."
         />
-        <Badge variant="yellow" className="w-full text-left font-medium">
-          💡 해당 옵션은 필수값이 아니므로, 건너뛰어도 괜찮습니다.
-        </Badge>
       </div>
       <div className="flex w-full gap-4">
         <div className="flex w-full flex-col gap-2">
@@ -591,7 +611,7 @@ export const MarketPage = () => {
                 className={
                   shortTermMaPeriod === 5 && longTermMaPeriod === 20
                     ? 'bg-btn-blue-color'
-                    : 'bg-btn-blue-color/20'
+                    : 'bg-btn-blue-color/10'
                 }
               >
                 {shortTermMaPeriod === 5 && longTermMaPeriod === 20 ? '사용중' : '사용하기'}
@@ -611,12 +631,22 @@ export const MarketPage = () => {
         </Button>
         <Button
           variant="blue"
-          onClick={() => navigate('/algorithm-lab/confirm')}
+          onClick={() => {
+            if (selectedTimeframe) {
+              navigate('/algorithm-lab/confirm');
+            }
+          }}
           className="flex-1"
+          disabled={!selectedTimeframe}
         >
           다음
         </Button>
       </div>
+      {showAlert && (
+        <div className="animate-slideUp fixed bottom-4 left-1/2 -translate-x-1/2 transform rounded-md bg-red-500 p-3 shadow-lg">
+          <p className="text-white">시간 프레임을 선택해주세요!</p>
+        </div>
+      )}
     </div>
   );
 };
