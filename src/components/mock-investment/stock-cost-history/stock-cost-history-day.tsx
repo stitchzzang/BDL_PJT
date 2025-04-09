@@ -8,11 +8,13 @@ interface StockCostHistoryDayProps {
   DayData: StockDayCandle[] | undefined;
   tickData: TickData | null;
   priceChange: PriceChangeResult | null;
+  comparePrice?: number | null;
 }
 export const StockCostHistoryDay = ({
   DayData,
   tickData,
   priceChange,
+  comparePrice,
 }: StockCostHistoryDayProps) => {
   const reverseDayData = DayData ? [...DayData].reverse() : undefined;
 
@@ -51,12 +53,19 @@ export const StockCostHistoryDay = ({
                   {tickData ? formatKoreanMoney(tickData.stckPrpr) : ''} 원
                 </div>
                 <div className="w-[20%] text-right text-[14px] font-light text-border-color">
-                  {priceChange ? (
-                    <p
-                      className={priceChange.isRise ? 'text-btn-red-color' : 'text-btn-blue-color'}
-                    >
-                      {priceChange.isRise ? '+' : '-'}({priceChange.percent}%)
-                    </p>
+                  {tickData && DayData && comparePrice && DayData.length > 0 ? (
+                    (() => {
+                      const lastClosePrice = comparePrice;
+                      const currentPrice = tickData.stckPrpr;
+                      const priceDiff = currentPrice - lastClosePrice;
+                      const percentChange = (priceDiff / lastClosePrice) * 100;
+                      const isRise = priceDiff >= 0;
+                      return (
+                        <p className={isRise ? 'text-btn-red-color' : 'text-btn-blue-color'}>
+                          {isRise ? '+' : '-'}({Math.abs(percentChange).toFixed(2)}%)
+                        </p>
+                      );
+                    })()
                   ) : (
                     <></>
                   )}

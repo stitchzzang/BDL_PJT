@@ -201,6 +201,7 @@ export const SimulatedInvestmentPage = () => {
             tickData={tickData}
             DayData={stockDailyData?.result.data}
             closePrice={closePrice}
+            comparePrice={comparePrice}
           />
         </div>
         <div className="col-span-2">

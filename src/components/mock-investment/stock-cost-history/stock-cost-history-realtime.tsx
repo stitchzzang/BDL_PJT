@@ -6,6 +6,7 @@ import { addCommasToThousand, formatKoreanMoney } from '@/utils/numberFormatter'
 interface StockCostHistoryRealTimeProps {
   tickDataLists: TickData[];
   animationKey: number;
+  closePrice?: number;
 }
 
 export const StockCostHistoryRealTime = ({
