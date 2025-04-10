@@ -374,16 +374,38 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
   // 투어 시작 시 더미 화면 표시
   useEffect(() => {
+    // 마우스 휠 스크롤 방지 함수
+    const preventScroll = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
     if (run) {
       setShowDemo(true);
       setStepIndex(0); // run이 true로 변경될 때마다 stepIndex를 0으로 초기화
+
+      // 마우스 휠 스크롤 방지 이벤트 추가
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      document.body.style.overflow = 'hidden';
     } else {
       // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
       const timer = setTimeout(() => {
         setShowDemo(false);
       }, 500);
+
+      // 스크롤 방지 해제
+      window.removeEventListener('wheel', preventScroll);
+      document.body.style.overflow = 'auto';
+
       return () => clearTimeout(timer);
     }
+
+    // 컴포넌트 언마운트 시 이벤트 리스너 정리
+    return () => {
+      window.removeEventListener('wheel', preventScroll);
+      document.body.style.overflow = 'auto';
+    };
   }, [run]);
 
   useEffect(() => {
