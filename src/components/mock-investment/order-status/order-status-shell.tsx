@@ -39,6 +39,7 @@ export const OrderStatusShell = ({
   const [shellCost, setShellCost] = useState<number>(0);
   const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
   useEffect(() => {
+    setShellCost(closePrice);
     setPrintCost(shellCost + ' 원');
   }, [shellCost]);
   // +,- 기능 (구매가격)
@@ -115,6 +116,7 @@ export const OrderStatusShell = ({
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['stockAccount'] });
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           setStockCount(0);
           toast.success(`주문이 성공적으로 처리되었습니다.`);
         },
@@ -149,6 +151,7 @@ export const OrderStatusShell = ({
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ['stockAccount'] });
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
           setStockCount(0);
           toast.success('주문이 성공적으로 처리되었습니다.');
         },
@@ -211,7 +214,7 @@ export const OrderStatusShell = ({
               {isActive === '지정가' ? (
                 <>
                   <NumberPriceInput
-                    value={0}
+                    value={shellCost}
                     setValue={setShellCost}
                     placeholder={`${closePrice.toLocaleString()}원`}
                     tickSize={tickSize}

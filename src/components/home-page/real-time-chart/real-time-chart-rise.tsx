@@ -123,7 +123,12 @@ export const RealTimeChartRise = () => {
                     >
                       <div className="flex w-[60%] items-center gap-3 font-medium">
                         <h3 className="text-[18px] font-bold">{index + 1}</h3>
-                        <button className="flex flex-row items-center gap-2">
+                        <button
+                          className="flex flex-row items-center gap-2"
+                          onClick={() => {
+                            navigate(`/investment/simulate/${rankVolumeData.companyId}`);
+                          }}
+                        >
                           <div className="max-h-[50px] max-w-[50px] overflow-hidden rounded-xl">
                             {rankVolumeData.companyImage === null ? (
                               <img src="/none-img/none_stock_img.png" alt="noneimage" />
@@ -131,12 +136,7 @@ export const RealTimeChartRise = () => {
                               <img src={rankVolumeData.companyImage} alt="stockprofileimage" />
                             )}
                           </div>
-                          <h3
-                            className="text-[16px] font-medium hover:underline"
-                            onClick={() => {
-                              navigate(`/investment/simulate/${rankVolumeData.companyId}`);
-                            }}
-                          >
+                          <h3 className="text-[16px] font-medium hover:underline">
                             {rankVolumeData.companyName}
                           </h3>
                         </button>

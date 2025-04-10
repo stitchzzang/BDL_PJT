@@ -853,7 +853,7 @@ export const InvestmentResultPage = () => {
                       <TooltipTrigger asChild>
                         <p
                           className="cursor-pointer text-lg underline"
-                          onClick={() => navigate('/search')}
+                          onClick={() => navigate('/investment/simulate')}
                         >
                           보유 종목이 없습니다.
                         </p>
@@ -1038,7 +1038,7 @@ export const InvestmentResultPage = () => {
                         <TooltipTrigger asChild>
                           <p
                             className="cursor-pointer text-lg underline"
-                            onClick={() => navigate('/search')}
+                            onClick={() => navigate('/investment/search')}
                           >
                             대기 중인 주문이 없습니다.
                           </p>
@@ -1168,7 +1168,7 @@ export const InvestmentResultPage = () => {
                       <TooltipTrigger asChild>
                         <p
                           className="cursor-pointer text-lg underline"
-                          onClick={() => navigate('/search')}
+                          onClick={() => navigate('/investment/search')}
                         >
                           거래 내역이 없습니다.
                         </p>
