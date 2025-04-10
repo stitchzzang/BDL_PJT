@@ -362,6 +362,28 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         position: relative !important;
         z-index: 1 !important;
       }
+      
+      /* 거래 체결 영역 스팟라이트 및 툴팁 조정 */
+      #stock-tutorial-order {
+        position: relative !important;
+        z-index: 1 !important;
+      }
+      
+      /* 거래 체결 영역 툴팁 위치 조정 */
+      #stock-tutorial-order + div > div {
+        position: fixed !important;
+        left: 20px !important;
+        right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+      }
+      
+      /* 거래 체결 영역에 표시되는 툴팁 조정 */
+      #stock-tutorial-order + div .react-joyride__tooltip {
+        position: relative;
+        z-index: 10001 !important;
+        width: 300px !important;
+      }
     `;
     document.head.appendChild(styleTag);
 
@@ -588,13 +610,24 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">거래 체결</h2>
-            <p className="text-[18px]">이 영역에서 주식을 구매, 판매, 관망할 수 있습니다.</p>
-            <p className="mt-2 text-[18px]">각 단계마다 한 번만 거래할 수 있습니다.</p>
+            <p className="text-[16px]">이 영역에서 주식을{'\n'}구매, 판매, 관망할 수 있습니다.</p>
+            <p className="mt-2 text-[16px]">각 단계마다 한 번만{'\n'}거래할 수 있습니다.</p>
           </div>
         ),
         disableBeacon: true,
         placement: 'left',
         spotlightClicks: true,
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '500px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#stock-tutorial-comment',
@@ -609,7 +642,18 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'top',
+        placement: 'right',
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '600px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#day-history',
@@ -624,22 +668,49 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'right',
+        placement: 'left',
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '600px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#stock-tutorial-news',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">교육용 뉴스</h2>
-            <p className="text-[18px]">3개의 변곡점과 관련된 주요 뉴스를 제공해드립니다.</p>
+            <p className="text-[18px]">
+              3개의 변곡점과 관련된
+              <br /> 주요 뉴스를 제공해드립니다.
+            </p>
             <p className="mt-2 text-[18px]">
-              실제 뉴스가 주가에 어떤 영향을 미쳤는지 학습해보세요.
+              실제 뉴스가 주가에
+              <br />
+              어떤 영향을 미쳤는지 학습해보세요.
             </p>
           </div>
         ),
         disableBeacon: true,
-        placement: 'bottom',
+        placement: 'right',
         spotlightClicks: true,
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '400px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#stock-tutorial-conclusion',
@@ -654,7 +725,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'bottom',
+        placement: 'left',
       },
       {
         target: 'body',
@@ -694,13 +765,19 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
               const targetRect = targetElement.getBoundingClientRect();
               const containerRect = container.getBoundingClientRect();
 
-              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
-              const scrollPosition =
+              // 스크롤 위치 조정 로직 추가 (타겟이 화면 중앙에 오도록)
+              let scrollPosition =
                 targetRect.top +
                 window.scrollY -
                 containerRect.top -
                 containerRect.height / 2 +
                 targetRect.height / 2;
+
+              // 거래 체결 컴포넌트의 경우 추가 조정
+              if (steps[index + 1].target === '#stock-tutorial-order') {
+                // 화면 크기에 맞게 위치 조정 (차트와 함께 보이도록)
+                scrollPosition -= 100;
+              }
 
               (container as HTMLElement).scrollTo({
                 top: Math.max(0, scrollPosition),
