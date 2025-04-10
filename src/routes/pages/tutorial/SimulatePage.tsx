@@ -114,7 +114,7 @@ const TutorialEndModal = memo(
           {feedback && (
             <div className="my-2 rounded-md bg-[#1A1D2D] p-4">
               <h3 className="mb-2 text-[16px] font-semibold">튜토리얼 피드백</h3>
-              <p className="text-[14px] text-gray-300">{feedback}</p>
+              <p className="whitespace-pre-line text-[14px] text-gray-300">{feedback}</p>
             </div>
           )}
 
@@ -2267,15 +2267,15 @@ export const SimulatePage = () => {
   // 수익률 기준으로 피드백 메시지를 계산하는 함수 추가
   const calculateFeedback = (returnRate: number): string => {
     if (returnRate >= 20) {
-      return '훌륭합니다! 높은 수익률을 기록했어요. 투자 감각이 뛰어나네요!';
+      return '훌륭합니다! 높은 수익률을 기록했어요.\n투자 감각이 뛰어나네요!';
     } else if (returnRate >= 10) {
-      return '잘했어요! 안정적인 수익을 냈네요. 앞으로가 더욱 기대돼요.';
+      return '잘했어요! 안정적인 수익을 냈네요.\n앞으로가 더욱 기대돼요.';
     } else if (returnRate >= 0) {
-      return '수익은 크지 않지만 손실도 없었네요. 신중한 접근이 돋보여요.';
+      return '수익은 크지 않지만 손실도 없었네요.\n신중한 접근이 돋보여요.';
     } else if (returnRate >= -10) {
-      return '약간의 손실이 있지만 좋은 학습이 되었을 거예요. 다음엔 더 나을 거예요!';
+      return '약간의 손실이 있지만 좋은 학습이 되었을 거예요.\n다음엔 더 나을 거예요!';
     } else {
-      return '손실이 컸어요. 원인을 복기해보고 전략을 바꿔보는 건 어때요?';
+      return '손실이 컸어요.\n원인을 복기해보고 전략을 바꿔보는 건 어때요?';
     }
   };
 
