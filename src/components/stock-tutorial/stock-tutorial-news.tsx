@@ -1,7 +1,7 @@
 import { NewsResponseWithThumbnail } from '@/api/types/tutorial';
 import { StockTutorialNewsDetail } from '@/components/stock-tutorial/stock-tutorial-news-detail';
-import { SparklesCore } from '@/components/ui/sparkles';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SparklesCore } from '@/components/ui/sparkles';
 
 export interface StockTutorialNewsProps {
   currentNews: NewsResponseWithThumbnail | null;

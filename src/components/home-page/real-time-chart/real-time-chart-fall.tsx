@@ -136,12 +136,7 @@ export const RealTimeChartFall = () => {
                               <img src={rankVolumeData.companyImage} alt="stockprofileimage" />
                             )}
                           </div>
-                          <h3
-                            className="text-[16px] font-medium hover:underline"
-                            onClick={() => {
-                              navigate(`investment/simulate/${rankVolumeData.companyId}`);
-                            }}
-                          >
+                          <h3 className="text-[16px] font-medium hover:underline">
                             {rankVolumeData.companyName}
                           </h3>
                         </button>

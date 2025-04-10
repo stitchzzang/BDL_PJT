@@ -131,10 +131,10 @@ export const useGetTutorialStockData = (companyId: number, startDate: string, en
 
 /**
  * 구간별 튜토리얼 일봉 데이터 조회 API
- * 시작점~변곡점1, 변곡점1~변곡점2, 변곡점2~변곡점3, 변곡점3~최근점 등의 구간 데이터를 조회
+ * 시작점~변곡점1, 변곡점1 ~ 변곡점2-1, 변곡점2 ~ 변곡점3-1, 변곡점3 ~ 최근점 등의 구간 데이터를 조회
  *
  * @param companyId 회사 ID
- * @param sectionNumber 구간 번호 (0: 시작점~변곡점1, 1: 변곡점1~변곡점2, 2: 변곡점2~변곡점3, 3: 변곡점3~최근점)
+ * @param sectionNumber 구간 번호 (0: 시작점~변곡점1, 1: 변곡점1~변곡점2-1, 2: 변곡점2~변곡점3-1, 3: 변곡점3~최근점)
  * @param inflectionPoints 변곡점 배열 (상위 3개 변곡점)
  * @param startDate 전체 기간 시작 날짜 (YYMMDD)
  * @param endDate 전체 기간 종료 날짜 (YYMMDD)
@@ -160,6 +160,31 @@ export const useGetSectionTutorialStockData = (
       return { startDate, endDate };
     }
 
+    // 각 변곡점의 1일 전 날짜 계산 함수
+    const calculatePreviousDay = (dateStr: string): string => {
+      if (!dateStr) return '';
+
+      // YYMMDD 형식 날짜를 Date 객체로 변환
+      const year = parseInt(`20${dateStr.substring(0, 2)}`, 10);
+      const month = parseInt(dateStr.substring(2, 4), 10) - 1; // 0-indexed month
+      const day = parseInt(dateStr.substring(4, 6), 10);
+
+      const date = new Date(year, month, day);
+
+      // 하루 전 날짜 계산
+      date.setDate(date.getDate() - 1);
+
+      // YYMMDD 형식으로 변환
+      const yy = date.getFullYear().toString().substring(2);
+      const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+      const dd = date.getDate().toString().padStart(2, '0');
+
+      return `${yy}${mm}${dd}`;
+    };
+
+    // 변곡점 이전 날짜 배열 생성
+    const prevPointDates = pointDates.map(calculatePreviousDay);
+
     // 구간에 따른 시작점과 끝점 계산
     switch (sectionNumber) {
       case 0: // 시작점 ~ 변곡점1
@@ -167,15 +192,15 @@ export const useGetSectionTutorialStockData = (
           startDate,
           endDate: pointDates[0] || endDate,
         };
-      case 1: // 변곡점1 ~ 변곡점2
+      case 1: // 변곡점1 ~ 변곡점2-1
         return {
           startDate: pointDates[0] || startDate,
-          endDate: pointDates[1] || endDate,
+          endDate: prevPointDates[1] || pointDates[1] || endDate,
         };
-      case 2: // 변곡점2 ~ 변곡점3
+      case 2: // 변곡점2 ~ 변곡점3-1
         return {
           startDate: pointDates[1] || pointDates[0] || startDate,
-          endDate: pointDates[2] || endDate,
+          endDate: prevPointDates[2] || pointDates[2] || endDate,
         };
       case 3: // 변곡점3 ~ 최근점
         return {
@@ -318,33 +343,6 @@ export const useProcessUserAction = () => {
     onError: (error: unknown) =>
       handleKyError(error as HTTPError, '거래 처리 중 오류가 발생했습니다.'),
   });
-};
-
-/**
- * 튜토리얼 피드백 조회 API
- */
-export const useGetTutorialFeedback = (memberId: number, options?: { enabled?: boolean }) => {
-  const result = useQuery({
-    queryKey: ['tutorial', 'result', 'feedback', memberId],
-    queryFn: async () => {
-      try {
-        const response = await _kyAuth.get(`tutorial/result/feedback/${memberId}`);
-        return response.json() as Promise<ApiResponse<string>>;
-      } catch (error) {
-        handleKyError(error as HTTPError, '튜토리얼 피드백을 불러오는 중 오류가 발생했습니다.');
-        return {
-          isSuccess: true,
-          code: 200,
-          message: '기본 피드백 제공',
-          result: '튜토리얼을 완료하셨습니다. 실제 투자 시에는 더 신중하게 결정해보세요.',
-        } as ApiResponse<string>;
-      }
-    },
-    enabled: options?.enabled !== undefined ? options.enabled : !!memberId,
-    retry: 3,
-  });
-
-  return result;
 };
 
 /**

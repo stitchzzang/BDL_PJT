@@ -144,29 +144,10 @@ export const SimulatedInvestmentPage = () => {
   }
 
   // 오류 발생 시 표시
-  if (isError || comparePrice === 0) {
+  if (isError) {
     return (
       <>
-        {comparePrice === 0 ? (
-          <div className="flex flex-col items-center justify-center">
-            <LoadingAnimation />
-            <p className="font-light text-border-color">
-              (현재{' '}
-              <span className="font-bold text-btn-blue-color">{stockCompanyInfo?.companyName}</span>{' '}
-              종목에 오류가 발생했습니다.)
-            </p>
-            <button
-              onClick={() => navigate('/')}
-              className="mt-4 rounded-md bg-btn-blue-color px-6 py-2 text-white transition-colors duration-300 hover:bg-blue-600"
-            >
-              홈으로 이동
-            </button>
-          </div>
-        ) : (
-          <>
-            return <Navigate to="/error/not-found" replace />;
-          </>
-        )}
+        <Navigate to="/error/not-found" replace />;
       </>
     );
   }

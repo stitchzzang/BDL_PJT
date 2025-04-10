@@ -824,21 +824,7 @@ export const InvestmentResultPage = () => {
                   {addCommasToThousand(account.currentPrice)}
                 </TableCell>
                 <TableCell className="text-right">{account.stockCnt}</TableCell>
-                <TableCell
-                  className={`text-right ${addStockValueColorClass(account.evaluation)} transition-all duration-300 ${
-                    highlightMap[`evaluation_${account.companyId}`]?.isFlashing
-                      ? highlightMap[`evaluation_${account.companyId}`]?.isIncreased
-                        ? 'bg-btn-red-color/40'
-                        : 'bg-btn-blue-color/40'
-                      : account.evaluation > 0
-                        ? 'bg-btn-red-color/10'
-                        : account.evaluation < 0
-                          ? 'bg-btn-blue-color/10'
-                          : ''
-                  }`}
-                >
-                  {`${addCommasToThousand(account.evaluation)}`}
-                </TableCell>
+                <TableCell className="text-right">{`${addCommasToThousand(account.evaluation)}`}</TableCell>
                 <TableCell className="text-right">
                   {addCommasToThousand(account.investment)}
                 </TableCell>

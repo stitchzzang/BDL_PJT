@@ -1,6 +1,9 @@
+import Lottie from 'lottie-react';
 import { useEffect, useLayoutEffect, useState } from 'react';
 import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 
+// Lottie 애니메이션 JSON 파일 임포트
+import stockAnimation from '@/assets/lottie/stock-animation.json';
 // helpNewsImage 추가
 import helpNewsImage from '@/assets/product-tour/helpNewsImage.png';
 // 필요한 이미지들 임포트
@@ -75,9 +78,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
   // 더미 데이터 상태 관리
   const [showDemo, setShowDemo] = useState(false);
-  const [isTutorialStarted, setIsTutorialStarted] = useState(true);
-  const [currentTurn, setCurrentTurn] = useState(2);
-  const [isCurrentTurnCompleted, setIsCurrentTurnCompleted] = useState(true);
+  const [isTutorialStarted] = useState(true);
+  const [currentTurn] = useState(2);
+  const [isCurrentTurnCompleted] = useState(true);
 
   // 더미 데이터
   const dummyCompanyInfo = {
@@ -212,7 +215,9 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         const adjustedDay = date.getDate().toString().padStart(2, '0');
 
         return adjustedYear + adjustedMonth + adjustedDay;
-      } catch (e) {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('날짜 변환 오류:', error);
         return dateStr; // 오류 시 원본 날짜 반환
       }
     };
@@ -306,6 +311,26 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         visibility: hidden !important;
       }
       
+      /* 프로그레스 바 숨기기 */
+      .react-joyride__tooltip div[class*="__progress"] {
+        display: none !important;
+      }
+      
+      /* 하단의 'Next n of n' 영역 완전히 숨기기 */
+      .react-joyride__tooltip-footer {
+        justify-content: center !important;
+      }
+      
+      .react-joyride__tooltip-footer-count {
+        display: none !important;
+      }
+      
+      /* 버튼 aria-label 및 title 속성 비우기 */
+      .react-joyride__tooltip button[data-action="primary"][aria-label*="Next"],
+      .react-joyride__tooltip button[data-action="primary"][title*="Next"] {
+        font-size: 0 !important;
+      }
+      
       /* 스크롤바 숨기기 */
       .scrollbar-hide {
         -ms-overflow-style: none;  /* IE and Edge */
@@ -337,6 +362,28 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         position: relative !important;
         z-index: 1 !important;
       }
+      
+      /* 거래 체결 영역 스팟라이트 및 툴팁 조정 */
+      #stock-tutorial-order {
+        position: relative !important;
+        z-index: 1 !important;
+      }
+      
+      /* 거래 체결 영역 툴팁 위치 조정 */
+      #stock-tutorial-order + div > div {
+        position: fixed !important;
+        left: 20px !important;
+        right: auto !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+      }
+      
+      /* 거래 체결 영역에 표시되는 툴팁 조정 */
+      #stock-tutorial-order + div .react-joyride__tooltip {
+        position: relative;
+        z-index: 10001 !important;
+        width: 300px !important;
+      }
     `;
     document.head.appendChild(styleTag);
 
@@ -349,22 +396,39 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
 
   // 투어 시작 시 더미 화면 표시
   useEffect(() => {
+    // 마우스 휠 스크롤 방지 함수
+    const preventScroll = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    };
+
     if (run) {
       setShowDemo(true);
       setStepIndex(0); // run이 true로 변경될 때마다 stepIndex를 0으로 초기화
+
+      // 마우스 휠 스크롤 방지 이벤트 추가
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      document.body.style.overflow = 'hidden';
     } else {
       // 투어가 종료된 후에도 잠시 동안 컴포넌트를 표시(UI 깜빡임 방지)
       const timer = setTimeout(() => {
         setShowDemo(false);
       }, 500);
+
+      // 스크롤 방지 해제
+      window.removeEventListener('wheel', preventScroll);
+      document.body.style.overflow = 'auto';
+
       return () => clearTimeout(timer);
     }
-  }, [run]);
 
-  // 튜토리얼 버튼 클릭 핸들러
-  const handleTutorialButtonClick = () => {
-    // 더미 구현이므로 아무 동작도 하지 않습니다
-  };
+    // 컴포넌트 언마운트 시 이벤트 리스너 정리
+    return () => {
+      window.removeEventListener('wheel', preventScroll);
+      document.body.style.overflow = 'auto';
+    };
+  }, [run]);
 
   useEffect(() => {
     // 투어 스텝 정의
@@ -372,11 +436,16 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
       {
         target: 'body',
         content: (
-          <div className="p-4">
-            <h2 className="mb-8 text-[25px] font-bold">
+          <div className="p-4 text-center">
+            <h2 className="mb-4 text-[25px] font-bold">
               안녕하세요! <br />
               주식 튜토리얼에 오신 것을 환영합니다.
             </h2>
+            <Lottie
+              loop
+              animationData={stockAnimation}
+              style={{ width: 150, height: 150, margin: '0 auto', marginBottom: '16px' }}
+            />
             <p className="animate-fadeIn text-[18px]">실제 주식 차트와 데이터를 기반으로</p>
             <p className="animate-fadeIn text-[18px]">
               주식 투자를 안전하게 경험해 볼 수 있습니다.
@@ -471,9 +540,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">기업 정보</h2>
             <p className="text-[18px]">현재 선택된 기업의 정보와 주가를 확인할 수 있습니다.</p>
-            <p className="mt-2 text-[18px]">
-              튜토리얼 시작 버튼을 클릭하면 시뮬레이션이 시작됩니다.
-            </p>
+            <p className="mt-2 text-[18px]">주가는 전일 종가를 기준으로 표시됩니다.</p>
           </div>
         ),
         disableBeacon: true,
@@ -543,13 +610,24 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">거래 체결</h2>
-            <p className="text-[18px]">이 영역에서 주식을 구매, 판매, 관망할 수 있습니다.</p>
-            <p className="mt-2 text-[18px]">각 단계마다 한 번만 거래할 수 있습니다.</p>
+            <p className="text-[16px]">이 영역에서 주식을{'\n'}구매, 판매, 관망할 수 있습니다.</p>
+            <p className="mt-2 text-[16px]">각 단계마다 한 번만{'\n'}거래할 수 있습니다.</p>
           </div>
         ),
         disableBeacon: true,
         placement: 'left',
         spotlightClicks: true,
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '500px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#stock-tutorial-comment',
@@ -564,33 +642,75 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'top',
+        placement: 'right',
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '600px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#day-history',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">뉴스 히스토리</h2>
-            <p className="text-[18px]">현재 단계까지의 뉴스 히스토리를 확인할 수 있습니다.</p>
+            <p className="text-[18px]">
+              현재 단계까지의 뉴스 타이틀과 변동률을 확인할 수 있습니다.
+            </p>
             <p className="mt-2 text-[18px]">뉴스와 주가 변동의 연관성을 분석해보세요.</p>
           </div>
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'right',
+        placement: 'left',
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '600px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#stock-tutorial-news',
         content: (
           <div className="p-4">
             <h2 className="mb-5 text-[25px] font-bold">교육용 뉴스</h2>
-            <p className="text-[18px]">각 변곡점의 주요 뉴스를 제공합니다.</p>
-            <p className="mt-2 text-[18px]">실제 뉴스가 주가에 어떤 영향을 미쳤는지 학습하세요.</p>
+            <p className="text-[18px]">
+              3개의 변곡점과 관련된
+              <br /> 주요 뉴스를 제공해드립니다.
+            </p>
+            <p className="mt-2 text-[18px]">
+              실제 뉴스가 주가에
+              <br />
+              어떤 영향을 미쳤는지 학습해보세요.
+            </p>
           </div>
         ),
         disableBeacon: true,
-        placement: 'bottom',
+        placement: 'right',
         spotlightClicks: true,
+        styles: {
+          options: {
+            width: '300px',
+          },
+          tooltip: {
+            width: '400px',
+          },
+          spotlight: {
+            backgroundColor: 'rgba(255, 255, 255, 0.15)',
+          },
+        },
       },
       {
         target: '#stock-tutorial-conclusion',
@@ -605,7 +725,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         ),
         disableBeacon: true,
         spotlightClicks: true,
-        placement: 'bottom',
+        placement: 'left',
       },
       {
         target: 'body',
@@ -613,9 +733,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           <div className="p-4">
             <h2 className="mb-7 animate-bounce text-[25px] font-bold">도움말을 마칩니다!</h2>
             <p className="text-[18px]">이제 실제 튜토리얼을 진행해보세요.</p>
-            <p className="mt-2 text-[18px]">
-              도움말 버튼을 클릭하면 언제든지 이 투어를 다시 볼 수 있습니다.
-            </p>
+            <p className="mt-2 text-[18px]">도움말 버튼을 클릭하면 언제든지 다시 볼 수 있습니다.</p>
             <p className="mt-2 text-[18px]">
               주식 튜토리얼을 통해 안전하게 투자 경험을 쌓아보세요!
             </p>
@@ -647,13 +765,19 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
               const targetRect = targetElement.getBoundingClientRect();
               const containerRect = container.getBoundingClientRect();
 
-              // 컨테이너 내 스크롤 계산 (타겟이 컨테이너 중앙에 오도록)
-              const scrollPosition =
+              // 스크롤 위치 조정 로직 추가 (타겟이 화면 중앙에 오도록)
+              let scrollPosition =
                 targetRect.top +
                 window.scrollY -
                 containerRect.top -
                 containerRect.height / 2 +
                 targetRect.height / 2;
+
+              // 거래 체결 컴포넌트의 경우 추가 조정
+              if (steps[index + 1].target === '#stock-tutorial-order') {
+                // 화면 크기에 맞게 위치 조정 (차트와 함께 보이도록)
+                scrollPosition -= 100;
+              }
 
               (container as HTMLElement).scrollTo({
                 top: Math.max(0, scrollPosition),
@@ -686,7 +810,7 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
         hideCloseButton
         run={run}
         scrollToFirstStep={false}
-        showProgress
+        showProgress={false}
         showSkipButton
         steps={steps}
         stepIndex={stepIndex}
@@ -708,14 +832,15 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
           options: {
             zIndex: 10000,
             primaryColor: '#5676F5',
-            backgroundColor: '#121729',
-            arrowColor: '#121729',
-            textColor: '#ffffff',
-            overlayColor: 'rgba(0, 0, 0, 0.65)',
+            backgroundColor: '#192644',
+            arrowColor: '#192644',
+            textColor: '#FFFFFF',
+            overlayColor: 'rgba(0, 0, 0, 0.7)',
           },
           tooltip: {
             width: '650px',
             padding: '20px',
+            boxShadow: '0 0 15px 3px rgba(136, 151, 172, 0.5)',
           },
           buttonNext: {
             backgroundColor: '#5676F5',
@@ -756,8 +881,6 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                   <StockTutorialInfo
                     companyId={dummyCompanyInfo.companyId}
                     isTutorialStarted={isTutorialStarted}
-                    onTutorialStart={handleTutorialButtonClick}
-                    onMoveToNextTurn={handleTutorialButtonClick}
                     currentTurn={currentTurn}
                     isCurrentTurnCompleted={isCurrentTurnCompleted}
                     latestPrice={latestPrice}
@@ -810,7 +933,10 @@ export const SimulationTour = ({ run, setRun }: SimulationTourProps) => {
                       id="stock-tutorial-order"
                     >
                       <TutorialOrderStatusBuy
-                        onBuy={(price, quantity) => console.log('가상 매수:', price, quantity)}
+                        onBuy={(price, quantity) => {
+                          // eslint-disable-next-line no-console
+                          console.log('가상 매수:', price, quantity);
+                        }}
                         companyId={dummyCompanyInfo.companyId}
                         latestPrice={latestPrice}
                         availableOrderAsset={dummyMoneyInfo.availableOrderAsset}
