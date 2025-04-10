@@ -628,7 +628,7 @@ export const SimulatePage = () => {
       // 랜덤 로딩 메시지 설정
       const loadingMessages = [
         '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
-        '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
+        '그 날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
         '시장을 움직인 결정적 순간을 추적 중입니다...',
         '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
         '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
@@ -1345,23 +1345,57 @@ export const SimulatePage = () => {
 
       let saveSuccess = false;
       try {
-        // 튜토리얼 결과 저장
-        const saveResponse = await saveTutorialResult.mutateAsync({
-          companyId,
-          startMoney: 10000000,
-          endMoney: assetInfo.currentTotalAsset,
-          changeRate: finalRate,
-          startDate: formatYYMMDDToYYYYMMDD(defaultStartDate),
-          endDate: formatYYMMDDToYYYYMMDD(defaultEndDate),
-          memberId: memberId,
+        // YYYY-MM-DD 형식으로 날짜 변환
+        const startDateFormatted = formatYYMMDDToYYYYMMDD(defaultStartDate);
+        const endDateFormatted = formatYYMMDDToYYYYMMDD(defaultEndDate);
+
+        // 숫자값 유효성 검사 및 포맷 조정
+        const endMoneyValue = Math.floor(assetInfo.currentTotalAsset);
+        const changeRateValue = parseFloat(finalRate.toFixed(4)); // 소수점 4자리까지 제한
+
+        console.log(`[튜토리얼 완료] 데이터 변환 결과:`, {
+          dates: `${startDateFormatted} ~ ${endDateFormatted}`,
+          money: `${10000000} → ${endMoneyValue}`,
+          rate: changeRateValue,
         });
 
-        saveSuccess = saveResponse.isSuccess;
+        // 날짜 형식을 ISO 8601 형식으로 변환
+        const startDateISO = `${startDateFormatted}T00:00:00`;
+        const endDateISO = `${endDateFormatted}T00:00:00`;
 
-        if (saveSuccess) {
-          console.log(`[튜토리얼 완료] 결과 저장 성공 - 최종 수익률: ${finalRate}%`);
-        } else {
-          console.warn('[튜토리얼 완료] 결과 저장 실패');
+        // 튜토리얼 결과 저장
+        const requestData = {
+          companyId,
+          startMoney: 10000000,
+          endMoney: endMoneyValue,
+          changeRate: changeRateValue,
+          startDate: startDateISO,
+          endDate: endDateISO,
+          memberId: memberId,
+        };
+
+        console.log('[튜토리얼 완료] API 요청 데이터:', requestData);
+
+        try {
+          // 직접 API 호출 대신 훅 사용
+          const saveResponse = await saveTutorialResult.mutateAsync(requestData);
+          saveSuccess = saveResponse.isSuccess;
+
+          if (saveSuccess) {
+            console.log(`[튜토리얼 완료] 결과 저장 성공 - 최종 수익률: ${changeRateValue}%`);
+          } else {
+            console.warn('[튜토리얼 완료] 결과 저장 실패', saveResponse);
+          }
+        } catch (apiError: any) {
+          console.error('[튜토리얼 완료] API 호출 오류:', apiError);
+
+          // 응답 본문을 분석하여 더 자세한 오류 정보 추출 시도
+          try {
+            const errorText = await apiError.response?.text();
+            console.error('[튜토리얼 완료] 상세 오류 응답:', errorText);
+          } catch (textError) {
+            console.error('[튜토리얼 완료] 오류 응답 분석 실패');
+          }
         }
       } catch (error) {
         console.error('[튜토리얼 완료] 결과 저장 중 오류:', error);
@@ -1479,7 +1513,7 @@ export const SimulatePage = () => {
       // 랜덤 로딩 메시지 설정
       const loadingMessages = [
         '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
-        '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
+        '그 날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
         '시장을 움직인 결정적 순간을 추적 중입니다...',
         '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
         '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
