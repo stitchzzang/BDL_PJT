@@ -10,7 +10,6 @@ import {
   useGetCurrentNews,
   useGetNewsComment,
   useGetPastNews,
-  useGetTutorialFeedback,
   useInitSession,
   useProcessUserAction,
   useSaveTutorialResult,
@@ -65,7 +64,6 @@ interface TutorialEndModalProps {
   isOpen: boolean;
   onClose: () => void;
   changeRate: number;
-  feedback: string;
   onConfirmResultClick: () => void;
   onEndTutorialClick: () => void;
 }
@@ -75,7 +73,6 @@ const TutorialEndModal = memo(
     isOpen,
     onClose,
     changeRate,
-    feedback,
     onConfirmResultClick,
     onEndTutorialClick,
   }: TutorialEndModalProps) => {
@@ -83,16 +80,6 @@ const TutorialEndModal = memo(
     const isZero = changeRate === 0;
     const rateColor = isZero ? 'text-gray-400' : isPositive ? 'text-[#E5404A]' : 'text-blue-500';
     const formattedRate = `${isPositive ? '+' : ''}${changeRate.toFixed(2)}%`;
-
-    // props 로그 추가
-    useEffect(() => {
-      console.log('[TutorialEndModal] props 변경:', {
-        isOpen,
-        changeRate,
-        formattedRate,
-        feedback,
-      });
-    }, [isOpen, changeRate, formattedRate, feedback]);
 
     if (!isOpen) return null;
 
@@ -111,14 +98,6 @@ const TutorialEndModal = memo(
           <div className="mb-1 rounded-md bg-[#101017] p-4 text-center">
             <span className={`text-3xl font-bold ${rateColor}`}>{formattedRate}</span>
           </div>
-          {/* 
-          {feedback && (
-            <div className="my-2 rounded-md bg-[#1A1D2D] p-4">
-              <h3 className="mb-2 text-[16px] font-semibold">튜토리얼 피드백</h3>
-              <p className="text-[14px] text-gray-300">{feedback}</p>
-            </div>
-          )} */}
-
           <AlertDialogFooter className="mt-4 flex justify-between sm:justify-between">
             <AlertDialogCancel
               onClick={onConfirmResultClick}
@@ -228,7 +207,6 @@ export const SimulatePage = () => {
   const { companyId: companyIdParam } = useParams<{ companyId: string }>();
   const [isModalOpen, setIsModalOpen] = useState(false);
   // 튜토리얼 완료 모달 상태 추가
-  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
   const [finalChangeRate, setFinalChangeRate] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isTutorialStarted, setIsTutorialStarted] = useState(false);
@@ -292,8 +270,7 @@ export const SimulatePage = () => {
 
   // 첫 렌더링 여부를 추적하는 ref
   const initialized = useRef(false);
-  // 세션 캐싱을 위한 ref
-  const prevSessionRef = useRef('');
+
   // API 요청 상태를 추적하기 위한 ref 추가
   const newsRequestRef = useRef<Record<number, boolean>>({
     1: false,
@@ -327,8 +304,6 @@ export const SimulatePage = () => {
 
       // 초기화 후 신호 삭제
       sessionStorage.removeItem('tutorial_reset');
-
-      console.log('[SimulatePage] 새로고침으로 인해 튜토리얼 상태가 초기화되었습니다.');
     }
   }, []);
 
@@ -372,8 +347,6 @@ export const SimulatePage = () => {
 
   // 자산 정보 상태 변경 감지
   useEffect(() => {
-    console.log('[SimulatePage] assetInfo 업데이트됨:', assetInfo);
-
     // 자산 정보 유효성 검증
     if (
       typeof assetInfo.availableOrderAsset !== 'number' ||
@@ -451,7 +424,7 @@ export const SimulatePage = () => {
   const [pointStockCandleIds, setPointStockCandleIds] = useState<number[]>([]);
 
   // 현재 세션 상태 (날짜 기반으로 변경)
-  const [currentSession, setCurrentSession] = useState({
+  const [_currentSession, setCurrentSession] = useState({
     startDate: '',
     endDate: '',
     currentPointIndex: 0,
@@ -562,8 +535,6 @@ export const SimulatePage = () => {
           return null;
       }
 
-      console.log(`[턴 ${turn}] 세션 계산: ${startDate} ~ ${endDate}`);
-
       return {
         startDate,
         endDate,
@@ -573,15 +544,6 @@ export const SimulatePage = () => {
     [pointDates, defaultStartDate, defaultEndDate],
   );
 
-  // 피드백 API는 수동으로 제어
-  const { data: tutorialFeedbackResponse, refetch: refetchFeedback } = useGetTutorialFeedback(
-    memberId,
-    {
-      enabled: false, // 수동으로 제어하기 위해 비활성화
-    },
-  );
-
-  const tutorialFeedback = tutorialFeedbackResponse?.result;
   const processUserAction = useProcessUserAction();
   const saveTutorialResult = useSaveTutorialResult();
   const deleteTutorialSession = useDeleteTutorialSession();
@@ -815,10 +777,6 @@ export const SimulatePage = () => {
         // StockCandleId 범위 가져오기
         const { startStockCandleId, endStockCandleId } = getStockCandleIdRange(currentTurn);
 
-        console.log(
-          `[handleTrade] 관망 요청 - 턴: ${currentTurn}, 액션: ${action}, 범위: ${startStockCandleId}~${endStockCandleId}`,
-        );
-
         // API 요청 처리
         const response = await processUserAction.mutateAsync({
           memberId,
@@ -879,7 +837,6 @@ export const SimulatePage = () => {
         setIsCurrentTurnCompleted(true);
         return;
       } catch (error) {
-        console.error('[handleTrade] 관망 처리 중 오류:', error);
         toast.error('관망 처리 중 오류가 발생했습니다.');
         return;
       }
@@ -917,16 +874,12 @@ export const SimulatePage = () => {
         // StockCandleId 범위 가져오기 - getStockCandleIdRange 함수 사용
         const { startStockCandleId, endStockCandleId } = getStockCandleIdRange(currentTurn);
 
-        console.log(
-          `[handleTrade] 거래 요청 - 턴: ${currentTurn}, 액션: ${action}, 가격: ${price}, 수량: ${quantity}, 범위: ${startStockCandleId}~${endStockCandleId}`,
-        );
-
         // 매수 가능 금액 확인
         if (action === 'buy') {
           const totalPrice = price * quantity;
           if (totalPrice > assetInfo.availableOrderAsset) {
             alert(
-              `매수 가능 금액(${assetInfo.availableOrderAsset.toLocaleString()}원)을 초과했습니다.`,
+              `구매 가능 금액(${assetInfo.availableOrderAsset.toLocaleString()}원)을 초과했습니다.`,
             );
             return;
           }
@@ -993,15 +946,14 @@ export const SimulatePage = () => {
 
         // 거래 성공 안내 (매수/매도에 따라 다른 메시지)
         if (action === 'buy') {
-          toast.success(`${price.toLocaleString()}원에 ${quantity}주 매수 완료`);
+          toast.success(`${price.toLocaleString()}원에 ${quantity}주 구매 완료`);
         } else if (action === 'sell') {
-          toast.success(`${price.toLocaleString()}원에 ${quantity}주 매도 완료`);
+          toast.success(`${price.toLocaleString()}원에 ${quantity}주 판매 완료`);
         }
 
         // 턴 완료 처리
         setIsCurrentTurnCompleted(true);
-      } catch (error) {
-        console.error('[handleTrade] 거래 처리 중 오류:', error);
+      } catch {
         // 오류 발생 시 알림 표시
         toast.error('거래 처리 중 오류가 발생했습니다.');
       }
@@ -1048,30 +1000,19 @@ export const SimulatePage = () => {
       // 음수가 되지 않도록 보정
       totalStock = Math.max(0, totalStock);
       setOwnedStockCount(totalStock);
-
-      // 자산 정보 업데이트 로그
-      console.log(`[거래 내역 업데이트] 현재 턴: ${currentTurn}, 총 보유 주식: ${totalStock}주`);
     }
   }, [isTutorialStarted, trades, currentTurn]);
 
   // 자산 정보 업데이트 함수 추가
   const updateAssetInfo = async () => {
-    console.log('[updateAssetInfo] 시작, 현재 턴:', currentTurn);
-
     // 현재 자산 정보를 현재 턴의 결과로 저장
     turnAssetInfoRef.current = {
       ...turnAssetInfoRef.current,
       [currentTurn]: { ...assetInfo },
     };
 
-    console.log(
-      `[updateAssetInfo] 턴 ${currentTurn} 자산 정보 저장:`,
-      turnAssetInfoRef.current[currentTurn],
-    );
-
     // 마지막 턴(4턴)일 경우 최종 수익률 설정
     if (currentTurn === 4) {
-      console.log('[updateAssetInfo] 마지막 턴, 최종 수익률 설정:', assetInfo.totalReturnRate);
       setFinalChangeRate(assetInfo.totalReturnRate);
     }
   };
@@ -1101,11 +1042,6 @@ export const SimulatePage = () => {
         // 이전 턴에 완료된 거래의 자산 정보를 현재 표시할 자산 정보로 적용
         // (중요) 각 턴에서의 행동과 거래체결에 대한 수익률은 다음 턴에 나타내야 함
         if (tempAssetInfoRef.current) {
-          console.log(
-            `[moveToNextTurn] 이전 턴(${currentTurn})에서 저장한 임시 자산 정보 적용:`,
-            tempAssetInfoRef.current,
-          );
-
           // 저장된 자산 정보로 UI 업데이트
           setAssetInfo(tempAssetInfoRef.current);
 
@@ -1139,6 +1075,7 @@ export const SimulatePage = () => {
         // 3턴: 변곡점2 ~ (변곡점3 - 1)
         // 4턴: 변곡점3 ~ 전체 진행기간의 끝점
         const { startStockCandleId, endStockCandleId } = getStockCandleIdRange(nextTurn);
+        // eslint-disable-next-line no-console
         console.log(
           `[moveToNextTurn] 턴 ${nextTurn} 자산 정보 계산 stockCandleId 범위: ${startStockCandleId} ~ ${endStockCandleId}`,
         );
@@ -1189,7 +1126,6 @@ export const SimulatePage = () => {
           try {
             await loadNewsData(nextTurn);
           } catch (error) {
-            console.error(`[moveToNextTurn] 뉴스 데이터 로드 오류:`, error);
             setIsNewsSkeleton(false);
             setIsCommentSkeleton(false);
             setIsHistorySkeleton(false);
@@ -1327,23 +1263,12 @@ export const SimulatePage = () => {
       // 충분한 시간을 두고 자산 정보가 업데이트되었는지 확인
       await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // 4단계에서 isCurrentTurnCompleted를 true로 설정하여 피드백 API가 호출되도록 함
+      // 4단계에서 isCurrentTurnCompleted를 true로 설정
       if (!isCurrentTurnCompleted) {
         setIsCurrentTurnCompleted(true);
 
-        // 피드백 데이터가 로드될 시간 확보 (500ms)
+        // 상태 업데이트를 위한 시간 확보
         await new Promise((resolve) => setTimeout(resolve, 500));
-      }
-
-      // 피드백 데이터가 있는지 확인하고 없으면 수동으로 로드
-      if (!tutorialFeedback) {
-        try {
-          await refetchFeedback();
-          // 피드백 데이터가 로드될 시간 확보 (300ms)
-          await new Promise((resolve) => setTimeout(resolve, 300));
-        } catch (error) {
-          console.error('[completeTutorial] 튜토리얼 피드백 로드 오류:', error);
-        }
       }
 
       // 날짜 정보 준비
@@ -2287,16 +2212,11 @@ export const SimulatePage = () => {
 
     if (!isTutorialStarted) {
       // 튜토리얼 시작
-      console.log('[handleTutorialButtonClick] 튜토리얼 시작 호출');
       handleTutorialStart();
     } else if (currentTurn === 4) {
-      console.log('[튜토리얼 버튼 클릭] 4단계 완료, 튜토리얼 결과 표시');
-
       // 튜토리얼 완료 처리
       await completeTutorial();
     } else if (isCurrentTurnCompleted) {
-      console.log(`[튜토리얼 버튼 클릭] ${currentTurn}단계 완료, 다음 단계로 이동`);
-
       // 턴 변경 전 자산 정보를 확실히 업데이트
       await updateAssetInfo();
 
@@ -2305,7 +2225,6 @@ export const SimulatePage = () => {
         await moveToNextTurn();
       }, 500);
     } else {
-      console.log(`[튜토리얼 버튼 클릭] ${currentTurn}단계 미완료, 알림 표시`);
       toast.info('해당 단계의 주식 매매를 완료해야 다음 단계로 넘어갈 수 있습니다.');
     }
   };
@@ -2761,7 +2680,6 @@ export const SimulatePage = () => {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           changeRate={finalChangeRate}
-          feedback={tutorialFeedback || ''}
           onConfirmResultClick={handleNavigateToResult}
           onEndTutorialClick={handleNavigateToSelect}
         />
