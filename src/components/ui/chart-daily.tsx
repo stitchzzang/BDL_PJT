@@ -47,6 +47,8 @@ interface ChartDataPoint {
   high: number;
   low: number;
   close: number;
+  closeCheck: number;
+  closePricePercent: number;
   volume: number;
   changeType: 'RISE' | 'FALL' | 'NONE';
   fiveAverage: number | null;
@@ -203,6 +205,8 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
           high: item.highPrice,
           low: item.lowPrice,
           close: item.closePrice,
+          closeCheck: item.closePricePercent,
+          closePricePercent: item.closePricePercent,
           volume: item.accumulatedVolume,
           changeType: item.closePrice >= item.openPrice ? 'RISE' : 'FALL',
           fiveAverage: item.fiveAverage || null,
@@ -238,6 +242,7 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         high: null, // 이전: 0
         low: null, // 이전: 0
         close: null, // 이전: 0
+        closeCheck: null,
         volume: null, // 이전: 0
         changeType: 'NONE',
         fiveAverage: null,
@@ -258,9 +263,31 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
   // 2. 캔들 데이터 생성 수정
   const candleData = useMemo(() => {
     return processedChartData.map((item) => {
-      // 빈 데이터인 경우 빈 배열 반환
       if (item.date === '') return [];
-      return [item.open || 0, item.close || 0, item.low || 0, item.high || 0];
+
+      // 기본 캔들 데이터
+      const openValue = item.open || 0;
+      const closeValue = item.close || 0;
+      const lowValue = item.low || 0;
+      const highValue = item.high || 0;
+
+      // closeCheck 값에 따라 색상 결정 (값이 있을 때만)
+      if (item.closeCheck !== null && item.closeCheck !== undefined) {
+        if (item.closeCheck > 0) {
+          // 양수일 때 - 상승으로 보이게
+          return openValue <= closeValue
+            ? [openValue, closeValue, lowValue, highValue] // 이미 상승 패턴
+            : [closeValue, openValue, lowValue, highValue]; // 순서 바꿈
+        } else {
+          // 0 또는 음수일 때 - 하락으로 보이게
+          return openValue >= closeValue
+            ? [openValue, closeValue, lowValue, highValue] // 이미 하락 패턴
+            : [closeValue, openValue, lowValue, highValue]; // 순서 바꿈
+        }
+      } else {
+        // closeCheck 값이 없으면 실제 시가/종가 기준으로 캔들 표시
+        return [openValue, closeValue, lowValue, highValue];
+      }
     });
   }, [processedChartData]);
   // 3. 거래량 데이터 생성 수정
@@ -288,8 +315,9 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
       // null인 경우 기본값 설정
       const openPrice = item.open ?? 0;
       const closePrice = item.close ?? 0;
+      const checkColor = item.closeCheck ?? 0;
 
-      return openPrice <= closePrice ? RISE_COLOR : FALL_COLOR;
+      return checkColor > 0 ? RISE_COLOR : FALL_COLOR;
     },
     [processedChartData],
   );
@@ -329,13 +357,24 @@ const PeriodChartComponent: React.FC<PeriodChartProps> = ({
         return '데이터 없음';
       }
 
-      const { date, open, close, low, high, volume, fiveAverage, twentyAverage, lowPricePercent } =
-        item;
+      const {
+        date,
+        open,
+        close,
+        low,
+        high,
+        volume,
+        fiveAverage,
+        twentyAverage,
+        lowPricePercent,
+        closeCheck,
+        closePricePercent,
+      } = item;
 
       // 색상 설정
-      const priceColor = close >= open ? RISE_COLOR : FALL_COLOR;
-      const priceChangePercent = open > 0 ? (lowPricePercent ?? 0 * 100).toFixed(2) : '0.00';
-      const priceChangeText = close >= open ? `+${priceChangePercent}%` : `${priceChangePercent}%`;
+      const priceColor = closeCheck > 0 ? RISE_COLOR : FALL_COLOR;
+      const priceChangePercent = open > 0 ? (closePricePercent ?? 0 * 100).toFixed(2) : '0.00';
+      const priceChangeText = closeCheck > 0 ? `+${priceChangePercent}%` : `${priceChangePercent}%`;
 
       return `
         <div class="max-w-md rounded-xl overflow-hidden">
