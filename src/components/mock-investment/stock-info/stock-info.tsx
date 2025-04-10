@@ -201,7 +201,7 @@ export const StockInfo = ({
                           {algorithms.map((algorithm, index) => (
                             <div
                               onClick={() => handleStartAlgorithm(algorithm.algorithmId)}
-                              className="mb-2 flex cursor-pointer gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-6 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20"
+                              className={`mb-2 flex cursor-pointer gap-2 rounded-xl border border-border-color border-opacity-20 bg-background-color p-4 py-6 transition-all duration-300 hover:bg-btn-blue-color hover:bg-opacity-20 ${StartAlgorithm.isPending ? 'pointer-events-none opacity-50' : ''}`}
                             >
                               <p className="opacity-40">{index + 1}</p>
                               <p className="font-bold= text-[16px]">{algorithm.algorithmName}</p>
