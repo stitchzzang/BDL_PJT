@@ -185,7 +185,7 @@ export const TutorialNewsModal = ({
                       <div className="flex h-[200px] flex-col items-center justify-center">
                         <div className="flex flex-col items-center">
                           <div className="h-12 w-12 animate-spin rounded-full border-4 border-t-4 border-border-color border-t-blue-500"></div>
-                          <p className="mt-4 text-md text-border-color">
+                          <p className="text-md mt-4 text-border-color">
                             뉴스 데이터를 불러오는 중입니다...
                           </p>
                         </div>
