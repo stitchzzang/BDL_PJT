@@ -39,7 +39,6 @@ export const OrderStatusShell = ({
   const [shellCost, setShellCost] = useState<number>(0);
   const [printCost, setPrintCost] = useState<string>(shellCost + ' 원');
   useEffect(() => {
-    setShellCost(closePrice);
     setPrintCost(shellCost + ' 원');
   }, [shellCost]);
   // +,- 기능 (구매가격)
@@ -137,7 +136,7 @@ export const OrderStatusShell = ({
     price,
   }: LimitOrderData) => {
     if (price <= 0 || quantity <= 0) {
-      toast.error('가격,수량 입력하세요');
+      toast.error('가격 및 수량을 입력하세요');
       return;
     }
     limitOrderMutation.mutate(
@@ -216,7 +215,7 @@ export const OrderStatusShell = ({
                   <NumberPriceInput
                     value={shellCost}
                     setValue={setShellCost}
-                    placeholder={`${closePrice.toLocaleString()}원`}
+                    placeholder={'판매 가격을 입력하세요.'}
                     tickSize={tickSize}
                     roundingMethod="ceil"
                     closePrice={closePrice}
@@ -237,11 +236,7 @@ export const OrderStatusShell = ({
               <h3 className={h3Style}>수량</h3>
             </div>
             <div className=" flex w-full max-w-[80%] gap-2">
-              <NumberInput
-                value={stockCount}
-                setValue={setStockCount}
-                placeholder="수량을 입력하세요."
-              />
+              <NumberInput value={stockCount} setValue={setStockCount} placeholder="수량 입력" />
               <div className="flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
                 <div
                   className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
