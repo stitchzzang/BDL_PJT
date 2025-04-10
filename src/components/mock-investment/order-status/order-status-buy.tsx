@@ -42,7 +42,7 @@ export const OrderStatusBuy = ({
   useEffect(() => {
     setBuyCost(closePrice);
     setPrintCost(formatKoreanMoney(buyCost) + '원');
-  }, []);
+  }, [closePrice, buyCost]);
   useEffect(() => {
     setPrintCost(buyCost + ' 원');
     if (buyCost > 0) {
