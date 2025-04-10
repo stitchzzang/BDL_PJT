@@ -7,6 +7,7 @@ interface CallbackDataParams {
 }
 import ReactECharts from 'echarts-for-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // StockCandle 타입 정의
 export interface StockCandle {
@@ -64,6 +65,7 @@ interface ChartComponentProps {
   readonly periodData?: TutorialStockResponse;
   readonly ratio?: number;
   readonly inflectionPoints?: InflectionPoint[]; // 변곡점 정보 추가
+  readonly isLoading?: boolean; // 로딩 상태 추가
 }
 
 // 상수 정의
@@ -103,7 +105,7 @@ const convertPeriodCandleToChartData = (data: StockCandle): ChartDataPoint => {
 };
 
 const ChartComponent: React.FC<ChartComponentProps> = React.memo(
-  ({ periodData, inflectionPoints = [] }) => {
+  ({ periodData, inflectionPoints = [], isLoading = false }) => {
     const chartRef = useRef<ReactECharts>(null);
     const [dataZoomRange] = useState({
       start: DEFAULT_DATA_ZOOM_START,
@@ -898,6 +900,23 @@ const ChartComponent: React.FC<ChartComponentProps> = React.memo(
         // 차트 인스턴스에 접근하여 필요한 경우 추가 설정
       }
     }, [hasValidData]);
+
+    // 로딩 상태일 때 스켈레톤 UI 표시
+    if (isLoading) {
+      return (
+        <div className="relative h-full">
+          <div
+            className="flex h-full w-full flex-col overflow-hidden rounded-2xl shadow-md"
+            style={{ backgroundColor: '#0D192B' }}
+          >
+            <Skeleton
+              className="h-full w-full rounded-2xl"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="relative h-full">

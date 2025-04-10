@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // 허용된 탭 타입을 정의
 type TabType = '구매' | '판매' | '관망';
@@ -7,12 +8,14 @@ interface OrderStatusCategoryProps {
   isActiveCategory: TabType;
   setIsActiveCategory: React.Dispatch<React.SetStateAction<TabType>>;
   resetToInitial?: boolean; // 턴이 넘어갈 때 true로 설정하여 기본값(구매)으로 리셋
+  isLoading?: boolean; // 로딩 상태 추가
 }
 
 export const TutorialOrderStatusCategory: React.FC<OrderStatusCategoryProps> = ({
   isActiveCategory,
   setIsActiveCategory,
   resetToInitial = false,
+  isLoading = false, // 기본값 false
 }) => {
   const orderButtonStyle =
     'w-[30%] cursor-pointer text-center rounded-xl py-2  transition-all duration-300';
@@ -34,6 +37,14 @@ export const TutorialOrderStatusCategory: React.FC<OrderStatusCategoryProps> = (
   const changeCategory = (isActiveCategory: TabType) => {
     setIsActiveCategory(isActiveCategory);
   };
+
+  // 로딩 상태일 때 스켈레톤 UI 렌더링
+  if (isLoading) {
+    return (
+      <Skeleton className="h-[45px] w-full rounded-xl" style={{ backgroundColor: '#0D192B' }} />
+    );
+  }
+
   return (
     <div className="rounded-xl border border-border-color border-opacity-20 p-2 text-[14px]">
       <div className="flex w-full justify-between gap-1">

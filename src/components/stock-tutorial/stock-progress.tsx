@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // 공통 Props 인터페이스 정의
 interface CommonProgressProps {
   progress?: number; // 외부에서 받은 진행률
+  isLoading?: boolean; // 로딩 상태 추가
 }
 
 // 진행률 Props 인터페이스
@@ -17,13 +19,14 @@ interface ProgressInfoProps {
   pointDates?: string[]; // 변곡점 날짜 배열 (추가)
   defaultStartDate?: string; // 기본 시작 날짜 (추가)
   defaultEndDate?: string; // 기본 종료 날짜 (추가)
+  isLoading?: boolean; // 로딩 상태 추가
 }
 
 // 전체 Props 인터페이스
 interface StockProgressProps extends ProgressBarProps, ProgressInfoProps {}
 
 // 진행률 바 컴포넌트
-export const ProgressBar = ({ progress: externalProgress }: ProgressBarProps) => {
+export const ProgressBar = ({ progress: externalProgress, isLoading }: ProgressBarProps) => {
   const [internalProgress, setInternalProgress] = useState<number>(externalProgress || 0);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +36,21 @@ export const ProgressBar = ({ progress: externalProgress }: ProgressBarProps) =>
       setInternalProgress(externalProgress);
     }
   }, [externalProgress]);
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-3">
+        <Skeleton
+          className="h-[40px] w-[120px] rounded-xl"
+          style={{ backgroundColor: '#0D192B' }}
+        />
+        <Skeleton
+          className="h-[40px] w-[210px] rounded-xl"
+          style={{ backgroundColor: '#0D192B' }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex gap-3">
@@ -66,6 +84,7 @@ export const ProgressInfo = ({
   pointDates,
   defaultStartDate,
   defaultEndDate,
+  isLoading,
 }: ProgressInfoProps) => {
   // YYMMDD 형식의 문자열을 Date 객체로 변환하는 함수
   const parseYYMMDDToDate = (dateStr: string): Date => {
@@ -209,6 +228,12 @@ export const ProgressInfo = ({
     findPreviousBusinessDay,
   ]);
 
+  if (isLoading) {
+    return (
+      <Skeleton className="h-[40px] w-[300px] rounded-xl" style={{ backgroundColor: '#0D192B' }} />
+    );
+  }
+
   if (!((displayStartDate && displayEndDate && formatDateFn) || currentTurn !== undefined)) {
     return null;
   }
@@ -238,10 +263,25 @@ export const ProgressInfo = ({
 };
 
 // 기존 StockProgress 컴포넌트는 이제 두 컴포넌트를 결합
-export const StockProgress = (props: StockProgressProps) => {
+export const StockProgress = ({ isLoading, ...props }: StockProgressProps) => {
+  if (isLoading) {
+    return (
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <Skeleton
+          className="h-[40px] w-[350px] rounded-xl"
+          style={{ backgroundColor: '#0D192B' }}
+        />
+        <Skeleton
+          className="h-[40px] w-[350px] rounded-xl"
+          style={{ backgroundColor: '#0D192B' }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="mt-3 flex items-center justify-between gap-3">
-      <ProgressBar progress={props.progress} />
+      <ProgressBar progress={props.progress} isLoading={isLoading} />
       <ProgressInfo
         currentTurn={props.currentTurn}
         startDate={props.startDate}
@@ -250,6 +290,7 @@ export const StockProgress = (props: StockProgressProps) => {
         pointDates={props.pointDates}
         defaultStartDate={props.defaultStartDate}
         defaultEndDate={props.defaultEndDate}
+        isLoading={isLoading}
       />
     </div>
   );

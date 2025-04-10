@@ -1,11 +1,40 @@
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export interface TutorialOrderStatusWaitProps {
   isActive: boolean;
   onWait: () => void;
+  isLoading?: boolean;
+  isPending?: boolean;
 }
 
-export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatusWaitProps) => {
+export const TutorialOrderStatusWait = ({
+  isActive,
+  onWait,
+  isLoading = false,
+  isPending = false,
+}: TutorialOrderStatusWaitProps) => {
+  if (isLoading) {
+    return (
+      <div className="flex h-full animate-fadeIn flex-col">
+        <div className="flex h-full flex-col justify-between">
+          <div className="mb-3 flex w-full flex-col gap-3">
+            <Skeleton
+              className="h-[180px] w-full rounded-lg"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+          </div>
+          <div className="mt-auto">
+            <Skeleton
+              className="h-[48px] w-full rounded-lg"
+              style={{ backgroundColor: '#0D192B' }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full animate-fadeIn flex-col">
       <div className="flex h-full flex-col justify-between">
@@ -29,7 +58,7 @@ export const TutorialOrderStatusWait = ({ isActive, onWait }: TutorialOrderStatu
             className="w-full"
             size="lg"
             onClick={onWait}
-            disabled={!isActive}
+            disabled={!isActive || isPending}
           >
             <p className="text-[16px] font-medium text-white">관망하기</p>
           </Button>
