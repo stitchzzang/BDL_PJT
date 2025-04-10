@@ -13,7 +13,7 @@ export const NewsChartMain = ({ newsMainInfo }: NewsChartMainProps) => {
 
   return (
     <button className="group w-full rounded-2xl" onClick={handleNewsClick}>
-      <div className="inline-block max-h-[250px] overflow-hidden rounded-2xl transition-opacity group-hover:opacity-90">
+      <div className="inline-block max-h-[250px] w-full overflow-hidden rounded-md transition-opacity group-hover:opacity-90">
         {newsMainInfo?.newsThumbnailUrl === null ? (
           <img
             src="/none-img/none_news_img.png"

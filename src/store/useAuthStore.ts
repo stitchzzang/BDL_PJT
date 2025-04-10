@@ -23,19 +23,35 @@ const getUserDataFromStorage = (): UserData => {
     : { memberId: null, nickname: null, profile: null, isLogin: false };
 };
 
+// 토큰 만료 시간 확인 함수
+const isTokenExpired = (): boolean => {
+  const expiryTime = localStorage.getItem('tokenExpiry');
+  if (!expiryTime) return true;
+  return new Date().getTime() > parseInt(expiryTime, 10);
+};
+
+// 토큰 저장 함수 (10시간 유효기간 설정)
+const saveTokenWithExpiry = (token: string): void => {
+  // 현재 시간에서 10시간을 더한 타임스탬프 계산 (밀리초 단위)
+  const expiryTime = new Date().getTime() + 10 * 60 * 60 * 1000; // 10시간
+  localStorage.setItem('accessToken', token);
+  localStorage.setItem('tokenExpiry', expiryTime.toString());
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   userData: getUserDataFromStorage(),
   isLogin: getUserDataFromStorage().nickname !== null,
   isInitialized: false,
 
   loginAuth: (token: string, userData: UserData) => {
-    localStorage.setItem('accessToken', token);
+    saveTokenWithExpiry(token);
     localStorage.setItem('userData', JSON.stringify(userData));
     set({ userData, isLogin: true });
   },
 
   logoutAuth: () => {
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('tokenExpiry');
     localStorage.removeItem('userData');
     set({ userData: { memberId: null, nickname: null, profile: null }, isLogin: false });
   },
@@ -52,6 +68,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   initializeAuth: () => {
     const token = localStorage.getItem('accessToken');
     const userData = getUserDataFromStorage();
+
+    // 토큰이 있지만 만료된 경우 로그아웃 처리
+    if (token && isTokenExpired()) {
+      // unsubscribeFromNotifications(); // SSE 연결 종료
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('tokenExpiry');
+      localStorage.removeItem('userData');
+      set({
+        isInitialized: true,
+        isLogin: false,
+        userData: { memberId: null, nickname: null, profile: null },
+      });
+      return;
+    }
+
     if (token) {
       set({ isLogin: true, isInitialized: true, userData });
     } else {

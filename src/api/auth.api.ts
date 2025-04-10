@@ -2,17 +2,13 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
-import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 import { _ky, _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { LoginResponse, SignupRequest } from '@/api/types/auth';
 import { ApiResponse } from '@/api/types/common';
-import {
-  subscribeToNotifications,
-  unsubscribeFromNotifications,
-} from '@/services/notificationService';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export const authApi = {
@@ -23,14 +19,14 @@ export const authApi = {
       })
       .json<ApiResponse<LoginResponse>>(),
 
-  logout: () => _ky.post('auth/logout', {}).json<ApiResponse<void>>(),
+  logout: () => _kyAuth.post('auth/logout', {}).json<ApiResponse<void>>(),
   signup: (data: SignupRequest) =>
     _ky
       .post('auth/signup', {
         json: data,
       })
       .json<ApiResponse<void>>(),
-  signout: () => _kyAuth.patch('member/register', {}).json<ApiResponse<void>>(),
+  signout: (memberId: string) => _kyAuth.delete(`member/${memberId}`, {}).json<ApiResponse<void>>(),
 };
 
 export const useLogin = () => {
@@ -60,14 +56,14 @@ export const useLogin = () => {
           nickname: result.nickname,
           profile: result.profile,
         });
-        subscribeToNotifications(); // SSE 연결 시작
+        // subscribeToNotifications(); // SSE 연결 시작
         toast.success('로그인되었습니다.');
         navigate('/');
       }
     },
     // 로그인 실패
-    onError: (error: HTTPError) => {
-      handleKyError(error, '로그인에 실패했습니다.');
+    onError: () => {
+      throw new Error('로그인 실패');
     },
   });
 };
@@ -79,13 +75,17 @@ export const useLogout = () => {
   return useMutation({
     mutationFn: () => authApi.logout(),
     onSuccess: () => {
-      unsubscribeFromNotifications(); // SSE 연결 종료
+      // unsubscribeFromNotifications(); // SSE 연결 종료
       logoutAuth();
       toast.success('로그아웃되었습니다.');
       navigate('/');
     },
     onError: (error: HTTPError) => {
-      handleKyError(error, '로그아웃에 실패했습니다.');
+      // 사용자가 의도적으로 로그아웃한 경우에는 토큰 오류여도 성공적으로 처리
+      // unsubscribeFromNotifications(); // SSE 연결 종료
+      logoutAuth();
+      toast.success('로그아웃되었습니다.');
+      navigate('/');
     },
   });
 };
@@ -107,7 +107,7 @@ export const useSignout = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: () => authApi.signout(),
+    mutationFn: (memberId: string) => authApi.signout(memberId),
     onSuccess: () => {
       logoutAuth();
       toast.success('회원탈퇴가 완료되었습니다.');

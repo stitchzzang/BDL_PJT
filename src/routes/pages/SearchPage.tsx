@@ -8,6 +8,7 @@ import { ErrorScreen } from '@/components/common/error-screen';
 import { LoadingAnimation } from '@/components/common/loading-animation';
 import { SearchAnimation } from '@/components/common/search-animation';
 import { SearchedCompanyListItem } from '@/components/home-page/searched-company-list';
+
 export const SearchPage = () => {
   const [urlParams] = useSearchParams();
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export const SearchPage = () => {
     categoryId: categoryQuery,
     companyName: searchQuery,
   });
+  const [isRotating, setIsRotating] = useState(false);
 
   const {
     data: searchedCompanies,
@@ -38,8 +40,12 @@ export const SearchPage = () => {
   }, [searchQuery, categoryQuery]);
 
   const handleSearch = () => {
-    navigate(`/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
-    refetch();
+    setIsRotating(true);
+    navigate(`/investment/search?q=${encodeURIComponent(companyName)}&category=${categoryId}`);
+    setTimeout(() => {
+      setIsRotating(false);
+      refetch();
+    }, 500);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -48,9 +54,32 @@ export const SearchPage = () => {
     }
   };
 
+  // 문자열의 실제 바이트 길이를 계산하는 함수
+  const getByteLength = (str: string) => {
+    // TextEncoder를 사용하여 UTF-8 인코딩된 바이트 길이 계산
+    return new TextEncoder().encode(str).length;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value.length > 15) {
+      alert('검색 가능한 기업명은 15자 이하입니다.');
+      return;
+    }
+    setCompanyName(value);
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    if (pastedText.length > 15) {
+      e.preventDefault();
+      alert('검색 가능한 기업명은 15자 이하입니다.');
+    }
+  };
+
   const handleCategoryChange = (newCategoryId: string) => {
     setCategoryId(newCategoryId);
-    navigate(`/search?q=${encodeURIComponent(companyName)}&category=${newCategoryId}`);
+    navigate(`/investment/search?q=${encodeURIComponent(companyName)}&category=${newCategoryId}`);
     setSearchParams({
       categoryId: newCategoryId,
       companyName,
@@ -58,7 +87,7 @@ export const SearchPage = () => {
   };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-3">
+    <div className="flex w-full animate-fadeIn flex-col items-center justify-center gap-3 duration-1000 ease-in-out">
       <div className="mx-5 flex max-w-xl flex-col items-center justify-center gap-4">
         <div className="flex flex-col items-center justify-center gap-3">
           <div className="group flex flex-col items-center justify-center gap-[10px]">
@@ -82,7 +111,7 @@ export const SearchPage = () => {
                 </p>
               </div>
             </div>
-            <div className="flex w-full items-center gap-2 rounded-full bg-[#0D192B] p-4 duration-300 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-primary-color">
+            <div className="flex w-full items-center gap-2 rounded-full border border-border-color border-opacity-40 bg-[#0D192B] p-4 duration-300 focus-within:outline-primary-color hover:border-btn-blue-color">
               <input
                 className="w-full bg-transparent text-[#718096] focus:outline-none"
                 type="text"
@@ -90,15 +119,17 @@ export const SearchPage = () => {
                 id="search"
                 placeholder="기업을 검색하세요."
                 value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
               />
-
               <button
-                className="text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
+                className="group text-text-inactive-color hover:text-text-main-color active:text-text-main-color"
                 onClick={handleSearch}
               >
-                <MagnifyingGlassIcon className="h-5 w-5 text-[#718096]" />
+                <MagnifyingGlassIcon
+                  className={`h-5 w-5 text-[#718096] transition-transform duration-300 ${isRotating ? 'animate-rotate text-primary-color' : 'group-hover:animate-rotate group-hover:text-primary-color'}`}
+                />
               </button>
             </div>
             <CategoryList setCategoryId={handleCategoryChange} activeCategoryId={categoryId} />
@@ -106,15 +137,17 @@ export const SearchPage = () => {
           <p className="my-3 text-lg text-[#718096]">카테고리 선택으로도 검색이 가능합니다.</p>
           <div className="w-full min-w-[200px] p-5 sm:min-w-[600px]">
             {isLoading && <LoadingAnimation />}
-            {isError && <ErrorScreen />}
-            {searchedCompanies && searchedCompanies.length > 0 && (
+            {isError && (!searchedCompanies || searchedCompanies.length === 0) && (
+              <ErrorScreen onRefresh={refetch} />
+            )}
+            {!isLoading && searchedCompanies && searchedCompanies.length > 0 && (
               <div className="flex flex-col gap-2">
                 {searchedCompanies.map((company) => (
                   <SearchedCompanyListItem key={company.companyId} company={company} />
                 ))}
               </div>
             )}
-            {searchedCompanies && searchedCompanies.length === 0 && (
+            {!isLoading && searchedCompanies && searchedCompanies.length === 0 && !isError && (
               <div className="flex h-full w-full items-center justify-center rounded-[20px] border border-btn-primary-inactive-color bg-modal-background-color p-5">
                 <p className="text-center text-lg text-[#718096]">검색 결과가 없습니다.</p>
               </div>

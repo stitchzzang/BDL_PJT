@@ -44,3 +44,26 @@ export interface AccountSummaryResponse {
   accountCount: number; // 보유 종목 수
   accounts: AccountResponse[]; // 각 종목별 계좌 정보 목록
 }
+
+export interface OrderResponse {
+  orders: OrderItem[];
+  currentPage: number; // 현재 페이지
+  pageSize: number; // 페이지 크기
+  totalElements: number; // 총 요소 수
+  totalPages: number; // 총 페이지 수
+  last: boolean; // 마지막 페이지 여부
+}
+
+export interface OrderItem {
+  orderId: number; // 주문 ID
+  memberId: number; // 회원 ID
+  companyId: number; // 종목 ID
+  companyName: string; // 종목명
+  companyImage: string; // 종목 이미지
+  tradeType: number; // 거래 타입
+  quantity: number; // 수량
+  price: number; // 가격
+  tradingTime: string; // 거래 시간
+  confirm: boolean; // 체결 여부
+  auto: boolean; // 자동 주문 여부
+}

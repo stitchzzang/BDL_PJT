@@ -22,13 +22,15 @@ export type CategoryName =
   | '자동차' // 자동차 산업
   | '화장품' // 화장품 산업
   | '방위' // 방위 산업
+  | '방산' // 방위 산업
   | '반도체' // 반도체 산업
   | '바이오' // 바이오/제약 산업
   | 'IT' // IT/기술 산업
   | '금속' // 금속/재료 산업
-  | '엔터' // 엔터테인먼트 산업
+  | '엔터테인먼트' // 엔터테인먼트 산업
+  | '엔터' // 엔터테인먼트 산업 (줄임 표현)
   | '금융' // 금융 산업
-  | '음식'; // 식품/음식 산업
+  | '음식료'; // 식품/음식 산업
 
 /**
  * 카테고리 이름과 해당 아이콘 컴포넌트를 매핑하는 객체
@@ -39,13 +41,15 @@ const categoryIconMap: Record<CategoryName, ComponentType> = {
   자동차: TruckIcon,
   화장품: EyeDropperIcon,
   방위: RocketLaunchIcon,
+  방산: RocketLaunchIcon,
   반도체: CpuChipIcon,
   바이오: BeakerIcon,
   IT: TvIcon,
   금속: QueueListIcon,
+  엔터테인먼트: PaintBrushIcon,
   엔터: PaintBrushIcon,
   금융: CurrencyDollarIcon,
-  음식: CakeIcon,
+  음식료: CakeIcon,
 };
 
 /**

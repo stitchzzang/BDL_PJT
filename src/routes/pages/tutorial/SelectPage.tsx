@@ -1,21 +1,22 @@
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useGetCompaniesByCategory } from '@/api/category.api';
+import { Company } from '@/api/types/category';
 import { CategoryList } from '@/components/common/category-list';
 import { CompanySelectButton } from '@/components/common/company-select-button';
+import { ErrorScreen } from '@/components/common/error-screen';
+import { LoadingAnimation } from '@/components/common/loading-animation';
 import { TutorialAnimation } from '@/components/common/tutorial-animation';
+import { Button } from '@/components/ui/button';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { useAuthStore } from '@/store/useAuthStore';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 export const SelectPage = () => {
   const navigate = useNavigate();
@@ -29,10 +30,11 @@ export const SelectPage = () => {
     setSelectedCategory(categoryQuery);
   }, [categoryQuery]);
 
-  // 현재 날짜와 1년 전 날짜 계산
+  // 어제 날짜와 1년 전 날짜 계산
   const currentDate = new Date();
-  const oneYearAgo = new Date();
-  oneYearAgo.setFullYear(currentDate.getFullYear() - 1);
+  currentDate.setDate(currentDate.getDate() - 1); // 어제 날짜로 설정
+  const oneYearAgo = new Date(currentDate); // 어제 날짜 복사
+  oneYearAgo.setFullYear(currentDate.getFullYear() - 1); // 어제로부터 1년 전
 
   // 날짜 포맷팅 (YYYY-MM-DD)
   const startDate = format(oneYearAgo, 'yyyy-MM-dd');
@@ -43,12 +45,13 @@ export const SelectPage = () => {
     isLoading,
     isFetching,
     isError,
+    refetch,
   } = useGetCompaniesByCategory(selectedCategory);
 
   const isLoadingData = isLoading || isFetching;
   const hasCompanies = companies && companies.length > 0;
 
-  const handleCompanySelect = (company: any) => {
+  const handleCompanySelect = (company: Company) => {
     setSelectedCompany(company);
     setIsDialogOpen(true);
   };
@@ -62,15 +65,12 @@ export const SelectPage = () => {
     setIsDialogOpen(false);
   };
 
-  const { isLogin } = useAuthStore();
-
-  if (!isLogin) {
-    toast.error('로그인 후 이용해주세요.');
-    return <Navigate to="/login" />;
-  }
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center gap-3">
+    <div className="flex animate-fadeIn flex-col items-center justify-center gap-3 duration-1000 ease-in-out">
       <div className="group flex flex-col items-center justify-center gap-3">
         <div className="flex w-full flex-col items-center justify-center">
           <h1 className="mb-[10px] text-[28px] font-bold">주식 튜토리얼</h1>
@@ -99,13 +99,10 @@ export const SelectPage = () => {
       <div className="mt-[50px] flex w-full flex-col items-center gap-4">
         {isLoadingData ? (
           <div className="flex h-20 items-center justify-center">
-            <p className="text-[16px]">기업 목록을 불러오는 중...</p>
+            <LoadingAnimation />
           </div>
         ) : isError ? (
-          <div className="flex h-[200px] flex-col items-center justify-center">
-            <p className="text-[16px]">데이터를 불러오는 중 오류가 발생했습니다.</p>
-            <p className="mt-2 text-[14px] text-gray-400">잠시 후 다시 시도해주세요.</p>
-          </div>
+          <ErrorScreen onRefresh={refetch} />
         ) : hasCompanies ? (
           <div className="flex w-full max-w-[600px] flex-col items-center gap-4">
             <h2 className="text-[20px] font-bold">기업 선택</h2>
@@ -126,24 +123,29 @@ export const SelectPage = () => {
       </div>
 
       {/* 기업 선택 완료 모달 */}
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
-          <AlertDialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
-            <AlertDialogTitle className="mb-1 text-[28px] font-bold">
-              기업 선택 완료
-            </AlertDialogTitle>
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
+          <DialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
+            <DialogTitle className="mb-1 text-[28px] font-bold">기업 선택 완료</DialogTitle>
 
             {/* 접근성을 위한 설명 (스크린 리더용) */}
-            <AlertDialogDescription className="sr-only">
+            <DialogDescription className="sr-only">
               기업 선택 완료 후 튜토리얼 시간대와 안내 사항을 확인하세요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           {/* 실제 모달 콘텐츠 */}
           <div className="flex flex-col items-center px-5 pb-5 pt-0 text-center">
-            <div className="flex flex-col text-[16px] text-white">
-              <span>기업 선택을 완료했습니다.</span>
-              <span className="mt-2">주식 튜토리얼의 시간대는 다음과 같습니다.</span>
+            <div className="flex flex-col items-center text-[16px] text-white">
+              <div className="flex items-center gap-2">
+                <img
+                  src={selectedCompany?.companyImage || 'https://placehold.co/40x40'}
+                  alt={selectedCompany?.companyName}
+                  className="h-10 w-10 rounded-lg"
+                />
+                <span className="font-bold">{selectedCompany?.companyName}</span>
+              </div>
+              <span className="mt-2">기업에 대한 주식 튜토리얼을 진행하시겠습니까?</span>
             </div>
 
             <div className="my-10 flex w-full items-center justify-center gap-5 rounded-lg bg-[#041021] p-4">
@@ -160,19 +162,19 @@ export const SelectPage = () => {
             </div>
 
             <div className="mt-10 flex w-full flex-col items-center">
-              <AlertDialogAction
+              <Button
                 className="w-full max-w-[400px] rounded-full bg-[#5676F5] px-8 py-4 text-[18px] font-bold text-white hover:bg-[#4A67DE]"
                 onClick={handleConfirm}
               >
                 선택완료
-              </AlertDialogAction>
+              </Button>
               <span className="mb-4 mt-4 text-center text-[13px] text-gray-500">
                 선택완료 버튼 클릭시 주식 튜토리얼이 시작됩니다.
               </span>
             </div>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -19,7 +19,7 @@ export const OrderStatusCategory: React.FC<OrderStatusCategoryProps> = ({
     setIsActiveCategory(isActiveCategory);
   };
   return (
-    <div className=" rounded-xl border border-border-color p-2 ">
+    <div className=" rounded-xl border border-border-color border-opacity-20 p-2 text-[14px]">
       <div className="flex w-full justify-between gap-1">
         <div
           className={`${orderButtonStyle} ${isActive === '구매' ? 'bg-btn-red-color bg-opacity-20' : ''} hover:bg-btn-red-color hover:bg-opacity-20`}

@@ -2,6 +2,7 @@ import { RealTimeChartFall } from '@/components/home-page/real-time-chart/real-t
 import { RealTimeChartRise } from '@/components/home-page/real-time-chart/real-time-chart-rise';
 import { RealTimeChartTransaction } from '@/components/home-page/real-time-chart/real-time-chart-transaction';
 import { Tabs } from '@/components/ui/tabs';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 
 // 차트 타입 정의
 enum chartType {
@@ -12,7 +13,11 @@ enum chartType {
 
 export const RealTimeChart = () => {
   const chartTabs = [
-    { title: '거래대금', value: 'TRADING_VOLUME', content: <RealTimeChartTransaction /> },
+    {
+      title: <TermTooltip term="거래대금">거래대금</TermTooltip>,
+      value: 'TRADING_VOLUME',
+      content: <RealTimeChartTransaction />,
+    },
     { title: '급상승', value: 'RAPID_RISE', content: <RealTimeChartRise /> },
     { title: '급하락', value: 'RAPID_FALL', content: <RealTimeChartFall /> },
   ];

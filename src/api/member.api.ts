@@ -2,15 +2,20 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { HTTPError } from 'ky';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 
-import { _ky } from '@/api/instance';
+import { _kyAuth } from '@/api/instance';
 import { handleKyError } from '@/api/instance/errorHandler';
 import { ApiResponse } from '@/api/types/common';
-import { AccountSummaryResponse, MemberInfo, MemberPassword } from '@/api/types/member';
+import {
+  AccountSummaryResponse,
+  MemberInfo,
+  MemberPassword,
+  OrderResponse,
+} from '@/api/types/member';
 export const memberApi = {
   getMemberInfo: (memberId: string) =>
-    _ky.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
+    _kyAuth.get<ApiResponse<MemberInfo>>(`member/${memberId}`).json(),
 
   updateMemberInfo: (
     memberId: string,
@@ -30,7 +35,7 @@ export const memberApi = {
       formData.append('deleteProfile', data.deleteProfile ? '1' : '0');
     }
 
-    return _ky
+    return _kyAuth
       .patch<ApiResponse<MemberInfo>>(`member/${memberId}`, {
         body: formData,
       })
@@ -38,13 +43,57 @@ export const memberApi = {
   },
 
   updateMemberPassword: (memberId: string, data: MemberPassword) =>
-    _ky.post<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
+    _kyAuth.post<ApiResponse<MemberInfo>>(`member/password/${memberId}`, { json: data }).json(),
 
   getAccountSummary: (memberId: string) =>
-    _ky.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
+    _kyAuth.get<ApiResponse<AccountSummaryResponse>>(`member/account/${memberId}`).json(),
 
   resetAccount: (memberId: string) =>
-    _ky.delete<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
+    _kyAuth.delete<ApiResponse<AccountSummaryResponse>>(`member/${memberId}/account/reset`).json(),
+
+  getPendingOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
+
+  getConfirmedOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/confirmed/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
+
+  getManualOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/manual/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
+
+  getAutoOrders: (memberId: string, page: number, size: number, search: string) =>
+    _kyAuth
+      .get<ApiResponse<OrderResponse>>(`simulated/auto/${memberId}`, {
+        searchParams: {
+          page: page.toString(),
+          size: size.toString(),
+          search: search,
+        },
+      })
+      .json(),
 };
 
 export const useMemberInfo = (memberId: string) => {
@@ -146,9 +195,12 @@ export const useGetAccountSummary = (memberId: string) => {
 };
 
 export const useResetAccount = (memberId: string, onSuccess?: () => void, onError?: () => void) => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: () => memberApi.resetAccount(memberId),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accountSummary'] });
       toast.success('계좌가 성공적으로 초기화되었습니다.');
       onSuccess?.();
     },
@@ -156,5 +208,59 @@ export const useResetAccount = (memberId: string, onSuccess?: () => void, onErro
       handleKyError(error, '계좌 초기화에 실패했습니다. 다시 시도해주세요.');
       onError?.();
     },
+  });
+};
+
+// 미체결 주문 조회
+export const useGetPendingOrders = (
+  memberId: string,
+  page: number,
+  size: number,
+  search: string,
+) => {
+  return useQuery({
+    queryKey: ['pendingOrders', page, size, search],
+    queryFn: () =>
+      memberApi.getPendingOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 체결 주문 조회(전체)
+export const useGetConfirmedOrders = (
+  memberId: string,
+  page: number,
+  size: number,
+  search: string,
+) => {
+  return useQuery({
+    queryKey: ['confirmedOrders', page, size, search],
+    queryFn: () =>
+      memberApi.getConfirmedOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 수동 주문 조회
+export const useGetManualOrders = (
+  memberId: string,
+  page: number,
+  size: number,
+  search: string,
+) => {
+  return useQuery({
+    queryKey: ['manualOrders', page, size, search],
+    queryFn: () =>
+      memberApi.getManualOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
+  });
+};
+
+// 자동 주문 조회
+export const useGetAutoOrders = (memberId: string, page: number, size: number, search: string) => {
+  return useQuery({
+    queryKey: ['autoOrders', page, size, search],
+    queryFn: () => memberApi.getAutoOrders(memberId, page, size, search).then((res) => res.result),
+    placeholderData: (previousData) => previousData,
   });
 };

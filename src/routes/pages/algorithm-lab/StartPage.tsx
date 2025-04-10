@@ -1,15 +1,14 @@
-import Lottie from 'lottie-react';
 import { useNavigate } from 'react-router-dom';
 
-import walkMove from '@/assets/lottie/walk-animation.json';
 import { HelpBadge } from '@/components/common/help-badge';
+import { RocketBgAnimation } from '@/components/common/rocket-bg-animation';
 import { Button } from '@/components/ui/button';
 
 export const StartPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-4">
+    <div className="flex w-full animate-fadeIn flex-col items-center justify-center gap-4 duration-1000 ease-in-out">
       <div className="flex flex-col items-center justify-center">
         <h1 className="text-3xl font-bold">
           <span className="text-btn-blue-color">알고리즘</span> LAB
@@ -18,18 +17,10 @@ export const StartPage = () => {
       </div>
       <div className="flex w-full flex-col items-center gap-1">
         <div>
-          <Lottie
-            animationData={walkMove}
-            loop={true}
-            autoplay={true}
-            style={{ height: 170, width: 170 }}
-            rendererSettings={{
-              preserveAspectRatio: 'xMidYMid slice',
-            }}
-          />
+          <RocketBgAnimation height={200} width={200} />
         </div>
         <HelpBadge
-          title="주식에 익숙하지 않는 당신"
+          title="주식에 익숙하지 않은 당신"
           description="주식, 알고리즘 모든게 익숙하지 않으신가요? 걱정하지 마세요.
             여러분을 위해 쉬운 방법으로 도와드릴게요."
         />

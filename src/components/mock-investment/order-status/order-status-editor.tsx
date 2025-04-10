@@ -1,9 +1,12 @@
+import { MinusIcon, PlusIcon } from '@heroicons/react/24/solid';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { useChangeUserSimulated } from '@/api/stock.api';
 import { Button } from '@/components/ui/button';
 import { NumberInput } from '@/components/ui/number-input';
 import { NumberPriceInput } from '@/components/ui/number-price-input';
+import { queryClient } from '@/lib/queryClient';
 import { formatKoreanMoney } from '@/utils/numberFormatter';
 export interface OrderStatusShellProps {
   closePrice: number; // 종가
@@ -53,7 +56,10 @@ export const OrderStatusEditor = ({
       },
       {
         onSuccess: () => {
-          alert('주문이 성공적으로 수정되었습니다.');
+          setEditor(!editor);
+          toast.success('주문이 성공적으로 수정되었습니다.');
+          queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+          queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
         },
         onError: () => {
           alert('주문 수정에 실패했습니다.');
@@ -62,7 +68,7 @@ export const OrderStatusEditor = ({
     );
   };
 
-  const h3Style = 'text-[16px] font-bold text-white';
+  const h3Style = 'text-[14px] font-bold text-white';
   const [isActive, setIsActive] = useState<string>('지정가');
   // isActive 핸들러
   const isActiveHandler = (active: string) => {
@@ -138,7 +144,7 @@ export const OrderStatusEditor = ({
     }
   };
   return (
-    <div className="my-3">
+    <div className="my-3 animate-fadeIn">
       <div
         className={`rounded-xl  bg-opacity-20 p-2 ${tradeType === 1 ? 'bg-btn-blue-color' : 'bg-btn-red-color'}`}
       >
@@ -160,7 +166,7 @@ export const OrderStatusEditor = ({
                     className={`${isActive === '지정가' ? `bg-btn-primary-inactive-color ${h3Style}` : ''} w-full cursor-pointer rounded-md  py-2 text-center text-[16px] text-border-color transition-all duration-300`}
                     onClick={() => isActiveHandler('지정가')}
                   >
-                    <p>지정가</p>
+                    <p className="text-[14px]">지정가</p>
                   </div>
                 </div>
               </div>
@@ -170,7 +176,7 @@ export const OrderStatusEditor = ({
               <div className="min-w-[74px]" />
               <div className="relative flex w-full max-w-[80%] flex-col gap-2">
                 <NumberPriceInput
-                  value={0}
+                  value={shellCost}
                   setValue={setShellCost}
                   placeholder={`${shellCost.toLocaleString()}원`}
                   tickSize={tickSize}
@@ -183,28 +189,28 @@ export const OrderStatusEditor = ({
               <div className="min-w-[74px]">
                 <h3 className={h3Style}>수량</h3>
               </div>
-              <div className="relative flex w-full max-w-[80%] flex-col gap-2">
+              <div className=" flex w-full max-w-[80%] gap-2">
                 <NumberInput
                   value={stockCount}
                   setValue={setStockCount}
                   placeholder="수량을 입력하세요."
                 />
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-end px-[8px] text-border-color">
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
-                    >
-                      -
-                    </button>
+                <div className="flex items-center justify-end rounded-xl border border-border-color px-[8px] text-border-color">
+                  <div
+                    className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
+                    onClick={() => CostButtonHandler('-', stockCount, setStockCount, 1)}
+                  >
+                    <div className="h-5 w-5">
+                      <MinusIcon />
+                    </div>
                   </div>
-                  <div className="pointer-events-auto flex min-h-10 min-w-10 items-center justify-center rounded-md hover:bg-background-color">
-                    <button
-                      className="text-[22px]"
-                      onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
-                    >
-                      +
-                    </button>
+                  <div
+                    className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-md hover:bg-background-color"
+                    onClick={() => CostButtonHandler('+', stockCount, setStockCount, 1)}
+                  >
+                    <div className="h-5 w-5">
+                      <PlusIcon />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -239,7 +245,9 @@ export const OrderStatusEditor = ({
           <div className="mt-[25px] flex flex-col items-center gap-2">
             <div className="flex w-full gap-2">
               <Button
-                onClick={() => setEditor(!editor)}
+                onClick={() => {
+                  setEditor(!editor);
+                }}
                 variant="black"
                 className="w-full"
                 size="default"

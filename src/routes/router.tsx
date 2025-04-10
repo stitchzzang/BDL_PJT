@@ -10,6 +10,8 @@ import { MethodPage } from '@/routes/pages/algorithm-lab/MethodPage';
 import { NamePage } from '@/routes/pages/algorithm-lab/NamePage';
 import { StartPage } from '@/routes/pages/algorithm-lab/StartPage';
 import { StylePage } from '@/routes/pages/algorithm-lab/StylePage';
+import { BackTesting } from '@/routes/pages/BackTesting';
+import { BadGatewayPage } from '@/routes/pages/BadGatewayPage';
 import { HomePage } from '@/routes/pages/HomePage';
 import { LoginPage } from '@/routes/pages/LoginPage';
 import { AlgorithmPage } from '@/routes/pages/member/AlgorithmPage';
@@ -23,6 +25,7 @@ import { SearchPage } from '@/routes/pages/SearchPage';
 import { SignUpPage } from '@/routes/pages/SignUpPage';
 import { SignUpSuccessPage } from '@/routes/pages/SignUpSuccessPage';
 import { SimulatedInvestmentPage } from '@/routes/pages/SimulatedInvestmentPage';
+import { TooLargePage } from '@/routes/pages/TooLargePage';
 import { SelectPage } from '@/routes/pages/tutorial/SelectPage';
 import { SimulatePage } from '@/routes/pages/tutorial/SimulatePage';
 
@@ -99,7 +102,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: '/search',
+        path: 'investment/search',
         element: <SearchPage />,
       },
       {
@@ -140,6 +143,10 @@ export const router = createBrowserRouter([
         path: '/test',
         element: <ChartContainer />,
       },
+      {
+        path: 'backtest/:algorithmId/:companyId',
+        element: <BackTesting />,
+      },
     ],
   },
   {
@@ -153,5 +160,13 @@ export const router = createBrowserRouter([
   {
     path: 'error/not-found',
     element: <NotFoundPage />,
+  },
+  {
+    path: 'error/bad-gateway',
+    element: <BadGatewayPage />,
+  },
+  {
+    path: 'error/too-large',
+    element: <TooLargePage />,
   },
 ]);

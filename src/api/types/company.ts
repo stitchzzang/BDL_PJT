@@ -1,7 +1,8 @@
 // 종목 프로필 가져오기
 export interface CompanyProfile {
-  image: string;
-  name: string;
+  companyImage: string;
+  companyCode: string;
+  companyName: string;
   categories: string[];
 }
 

@@ -2,9 +2,12 @@ import { useNavigate } from 'react-router-dom';
 
 import { useCreateAlgorithm } from '@/api/algorithm.api';
 import { Button } from '@/components/ui/button';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 import { useAlgorithmLabGuard } from '@/hooks/useAlgorithmLabGuard';
+import { usePreventLeave } from '@/hooks/usePreventLeave';
 import { InvalidAccessPage } from '@/routes/pages/algorithm-lab/InvalidAccessPage';
 import { useAlgorithmLabStore } from '@/store/useAlgorithmLabStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const ConfirmPage = () => {
   const isValidAccess = useAlgorithmLabGuard('confirm');
@@ -35,6 +38,13 @@ export const ConfirmPage = () => {
     exitFixedPercentage,
     isFee,
   } = useAlgorithmLabStore();
+  const { userData } = useAuthStore();
+
+  // 페이지 이탈 방지 훅 적용
+  usePreventLeave(
+    isValidAccess,
+    '페이지를 벗어나면 지금까지 설정한 알고리즘 전략이 모두 사라집니다. 정말 나가시겠습니까?',
+  );
 
   if (!isValidAccess) {
     return <InvalidAccessPage />;
@@ -87,7 +97,7 @@ export const ConfirmPage = () => {
 
   const handleComplete = () => {
     createAlgorithm.mutate({
-      memberId: '1',
+      memberId: userData.memberId?.toString() || '',
       algorithm: {
         algorithmName,
         entryMethod: entryMethod ?? 'ONCE',
@@ -122,42 +132,42 @@ export const ConfirmPage = () => {
       <div className="w-full space-y-6 rounded-lg border border-btn-primary-inactive-color bg-modal-background-color p-4">
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">알고리즘 이름</h3>
-          <p className="font-bold text-btn-blue-color">{algorithmName}</p>
+          <p className="text-2xl font-bold text-btn-blue-color">{algorithmName}</p>
           <hr className="border border-border-color border-opacity-35" />
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 스타일</h3>
           <p>{investmentStyle && getStyleText(investmentStyle)}</p>
           <p>
-            이익 실현 :
+            <TermTooltip term="이익률">이익률</TermTooltip> :
             <span className="text-[18px] font-bold text-btn-blue-color">
               {' '}
               {profitPercentToSell}%
             </span>
           </p>
           <p>
-            손절매 :
+            <TermTooltip term="손절매">손절매</TermTooltip> :
             <span className="text-[18px] font-bold text-btn-blue-color"> {lossPercentToSell}%</span>
           </p>
         </div>
         <div className="flex flex-col gap-2">
           <h3 className="text-lg font-semibold text-text-inactive-3-color">투자 방식</h3>
           <div>
-            <p className="font-light text-border-color">
-              진입 방식: {entryMethod && getMethodText(entryMethod)}
+            <p className="font-light">
+              구매 방식 : {entryMethod && getMethodText(entryMethod)}
               {entryInvestmentMethod && ` (${getInvestmentMethodText(entryInvestmentMethod)})`}
             </p>
             {entryInvestmentMethod === 'FIXED_AMOUNT' && entryFixedAmount && (
-              <p className="font-light text-border-color">
-                진입 금액:{' '}
+              <p className="font-light">
+                구매 금액:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {entryFixedAmount.toLocaleString()}원
                 </span>
               </p>
             )}
             {entryInvestmentMethod === 'FIXED_PERCENTAGE' && entryFixedPercentage && (
-              <p className="font-light text-border-color">
-                진입 비율:{' '}
+              <p className="font-light">
+                구매 비율:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {entryFixedPercentage}%
                 </span>
@@ -165,30 +175,31 @@ export const ConfirmPage = () => {
             )}
           </div>
           <div>
-            <p className="font-light text-border-color">
-              청산 방식: {exitMethod && getMethodText(exitMethod)}
+            <p className="font-light">
+              판매 방식 : {exitMethod && getMethodText(exitMethod)}
               {exitInvestmentMethod && ` (${getInvestmentMethodText(exitInvestmentMethod)})`}
             </p>
             {exitInvestmentMethod === 'FIXED_AMOUNT' && exitFixedAmount && (
-              <p className="font-light text-border-color">
-                청산 금액:{' '}
+              <p className="font-light">
+                판매 금액:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {exitFixedAmount.toLocaleString()}원
                 </span>
               </p>
             )}
             {exitInvestmentMethod === 'FIXED_PERCENTAGE' && exitFixedPercentage && (
-              <p className="font-light text-border-color">
-                청산 비율:{' '}
+              <p className="font-light">
+                판매 비율:{' '}
                 <span className="text-[18px] font-bold text-btn-blue-color">
                   {exitFixedPercentage}%
                 </span>
               </p>
             )}
           </div>
-          <p className="font-light text-border-color">
-            수수료 포함: <span className="font-bold">{isFee ? '예' : '아니오'}</span>
-          </p>
+          {/* <p className="font-light">
+            <TermTooltip term="수수료 포함">수수료 포함</TermTooltip> :{' '}
+            <span className="font-bold">{isFee ? '예' : '아니오'}</span>
+          </p> */}
         </div>
         {(oneMinuteIncreasePercent ||
           oneMinuteDecreasePercent ||
@@ -200,9 +211,11 @@ export const ConfirmPage = () => {
             {(oneMinuteIncreasePercent || oneMinuteDecreasePercent) && (
               <>
                 <p>
-                  <span className="text-border-color">상승 시 반응 강도 : </span>
+                  <span>
+                    상승 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip> :{' '}
+                  </span>
                   <span className="font-medium">{oneMinuteIncreasePercent}%</span>
-                  <span className="text-border-color"> (</span>
+                  <span> (</span>
                   <span
                     className={
                       oneMinuteIncreaseAction === 'BUY'
@@ -217,7 +230,9 @@ export const ConfirmPage = () => {
                   <span className="text-border-color">)</span>
                 </p>
                 <p>
-                  <span className="text-border-color">하락 시 반응 강도 : </span>
+                  <span>
+                    하락 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip> :{' '}
+                  </span>
                   <span className="font-medium">{oneMinuteDecreasePercent}%</span>
                   <span className="text-border-color"> (</span>
                   <span
@@ -238,7 +253,9 @@ export const ConfirmPage = () => {
             {(dailyIncreasePercent || dailyDecreasePercent) && (
               <>
                 <p>
-                  <span className="text-border-color">상승 시 반응 강도 : </span>
+                  <span>
+                    상승 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip> :{' '}
+                  </span>
                   <span className="font-medium">{dailyIncreasePercent}%</span>
                   <span className="text-border-color"> (</span>
                   <span
@@ -255,7 +272,9 @@ export const ConfirmPage = () => {
                   <span className="text-border-color">)</span>
                 </p>
                 <p>
-                  <span className="text-border-color">하락 시 반응 강도 : </span>
+                  <span>
+                    하락 시 <TermTooltip term="반응 강도">반응 강도</TermTooltip> :{' '}
+                  </span>
                   <span className="font-medium">{dailyDecreasePercent}%</span>
                   <span className="text-border-color"> (</span>
                   <span
@@ -278,8 +297,10 @@ export const ConfirmPage = () => {
         {(shortTermMaPeriod || longTermMaPeriod) && (
           <div className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold text-text-inactive-3-color">추세 분석</h3>
-            <p>단기 이동평균선: {shortTermMaPeriod}일</p>
-            <p>장기 이동평균선: {longTermMaPeriod}일</p>
+            <p>
+              <TermTooltip term="이동평균선 사용">이동평균선 사용</TermTooltip> :{' '}
+              <span className="font-bold text-btn-blue-color">YES</span>
+            </p>
           </div>
         )}
       </div>

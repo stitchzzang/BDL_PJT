@@ -12,7 +12,7 @@ export const MainLayout = () => {
   useScrollTopOnRouteChange();
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen min-w-[1024px] flex-col overflow-x-auto">
       <NavBar />
       <main className="flex-1">
         <Outlet />

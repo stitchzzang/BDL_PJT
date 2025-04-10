@@ -1,4 +1,5 @@
 import { Algorithm } from '@/api/types/algorithm';
+import { TermTooltip } from '@/components/ui/term-tooltip';
 import { addCommasToThousand } from '@/utils/numberFormatter';
 
 type AlgorithmOptionProps = {
@@ -19,7 +20,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
 
   const options = [
     {
-      optionName: '매수',
+      optionName: '구매',
       optionDescription: `${algorithm.entryMethod === 'ONCE' ? '일시' : '분할'} | ${
         algorithm.entryInvestmentMethod === 'FIXED_AMOUNT'
           ? `${algorithm.entryFixedAmount ? addCommasToThousand(algorithm.entryFixedAmount) : 0}원`
@@ -27,21 +28,21 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
       }`,
     },
     {
-      optionName: '매도',
+      optionName: '판매',
       optionDescription: `${algorithm.exitMethod === 'ONCE' ? '일시' : '분할'} | ${
         algorithm.exitInvestmentMethod === 'FIXED_AMOUNT'
           ? `${algorithm.exitFixedAmount ? addCommasToThousand(algorithm.exitFixedAmount) : 0}원`
           : `${algorithm.exitFixedPercentage}%`
       }`,
     },
-    {
-      optionName: '수수료',
-      optionDescription: algorithm.isFee ? '포함' : '미포함',
-    },
+    // {
+    //   optionName: '수수료',
+    //   optionDescription: algorithm.isFee ? '포함' : '미포함',
+    // },
     ...(algorithm.profitPercentToSell
       ? [
           {
-            optionName: '이익 실현',
+            optionName: <TermTooltip term="이익률">이익률</TermTooltip>,
             optionDescription: `${algorithm.profitPercentToSell}%`,
           },
         ]
@@ -49,15 +50,23 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.lossPercentToSell
       ? [
           {
-            optionName: '손절매',
+            optionName: <TermTooltip term="손절매">손절매</TermTooltip>,
             optionDescription: `${algorithm.lossPercentToSell}%`,
+          },
+        ]
+      : []),
+    ...(algorithm.shortTermMaPeriod && algorithm.longTermMaPeriod
+      ? [
+          {
+            optionName: <TermTooltip term="이동평균선">이동평균선</TermTooltip>,
+            optionDescription: `사용`,
           },
         ]
       : []),
     ...(algorithm.oneMinuteIncreasePercent || algorithm.oneMinuteDecreasePercent
       ? [
           {
-            optionName: '단기 변화 반응',
+            optionName: '단기 변화 반응(분봉)',
             optionDescription: (
               <>
                 {algorithm.oneMinuteIncreasePercent && (
@@ -87,7 +96,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
     ...(algorithm.dailyIncreasePercent || algorithm.dailyDecreasePercent
       ? [
           {
-            optionName: '일간 추세 반응',
+            optionName: '일간 추세 반응(일봉)',
             optionDescription: (
               <>
                 {algorithm.dailyIncreasePercent && (
@@ -117,7 +126,7 @@ export const AlgorithmOption = ({ algorithm }: AlgorithmOptionProps) => {
   ];
 
   return (
-    <div className="flex flex-row flex-wrap gap-2">
+    <div className="flex w-full flex-row flex-wrap justify-start gap-2">
       {options.map((option, index) => (
         <p
           key={index}

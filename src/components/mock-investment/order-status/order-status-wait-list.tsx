@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 
 import { useDeleteUserSimulated } from '@/api/stock.api';
 import { UserSimulatedData } from '@/api/types/stock';
@@ -20,21 +21,21 @@ export const OrderStatusWaitList = ({
   realTime,
   tickSize,
 }: OrderStatusWaitListProps) => {
-  const h3Style = 'text-[16px] font-medium text-white';
+  const h3Style = 'text-[14px] font-medium text-white';
   // 주문 취소
   const deleteSimulatedMutation = useDeleteUserSimulated();
   const handleDeleteSimulatedMutation = (orderId: number) => {
     deleteSimulatedMutation.mutate(orderId, {
       onSuccess: (data) => {
         // 성공 시 처리
-        alert('주문이 성공적으로 취소되었습니다.');
+        toast.success('주문이 취소되었습니다.');
         // 쿼리 무효화
         queryClient.invalidateQueries({ queryKey: ['userSimulated'] });
+        queryClient.invalidateQueries({ queryKey: ['userAssetData'] });
       },
       onError: (error) => {
         // 에러 시 처리
-        console.error('주문 취소 실패:', error);
-        alert('주문 취소에 실패했습니다.');
+        toast.error('주문 취소 실패');
       },
       onSettled: () => {
         // 성공이든 실패든 완료 시 항상 실행
@@ -59,7 +60,7 @@ export const OrderStatusWaitList = ({
           <div className={`flex justify-between`}>
             <div className="flex items-center gap-3">
               <h3 className={h3Style}>{UserSimulatedData.companyName}</h3>
-              <p className="text-border-color">
+              <p className="text-[14px] text-border-color">
                 {formatKoreanMoney(UserSimulatedData.price)}원 <span>|</span>{' '}
                 {UserSimulatedData.quantity}주
               </p>
@@ -67,15 +68,15 @@ export const OrderStatusWaitList = ({
             <div className="flex gap-2">
               <div>
                 {UserSimulatedData.tradeType === 1 ? (
-                  <p className="text-btn-blue-color">판매</p>
+                  <p className="text-[14px] text-btn-blue-color">판매</p>
                 ) : (
-                  <p className="text-btn-red-color ">구매</p>
+                  <p className="text-[14px] text-btn-red-color">구매</p>
                 )}
               </div>
             </div>
           </div>
           {isActive ? (
-            <div className="flex gap-2">
+            <div className="flex animate-fadeIn gap-2">
               <Button
                 variant="green"
                 className="w-full"

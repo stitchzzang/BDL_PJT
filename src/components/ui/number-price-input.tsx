@@ -6,7 +6,7 @@ import { getAdjustToTickSize } from '@/utils/getAdjustToTickSize';
 interface InputProps {
   value: number;
   setValue: React.Dispatch<React.SetStateAction<number>>;
-  placeholder: string;
+  placeholder?: string;
   className?: string;
   tickSize: number; // 호가 단위
   roundingMethod?: 'round' | 'floor' | 'ceil'; // 반올림 방식
@@ -16,7 +16,7 @@ interface InputProps {
 export const NumberPriceInput: React.FC<InputProps> = ({
   value,
   setValue,
-  placeholder,
+  placeholder = '가격을 입력하세요',
   className,
   tickSize,
   roundingMethod = 'ceil',
@@ -26,6 +26,9 @@ export const NumberPriceInput: React.FC<InputProps> = ({
   const [inputValue, setInputValue] = useState<string>(value === 0 ? '' : value.toString());
   // 경고 메시지 상태
   const [warningMessage, setWarningMessage] = useState<string>('');
+
+  // 최대 입력 가능 금액 (9999억원)
+  const MAX_AMOUNT = 999900000000;
 
   // 가격 범위 계산 (고정 30%)
   const minPrice = Math.floor(closePrice * 0.7); // 하한가 (30% 아래)
@@ -38,6 +41,14 @@ export const NumberPriceInput: React.FC<InputProps> = ({
   // 가격 유효성 검사 및 경고 메시지 생성
   const validateAndAdjustPrice = (price: number): [number, string] => {
     if (price === 0) return [0, ''];
+
+    // 9999억원 초과인 경우
+    if (price > MAX_AMOUNT) {
+      return [
+        MAX_AMOUNT,
+        `최대 입력 가능 금액을 초과하여 ${MAX_AMOUNT.toLocaleString()}원으로 조정되었습니다.`,
+      ];
+    }
 
     // 최소값보다 작은 경우
     if (price < adjustedMinPrice) {
@@ -75,16 +86,25 @@ export const NumberPriceInput: React.FC<InputProps> = ({
       <Input
         className={`${className} rounded-xl px-[20px] py-[15px] ${warningMessage ? 'border-red-500' : ''}`}
         type="text"
-        placeholder={placeholder}
+        placeholder={placeholder ?? '가격을 입력하세요'}
         value={inputValue} // 입력 중인 값 표시
         onChange={(e) => {
           const value = e.target.value;
           // 숫자만 허용하는 정규식
           if (/^\d*$/.test(value)) {
-            setInputValue(value); // 입력 중에는 그대로 표시
-
-            // 입력 중에는 경고 메시지 숨기기
-            setWarningMessage('');
+            // 입력 값이 9999억원 이하인 경우에만 입력 허용
+            const numValue = value === '' ? 0 : parseInt(value, 10);
+            if (numValue <= MAX_AMOUNT) {
+              setInputValue(value); // 입력 중에는 그대로 표시
+              // 입력 중에는 경고 메시지 숨기기
+              setWarningMessage('');
+            } else {
+              // 최대 금액을 초과하면 최대 금액으로 설정
+              setInputValue(MAX_AMOUNT.toString());
+              setWarningMessage(
+                `최대 입력 가능 금액은 9999억원(${MAX_AMOUNT.toLocaleString()}원)입니다.`,
+              );
+            }
           }
         }}
         onBlur={() => {

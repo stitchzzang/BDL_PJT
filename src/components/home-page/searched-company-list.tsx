@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { SearchedCompanyResponse } from '@/api/types/home';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SearchedCompanyListItemProps {
   company: SearchedCompanyResponse;
@@ -20,8 +18,6 @@ interface SearchedCompanyListItemProps {
 export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProps) => {
   const navigate = useNavigate();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const isPositive = company.closePricePercent > 0;
-  const isNegative = company.closePricePercent < 0;
 
   const handleMockInvestment = () => {
     setIsDialogOpen(true);
@@ -32,9 +28,13 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
     setIsDialogOpen(false);
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+  };
+
   return (
     <>
-      <div className="flex h-16 w-full items-center justify-between border-b border-border-color px-4 hover:bg-modal-background-color">
+      <div className="flex w-full items-center justify-between rounded-xl border border-border-color border-opacity-20 bg-modal-background-color p-5 hover:bg-background-color">
         <div className="flex items-center gap-4">
           <img
             src={company.companyImage || 'https://placehold.co/40x40'}
@@ -43,7 +43,7 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
           />
           <div className="flex flex-col">
             <p className="text-base font-medium">{company.companyName}</p>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-border-color">
               <span className="text-text-sub-color text-xs">종목코드</span>
               <p className="text-text-sub-color text-xs">{company.companyCode}</p>
             </div>
@@ -51,23 +51,8 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
         </div>
         <div className="flex items-center gap-6">
           <div className="flex flex-col items-end">
-            <span className="text-text-sub-color text-xs">현재가</span>
+            <span className="text-text-sub-color text-xs text-border-color">현재가</span>
             <p className="text-base font-medium">{company.closePrice.toLocaleString()}원</p>
-          </div>
-          <div className="flex flex-col items-end">
-            <span className="text-text-sub-color text-xs">등락률</span>
-            <p
-              className={`text-sm font-medium ${
-                isPositive
-                  ? 'text-btn-green-color'
-                  : isNegative
-                    ? 'text-btn-red-color'
-                    : 'text-text-main-color'
-              }`}
-            >
-              {isPositive ? '+' : ''}
-              {company.closePricePercent.toFixed(2)}%
-            </p>
           </div>
           <div className="flex gap-2">
             <Button variant="blue" size="sm" onClick={handleMockInvestment} className="text-xs">
@@ -77,16 +62,14 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
         </div>
       </div>
 
-      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <AlertDialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
-          <AlertDialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
-            <AlertDialogTitle className="mb-1 text-[28px] font-bold">
-              모의투자 안내
-            </AlertDialogTitle>
-            <AlertDialogDescription className="sr-only">
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="mx-auto max-w-lg overflow-hidden rounded-2xl border-none bg-[#121729] p-0 text-white">
+          <DialogHeader className="flex flex-col items-center pb-5 pt-10 text-center">
+            <DialogTitle className="mb-1 text-[28px] font-bold">모의투자 안내</DialogTitle>
+            <DialogDescription className="sr-only">
               선택한 기업에 대한 모의투자 안내 사항을 확인하세요.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="flex flex-col items-center px-5 pb-5 pt-0 text-center">
             <div className="flex flex-col items-center text-[16px] text-white">
@@ -102,11 +85,9 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
             </div>
 
             <div className="my-10 flex w-full items-center justify-center gap-5 rounded-lg bg-[#041021] p-4">
-              <span className="text-[22px] font-bold text-[#4CAF50]">
+              <span className="text-xl font-bold">현재가</span>
+              <span className="text text-lg font-bold">
                 {company.closePrice.toLocaleString()}원
-              </span>
-              <span className="text-[22px] text-white">
-                ({company.closePricePercent.toFixed(2)}%)
               </span>
             </div>
 
@@ -116,20 +97,20 @@ export const SearchedCompanyListItem = ({ company }: SearchedCompanyListItemProp
               <span>충분히 확인하시기 바랍니다.</span>
             </div>
 
-            <div className="mt-10 flex w-full flex-col items-center gap-4">
-              <AlertDialogAction
+            <div className="mt-10 flex w-full flex-col items-center">
+              <Button
                 className="w-full max-w-[400px] rounded-full bg-[#5676F5] px-8 py-4 text-[18px] font-bold text-white hover:bg-[#4A67DE]"
                 onClick={handleConfirm}
               >
                 모의투자 시작하기
-              </AlertDialogAction>
-              <AlertDialogCancel className="w-full max-w-[400px] rounded-full px-8 py-4 text-[18px] font-bold">
-                취소하기
-              </AlertDialogCancel>
+              </Button>
+              <span className="mb-4 mt-4 text-center text-[13px] text-gray-500">
+                모의투자 시작하기 버튼 클릭시 모의투자가 시작됩니다.
+              </span>
             </div>
           </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

@@ -1,15 +1,18 @@
 // 상수 정의
 import { HTTPError } from 'ky';
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 
 const ERROR_CODES = {
+  EXPIRED_ACCESS_TOKEN: 401,
   // 1000번대: 회원 관련 오류
   NOT_FOUND_MEMBER: 1000,
   DUPLICATE_NICKNAME: 1001,
   INVALID_SECURITY_ANSWER: 1002,
   DUPLICATE_EMAIL: 1003,
   REFRESH_AUTHORIZATION_FAIL: 1004,
-  EXPIRED_ACCESS_TOKEN: 1005,
+  BAD_REQUEST_MEMBER: 1005,
+  NOT_MATCH_MEMBER: 1006,
+  NOT_FOUND_JWT: 1007,
 
   // 2000번대: 기업 관련 오류
   NOT_FOUND_COMPANY: 2000,
@@ -19,6 +22,7 @@ const ERROR_CODES = {
   NOT_FOUND_STOCK: 5001,
   NO_MORE_STOCK_DATA: 5002,
   INVALID_REQUEST_TIME: 5003,
+  STOCK_DAILY_NOT_FOUND: 5004,
 
   // 5100번대: 시뮬레이션 관련 오류
   INSUFFICIENT_FUNDS: 5100,
@@ -65,7 +69,6 @@ const ERROR_CODES = {
   NEWS_URL_MISSING: 7204,
   NEWS_DUPLICATE_ENTRY: 7205,
   NEWS_DATE_PARSE_ERROR: 7206,
-  NEWS_IMAGE_FETCH_FAILED: 7207,
 
   // 9000번대: AWS S3 관련 오류
   AWS_SERVER_ERROR: 9001,
@@ -94,15 +97,33 @@ const handleKyError = (error: HTTPError, defaultMessage = '요청 처리 중 오
       error.response
         .json()
         .then((errorData) => {
-          const data = errorData as { message?: string };
-          if (data?.message) {
-            toast.error(data.message);
+          const data = errorData as { message?: string; code?: number };
+          // 401 에러 (로그인 관련 에러)인 경우 alert 사용
+          if (
+            data?.code === ERROR_CODES.UNAUTHORIZED ||
+            error.response?.status === ERROR_CODES.UNAUTHORIZED
+          ) {
+            if (data?.message) {
+              alert(data.message);
+            } else {
+              alert(defaultMessage);
+            }
           } else {
-            toast.error(defaultMessage);
+            // 다른 에러는 기존처럼 toast 사용
+            if (data?.message) {
+              toast.error(data.message);
+            } else {
+              toast.error(defaultMessage);
+            }
           }
         })
         .catch(() => {
-          toast.error(defaultMessage);
+          // 응답 파싱 실패 시, 상태 코드 기반으로 처리
+          if (error.response?.status === ERROR_CODES.UNAUTHORIZED) {
+            alert(defaultMessage);
+          } else {
+            toast.error(defaultMessage);
+          }
         });
     } else {
       toast.error(defaultMessage);
@@ -116,9 +137,15 @@ const handleKyError = (error: HTTPError, defaultMessage = '요청 처리 중 오
  * API 에러 응답 처리 함수
  * @param {object} response - API 응답 객체
  */
-const handleApiError = (response: { data: { body: { message: string } } }) => {
-  const { message } = response.data.body;
-  toast.error(message);
+const handleApiError = (response: { data: { body: { message: string; code?: number } } }) => {
+  const { message, code } = response.data.body;
+
+  // 401 에러 (로그인 관련 에러)인 경우 alert 사용
+  if (code === ERROR_CODES.UNAUTHORIZED) {
+    alert(message);
+  } else {
+    toast.error(message);
+  }
 };
 
 export { ERROR_CODES, handleApiError, handleKyError };

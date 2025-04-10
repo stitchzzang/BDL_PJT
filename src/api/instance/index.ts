@@ -1,4 +1,5 @@
 import ky, { KyRequest } from 'ky';
+import { toast } from 'react-toastify';
 
 import { ERROR_CODES } from '@/api/instance/errorHandler';
 import { navigate } from '@/lib/navigation';
@@ -13,7 +14,7 @@ declare const __API_URL__: string;
 // 기본 ky 인스턴스 생성
 const _ky = ky.create({
   prefixUrl: __API_URL__,
-  timeout: 5000,
+  timeout: 10000, // 임시 수정
   credentials: 'include',
   headers: {},
 });
@@ -33,7 +34,7 @@ const _kyAuth = _ky.extend({
       async (request: ExtendedKyRequest, options, response) => {
         const clonedResponse = response.clone();
         const data = await clonedResponse.json();
-        const customCode = data?.body?.code;
+        const customCode = data?.code;
 
         // Access Token 만료
         if (customCode === ERROR_CODES.EXPIRED_ACCESS_TOKEN) {
@@ -47,11 +48,7 @@ const _kyAuth = _ky.extend({
                 ?.substring(BEARER_PREFIX.length);
 
               if (newAccessToken) {
-                useAuthStore.getState().loginAuth(newAccessToken, {
-                  memberId: null,
-                  nickname: null,
-                  profile: null,
-                });
+                localStorage.setItem('accessToken', newAccessToken);
                 request.headers.set('Authorization', `Bearer ${newAccessToken}`);
               }
 
@@ -67,6 +64,7 @@ const _kyAuth = _ky.extend({
         // 모든 토큰 만료 및 유효하지 않은 토큰
         if (customCode === ERROR_CODES.REFRESH_AUTHORIZATION_FAIL) {
           useAuthStore.getState().logoutAuth();
+          toast.error('인증이 만료되었습니다. 다시 로그인해주세요.');
           navigate('/login');
           throw new Error('Authentication failed');
         }

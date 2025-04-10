@@ -7,10 +7,22 @@ export function useAuthInitialize() {
   // localStorage 에 저장된 토큰을 조회하여 로그인 상태를 초기화(userData 복원)
   // 사용자가 로그인 후 브라우저를 닫았다가 다시 열어도 토큰이 유효하다면 자동으로 로그인 상태 유지
   const isInitialized = useAuthStore((state) => state.isInitialized);
+  const isLogin = useAuthStore((state) => state.isLogin);
 
   useEffect(() => {
     useAuthStore.getState().initializeAuth(); // 앱 시작 시 토큰 조회 후 로그인 상태 초기화
   }, []);
+
+  // 로그인 상태가 변경될 때마다 SSE 연결 관리
+  // useEffect(() => {
+  //   if (isInitialized) {
+  //     if (isLogin) {
+  //       subscribeToNotifications();
+  //     } else {
+  //       unsubscribeFromNotifications();
+  //     }
+  //   }
+  // }, [isLogin, isInitialized]);
 
   return isInitialized;
 }
