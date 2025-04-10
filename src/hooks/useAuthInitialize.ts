@@ -1,5 +1,9 @@
 import { useEffect } from 'react';
 
+import {
+  subscribeToNotifications,
+  unsubscribeFromNotifications,
+} from '@/services/notificationService';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export function useAuthInitialize() {
@@ -14,15 +18,15 @@ export function useAuthInitialize() {
   }, []);
 
   // 로그인 상태가 변경될 때마다 SSE 연결 관리
-  // useEffect(() => {
-  //   if (isInitialized) {
-  //     if (isLogin) {
-  //       subscribeToNotifications();
-  //     } else {
-  //       unsubscribeFromNotifications();
-  //     }
-  //   }
-  // }, [isLogin, isInitialized]);
+  useEffect(() => {
+    if (isInitialized) {
+      if (isLogin) {
+        subscribeToNotifications();
+      } else {
+        unsubscribeFromNotifications();
+      }
+    }
+  }, [isLogin, isInitialized]);
 
   return isInitialized;
 }
