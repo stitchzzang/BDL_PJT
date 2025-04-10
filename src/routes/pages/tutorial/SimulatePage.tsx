@@ -2584,6 +2584,7 @@ export const SimulatePage = () => {
               currentTotalAsset={assetInfo.currentTotalAsset}
               totalReturnRate={assetInfo.totalReturnRate}
               isLoading={isLoading || isChartLoading}
+              currentTurn={currentTurn}
             />
           </div>
           <div className="stock-progress">

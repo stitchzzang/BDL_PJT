@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { addCommasToThousand } from '@/utils/numberFormatter';
@@ -9,6 +9,7 @@ export interface StockTutorialMoneyInfoProps {
   currentTotalAsset: number;
   totalReturnRate: number;
   isLoading?: boolean;
+  currentTurn?: number;
 }
 
 export const StockTutorialMoneyInfo = ({
@@ -17,6 +18,7 @@ export const StockTutorialMoneyInfo = ({
   currentTotalAsset,
   totalReturnRate,
   isLoading = false,
+  currentTurn = 0,
 }: StockTutorialMoneyInfoProps) => {
   // 이전 값 저장용 ref
   const prevValuesRef = useRef({
@@ -25,6 +27,43 @@ export const StockTutorialMoneyInfo = ({
     currentTotalAsset,
     totalReturnRate,
   });
+
+  // 깜빡임 효과를 위한 상태
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  // 깜빡임 타이머 ref
+  const flashingTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 지속적인 깜빡임 효과 설정
+  useEffect(() => {
+    // 2턴 이상이고 수익률이 0이 아닐 때만 깜빡임 효과 적용
+    if (currentTurn >= 2 && totalReturnRate !== 0) {
+      // 이미 타이머가 있다면 제거
+      if (flashingTimerRef.current) {
+        clearInterval(flashingTimerRef.current);
+      }
+
+      // 1.5초 간격으로 깜빡이는 타이머 설정 (느리게)
+      flashingTimerRef.current = setInterval(() => {
+        setIsFlashing((prev) => !prev);
+      }, 1000);
+    } else {
+      // 조건에 맞지 않으면 깜빡임 중지 및 타이머 정리
+      if (flashingTimerRef.current) {
+        clearInterval(flashingTimerRef.current);
+        flashingTimerRef.current = null;
+      }
+      setIsFlashing(false);
+    }
+
+    // 컴포넌트 언마운트 시 타이머 정리
+    return () => {
+      if (flashingTimerRef.current) {
+        clearInterval(flashingTimerRef.current);
+        flashingTimerRef.current = null;
+      }
+    };
+  }, [currentTurn, totalReturnRate]);
 
   // 값 변경 확인 및 디버깅
   useEffect(() => {
@@ -101,7 +140,9 @@ export const StockTutorialMoneyInfo = ({
         <span className="text-[14px] font-bold">{formattedCurrentAsset}원</span>
       </div>
       <div
-        className={`flex gap-2 rounded-xl px-[15px] py-[12px] ${profitColor} ${totalReturnRate !== 0 ? 'bg-opacity-20' : ''}`}
+        className={`flex gap-2 rounded-xl px-[15px] py-[12px] ${profitColor} ${
+          totalReturnRate !== 0 ? `bg-opacity-${isFlashing ? '10' : '20'}` : ''
+        } transition-all duration-1000`}
       >
         <p className="text-[14px] text-border-color">총 수익률 :</p>
         <span className={`font-bold ${textProfitColor} text-[14px]`}>{displayPercentage}</span>
