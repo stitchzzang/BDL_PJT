@@ -29,7 +29,7 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
   const { userData } = useAuthStore();
   const memberId = userData.memberId ?? undefined;
   const [isOpen, setIsOpen] = useState(false);
-  const { mutate: deleteAlgorithm } = useDeleteAlgorithm();
+  const { mutate: deleteAlgorithm, isPending } = useDeleteAlgorithm();
 
   // 기업 목록 가져오기
   const { data: companies } = useGetCompaniesByCategory('0');
@@ -136,7 +136,10 @@ export const MyAlgorithmItem = ({ algorithm }: MyAlgorithmItemProps) => {
         )}
         <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogTrigger asChild>
-            <button className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white">
+            <button
+              className="rounded-[10px] border border-btn-red-color p-2 text-btn-red-color hover:bg-btn-red-color hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={isPending}
+            >
               <XMarkIcon className="h-5 w-5" />
             </button>
           </AlertDialogTrigger>
