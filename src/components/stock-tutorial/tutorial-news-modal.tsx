@@ -14,6 +14,7 @@ export interface TutorialNewsModalProps {
   news: NewsResponseWithThumbnail | null;
   companyId: number;
   currentTurn?: number;
+  isLoading?: boolean;
 }
 
 export const TutorialNewsModal = ({
@@ -22,6 +23,7 @@ export const TutorialNewsModal = ({
   news,
   companyId,
   currentTurn = 1,
+  isLoading = false,
 }: TutorialNewsModalProps) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -181,12 +183,12 @@ export const TutorialNewsModal = ({
                       <StockTutorialNewsDetail news={news} companyId={companyId} />
                     ) : (
                       <div className="flex h-[200px] flex-col items-center justify-center">
-                        <p className="text-lg font-medium text-border-color">
-                          {currentTurn}단계에는 교육용 뉴스가 없습니다.
-                        </p>
-                        <p className="mt-2 text-sm text-border-color">
-                          튜토리얼을 계속 진행하여 다음 단계를 확인해보세요.
-                        </p>
+                        <div className="flex flex-col items-center">
+                          <div className="h-12 w-12 animate-spin rounded-full border-4 border-t-4 border-border-color border-t-blue-500"></div>
+                          <p className="mt-4 text-md text-border-color">
+                            뉴스 데이터를 불러오는 중입니다...
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>

@@ -1203,6 +1203,19 @@ export const SimulatePage = () => {
       return;
     }
 
+    // 전체 로딩 상태 설정 - 먼저 로딩 스피너를 표시
+    setIsLoading(true);
+
+    // 랜덤 로딩 메시지 설정
+    const loadingMessages = [
+      '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
+      '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
+      '시장을 움직인 결정적 순간을 추적 중입니다...',
+      '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
+      '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
+    ];
+    setLoadingMessage(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+
     // 모든 skeleton 표시
     setIsChartSkeleton(true);
     setIsNewsSkeleton(true);
@@ -1213,84 +1226,73 @@ export const SimulatePage = () => {
     setIsChartLoading(true);
     setHasChartError(false);
 
-    // 초기화 API 호출
-    initSessionMutation
-      .mutateAsync({ memberId, companyId })
-      .then(async () => {
-        // 튜토리얼 시작 상태로 설정
-        setIsTutorialStarted(true);
+    try {
+      // 초기화 API 호출
+      await initSessionMutation.mutateAsync({ memberId, companyId });
 
-        // 변곡점 데이터 로드 (필요한 경우)
-        let pointDatesLoaded = pointDates;
+      // 튜토리얼 시작 상태로 설정
+      setIsTutorialStarted(true);
 
-        // 항상 새로 로드
-        pointDatesLoaded = await loadPointsData();
+      // 변곡점 데이터 로드 (필요한 경우)
+      let pointDatesLoaded = pointDates;
 
-        if (pointDatesLoaded.length < 3) {
-          // 변곡점 날짜가 없으면 하드코딩된 날짜 사용
-          pointDatesLoaded = ['240701', '240801', '240901'];
-          // 하드코딩된 날짜로 설정
-          setPointDates(pointDatesLoaded);
-        }
+      // 항상 새로 로드
+      pointDatesLoaded = await loadPointsData();
 
-        // 튜토리얼 1단계(1턴)로 설정
-        setCurrentTurn(1);
+      if (pointDatesLoaded.length < 3) {
+        // 변곡점 날짜가 없으면 하드코딩된 날짜 사용
+        pointDatesLoaded = ['240701', '240801', '240901'];
+        // 하드코딩된 날짜로 설정
+        setPointDates(pointDatesLoaded);
+      }
 
-        // 첫 번째 턴에 맞는 세션 계산
-        const firstSession = calculateSession(1);
-        if (!firstSession) {
-          throw new Error('세션 계산 실패');
-        }
+      // 튜토리얼 1단계(1턴)로 설정
+      setCurrentTurn(1);
 
-        setCurrentSession(firstSession);
-        setProgress(25);
+      // 첫 번째 턴에 맞는 세션 계산
+      const firstSession = calculateSession(1);
+      if (!firstSession) {
+        throw new Error('세션 계산 실패');
+      }
 
-        // 이전 API 요청 상태 초기화
-        newsRequestRef.current = {};
-        loadedTurnsRef.current = {
-          1: false,
-          2: false,
-          3: false,
-          4: false,
-        };
+      setCurrentSession(firstSession);
+      setProgress(25);
 
-        // 첫 번째 턴 차트 데이터 로드 (시작부터 첫 번째 턴의 끝까지)
-        const result = await loadChartData(defaultStartDate, firstSession.endDate, 1);
+      // 이전 API 요청 상태 초기화
+      newsRequestRef.current = {};
+      loadedTurnsRef.current = {
+        1: false,
+        2: false,
+        3: false,
+        4: false,
+      };
 
-        // 차트 데이터 로드 후 뉴스 데이터 로드 - 명시적으로 순서 보장
-        if (result) {
-          // 뉴스 로딩 시작 - 로딩 스피너 표시
-          setIsNewsLoading(true);
+      // 첫 번째 턴 차트 데이터 로드 (시작부터 첫 번째 턴의 끝까지)
+      const result = await loadChartData(defaultStartDate, firstSession.endDate, 1);
 
-          // 랜덤 로딩 메시지 설정
-          const loadingMessages = [
-            '오늘의 힌트: 시장을 흔든 그 한 줄을 찾는 중...',
-            '그날의 흐름을 만든 뉴스 데이터를 탐색 중입니다...',
-            '시장을 움직인 결정적 순간을 추적 중입니다...',
-            '그 시점, 무슨 일이 있었을까... 뉴스 단서 수집 중',
-            '투자의 힌트는 과거에 있다. 뉴스 맥락을 파악하는 중...',
-          ];
-          setLoadingMessage(loadingMessages[Math.floor(Math.random() * loadingMessages.length)]);
+      // 차트 데이터 로드 후 뉴스 데이터 로드 - 명시적으로 순서 보장
+      if (result) {
+        // 뉴스 데이터 로드 (1턴)
+        await loadNewsData(1);
 
-          // 뉴스 데이터 로드 (1턴)
-          await loadNewsData(1);
-
-          // 충분한 지연시간 후 모달 표시
-          setTimeout(() => {
-            // 로딩 완료 후 뉴스 모달 표시
-            setIsNewsLoading(false);
-            // 로딩 완료 후 무조건 모달 표시 (데이터 여부와 관계없이)
-            setIsNewsModalOpen(true);
-          }, 2000);
-        }
-      })
-      .catch(() => {
-        setHasChartError(true);
-        toast.error('튜토리얼 초기화 중 오류가 발생했습니다.');
-      })
-      .finally(() => {
+        // 모든 로딩이 완료된 후에 스피너 숨기기
+        setIsLoading(false);
         setIsChartLoading(false);
-      });
+
+        // 충분한 지연시간 후 모달 표시 (로딩이 먼저 완료된 것처럼 보이도록)
+        setTimeout(() => {
+          // 모든 데이터 로딩이 완료된 후 뉴스 모달 표시
+          setIsNewsModalOpen(true);
+        }, 500);
+      }
+    } catch (error) {
+      console.error('[handleTutorialStart] 튜토리얼 초기화 중 오류:', error);
+      setHasChartError(true);
+      toast.error('튜토리얼 초기화 중 오류가 발생했습니다.');
+      // 오류 발생 시에도 로딩 상태 해제
+      setIsLoading(false);
+      setIsChartLoading(false);
+    }
   };
 
   // 튜토리얼 완료 처리 함수
@@ -2482,15 +2484,18 @@ export const SimulatePage = () => {
       {/* 투어 컴포넌트 추가 */}
       <SimulationTour run={runTour} setRun={setRunTour} />
 
-      {/* 뉴스 모달이 열려있을 때 또는 로딩 중일 때 전체 페이지에 클릭 방지 오버레이 추가 */}
-      {(isNewsModalOpen || isNewsLoading || isLoading) && (
-        <div className="pointer-events-auto fixed inset-0 z-40 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-          {(isNewsLoading || isLoading) && !isNewsModalOpen && (
-            <LoadingSpinner size="large">
-              <p className="mt-4 text-white">{loadingMessage}</p>
-            </LoadingSpinner>
-          )}
+      {/* 로딩 중일 때 전체 페이지에 클릭 방지 오버레이 추가 - 최상위 z-index */}
+      {(isLoading || isNewsLoading) && (
+        <div className="pointer-events-auto fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <LoadingSpinner size="large">
+            <p className="mt-4 text-white">{loadingMessage}</p>
+          </LoadingSpinner>
         </div>
+      )}
+
+      {/* 뉴스 모달이 열려있을 때 오버레이 - 로딩 오버레이보다 낮은 z-index */}
+      {isNewsModalOpen && !(isLoading || isNewsLoading) && (
+        <div className="pointer-events-auto fixed inset-0 z-40 bg-white/0 backdrop-blur-sm"></div>
       )}
 
       {/* 기존 컴포넌트 */}
@@ -2705,7 +2710,7 @@ export const SimulatePage = () => {
         {/* 교육용 뉴스 모달 추가 - z-index가 가장 높고 pointer-events가 항상 auto여야 함 */}
         <div style={{ position: 'relative', zIndex: 100, pointerEvents: 'auto' }}>
           <TutorialNewsModal
-            isOpen={isNewsModalOpen}
+            isOpen={isNewsModalOpen && !(isLoading || isNewsLoading)}
             onClose={handleCloseNewsModal}
             news={currentNews}
             companyId={companyId}
