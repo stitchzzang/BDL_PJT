@@ -205,8 +205,8 @@ const usePreventLeave = (when: boolean, message: string) => {
         // 기본 이벤트 방지
         e.preventDefault();
       } else {
-        // 사용자가 확인하면 현재 경로 업데이트
-        currentPathRef.current = location.pathname;
+        // 사용자가 확인하면 tutorial/select 페이지로 이동
+        navigate('/tutorial/select');
       }
     };
 
@@ -220,7 +220,7 @@ const usePreventLeave = (when: boolean, message: string) => {
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [when, message, navigate, location.pathname]);
+  }, [when, message, navigate]);
 };
 
 export const SimulatePage = () => {
@@ -314,7 +314,25 @@ export const SimulatePage = () => {
   // 사용자 ID 가져오기
   const memberId = userData?.memberId || 0;
 
-  // 로그인 상태 확인 및 리다이렉트
+  // 컴포넌트 마운트 시 초기화 신호 확인
+  useEffect(() => {
+    const shouldReset = sessionStorage.getItem('tutorial_reset') === 'true';
+
+    if (shouldReset) {
+      // 초기화 로직 실행
+      setIsTutorialStarted(false);
+      setCurrentTurn(0);
+      setIsCurrentTurnCompleted(false);
+      setProgress(0);
+
+      // 초기화 후 신호 삭제
+      sessionStorage.removeItem('tutorial_reset');
+
+      console.log('[SimulatePage] 새로고침으로 인해 튜토리얼 상태가 초기화되었습니다.');
+    }
+  }, []);
+
+  // isLogin 상태 확인 및 리다이렉트
   useEffect(() => {
     if (!isLogin) {
       toast.error('로그인 후 이용해주세요.');
@@ -2392,6 +2410,12 @@ export const SimulatePage = () => {
         const message = '페이지를 벗어나면 튜토리얼 단계가 초기화됩니다. 벗어나시겠습니까?';
         e.preventDefault();
         e.returnValue = message; // Chrome에서는 이 설정이 필요
+
+        // 사용자가 확인하면 (브라우저의 beforeunload는 확인 여부를 직접 제어할 수 없으므로
+        // 새로고침 시에는 자동으로 튜토리얼 상태 초기화)
+        // sessionStorage에 초기화 신호 저장
+        sessionStorage.setItem('tutorial_reset', 'true');
+
         return message; // 다른 브라우저를 위한 리턴값
       };
 
