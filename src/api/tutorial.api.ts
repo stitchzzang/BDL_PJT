@@ -346,33 +346,6 @@ export const useProcessUserAction = () => {
 };
 
 /**
- * 튜토리얼 피드백 조회 API
- */
-export const useGetTutorialFeedback = (memberId: number, options?: { enabled?: boolean }) => {
-  const result = useQuery({
-    queryKey: ['tutorial', 'result', 'feedback', memberId],
-    queryFn: async () => {
-      try {
-        const response = await _kyAuth.get(`tutorial/result/feedback/${memberId}`);
-        return response.json() as Promise<ApiResponse<string>>;
-      } catch (error) {
-        handleKyError(error as HTTPError, '튜토리얼 피드백을 불러오는 중 오류가 발생했습니다.');
-        return {
-          isSuccess: true,
-          code: 200,
-          message: '기본 피드백 제공',
-          result: '튜토리얼을 완료하셨습니다. 실제 투자 시에는 더 신중하게 결정해보세요.',
-        } as ApiResponse<string>;
-      }
-    },
-    enabled: options?.enabled !== undefined ? options.enabled : !!memberId,
-    retry: 3,
-  });
-
-  return result;
-};
-
-/**
  * 튜토리얼 결과 저장 API
  */
 export const useSaveTutorialResult = () => {
