@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 
-import { unsubscribeFromNotifications } from '@/services/notificationService';
-
 interface UserData {
   memberId: number | null;
   nickname: string | null;
@@ -73,7 +71,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // 토큰이 있지만 만료된 경우 로그아웃 처리
     if (token && isTokenExpired()) {
-      unsubscribeFromNotifications(); // SSE 연결 종료
+      // unsubscribeFromNotifications(); // SSE 연결 종료
       localStorage.removeItem('accessToken');
       localStorage.removeItem('tokenExpiry');
       localStorage.removeItem('userData');
