@@ -429,11 +429,12 @@ app
 	+ **✅유저 테스트**:       
 	약 5:1의 경쟁률을 뚫고 전국 137개 팀 중 5개의 팀 내에 선정되어, 삼성 임직원분들께 테스트를 받을 수 있었습니다.
 
-		![image](https://github.com/user-attachments/assets/186fa68c-2576-4d8b-a438-80a172444ea8)       
-
+		 ![434344210-186fa68c-2576-4d8b-a438-80a172444ea8](https://github.com/user-attachments/assets/e4550579-1e9d-45f0-8323-ee8edc6f3066)
+      
 		발표자료 및 영상 포트폴리오를 제출하고, 테스트 후 제공받은 피드백은 아래와 같습니다.           
 
-		![image](https://github.com/user-attachments/assets/25b93c41-9995-4254-b712-b066820f393d)         
+		![01B8EFF8-247D-4392-848A-F245D10CAD8E](https://github.com/user-attachments/assets/329bc932-13d6-4dbe-b3c1-6c990201e9ec)
+   
 
 
 
