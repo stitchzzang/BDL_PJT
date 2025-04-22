@@ -1,5 +1,5 @@
 # 💰 TEAM 부자인거지 "부자될랩(BDL)"     
-## 🏆SSAFY 12기 특화프로젝트(핀테크) 🏆    
+## 🏆SSAFY 12기 특화프로젝트(핀테크) 우수상🏆    
 ![207677445 (1)](https://github.com/user-attachments/assets/da3f1be4-6d70-4b1d-85bf-602c9435224d)
 
 > **실시간 투자 체험과 주식 튜토리얼을 통한 주식 교육 플랫폼!**
